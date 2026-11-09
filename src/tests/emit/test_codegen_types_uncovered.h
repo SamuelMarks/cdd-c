@@ -42,7 +42,7 @@ TEST test_types_uncovered(void) {
 #endif
 
   /* 1. Test meta with property names (to cover lines 341, 343) */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -148,9 +148,12 @@ TEST test_types_uncovered(void) {
     strcpy(f->type, "null");
 #endif
   }
-  struct_fields_add(&sf, "obj3", "object", "Object", NULL, NULL);
-  struct_fields_add(&sf, "s1", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "s2", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "obj3", "object", "Object", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s1", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s2", "string", NULL, NULL, NULL);
 
   for (i = 0; i < 50; ++i) {
     FILE *t;
@@ -185,10 +188,10 @@ TEST test_types_uncovered(void) {
       break;
   }
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 3.5 Test string count > 1 */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -231,10 +234,10 @@ TEST test_types_uncovered(void) {
     if (rc == 0)
       break;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 3.6 Test string count == 1 */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -264,10 +267,10 @@ TEST test_types_uncovered(void) {
     if (rc == 0)
       break;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 4. Test int_count == 0 && num_count == 1 and boolean count == 1 */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -311,10 +314,10 @@ TEST test_types_uncovered(void) {
     if (rc == 0)
       break;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 4.2. Test num_count > 1 */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -357,10 +360,10 @@ TEST test_types_uncovered(void) {
     if (rc == 0)
       break;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 4.5. Test exactly one integer to hit line 687 */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -390,10 +393,10 @@ TEST test_types_uncovered(void) {
     if (rc == 0)
       break;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 4.6. Test NO ints and NO numbers to hit line 701 false branch */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
 #if defined(_MSC_VER)
@@ -423,7 +426,7 @@ TEST test_types_uncovered(void) {
     if (rc == 0)
       break;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 5. Test root array string cleanup and object */
   for (i = 0; i < 50; ++i) {
@@ -645,9 +648,9 @@ TEST test_types_uncovered(void) {
     arr_refs[5] = NULL;
     arr_refs[6] = cdd_test_mut_str("MyEnum");
     for (t_idx = 0; t_idx < 7; ++t_idx) {
-      struct_fields_init(&sf);
-      struct_fields_add(&sf, "arr", "array", arr_types[t_idx], arr_refs[t_idx],
-                        NULL);
+      g_cdd_last_alloc_err = struct_fields_init(&sf);
+      g_cdd_last_alloc_err = struct_fields_add(
+          &sf, "arr", "array", arr_types[t_idx], arr_refs[t_idx], NULL);
 
       for (i = 0; i < 50; ++i) {
         FILE *t;
@@ -665,7 +668,7 @@ TEST test_types_uncovered(void) {
         if (rc == 0)
           break;
       }
-      struct_fields_free(&sf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
     }
   }
 

@@ -49,107 +49,115 @@ TEST test_openapi_writer_branch_sweep(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
 
   /* 1. param_is_reserved_header_openapi: p != NULL, header, but p->name == NULL
    */
-  memset(&p, 0, sizeof(p));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p));
+  {
+    int is_res = 0;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_HEADER;
+    p.name = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p, &is_res));
+    ASSERT_EQ(0, is_res);
+  }
 
   /* 2. license_fields_invalid: only identifier, only url, only extensions */
   {
     struct OpenAPI_License lic;
+    int inv = 0;
     memset(&lic, 0, sizeof(lic));
     lic.identifier = cdd_test_mut_str("MIT");
-    license_fields_invalid(&lic);
+    ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(&lic, &inv));
+    ASSERT_EQ(1, inv);
     memset(&lic, 0, sizeof(lic));
     lic.url = cdd_test_mut_str("http://url");
-    license_fields_invalid(&lic);
+    ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(&lic, &inv));
+    ASSERT_EQ(1, inv);
     memset(&lic, 0, sizeof(lic));
     lic.extensions_json = cdd_test_mut_str("{}");
-    license_fields_invalid(&lic);
+    ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(&lic, &inv));
+    ASSERT_EQ(1, inv);
   }
 
   /* 3. Defensive calls: obj NULL vs arg NULL */
   memset(&ex, 0, sizeof(ex));
-  write_example_object(obj, NULL);
-  write_example_object(NULL, &ex);
+  g_cdd_last_alloc_err = write_example_object(obj, NULL);
+  g_cdd_last_alloc_err = write_example_object(NULL, &ex);
 
   memset(&disc, 0, sizeof(disc));
-  write_discriminator_object(obj, NULL, 1);
-  write_discriminator_object(obj, &disc, 0);
+  g_cdd_last_alloc_err = write_discriminator_object(obj, NULL, 1);
+  g_cdd_last_alloc_err = write_discriminator_object(obj, &disc, 0);
 
   memset(&xml, 0, sizeof(xml));
-  write_xml_object(obj, NULL, 1);
-  write_xml_object(obj, &xml, 0);
+  g_cdd_last_alloc_err = write_xml_object(obj, NULL, 1);
+  g_cdd_last_alloc_err = write_xml_object(obj, &xml, 0);
 
   memset(&srv, 0, sizeof(srv));
-  write_server_object(obj, NULL);
-  write_server_object(NULL, &srv);
+  g_cdd_last_alloc_err = write_server_object(obj, NULL);
+  g_cdd_last_alloc_err = write_server_object(NULL, &srv);
 
   memset(&p, 0, sizeof(p));
-  write_parameter_object(obj, NULL);
-  write_parameter_object(NULL, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, NULL);
+  g_cdd_last_alloc_err = write_parameter_object(NULL, &p);
 
   memset(&h, 0, sizeof(h));
-  write_header_object(obj, NULL);
-  write_header_object(NULL, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, NULL);
+  g_cdd_last_alloc_err = write_header_object(NULL, &h);
 
   memset(&enc, 0, sizeof(enc));
-  write_encoding_object(obj, NULL);
-  write_encoding_object(NULL, &enc);
+  g_cdd_last_alloc_err = write_encoding_object(obj, NULL);
+  g_cdd_last_alloc_err = write_encoding_object(NULL, &enc);
 
   memset(&mt, 0, sizeof(mt));
-  write_media_type_object(obj, NULL);
-  write_media_type_object(NULL, &mt);
+  g_cdd_last_alloc_err = write_media_type_object(obj, NULL);
+  g_cdd_last_alloc_err = write_media_type_object(NULL, &mt);
 
   memset(&link, 0, sizeof(link));
-  write_link_object(obj, NULL);
-  write_link_object(NULL, &link);
+  g_cdd_last_alloc_err = write_link_object(obj, NULL);
+  g_cdd_last_alloc_err = write_link_object(NULL, &link);
 
   memset(&resp, 0, sizeof(resp));
-  write_response_object(obj, NULL);
-  write_response_object(NULL, &resp);
+  g_cdd_last_alloc_err = write_response_object(obj, NULL);
+  g_cdd_last_alloc_err = write_response_object(NULL, &resp);
 
   memset(&rb, 0, sizeof(rb));
-  write_request_body_object(obj, NULL);
-  write_request_body_object(NULL, &rb);
+  g_cdd_last_alloc_err = write_request_body_object(obj, NULL);
+  g_cdd_last_alloc_err = write_request_body_object(NULL, &rb);
 
   memset(&cb, 0, sizeof(cb));
-  write_callback_object(obj, NULL);
-  write_callback_object(NULL, &cb);
+  g_cdd_last_alloc_err = write_callback_object(obj, NULL);
+  g_cdd_last_alloc_err = write_callback_object(NULL, &cb);
 
   memset(&op, 0, sizeof(op));
-  write_operation_object(obj, NULL);
-  write_operation_object(NULL, &op);
+  g_cdd_last_alloc_err = write_operation_object(obj, NULL);
+  g_cdd_last_alloc_err = write_operation_object(NULL, &op);
 
   memset(&path, 0, sizeof(path));
-  write_path_item_object(obj, NULL);
-  write_path_item_object(NULL, &path);
+  g_cdd_last_alloc_err = write_path_item_object(obj, NULL);
+  g_cdd_last_alloc_err = write_path_item_object(NULL, &path);
 
   /* 4. Contact metadata: only url, only email */
   memset(&spec, 0, sizeof(spec));
   spec.info.contact.url = cdd_test_mut_str("http://url");
-  write_info(obj, &spec);
+  g_cdd_last_alloc_err = write_info(obj, &spec);
   memset(&spec, 0, sizeof(spec));
   spec.info.contact.email = cdd_test_mut_str("e@test.com");
-  write_info(obj, &spec);
+  g_cdd_last_alloc_err = write_info(obj, &spec);
 
   /* 5. License metadata: only identifier, only url, only extensions */
   memset(&spec, 0, sizeof(spec));
   spec.info.license.identifier = cdd_test_mut_str("MIT");
-  write_info(obj, &spec);
+  g_cdd_last_alloc_err = write_info(obj, &spec);
   memset(&spec, 0, sizeof(spec));
   spec.info.license.url = cdd_test_mut_str("http://url");
-  write_info(obj, &spec);
+  g_cdd_last_alloc_err = write_info(obj, &spec);
   memset(&spec, 0, sizeof(spec));
   spec.info.license.extensions_json = cdd_test_mut_str("{}");
-  write_info(obj, &spec);
+  g_cdd_last_alloc_err = write_info(obj, &spec);
 
   /* 6. Server variables with enum NULL */
   memset(&srv, 0, sizeof(srv));
@@ -160,7 +168,7 @@ TEST test_openapi_writer_branch_sweep(void) {
   var.n_enum_values = 0;
   srv.variables = &var;
   srv.n_variables = 1;
-  write_server_object(obj, &srv);
+  g_cdd_last_alloc_err = write_server_object(obj, &srv);
 
   /* 7. Multipart field name NULL */
   memset(&ref, 0, sizeof(ref));
@@ -168,7 +176,7 @@ TEST test_openapi_writer_branch_sweep(void) {
   mp.name = NULL;
   ref.multipart_fields = &mp;
   ref.n_multipart_fields = 1;
-  write_schema_ref(obj, "mp_noname", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "mp_noname", &ref);
 
   /* 8. Schema ref: all_of, any_of, one_of with n == 0 but ptr != NULL */
   memset(&ref, 0, sizeof(ref));
@@ -181,7 +189,7 @@ TEST test_openapi_writer_branch_sweep(void) {
   ref.summary = cdd_test_mut_str("sum");
   ref.examples = NULL;
   ref.n_examples = 0;
-  write_schema_ref(obj, "ref_zeros", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "ref_zeros", &ref);
 
   /* 9. Parameter: allow_empty_value with non-query in */
   memset(&p, 0, sizeof(p));
@@ -189,66 +197,66 @@ TEST test_openapi_writer_branch_sweep(void) {
   p.allow_empty_value_set = 1;
   p.allow_empty_value = 1;
   p.schema_set = 1;
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.type = NULL;
   p.is_array = 1;
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   /* 10. Header: type without schema_set */
   memset(&h, 0, sizeof(h));
   h.type = NULL;
   h.is_array = 1;
   h.content_type = cdd_test_mut_str("application/json");
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
   h.type = cdd_test_mut_str("integer");
   h.content_type = cdd_test_mut_str("application/json");
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   /* 11. Encoding / Media type: name == NULL */
   memset(&mt, 0, sizeof(mt));
   mt.name = NULL;
-  write_media_type_map(obj, "content", &mt, 1);
+  g_cdd_last_alloc_err = write_media_type_map(obj, "content", &mt, 1);
 
   memset(&h, 0, sizeof(h));
   h.name = NULL;
-  write_headers_map(obj, "headers", &h, 1, 0);
+  g_cdd_last_alloc_err = write_headers_map(obj, "headers", &h, 1, 0);
 
   /* 12. Link: parameter without name */
   memset(&link, 0, sizeof(link));
   link.summary = NULL;
   link.description = NULL;
   link.name = NULL;
-  write_link_object(obj, &link);
+  g_cdd_last_alloc_err = write_link_object(obj, &link);
 
   /* 13. Callback: summary NULL, description NULL, name NULL */
   memset(&cb, 0, sizeof(cb));
   cb.name = NULL;
   cb.summary = NULL;
   cb.description = NULL;
-  write_callback_object(obj, &cb);
+  g_cdd_last_alloc_err = write_callback_object(obj, &cb);
 
   /* 14. Operation: without ID, summary, description, docs, deprecated */
   memset(&op, 0, sizeof(op));
   op.operation_id = NULL;
   op.summary = NULL;
   op.description = NULL;
-  write_operation_object(obj, &op);
+  g_cdd_last_alloc_err = write_operation_object(obj, &op);
 
   /* 15. Response: r->code == NULL -> defaults to "default" */
   memset(&resp, 0, sizeof(resp));
   resp.code = NULL;
   op.responses = &resp;
   op.n_responses = 1;
-  write_responses(obj, &op);
+  g_cdd_last_alloc_err = write_responses(obj, &op);
 
   /* 16. Path route == NULL -> defaults to "/" */
   memset(&path, 0, sizeof(path));
   path.route = NULL;
-  write_path_item_object(obj, &path);
+  g_cdd_last_alloc_err = write_path_item_object(obj, &path);
 
   /* 17. Security scheme: OA_SEC_IN_UNKNOWN */
   memset(&sec, 0, sizeof(sec));
@@ -266,14 +274,14 @@ TEST test_openapi_writer_branch_sweep(void) {
   memset(&spec, 0, sizeof(spec));
   spec.security_schemes = &sec;
   spec.n_security_schemes = 1;
-  write_security_schemes(obj, &spec);
+  g_cdd_last_alloc_err = write_security_schemes(obj, &spec);
 
   /* 18. Tag with name == NULL */
   memset(&tag, 0, sizeof(tag));
   tag.name = NULL;
   spec.tags = &tag;
   spec.n_tags = 1;
-  write_tags(obj, &spec);
+  g_cdd_last_alloc_err = write_tags(obj, &spec);
 
   /* 19. Security requirement with scheme == NULL */
   memset(&sec_req, 0, sizeof(sec_req));
@@ -281,26 +289,27 @@ TEST test_openapi_writer_branch_sweep(void) {
   memset(&sec_set, 0, sizeof(sec_set));
   sec_set.requirements = &sec_req;
   sec_set.n_requirements = 1;
-  write_security_requirements(obj, "sec", &sec_set, 1, 1);
+  g_cdd_last_alloc_err =
+      write_security_requirements(obj, "sec", &sec_set, 1, 1);
 
   /* 20. Component items with 0 count */
   memset(&spec, 0, sizeof(spec));
-  write_component_parameters(obj, &spec);
-  write_component_responses(obj, &spec);
-  write_component_headers(obj, &spec);
-  write_component_media_types(obj, &spec);
-  write_component_examples(obj, &spec);
-  write_component_links(obj, &spec);
-  write_component_callbacks(obj, &spec);
-  write_component_path_items(obj, &spec);
+  g_cdd_last_alloc_err = write_component_parameters(obj, &spec);
+  g_cdd_last_alloc_err = write_component_responses(obj, &spec);
+  g_cdd_last_alloc_err = write_component_headers(obj, &spec);
+  g_cdd_last_alloc_err = write_component_media_types(obj, &spec);
+  g_cdd_last_alloc_err = write_component_examples(obj, &spec);
+  g_cdd_last_alloc_err = write_component_links(obj, &spec);
+  g_cdd_last_alloc_err = write_component_callbacks(obj, &spec);
+  g_cdd_last_alloc_err = write_component_path_items(obj, &spec);
 
   /* 21. Paths empty */
   spec.is_schema_document = 0;
   spec.n_paths = 0;
   spec.paths_extensions_json = NULL;
-  write_paths(obj, &spec);
+  g_cdd_last_alloc_err = write_paths(obj, &spec);
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 
@@ -311,14 +320,24 @@ TEST test_openapi_writer_branch_sweep(void) {
 TEST test_openapi_writer_null_and_defensive(void) {
   JSON_Value *val = NULL;
   char *str = NULL;
+  int bval = 0;
 
-  ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, server_url_has_query_or_fragment(NULL));
-  ASSERT_EQ(1, server_url_has_query_or_fragment("https://example.com#frag"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, license_fields_invalid(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            server_url_has_query_or_fragment(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, server_url_has_query_or_fragment(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, server_url_has_query_or_fragment(
+                               "https://example.com#frag", &bval));
+  ASSERT_EQ(1, bval);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, clone_json_value(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, clone_json_value(NULL, &val));
   ASSERT(val == NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, schema_ref_has_data(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(NULL, &bval));
+  ASSERT_EQ(0, bval);
 
   {
     struct OpenAPI_Spec s_webhooks;
@@ -359,7 +378,7 @@ TEST test_openapi_writer_null_and_defensive(void) {
     for (k = 0; k < 20; ++k) {
       char *out_j = NULL;
       g_parson_oom_fail_at = k;
-      openapi_write_spec_to_json(&s_empty, &out_j);
+      g_cdd_last_alloc_err = openapi_write_spec_to_json(&s_empty, &out_j);
       if (out_j) {
         free(out_j);
         out_j = NULL;
@@ -374,36 +393,53 @@ TEST test_openapi_writer_null_and_defensive(void) {
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(NULL, &val));
   ASSERT(val == NULL);
 
-  write_schema_type(NULL, NULL, 0);
-  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, NULL));
-  write_schema_type_union(NULL, NULL, 0, NULL, 0);
-  write_enum_any_values(NULL, NULL, NULL, 0);
-  write_any_array_values(NULL, NULL, NULL, 0);
-  write_example_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_schema_type(NULL, NULL, 0);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            type_union_contains(NULL, 0, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, NULL, &bval));
+  ASSERT_EQ(0, bval);
+  g_cdd_last_alloc_err = write_schema_type_union(NULL, NULL, 0, NULL, 0);
+  g_cdd_last_alloc_err = write_enum_any_values(NULL, NULL, NULL, 0);
+  g_cdd_last_alloc_err = write_any_array_values(NULL, NULL, NULL, 0);
+  g_cdd_last_alloc_err = write_example_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, write_examples_object(NULL, NULL, NULL, 0));
-  write_example_fields(NULL, NULL, 0, NULL, 0);
-  write_external_docs(NULL, NULL, NULL);
-  write_discriminator_object(NULL, NULL, 0);
-  write_xml_object(NULL, NULL, 0);
-  write_server_object(NULL, NULL);
-  write_numeric_constraints(NULL, 0, 0.0, 0, 0, 0.0, 0);
-  write_string_constraints(NULL, 0, 0, 0, 0, NULL);
-  write_array_constraints(NULL, 0, 0, 0, 0, 0);
-  write_items_schema_fields(NULL, NULL);
-  write_schema_ref(NULL, NULL, NULL);
-  write_schema_from_type_fields(NULL, NULL, NULL, 0, NULL);
-  write_parameter_object(NULL, NULL);
-  write_header_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_example_fields(NULL, NULL, 0, NULL, 0);
+  g_cdd_last_alloc_err = write_external_docs(NULL, NULL, NULL);
+  g_cdd_last_alloc_err = write_discriminator_object(NULL, NULL, 0);
+  g_cdd_last_alloc_err = write_xml_object(NULL, NULL, 0);
+  g_cdd_last_alloc_err = write_server_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_numeric_constraints(NULL, 0, 0.0, 0, 0, 0.0, 0);
+  g_cdd_last_alloc_err = write_string_constraints(NULL, 0, 0, 0, 0, NULL);
+  g_cdd_last_alloc_err = write_array_constraints(NULL, 0, 0, 0, 0, 0);
+  g_cdd_last_alloc_err = write_items_schema_fields(NULL, NULL);
+  g_cdd_last_alloc_err = write_schema_ref(NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(NULL, NULL, NULL, 0, NULL);
+  g_cdd_last_alloc_err = write_parameter_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_header_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, write_encoding_map(NULL, NULL, 0));
-  write_link_object(NULL, NULL);
-  write_response_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_link_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_response_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, write_request_body_object(NULL, NULL));
-  write_callback_object(NULL, NULL);
+  g_cdd_last_alloc_err = write_callback_object(NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(NULL, NULL));
 
   PASS();
 }
+
+/**
+ * @brief Helper macro to test schema_ref_has_data for a single field.
+ * @param[in] stmt_set Statement to set the field.
+ * @param[in] stmt_clear Statement to clear the field.
+ */
+#define CHECK_HAS_DATA(stmt_set, stmt_clear)                                   \
+  do {                                                                         \
+    stmt_set;                                                                  \
+    ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(&ref, &has_data));            \
+    ASSERT_EQ(1, has_data);                                                    \
+    stmt_clear;                                                                \
+  } while (0)
 
 /**
  * @brief Unit test test_openapi_writer_schema_ref_branches.
@@ -411,169 +447,79 @@ TEST test_openapi_writer_null_and_defensive(void) {
  */
 TEST test_openapi_writer_schema_ref_branches(void) {
   struct OpenAPI_SchemaRef ref;
+  int has_data = 0;
 
   memset(&ref, 0, sizeof(ref));
-  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(&ref));
+  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(&ref, &has_data));
+  ASSERT_EQ(0, has_data);
 
-  ref.schema_is_boolean = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.schema_is_boolean = 0;
-  ref.ref_name = cdd_test_mut_str("test");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.ref_name = NULL;
-  ref.ref = cdd_test_mut_str("test");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.ref = NULL;
-  ref.inline_type = cdd_test_mut_str("string");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.inline_type = NULL;
-  ref.n_type_union = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_type_union = 0;
-  ref.is_array = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.is_array = 0;
-  ref.format = cdd_test_mut_str("email");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.format = NULL;
-  ref.content_media_type = cdd_test_mut_str("app/json");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.content_media_type = NULL;
-  ref.content_encoding = cdd_test_mut_str("base64");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.content_encoding = NULL;
-  ref.items_format = cdd_test_mut_str("int32");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_format = NULL;
-  ref.n_items_type_union = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_items_type_union = 0;
-  ref.items_content_media_type = cdd_test_mut_str("text/plain");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_content_media_type = NULL;
-  ref.items_content_encoding = cdd_test_mut_str("binary");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_content_encoding = NULL;
-  ref.n_multipart_fields = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_multipart_fields = 0;
-  ref.nullable = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.nullable = 0;
-  ref.items_nullable = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_nullable = 0;
-  ref.default_value_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.default_value_set = 0;
-  ref.n_enum_values = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_enum_values = 0;
-  ref.n_items_enum_values = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_items_enum_values = 0;
-  ref.summary = cdd_test_mut_str("sum");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.summary = NULL;
-  ref.description = cdd_test_mut_str("desc");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.description = NULL;
-  ref.deprecated_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.deprecated_set = 0;
-  ref.read_only_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.read_only_set = 0;
-  ref.write_only_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.write_only_set = 0;
-  ref.const_value_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.const_value_set = 0;
-  ref.n_examples = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_examples = 0;
-  ref.example_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.example_set = 0;
-  ref.has_min = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.has_min = 0;
-  ref.has_max = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.has_max = 0;
-  ref.has_min_len = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.has_min_len = 0;
-  ref.has_max_len = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.has_max_len = 0;
-  ref.pattern = cdd_test_mut_str("^a");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.pattern = NULL;
-  ref.has_min_items = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.has_min_items = 0;
-  ref.has_max_items = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.has_max_items = 0;
-  ref.unique_items = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.unique_items = 0;
-  ref.items_has_min = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_has_min = 0;
-  ref.items_has_max = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_has_max = 0;
-  ref.items_has_min_len = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_has_min_len = 0;
-  ref.items_has_max_len = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_has_max_len = 0;
-  ref.items_pattern = cdd_test_mut_str("^b");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_pattern = NULL;
-  ref.items_has_min_items = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_has_min_items = 0;
-  ref.items_has_max_items = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_has_max_items = 0;
-  ref.items_unique_items = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_unique_items = 0;
-  ref.items_example_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_example_set = 0;
-  ref.n_items_examples = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.n_items_examples = 0;
-  ref.items_schema_is_boolean = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_schema_is_boolean = 0;
-  ref.schema_extra_json = cdd_test_mut_str("{}");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.schema_extra_json = NULL;
-  ref.external_docs_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.external_docs_set = 0;
-  ref.discriminator_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.discriminator_set = 0;
-  ref.xml_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.xml_set = 0;
-  ref.items_extra_json = cdd_test_mut_str("{}");
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_extra_json = NULL;
-  ref.items_const_value_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_const_value_set = 0;
-  ref.items_default_value_set = 1;
-  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
-  ref.items_default_value_set = 0;
+  CHECK_HAS_DATA(ref.schema_is_boolean = 1, ref.schema_is_boolean = 0);
+  CHECK_HAS_DATA(ref.ref_name = cdd_test_mut_str("test"), ref.ref_name = NULL);
+  CHECK_HAS_DATA(ref.ref = cdd_test_mut_str("test"), ref.ref = NULL);
+  CHECK_HAS_DATA(ref.inline_type = cdd_test_mut_str("string"),
+                 ref.inline_type = NULL);
+  CHECK_HAS_DATA(ref.n_type_union = 1, ref.n_type_union = 0);
+  CHECK_HAS_DATA(ref.is_array = 1, ref.is_array = 0);
+  CHECK_HAS_DATA(ref.format = cdd_test_mut_str("email"), ref.format = NULL);
+  CHECK_HAS_DATA(ref.content_media_type = cdd_test_mut_str("app/json"),
+                 ref.content_media_type = NULL);
+  CHECK_HAS_DATA(ref.content_encoding = cdd_test_mut_str("base64"),
+                 ref.content_encoding = NULL);
+  CHECK_HAS_DATA(ref.items_format = cdd_test_mut_str("int32"),
+                 ref.items_format = NULL);
+  CHECK_HAS_DATA(ref.n_items_type_union = 1, ref.n_items_type_union = 0);
+  CHECK_HAS_DATA(ref.items_content_media_type = cdd_test_mut_str("text/plain"),
+                 ref.items_content_media_type = NULL);
+  CHECK_HAS_DATA(ref.items_content_encoding = cdd_test_mut_str("binary"),
+                 ref.items_content_encoding = NULL);
+  CHECK_HAS_DATA(ref.n_multipart_fields = 1, ref.n_multipart_fields = 0);
+  CHECK_HAS_DATA(ref.nullable = 1, ref.nullable = 0);
+  CHECK_HAS_DATA(ref.items_nullable = 1, ref.items_nullable = 0);
+  CHECK_HAS_DATA(ref.default_value_set = 1, ref.default_value_set = 0);
+  CHECK_HAS_DATA(ref.n_enum_values = 1, ref.n_enum_values = 0);
+  CHECK_HAS_DATA(ref.n_items_enum_values = 1, ref.n_items_enum_values = 0);
+  CHECK_HAS_DATA(ref.summary = cdd_test_mut_str("sum"), ref.summary = NULL);
+  CHECK_HAS_DATA(ref.description = cdd_test_mut_str("desc"),
+                 ref.description = NULL);
+  CHECK_HAS_DATA(ref.deprecated_set = 1, ref.deprecated_set = 0);
+  CHECK_HAS_DATA(ref.read_only_set = 1, ref.read_only_set = 0);
+  CHECK_HAS_DATA(ref.write_only_set = 1, ref.write_only_set = 0);
+  CHECK_HAS_DATA(ref.const_value_set = 1, ref.const_value_set = 0);
+  CHECK_HAS_DATA(ref.n_examples = 1, ref.n_examples = 0);
+  CHECK_HAS_DATA(ref.example_set = 1, ref.example_set = 0);
+  CHECK_HAS_DATA(ref.has_min = 1, ref.has_min = 0);
+  CHECK_HAS_DATA(ref.has_max = 1, ref.has_max = 0);
+  CHECK_HAS_DATA(ref.has_min_len = 1, ref.has_min_len = 0);
+  CHECK_HAS_DATA(ref.has_max_len = 1, ref.has_max_len = 0);
+  CHECK_HAS_DATA(ref.pattern = cdd_test_mut_str("^a"), ref.pattern = NULL);
+  CHECK_HAS_DATA(ref.has_min_items = 1, ref.has_min_items = 0);
+  CHECK_HAS_DATA(ref.has_max_items = 1, ref.has_max_items = 0);
+  CHECK_HAS_DATA(ref.unique_items = 1, ref.unique_items = 0);
+  CHECK_HAS_DATA(ref.items_has_min = 1, ref.items_has_min = 0);
+  CHECK_HAS_DATA(ref.items_has_max = 1, ref.items_has_max = 0);
+  CHECK_HAS_DATA(ref.items_has_min_len = 1, ref.items_has_min_len = 0);
+  CHECK_HAS_DATA(ref.items_has_max_len = 1, ref.items_has_max_len = 0);
+  CHECK_HAS_DATA(ref.items_pattern = cdd_test_mut_str("^b"),
+                 ref.items_pattern = NULL);
+  CHECK_HAS_DATA(ref.items_has_min_items = 1, ref.items_has_min_items = 0);
+  CHECK_HAS_DATA(ref.items_has_max_items = 1, ref.items_has_max_items = 0);
+  CHECK_HAS_DATA(ref.items_unique_items = 1, ref.items_unique_items = 0);
+  CHECK_HAS_DATA(ref.items_example_set = 1, ref.items_example_set = 0);
+  CHECK_HAS_DATA(ref.n_items_examples = 1, ref.n_items_examples = 0);
+  CHECK_HAS_DATA(ref.items_schema_is_boolean = 1,
+                 ref.items_schema_is_boolean = 0);
+  CHECK_HAS_DATA(ref.schema_extra_json = cdd_test_mut_str("{}"),
+                 ref.schema_extra_json = NULL);
+  CHECK_HAS_DATA(ref.external_docs_set = 1, ref.external_docs_set = 0);
+  CHECK_HAS_DATA(ref.discriminator_set = 1, ref.discriminator_set = 0);
+  CHECK_HAS_DATA(ref.xml_set = 1, ref.xml_set = 0);
+  CHECK_HAS_DATA(ref.items_extra_json = cdd_test_mut_str("{}"),
+                 ref.items_extra_json = NULL);
+  CHECK_HAS_DATA(ref.items_const_value_set = 1, ref.items_const_value_set = 0);
+  CHECK_HAS_DATA(ref.items_default_value_set = 1,
+                 ref.items_default_value_set = 0);
+
+#undef CHECK_HAS_DATA
 
   PASS();
 }
@@ -590,65 +536,80 @@ TEST test_openapi_writer_schema_and_types_coverage(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
 
   /* write_schema_type */
-  write_schema_type(obj, "null", 1);
+  g_cdd_last_alloc_err = write_schema_type(obj, "null", 1);
   {
     const char *_cdd_js_1 = NULL;
-    cdd_json_object_get_string(obj, "type", &_cdd_js_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(obj, "type", &_cdd_js_1);
     ASSERT_STR_EQ("null", _cdd_js_1);
   }
-  write_schema_type(obj, "string", 1);
+  g_cdd_last_alloc_err = write_schema_type(obj, "string", 1);
   {
     JSON_Array *_cdd_ja_1 = NULL;
-    cdd_json_object_get_array(obj, "type", &_cdd_ja_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_array(obj, "type", &_cdd_ja_1);
     ASSERT(_cdd_ja_1 != NULL);
   }
-  write_schema_type(obj, "string", 0);
+  g_cdd_last_alloc_err = write_schema_type(obj, "string", 0);
   {
     const char *_cdd_js_1 = NULL;
-    cdd_json_object_get_string(obj, "type", &_cdd_js_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(obj, "type", &_cdd_js_1);
     ASSERT_STR_EQ("string", _cdd_js_1);
   }
 
   /* type_union_contains */
-  types[0] = NULL;
-  types[1] = cdd_test_mut_str("string");
-  types[2] = cdd_test_mut_str("null");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, type_union_contains(types, 3, "null"));
-  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, "integer"));
-  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, "null"));
-  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, NULL));
+  {
+    int contains = 0;
+    types[0] = NULL;
+    types[1] = cdd_test_mut_str("string");
+    types[2] = cdd_test_mut_str("null");
+    ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, "null", &contains));
+    ASSERT_EQ(1, contains);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              type_union_contains(types, 3, "integer", &contains));
+    ASSERT_EQ(0, contains);
+    ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, "null", &contains));
+    ASSERT_EQ(0, contains);
+    ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, NULL, &contains));
+    ASSERT_EQ(0, contains);
+  }
 
   /* write_schema_type_union */
-  write_schema_type_union(obj, "string", 1, types, 3);
-  write_schema_type_union(obj, "string", 1, types, 2);
-  write_schema_type_union(obj, "integer", 0, NULL, 0);
-  write_schema_type_union(obj, NULL, 0, NULL, 0);
+  g_cdd_last_alloc_err = write_schema_type_union(obj, "string", 1, types, 3);
+  g_cdd_last_alloc_err = write_schema_type_union(obj, "string", 1, types, 2);
+  g_cdd_last_alloc_err = write_schema_type_union(obj, "integer", 0, NULL, 0);
+  g_cdd_last_alloc_err = write_schema_type_union(obj, NULL, 0, NULL, 0);
 
   /* write_numeric_constraints */
-  write_numeric_constraints(obj, 1, 5.0, 1, 1, 10.0, 1);
-  write_numeric_constraints(obj, 1, 5.0, 0, 1, 10.0, 0);
-  write_numeric_constraints(obj, 0, 0.0, 1, 0, 0.0, 1);
+  g_cdd_last_alloc_err = write_numeric_constraints(obj, 1, 5.0, 1, 1, 10.0, 1);
+  g_cdd_last_alloc_err = write_numeric_constraints(obj, 1, 5.0, 0, 1, 10.0, 0);
+  g_cdd_last_alloc_err = write_numeric_constraints(obj, 0, 0.0, 1, 0, 0.0, 1);
 
   /* write_string_constraints */
-  write_string_constraints(obj, 1, 2, 1, 20, "^abc$");
+  g_cdd_last_alloc_err = write_string_constraints(obj, 1, 2, 1, 20, "^abc$");
 
   /* write_array_constraints */
-  write_array_constraints(obj, 1, 1, 1, 10, 1);
+  g_cdd_last_alloc_err = write_array_constraints(obj, 1, 1, 1, 10, 1);
 
   /* write_schema_from_type_fields */
-  write_schema_from_type_fields(obj, "s1", "string", 1, "string");
-  write_schema_from_type_fields(obj, "s2", "string", 1, "CustomType");
-  write_schema_from_type_fields(obj, "s3", "string", 1, NULL);
-  write_schema_from_type_fields(obj, "s4", "string", 0, NULL);
-  write_schema_from_type_fields(obj, "s5", "array", 0, NULL);
-  write_schema_from_type_fields(obj, "s6", "CustomType", 0, NULL);
-  write_schema_from_type_fields(obj, "s7", NULL, 0, NULL);
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s1", "string", 1, "string");
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s2", "string", 1, "CustomType");
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s3", "string", 1, NULL);
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s4", "string", 0, NULL);
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s5", "array", 0, NULL);
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s6", "CustomType", 0, NULL);
+  g_cdd_last_alloc_err =
+      write_schema_from_type_fields(obj, "s7", NULL, 0, NULL);
 
   /* write_items_schema_fields */
   memset(&ref, 0, sizeof(ref));
@@ -660,16 +621,16 @@ TEST test_openapi_writer_schema_and_types_coverage(void) {
   ref.items_content_media_type = cdd_test_mut_str("application/json");
   ref.items_content_encoding = cdd_test_mut_str("base64");
   ref.items_extra_json = cdd_test_mut_str("{\"x-field\": true}");
-  write_items_schema_fields(obj, &ref);
+  g_cdd_last_alloc_err = write_items_schema_fields(obj, &ref);
   free(ref.items_content_schema);
 
   /* write_schema_ref cases */
   memset(&ref, 0, sizeof(ref));
   ref.has_multiple_of = 1;
   ref.multiple_of = 2.5;
-  write_schema_ref(obj, "s_mult", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "s_mult", &ref);
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 

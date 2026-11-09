@@ -159,7 +159,7 @@ TEST test_cli_gen_fail_open(void) {
   g_fail_io_after = -1;
 
   /* Case 2: fopen fails because destination path is an existing directory */
-  makedirs("test_build_dir/bad_cli/src/bad_base_cli.c");
+  g_cdd_last_alloc_err = makedirs("test_build_dir/bad_cli/src/bad_base_cli.c");
   config.filename_base = cdd_test_mut_str("test_build_dir/bad_cli/bad_base");
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);

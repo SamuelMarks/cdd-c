@@ -65,14 +65,14 @@ TEST test_ffi_ir_extract_error_paths(void) {
                                  "#define MY_MACRO 1\n"
                                  "C_CDD_EXPORT int func1(int* p);\n";
 
-    write_to_file("test.h", exhaustive_src);
+    g_cdd_last_alloc_err = write_to_file("test.h", exhaustive_src);
 
     for (i = 1; i < 500; i++) {
       g_ffi_extractor_alloc_fail = i;
       ir = NULL;
       if (cdd_ffi_ir_extract_exports("test.h", exhaustive_src, &config, &ir) ==
           CDD_C_SUCCESS) {
-        cdd_ffi_ir_free(ir);
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
         free(ir);
       }
     }
@@ -80,7 +80,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
     ir = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_extract_exports(
                                  "test.h", exhaustive_src, &config, &ir));
-    cdd_ffi_ir_free(ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     free(ir);
     remove("test.h");
   }
@@ -144,7 +144,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
         CDD_C_ERROR_MEMORY,
         cdd_ffi_ir_add_node_test(&test_ir, CDD_FFI_NODE_STRUCT, "N2", &node));
     g_ffi_extractor_alloc_fail = 0;
-    cdd_ffi_ir_free(&test_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   }
 
   /* 4. parse_template_type error and branch tests */
@@ -265,9 +265,10 @@ TEST test_ffi_ir_extract_error_paths(void) {
                                                        &config));
 
     /* cdd_cst_parse failure in extract_single_file_exports */
-    write_to_file("test_cst_fail.h",
-                  "enum E { E_A = 1 }; struct B : virtual A { int x; }; "
-                  "int foo(int a) { return a; }");
+    g_cdd_last_alloc_err =
+        write_to_file("test_cst_fail.h",
+                      "enum E { E_A = 1 }; struct B : virtual A { int x; }; "
+                      "int foo(int a) { return a; }");
     g_cdd_cst_alloc_token_fail = 1;
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_ffi_extract_single_file_exports_test(
@@ -277,10 +278,10 @@ TEST test_ffi_ir_extract_error_paths(void) {
                   &config));
     g_cdd_cst_alloc_token_fail = 0;
     remove("test_cst_fail.h");
-    cdd_ffi_ir_free(&test_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
 
     /* Signature extraction failure via g_cdd_fail_cst_list_add */
-    write_to_file("bad_sig.h", "int a;");
+    g_cdd_last_alloc_err = write_to_file("bad_sig.h", "int a;");
     g_cdd_fail_cst_list_add = 1;
     ASSERT(cdd_ffi_extract_single_file_exports_test(
                &test_ir, "bad_sig.h", "int a;", &config) != CDD_C_SUCCESS);
@@ -295,19 +296,19 @@ TEST test_ffi_ir_extract_error_paths(void) {
     /* Trivia OOM branches for KIND_STRUCT */
     {
       int fail_idx;
-      write_to_file(
+      g_cdd_last_alloc_err = write_to_file(
           "test_trivia_struct.h",
           "/* leading */\nstruct MyStruct { int a; };\n// trailing\n");
       for (fail_idx = 1; fail_idx <= 25; fail_idx++) {
         cdd_ffi_ir_t triv_ir;
         memset(&triv_ir, 0, sizeof(triv_ir));
         g_ffi_extractor_alloc_fail = fail_idx;
-        cdd_ffi_extract_single_file_exports_test(
+        g_cdd_last_alloc_err = cdd_ffi_extract_single_file_exports_test(
             &triv_ir, "test_trivia_struct.h",
             "/* leading */\nstruct MyStruct { int a; };\n// trailing\n",
             &config);
         g_ffi_extractor_alloc_fail = 0;
-        cdd_ffi_ir_free(&triv_ir);
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(&triv_ir);
       }
       remove("test_trivia_struct.h");
     }
@@ -318,12 +319,13 @@ TEST test_ffi_ir_extract_error_paths(void) {
       for (fail_idx = 1; fail_idx <= 6; fail_idx++) {
         cdd_ffi_ir_t mac_ir;
         memset(&mac_ir, 0, sizeof(mac_ir));
-        write_to_file("test_mac_loop.h", "#define CONST_VAL 99\n");
+        g_cdd_last_alloc_err =
+            write_to_file("test_mac_loop.h", "#define CONST_VAL 99\n");
         g_ffi_extractor_alloc_fail = fail_idx;
-        cdd_ffi_extract_single_file_exports_test(&mac_ir, "test_mac_loop.h", "",
-                                                 &config);
+        g_cdd_last_alloc_err = cdd_ffi_extract_single_file_exports_test(
+            &mac_ir, "test_mac_loop.h", "", &config);
         g_ffi_extractor_alloc_fail = 0;
-        cdd_ffi_ir_free(&mac_ir);
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(&mac_ir);
         remove("test_mac_loop.h");
       }
     }
@@ -331,7 +333,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
     /* Trampoline extraction OOM branches */
     {
       int fail_idx;
-      write_to_file("test_tramp_loop.h", "int a;\n");
+      g_cdd_last_alloc_err = write_to_file("test_tramp_loop.h", "int a;\n");
       for (fail_idx = 1; fail_idx <= 4; fail_idx++) {
         cdd_ffi_ir_t tramp_ir;
         memset(&tramp_ir, 0, sizeof(tramp_ir));
@@ -347,51 +349,53 @@ TEST test_ffi_ir_extract_error_paths(void) {
         tramp_ir.nodes[0].virtual_methods[0].name = strdup("foo");
 
         g_ffi_extractor_alloc_fail = fail_idx;
-        cdd_ffi_extract_single_file_exports_test(&tramp_ir, "test_tramp_loop.h",
-                                                 "", &config);
+        g_cdd_last_alloc_err = cdd_ffi_extract_single_file_exports_test(
+            &tramp_ir, "test_tramp_loop.h", "", &config);
         g_ffi_extractor_alloc_fail = 0;
-        cdd_ffi_ir_free(&tramp_ir);
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(&tramp_ir);
       }
       remove("test_tramp_loop.h");
     }
 
     /* Fail class name CST lookup */
     g_cdd_ffi_fail_class_name = 1;
-    write_to_file("test_fail_cls.h", "struct B : virtual A { int x; };");
+    g_cdd_last_alloc_err =
+        write_to_file("test_fail_cls.h", "struct B : virtual A { int x; };");
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_single_file_exports_test(
                                  &test_ir, "test_fail_cls.h",
                                  "struct B : virtual A { int x; };", &config));
     g_cdd_ffi_fail_class_name = 0;
     remove("test_fail_cls.h");
-    cdd_ffi_ir_free(&test_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
 
     /* Empty enums, empty structs, @blocking, fn(void), fn(int), fn_in,
      * _Out_writes_ */
-    write_to_file("test_branches.h", empty_classes_code);
+    g_cdd_last_alloc_err = write_to_file("test_branches.h", empty_classes_code);
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_ffi_extract_single_file_exports_test(
                   &test_ir, "test_branches.h", empty_classes_code, &config));
     remove("test_branches.h");
-    cdd_ffi_ir_free(&test_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
 
-    write_to_file("test_doc_writes.h", doc_and_writes_code);
+    g_cdd_last_alloc_err =
+        write_to_file("test_doc_writes.h", doc_and_writes_code);
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_ffi_extract_single_file_exports_test(
                   &test_ir, "test_doc_writes.h", doc_and_writes_code, &config));
     remove("test_doc_writes.h");
-    cdd_ffi_ir_free(&test_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
 
     /* Function-like macro and macro without value */
     {
       const char *macros_code = "#define FN_MACRO(x) (x)\n"
                                 "#define NO_VAL\n"
                                 "#define VAL_MACRO 100\n";
-      write_to_file("test_mac_branches.h", macros_code);
+      g_cdd_last_alloc_err = write_to_file("test_mac_branches.h", macros_code);
       ASSERT_EQ(CDD_C_SUCCESS,
                 cdd_ffi_extract_single_file_exports_test(
                     &test_ir, "test_mac_branches.h", macros_code, &config));
       remove("test_mac_branches.h");
-      cdd_ffi_ir_free(&test_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
     }
   }
 
@@ -453,13 +457,13 @@ TEST test_ffi_ir_extract_error_paths(void) {
     {
       cdd_ffi_ir_t rec_ir;
       memset(&rec_ir, 0, sizeof(rec_ir));
-      write_to_file("f_norec.h", "int a;");
+      g_cdd_last_alloc_err = write_to_file("f_norec.h", "int a;");
       mctx.ir = &rec_ir;
       mctx.config = NULL;
       ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_exports_recursive_test(
                                    "f_norec.h", "int a;", &mctx));
       remove("f_norec.h");
-      cdd_ffi_ir_free(&rec_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(&rec_ir);
     }
 
     for (vi = 0; vi < mctx.visited_count; vi++) {
@@ -596,7 +600,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
     inst_ir.nodes[2].fields[5].type.template_args[0].ref_name = NULL;
 
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_instantiate_templates_test(&inst_ir));
-    cdd_ffi_ir_free(&inst_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
 
     /* OOM when allocating new_node->fields in instantiate_templates */
     memset(&inst_ir, 0, sizeof(inst_ir));
@@ -625,7 +629,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
     g_ffi_extractor_alloc_fail = 2;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_instantiate_templates_test(&inst_ir));
     g_ffi_extractor_alloc_fail = 0;
-    cdd_ffi_ir_free(&inst_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
   }
 
   PASS();

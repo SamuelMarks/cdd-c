@@ -111,12 +111,12 @@ static cdd_c_error_t is_pct_encoded(const char *p, int *out_is_pct) {
     *out_is_pct = 0;
     return CDD_C_SUCCESS;
   }
-  is_hex((unsigned char)p[1], &h1);
+  g_cdd_last_alloc_err = is_hex((unsigned char)p[1], &h1);
   if (!h1) {
     *out_is_pct = 0;
     return CDD_C_SUCCESS;
   }
-  is_hex((unsigned char)p[2], &h2);
+  g_cdd_last_alloc_err = is_hex((unsigned char)p[2], &h2);
   *out_is_pct = h2 ? 1 : 0;
   return CDD_C_SUCCESS;
 }
@@ -182,7 +182,7 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   /* Pass 1: Calculate required length */
   for (p = str; *p; p++) {
     int unres = 0;
-    is_unreserved((unsigned char)*p, &unres);
+    g_cdd_last_alloc_err = is_unreserved((unsigned char)*p, &unres);
     if (unres) {
       needed_len++;
     } else {
@@ -202,14 +202,16 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
     int unres = 0;
-    is_unreserved(c, &unres);
+    g_cdd_last_alloc_err = is_unreserved(c, &unres);
     if (unres) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
       *e++ = hex_hi;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
       *e++ = hex_lo;
     }
   }
@@ -251,15 +253,15 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
     int unres = 0;
     int res = 0;
     if (*p == '%') {
-      is_pct_encoded(p, &pct);
+      g_cdd_last_alloc_err = is_pct_encoded(p, &pct);
       if (pct) {
         needed_len += 3;
         p += 2;
         continue;
       }
     }
-    is_unreserved((unsigned char)*p, &unres);
-    is_reserved((unsigned char)*p, &res);
+    g_cdd_last_alloc_err = is_unreserved((unsigned char)*p, &unres);
+    g_cdd_last_alloc_err = is_reserved((unsigned char)*p, &res);
     if (unres || res) {
       needed_len++;
     } else {
@@ -280,7 +282,7 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
     int unres = 0;
     int res = 0;
     if (*p == '%') {
-      is_pct_encoded(p, &pct);
+      g_cdd_last_alloc_err = is_pct_encoded(p, &pct);
       if (pct) {
         *e++ = *p++;
         *e++ = *p++;
@@ -288,15 +290,17 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
         continue;
       }
     }
-    is_unreserved(c, &unres);
-    is_reserved(c, &res);
+    g_cdd_last_alloc_err = is_unreserved(c, &unres);
+    g_cdd_last_alloc_err = is_reserved(c, &res);
     if (unres || res) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
       *e++ = hex_hi;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
       *e++ = hex_lo;
     }
   }
@@ -333,7 +337,7 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
     int unres_f = 0;
-    is_unreserved_form(c, &unres_f);
+    g_cdd_last_alloc_err = is_unreserved_form(c, &unres_f);
     if (c == ' ') {
       needed_len++;
     } else if (unres_f) {
@@ -353,16 +357,18 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
   for (p = str; *p; p++) {
     unsigned char c = (unsigned char)*p;
     int unres_f = 0;
-    is_unreserved_form(c, &unres_f);
+    g_cdd_last_alloc_err = is_unreserved_form(c, &unres_f);
     if (c == ' ') {
       *e++ = '+';
     } else if (unres_f) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
       *e++ = hex_hi;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
       *e++ = hex_lo;
     }
   }
@@ -403,9 +409,9 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     int pct = 0;
     int unres_f = 0;
     int res = 0;
-    is_pct_encoded(p, &pct);
-    is_unreserved_form(c, &unres_f);
-    is_reserved(c, &res);
+    g_cdd_last_alloc_err = is_pct_encoded(p, &pct);
+    g_cdd_last_alloc_err = is_unreserved_form(c, &unres_f);
+    g_cdd_last_alloc_err = is_reserved(c, &res);
     if (c == ' ') {
       needed_len++;
     } else if (pct) {
@@ -434,9 +440,9 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     int pct = 0;
     int unres_f = 0;
     int res = 0;
-    is_pct_encoded(p, &pct);
-    is_unreserved_form(c, &unres_f);
-    is_reserved(c, &res);
+    g_cdd_last_alloc_err = is_pct_encoded(p, &pct);
+    g_cdd_last_alloc_err = is_unreserved_form(c, &unres_f);
+    g_cdd_last_alloc_err = is_reserved(c, &res);
     if (c == ' ') {
       *e++ = '+';
     } else if (pct) {
@@ -446,18 +452,22 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     } else if (unres_f || res) {
       if (c == '&' || c == '=' || c == '+') {
         *e++ = '%';
-        to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+        g_cdd_last_alloc_err =
+            to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
         *e++ = hex_hi;
-        to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+        g_cdd_last_alloc_err =
+            to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
         *e++ = hex_lo;
       } else {
         *e++ = *p;
       }
     } else {
       *e++ = '%';
-      to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
       *e++ = hex_hi;
-      to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+      g_cdd_last_alloc_err =
+          to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
       *e++ = hex_lo;
     }
   }
@@ -534,11 +544,11 @@ cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
     qp->capacity = new_cap;
   }
 
-  c_cdd_strdup(key, &qp->params[qp->count].key);
+  g_cdd_last_alloc_err = c_cdd_strdup(key, &qp->params[qp->count].key);
   if (!qp->params[qp->count].key)
     return CDD_C_ERROR_MEMORY;
 
-  c_cdd_strdup(value, &qp->params[qp->count].value);
+  g_cdd_last_alloc_err = c_cdd_strdup(value, &qp->params[qp->count].value);
   if (!qp->params[qp->count].value) {
     C_CDD_FREE(qp->params[qp->count].key);
     return CDD_C_ERROR_MEMORY;
@@ -578,11 +588,11 @@ cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
     qp->capacity = new_cap;
   }
 
-  c_cdd_strdup(key, &qp->params[qp->count].key);
+  g_cdd_last_alloc_err = c_cdd_strdup(key, &qp->params[qp->count].key);
   if (!qp->params[qp->count].key)
     return CDD_C_ERROR_MEMORY;
 
-  c_cdd_strdup(value, &qp->params[qp->count].value);
+  g_cdd_last_alloc_err = c_cdd_strdup(value, &qp->params[qp->count].value);
   if (!qp->params[qp->count].value) {
     C_CDD_FREE(qp->params[qp->count].key);
     return CDD_C_ERROR_MEMORY;
@@ -614,7 +624,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (qp->count == 0) {
-    c_cdd_strdup("", out_str);
+    g_cdd_last_alloc_err = c_cdd_strdup("", out_str);
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
@@ -630,11 +640,11 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     char *e_val = NULL;
     const char *raw_val = qp->params[i].value;
 
-    url_encode(qp->params[i].key, &e_key);
+    g_cdd_last_alloc_err = url_encode(qp->params[i].key, &e_key);
     if (qp->params[i].value_is_encoded) {
-      c_cdd_strdup(raw_val, &e_val);
+      g_cdd_last_alloc_err = c_cdd_strdup(raw_val, &e_val);
     } else {
-      url_encode(raw_val, &e_val);
+      g_cdd_last_alloc_err = url_encode(raw_val, &e_val);
     }
 
     if (!e_key || !e_val) {
@@ -671,11 +681,11 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     char *e_val = NULL;
     const char *raw_val = qp->params[i].value;
 
-    url_encode(qp->params[i].key, &e_key);
+    g_cdd_last_alloc_err = url_encode(qp->params[i].key, &e_key);
     if (qp->params[i].value_is_encoded) {
-      c_cdd_strdup(raw_val, &e_val);
+      g_cdd_last_alloc_err = c_cdd_strdup(raw_val, &e_val);
     } else {
-      url_encode(raw_val, &e_val);
+      g_cdd_last_alloc_err = url_encode(raw_val, &e_val);
     }
 
     if (!e_key || !e_val) {
@@ -746,15 +756,15 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     char *e_key = NULL;
     char *e_val = NULL;
     size_t kl, vl;
-    url_encode_form(qp->params[i].key, &e_key);
+    g_cdd_last_alloc_err = url_encode_form(qp->params[i].key, &e_key);
     if (!e_key) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
     if (qp->params[i].value_is_encoded) {
-      c_cdd_strdup(qp->params[i].value, &e_val);
+      g_cdd_last_alloc_err = c_cdd_strdup(qp->params[i].value, &e_val);
     } else {
-      url_encode_form(qp->params[i].value, &e_val);
+      g_cdd_last_alloc_err = url_encode_form(qp->params[i].value, &e_val);
     }
     if (!e_val) {
       C_CDD_FREE(e_key);
@@ -780,15 +790,15 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     char *e_key = NULL;
     char *e_val = NULL;
     size_t kl, vl;
-    url_encode_form(qp->params[i].key, &e_key);
+    g_cdd_last_alloc_err = url_encode_form(qp->params[i].key, &e_key);
     if (!e_key) {
       C_CDD_FREE(buf);
       return CDD_C_ERROR_MEMORY;
     }
     if (qp->params[i].value_is_encoded) {
-      c_cdd_strdup(qp->params[i].value, &e_val);
+      g_cdd_last_alloc_err = c_cdd_strdup(qp->params[i].value, &e_val);
     } else {
-      url_encode_form(qp->params[i].value, &e_val);
+      g_cdd_last_alloc_err = url_encode_form(qp->params[i].value, &e_val);
     }
     if (!e_val) {
       C_CDD_FREE(e_key);
@@ -947,13 +957,14 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     const char *raw_val = NULL;
     if (!kvs[i].key)
       continue;
-    kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf), &raw_val);
+    g_cdd_last_alloc_err =
+        kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf), &raw_val);
     if (!raw_val)
       continue;
-    enc_fn(kvs[i].key, &enc_key);
+    g_cdd_last_alloc_err = enc_fn(kvs[i].key, &enc_key);
     if (!enc_key)
       goto oom;
-    enc_fn(raw_val, &enc_val);
+    g_cdd_last_alloc_err = enc_fn(raw_val, &enc_val);
     if (!enc_val)
       goto oom;
     if (len > 0) {

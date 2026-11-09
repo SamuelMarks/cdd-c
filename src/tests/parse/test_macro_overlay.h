@@ -45,8 +45,8 @@ TEST test_macro_overlay_basic(void) {
 
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
 
-  macro_overlay_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
   g_fail_io_after = -1;
   PASS();
@@ -58,7 +58,7 @@ TEST test_macro_overlay_basic(void) {
  */
 TEST test_macro_overlay_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, macro_overlay_list_init(NULL));
-  macro_overlay_list_free(NULL);
+  g_cdd_last_alloc_err = macro_overlay_list_free(NULL);
   g_fail_io_after = -1;
   PASS();
 }
@@ -100,18 +100,18 @@ TEST test_macro_overlay_with_nodes(void) {
     cst.nodes[i].kind = CST_NODE_MACRO;
   }
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
   ASSERT_EQ(10, list.size);
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
 
   /* Double free should be safe */
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
 
   free(cst.nodes);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
   g_fail_io_after = -1;
   PASS();
@@ -138,7 +138,7 @@ TEST test_macro_overlay_free_with_expanded(void) {
   list.nodes[0].expanded_ast = expanded;
   list.nodes[1].expanded_ast = NULL;
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   g_fail_io_after = -1;
   PASS();
 }
@@ -160,9 +160,9 @@ TEST test_macro_overlay_non_macro(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, cst_build_macro_overlay(&cst, tl, &list));
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   free(cst.nodes);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
   PASS();
 }
@@ -240,9 +240,9 @@ TEST test_macro_overlay_oom(void) {
   }
   g_cdd_macro_overlay_fail_realloc = 0;
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   free(cst.nodes);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 #endif
   PASS();
@@ -265,11 +265,11 @@ TEST test_macro_overlay_coverage_edge(void) {
   cst.nodes[0].start_token = 0;
   cst.nodes[0].end_token = 100;
   ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
-  cst_build_macro_overlay(&cst, tl, &list);
+  g_cdd_last_alloc_err = cst_build_macro_overlay(&cst, tl, &list);
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   free(cst.nodes);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str("1 2 3 4 5 6"), &tl));
@@ -283,18 +283,18 @@ TEST test_macro_overlay_coverage_edge(void) {
 
   /* FIRST time with 0 */
   g_cdd_macro_overlay_fail_inner_realloc = 0;
-  cst_build_macro_overlay(&cst, tl, &list);
+  g_cdd_last_alloc_err = cst_build_macro_overlay(&cst, tl, &list);
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
 
   /* SECOND time with 2 */
   g_cdd_macro_overlay_fail_inner_realloc = 2;
-  cst_build_macro_overlay(&cst, tl, &list);
+  g_cdd_last_alloc_err = cst_build_macro_overlay(&cst, tl, &list);
 
-  macro_overlay_list_free(&list);
+  g_cdd_last_alloc_err = macro_overlay_list_free(&list);
   free(cst.nodes);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   PASS();

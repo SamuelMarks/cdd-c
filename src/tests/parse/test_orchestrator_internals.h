@@ -46,7 +46,7 @@ TEST test_orchestrator_internals(void) {
   argv3[0] = cdd_test_mut_str("1");
   argv3[1] = cdd_test_mut_str("2");
   argv3[2] = cdd_test_mut_str("3");
-  tokenize(az_span_create_from_str("int a = 1;"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("int a = 1;"), &tl);
 
   /* Test get_token_slice error & null checks */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_token_slice(NULL, 0, 0, &dst));
@@ -95,22 +95,23 @@ TEST test_orchestrator_internals(void) {
 
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str("()"), &tl_paren);
+    g_cdd_last_alloc_err = tokenize(az_span_create_from_str("()"), &tl_paren);
     ASSERT_EQ(CDD_C_SUCCESS,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
     ASSERT_EQ(NULL, name);
-    free_token_list(tl_paren);
+    g_cdd_last_alloc_err = free_token_list(tl_paren);
   }
 
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str("foo()"), &tl_paren);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
     ASSERT_EQ(NULL, name);
     g_cdd_alloc_fail = 0;
-    free_token_list(tl_paren);
+    g_cdd_last_alloc_err = free_token_list(tl_paren);
   }
 
   /* Test join_tokens_str invalid args & allocation failure */
@@ -119,16 +120,17 @@ TEST test_orchestrator_internals(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, join_tokens_str(NULL, 0, 1, &name));
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str("void foo()"), &tl_paren);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               join_tokens_str(tl_paren, 0, tl_paren->size, &name));
     ASSERT_EQ(NULL, name);
     g_cdd_alloc_fail = 0;
-    free_token_list(tl_paren);
+    g_cdd_last_alloc_err = free_token_list(tl_paren);
   }
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test analyze_signature_tokens null args */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -143,18 +145,19 @@ TEST test_orchestrator_internals(void) {
   /* Test analyze_signature_tokens when no LPAREN (lparen == body_start) */
   {
     struct TokenList *my_tl = NULL;
-    tokenize(az_span_create_from_str("int x;"), &my_tl);
+    g_cdd_last_alloc_err = tokenize(az_span_create_from_str("int x;"), &my_tl);
     ASSERT_EQ(CDD_C_SUCCESS,
               analyze_signature_tokens(my_tl, 0, my_tl->size, &is_ptr, &is_void,
                                        &type_str));
     ASSERT_EQ(NULL, type_str);
-    free_token_list(my_tl);
+    g_cdd_last_alloc_err = free_token_list(my_tl);
   }
 
   /* Test analyze_signature_tokens void as identifier */
   {
     struct TokenList *my_tl = NULL;
-    tokenize(az_span_create_from_str("void foo()"), &my_tl);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("void foo()"), &my_tl);
     /* Change keyword void to identifier */
     my_tl->tokens[0].kind = TOKEN_IDENTIFIER;
 
@@ -163,7 +166,7 @@ TEST test_orchestrator_internals(void) {
     ASSERT_EQ(1, is_void);
     if (type_str)
       free(type_str);
-    free_token_list(my_tl);
+    g_cdd_last_alloc_err = free_token_list(my_tl);
   }
 
   /* Test orchestrate_fix errors */
@@ -420,7 +423,7 @@ TEST test_orchestrator_internals(void) {
     /* OOM sweep on 10 allocs to hit realloc OOM */
     for (i = 1; i <= 35; ++i) {
       g_cdd_alloc_fail = i;
-      orchestrate_fix(code, &out_str);
+      g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
       if (out_str) {
         C_CDD_FREE(out_str);
         out_str = NULL;
@@ -452,7 +455,7 @@ TEST test_orchestrator_internals(void) {
     int i;
     for (i = 1; i <= 10; ++i) {
       g_cdd_alloc_fail = i;
-      orchestrate_fix(code, &out_str);
+      g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
       if (out_str) {
         C_CDD_FREE(out_str);
         out_str = NULL;
@@ -503,7 +506,7 @@ TEST test_orchestrator_internals(void) {
     char *out_str = NULL;
     extern C_CDD_EXPORT int g_cdd_fail_get_token_slice;
     g_cdd_fail_get_token_slice = 1;
-    orchestrate_fix(code, &out_str);
+    g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
     if (out_str) {
       C_CDD_FREE(out_str);
       out_str = NULL;
@@ -561,7 +564,7 @@ TEST test_orchestrator_internals(void) {
     char *out_str = NULL;
     extern C_CDD_EXPORT int g_cdd_fail_get_token_slice;
     g_cdd_fail_get_token_slice = 2;
-    orchestrate_fix(code, &out_str);
+    g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
     if (out_str) {
       C_CDD_FREE(out_str);
       out_str = NULL;
@@ -575,7 +578,7 @@ TEST test_orchestrator_internals(void) {
     char *out_str = NULL;
     extern C_CDD_EXPORT int g_cdd_fail_local_alloc_init;
     g_cdd_fail_local_alloc_init = 2;
-    orchestrate_fix(code, &out_str);
+    g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
     if (out_str) {
       C_CDD_FREE(out_str);
       out_str = NULL;
@@ -587,7 +590,7 @@ TEST test_orchestrator_internals(void) {
   {
     const char *code = "void A() { B";
     char *out_str = NULL;
-    orchestrate_fix(code, &out_str);
+    g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
     if (out_str) {
       C_CDD_FREE(out_str);
       out_str = NULL;

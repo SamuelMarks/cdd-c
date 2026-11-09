@@ -226,7 +226,8 @@ TEST test_server_gen_fail_open(void) {
   g_fail_io_after = -1;
 
   /* Test fopen failures */
-  makedirs("test_build_dir/bad_server/src/bad_server_server.c");
+  g_cdd_last_alloc_err =
+      makedirs("test_build_dir/bad_server/src/bad_server_server.c");
   config.filename_base =
       cdd_test_mut_str("test_build_dir/bad_server/bad_server");
   rc = openapi_server_generate(&spec, &config);

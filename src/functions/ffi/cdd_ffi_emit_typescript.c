@@ -228,7 +228,7 @@ emit_deno_module(cdd_ffi_ir_t *ir,
       fprintf(f, "    parameters: [\n");
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        get_deno_ffi_type(node->fields[j].type, &dt);
+        g_cdd_last_alloc_err = get_deno_ffi_type(node->fields[j].type, &dt);
         fprintf(f, "      %s", dt);
         if (j < node->fields_count - 1)
           fprintf(f, ",");
@@ -236,7 +236,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
                 node->fields[j].name ? node->fields[j].name : "arg");
       }
       fprintf(f, "    ],\n");
-      get_deno_ffi_type(node->return_or_base_type, &ret_dt);
+      g_cdd_last_alloc_err =
+          get_deno_ffi_type(node->return_or_base_type, &ret_dt);
       fprintf(f, "    result: %s\n", ret_dt);
       fprintf(f, "  },\n");
     }
@@ -262,7 +263,7 @@ emit_deno_module(cdd_ffi_ir_t *ir,
             arg_name = "func";
           if (!first_arg)
             fprintf(f, ", ");
-          get_ts_type(node->fields[j].type, &tt);
+          g_cdd_last_alloc_err = get_ts_type(node->fields[j].type, &tt);
           fprintf(f, "%s: %s", arg_name, tt);
           first_arg = 0;
         }
@@ -276,7 +277,7 @@ emit_deno_module(cdd_ffi_ir_t *ir,
       {
         int out_count = 0;
         const char *ret_tt = NULL;
-        get_ts_type(node->return_or_base_type, &ret_tt);
+        g_cdd_last_alloc_err = get_ts_type(node->return_or_base_type, &ret_tt);
         for (j = 0; j < node->fields_count; j++) {
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT)

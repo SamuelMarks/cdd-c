@@ -108,8 +108,10 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
   }
   C_CDD_FREE(meta->workflow_depends_on);
   C_CDD_FREE(meta->workflow_inputs_json);
-  free_doc_arazzo_kvs(meta->workflow_outputs, meta->n_workflow_outputs);
-  free_doc_arazzo_params(meta->workflow_params, meta->n_workflow_params);
+  g_cdd_last_alloc_err =
+      free_doc_arazzo_kvs(meta->workflow_outputs, meta->n_workflow_outputs);
+  g_cdd_last_alloc_err =
+      free_doc_arazzo_params(meta->workflow_params, meta->n_workflow_params);
 
   for (i = 0; i < meta->n_arazzo_steps; ++i) {
     struct DocArazzoStep *st = &meta->arazzo_steps[i];
@@ -125,7 +127,7 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
       C_CDD_FREE(st->depends_on[j]);
     }
     C_CDD_FREE(st->depends_on);
-    free_doc_arazzo_params(st->params, st->n_params);
+    g_cdd_last_alloc_err = free_doc_arazzo_params(st->params, st->n_params);
     C_CDD_FREE(st->request_body_content_type);
     C_CDD_FREE(st->request_body_payload);
     for (j = 0; j < st->n_replacements; ++j) {
@@ -140,9 +142,11 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
       C_CDD_FREE(st->criteria[j].version);
     }
     C_CDD_FREE(st->criteria);
-    free_doc_arazzo_actions(st->on_success, st->n_on_success);
-    free_doc_arazzo_actions(st->on_failure, st->n_on_failure);
-    free_doc_arazzo_kvs(st->outputs, st->n_outputs);
+    g_cdd_last_alloc_err =
+        free_doc_arazzo_actions(st->on_success, st->n_on_success);
+    g_cdd_last_alloc_err =
+        free_doc_arazzo_actions(st->on_failure, st->n_on_failure);
+    g_cdd_last_alloc_err = free_doc_arazzo_kvs(st->outputs, st->n_outputs);
   }
   C_CDD_FREE(meta->arazzo_steps);
 
@@ -153,7 +157,8 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
   }
   C_CDD_FREE(meta->arazzo_components);
 
-  free_doc_arazzo_kvs(meta->arazzo_extensions, meta->n_arazzo_extensions);
+  g_cdd_last_alloc_err =
+      free_doc_arazzo_kvs(meta->arazzo_extensions, meta->n_arazzo_extensions);
   return CDD_C_SUCCESS;
 }
 

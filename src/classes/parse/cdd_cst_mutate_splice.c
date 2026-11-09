@@ -55,14 +55,14 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
       rc = cdd_cst_append_child_token(new_node, node->children[i].val.token);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
-        cdd_cst_free_node_only(new_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(new_node);
         return rc;
       }
     } else {
       rc = cdd_cst_append_child_node(new_node, node->children[i].val.node);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
-        cdd_cst_free_node_only(new_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(new_node);
         return rc;
       }
     }
@@ -73,14 +73,14 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
       rc = cdd_cst_append_child_token(new_node, new_children[i].val.token);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
-        cdd_cst_free_node_only(new_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(new_node);
         return rc;
       }
     } else {
       rc = cdd_cst_append_child_node(new_node, new_children[i].val.node);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
-        cdd_cst_free_node_only(new_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(new_node);
         return rc;
       }
     }
@@ -91,14 +91,14 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
       rc = cdd_cst_append_child_token(new_node, node->children[i].val.token);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
-        cdd_cst_free_node_only(new_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(new_node);
         return rc;
       }
     } else {
       rc = cdd_cst_append_child_node(new_node, node->children[i].val.node);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
-        cdd_cst_free_node_only(new_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(new_node);
         return rc;
       }
     }
@@ -106,7 +106,7 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
 
   for (i = start_idx; i < start_idx + consume_count; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_cst_free_node(node->children[i].val.node);
+      g_cdd_last_alloc_err = cdd_cst_free_node(node->children[i].val.node);
     }
   }
 
@@ -116,7 +116,7 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
   } else {
     rc = cdd_cst_replace_node(tree, node, new_node);
   }
-  cdd_cst_free_node_only(node);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(node);
   *node_ptr = new_node;
   return rc;
 }

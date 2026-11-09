@@ -127,17 +127,17 @@ TEST test_arazzo_cli_gen_basic(void) {
     int f;
     for (f = 1; f <= 20; ++f) {
       g_cdd_alloc_fail = f;
-      arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
       g_cdd_alloc_fail = 0;
     }
     for (f = 1; f <= 10; ++f) {
       g_cdd_strdup_fail = f;
-      arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
       g_cdd_strdup_fail = 0;
     }
     for (f = 0; f <= 3; ++f) {
       g_fail_io_after = f;
-      arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
       g_fail_io_after = -1;
     }
   }
@@ -146,7 +146,7 @@ TEST test_arazzo_cli_gen_basic(void) {
   remove("test_build_dir/arazzo_job/src/job_workflows.c");
   remove("test_build_dir/arazzo_job/src/job_workflow_cli.c");
 
-  arazzo_spec_free(&spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
   PASS();
 }
 

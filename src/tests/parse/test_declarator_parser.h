@@ -135,8 +135,8 @@ TEST test_parse_basic_int(void) {
   CHECK_CALL(verify_chain(info.type, 1, DECL_BASE));
   ASSERT_STR_EQ("int", info.type->data.base.name);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -159,8 +159,8 @@ TEST test_parse_ptr(void) {
   CHECK_CALL(verify_chain(info.type, 2, DECL_PTR, DECL_BASE));
   ASSERT_STR_EQ("char", info.type->inner->data.base.name);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -191,8 +191,8 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
   ASSERT(strstr(info.type->data.ptr.qualifiers, "const") != NULL);
   ASSERT(strstr(info.type->data.ptr.qualifiers, "volatile") != NULL);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -213,8 +213,8 @@ TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
   CHECK_CALL(verify_chain(info.type, 1, DECL_BASE));
   ASSERT_STR_EQ("_Atomic(int)", info.type->data.base.name);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -235,8 +235,8 @@ TEST test_parse_complex_specifier(void) { /* double _Complex c */
   ASSERT(strstr(info.type->data.base.name, "double") != NULL);
   ASSERT(strstr(info.type->data.base.name, "_Complex") != NULL);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -258,8 +258,8 @@ TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
   ASSERT(info.type->data.ptr.qualifiers != NULL);
   ASSERT(strstr(info.type->data.ptr.qualifiers, "_Atomic") != NULL);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -281,8 +281,8 @@ TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
   ASSERT(strstr(info.type->data.base.name, "_Atomic") != NULL);
   ASSERT(strstr(info.type->data.base.name, "int") != NULL);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -304,8 +304,8 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
   CHECK_CALL(verify_chain(info.type, 2, DECL_PTR, DECL_BASE));
   ASSERT_STR_EQ("_Atomic(int)", info.type->inner->data.base.name);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -324,8 +324,8 @@ TEST test_parse_func_ptr(void) {
   ASSERT_STR_EQ("func", info.identifier);
   CHECK_CALL(verify_chain(info.type, 3, DECL_PTR, DECL_FUNC, DECL_BASE));
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -345,8 +345,8 @@ TEST test_parse_func_array(void) {
   CHECK_CALL(
       verify_chain(info.type, 4, DECL_ARRAY, DECL_PTR, DECL_FUNC, DECL_BASE));
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -365,8 +365,8 @@ TEST test_abstract_func_ptr(void) {
   ASSERT_EQ(NULL, info.identifier);
   CHECK_CALL(verify_chain(info.type, 3, DECL_PTR, DECL_FUNC, DECL_BASE));
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -385,8 +385,8 @@ TEST test_abstract_array(void) {
   ASSERT_EQ(NULL, info.identifier);
   CHECK_CALL(verify_chain(info.type, 2, DECL_ARRAY, DECL_BASE));
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -404,7 +404,7 @@ TEST test_parse_decl_errors(void) {
             parse_declaration(tl, 0, tl->size, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, decl_info_init(NULL));
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -437,14 +437,14 @@ TEST test_parse_declarator_oom(void) {
     reset_decl_mocks();
 
     if (rc == 0) {
-      decl_info_free(&info);
+      g_cdd_last_alloc_err = decl_info_free(&info);
       break; /* Reached success */
     } else {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
   }
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -462,71 +462,71 @@ TEST test_parse_declarator_more_edge_cases(void) {
   rc = parse_declaration(tl, 0, tl->size, &info);
   rc += 0;
   ASSERT_EQ(0, rc);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("struct MyStruct { int a; } x");
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("(*)");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             is_grouping_paren(tl, 0, tl->size, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
   ASSERT_EQ(1, is_group);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("enum { A, B } *");
   rc = parse_declaration(tl, 0, tl->size, &info);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("enum Name { A, B } *");
   rc = parse_declaration(tl, 0, tl->size, &info);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("struct { int a; } *");
   rc = parse_declaration(tl, 0, tl->size, &info);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("_Atomic(int) *");
   rc = parse_declaration(tl, 0, tl->size, &info);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("(int)");
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
   ASSERT_EQ(0, is_group);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("()");
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
   ASSERT_EQ(0, is_group);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("((int))");
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
   ASSERT_EQ(1, is_group);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, is_grouping_paren(tl, 0, 0, NULL));
-  decl_info_free(NULL);
+  g_cdd_last_alloc_err = decl_info_free(NULL);
 
   tl = setup_tokens("int (*)(int)");
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("int (*( *x() )())()");
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }
@@ -542,8 +542,8 @@ TEST test_parse_declarator_empty_array(void) {
   int rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
 
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -559,8 +559,8 @@ TEST test_parse_declarator_just_x(void) {
   ASSERT_EQ(0, rc);
   ASSERT(info.type != NULL);
   ASSERT_STR_EQ("int", info.type->data.base.name);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -578,16 +578,16 @@ TEST test_parse_declarator_edge_cases(void) {
   rc = parse_declaration(tl, 0, tl->size, &info);
   rc += 0;
   ASSERT_EQ(0, rc);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Abstract declarator pointer */
   tl = setup_tokens("*");
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(NULL, info.identifier);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Empty tokens -> Parses as implicit abstract int */
   tl = setup_tokens("");
@@ -595,8 +595,8 @@ TEST test_parse_declarator_edge_cases(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(info.type != NULL);
   ASSERT(info.type->kind == DECL_BASE);
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }
@@ -613,65 +613,65 @@ TEST test_parse_declarator_uncovered(void) {
   /* is_grouping_paren: i >= limit */
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
   ASSERT_EQ(0, is_grouping);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* skip_group: limit reached */
   tl = setup_tokens("(");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* typeof with unmatched paren */
   tl = setup_tokens("typeof");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = setup_tokens("struct");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = setup_tokens("typeof((x))");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = setup_tokens("struct { struct { int a; } b; }");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = setup_tokens("typeof( x");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* struct body skip edge case */
   tl = setup_tokens("struct { x");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* skip_ws_back hit limit and is space */
   tl = setup_tokens(" x");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* pivot best_pivot logic edge case */
   tl = setup_tokens("void ((x))");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("void ((x)())");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, decl_info_init(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_declaration(NULL, 0, 0, &info));
 
   tl = setup_tokens("");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_declaration(tl, 0, 0, NULL));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }
@@ -685,36 +685,36 @@ TEST test_parse_declarator_uncovered_2(void) {
   struct TokenList *tl;
   int is_grouping = 0;
 
-  decl_info_init(&info);
+  g_cdd_last_alloc_err = decl_info_init(&info);
   tl = setup_tokens("/* a */ /* b */");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, 2, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("(^)");
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
   ASSERT_EQ(1, is_grouping);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("([])");
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
   ASSERT_EQ(1, is_grouping);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("()");
   ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
   ASSERT_EQ(0, is_grouping);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("union U");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, 2, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens("enum E");
   ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, 2, &info));
-  decl_info_free(&info);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = decl_info_free(&info);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }

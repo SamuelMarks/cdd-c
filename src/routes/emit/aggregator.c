@@ -74,7 +74,7 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
   *out_ptr = &(*paths)[new_count - 1];
   memset(*out_ptr, 0, sizeof(struct OpenAPI_Path));
 
-  c_cdd_strdup(route, &(*out_ptr)->route);
+  g_cdd_last_alloc_err = c_cdd_strdup(route, &(*out_ptr)->route);
   if (!(*out_ptr)->route)
     return CDD_C_ERROR_MEMORY;
 
@@ -142,7 +142,8 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Find or Create Path */
-  find_path_in_list(spec->paths, spec->n_paths, route, &target_path);
+  g_cdd_last_alloc_err =
+      find_path_in_list(spec->paths, spec->n_paths, route, &target_path);
   if (!target_path) {
     rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
     if (rc != CDD_C_SUCCESS)
@@ -193,7 +194,8 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   if (!op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  find_path_in_list(spec->webhooks, spec->n_webhooks, route, &target_path);
+  g_cdd_last_alloc_err =
+      find_path_in_list(spec->webhooks, spec->n_webhooks, route, &target_path);
   if (!target_path) {
     rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
                              &target_path);

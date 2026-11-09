@@ -65,7 +65,7 @@ TEST test_audit_stats_init(void) {
   ASSERT_EQ(0, stats.functions_returning_alloc);
   ASSERT_EQ(0, stats.violations.size);
   ASSERT(stats.violations.items == NULL);
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
   g_fail_io_after = -1;
   PASS();
 }
@@ -83,10 +83,10 @@ TEST test_audit_single_file(void) {
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   /* Create explicit subdir to avoid walking /tmp */
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_%d", sys_tmp, PATH_SEP, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
 
   if (asprintf(&f_unchecked, "%s%sunchecked.c", root, PATH_SEP)) {
   }
@@ -94,10 +94,11 @@ TEST test_audit_single_file(void) {
   /* Create file with 1 unchecked malloc and 1 checked malloc */
   /* Line 1: checked calloc */
   /* Line 2: unchecked malloc */
-  write_to_file(f_unchecked,
-                ""
-                "void f() { char * q = (char *)calloc(1,1); if (!q) return; \n"
-                " char * p = (char *)malloc(1); *p = 0; }");
+  g_cdd_last_alloc_err = write_to_file(
+      f_unchecked,
+      ""
+      "void f() { char * q = (char *)calloc(1,1); if (!q) return; \n"
+      " char * p = (char *)malloc(1); *p = 0; }");
 
   rc = audit_project(root, &stats);
 
@@ -113,7 +114,7 @@ TEST test_audit_single_file(void) {
   ASSERT_STR_EQ("p", stats.violations.items[0].variable_name);
   ASSERT_STR_EQ("malloc", stats.violations.items[0].allocator_name);
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
 
   remove(f_unchecked);
   rmdir(root);
@@ -135,24 +136,25 @@ TEST test_audit_ignored_files(void) {
   struct AuditStats stats;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_ig_%d", sys_tmp, PATH_SEP, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
 
   if (asprintf(&f_h, "%s%signored.h", root, PATH_SEP)) {
   }
   /* Header file logic currently ignored by audit_project default filter */
-  write_to_file(f_h, ""
-                     "void f() { char * p = (char *)malloc(1); }");
+  g_cdd_last_alloc_err =
+      write_to_file(f_h, ""
+                         "void f() { char * p = (char *)malloc(1); }");
 
-  audit_project(root, &stats);
+  g_cdd_last_alloc_err = audit_project(root, &stats);
 
   /* Should ignore .h files */
   printf("FILES_SCANNED=%d\n", (int)stats.files_scanned);
   ASSERT_EQ(0, stats.files_scanned);
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
 
   remove(f_h);
   rmdir(root);
@@ -174,24 +176,25 @@ TEST test_audit_return_alloc(void) {
   struct AuditStats stats;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_ret_%d", sys_tmp, PATH_SEP, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
 
   if (asprintf(&f_ret, "%s%sret.c", root, PATH_SEP)) {
   }
   /* Detect return allocs */
-  write_to_file(f_ret, "char* f1() { return malloc(10); }\n"
-                       "char* f2() { return calloc(1,1); }\n"
-                       "char* f3() { return realloc(p,10); }\n"
-                       "char* f4() { return strdup(\"a\"); }\n"
-                       "char* f5() { return foobar(); }\n"
-                       "char* f6() { return foobarr(); }\n"
-                       "char* f7() { return strndup(\"a\", 1); }\n"
-                       "char* f8() { return x(); }\n");
+  g_cdd_last_alloc_err =
+      write_to_file(f_ret, "char* f1() { return malloc(10); }\n"
+                           "char* f2() { return calloc(1,1); }\n"
+                           "char* f3() { return realloc(p,10); }\n"
+                           "char* f4() { return strdup(\"a\"); }\n"
+                           "char* f5() { return foobar(); }\n"
+                           "char* f6() { return foobarr(); }\n"
+                           "char* f7() { return strndup(\"a\", 1); }\n"
+                           "char* f8() { return x(); }\n");
 
-  audit_project(root, &stats);
+  g_cdd_last_alloc_err = audit_project(root, &stats);
 
   ASSERT_EQ(1, stats.files_scanned);
   ASSERT_EQ(5, stats.functions_returning_alloc);
@@ -205,7 +208,7 @@ TEST test_audit_return_alloc(void) {
   ASSERT_EQ(5, stats.violations.size);
   ASSERT(stats.violations.items[0].variable_name == NULL);
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
 
   remove(f_ret);
   rmdir(root);
@@ -252,7 +255,7 @@ TEST test_audit_json_output(void) {
   stats.violations.items[1].variable_name = NULL;
   stats.violations.items[1].allocator_name = strdup("calloc");
 
-  audit_print_json(&stats, &json);
+  g_cdd_last_alloc_err = audit_print_json(&stats, &json);
   ASSERT(json != NULL);
   /* Check JSON structure */
   ASSERT(strstr(json, "\"files_scanned\": 10"));
@@ -269,8 +272,8 @@ TEST test_audit_json_output(void) {
 
   {
     int f;
-    c2openapi_set_json_allocators(mock_audit_parson_malloc,
-                                  mock_audit_parson_free);
+    g_cdd_last_alloc_err = c2openapi_set_json_allocators(
+        mock_audit_parson_malloc, mock_audit_parson_free);
     json_set_allocation_functions(mock_audit_parson_malloc,
                                   mock_audit_parson_free);
     for (f = 0; f <= 45; ++f) {
@@ -283,11 +286,11 @@ TEST test_audit_json_output(void) {
       }
       g_audit_parson_oom_at = -1;
     }
-    c2openapi_set_json_allocators(malloc, free);
+    g_cdd_last_alloc_err = c2openapi_set_json_allocators(malloc, free);
     json_set_allocation_functions(malloc, free);
   }
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
   g_fail_io_after = -1;
   PASS();
 }
@@ -302,12 +305,12 @@ TEST test_audit_stats_null(void) {
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            audit_stats_init(NULL)); /* Should do nothing safely */
-  audit_stats_free(NULL);            /* Should return safely */
+            audit_stats_init(NULL));             /* Should do nothing safely */
+  g_cdd_last_alloc_err = audit_stats_free(NULL); /* Should return safely */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project(NULL, &stats));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project("dummy", NULL));
-  audit_print_json(NULL, &_test_json);
+  g_cdd_last_alloc_err = audit_print_json(NULL, &_test_json);
   ASSERT(_test_json == NULL);
   g_fail_io_after = -1;
 
@@ -329,50 +332,51 @@ TEST test_audit_edge_cases(void) {
   struct AuditStats stats;
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_edge_%d", sys_tmp, PATH_SEP, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
 
   /* No extension file */
   if (asprintf(&f_noext, "%s%snoextension", root, PATH_SEP)) {
   }
-  write_to_file(f_noext, "int x = 0;");
+  g_cdd_last_alloc_err = write_to_file(f_noext, "int x = 0;");
 
   /* Directory ending in .c */
   if (asprintf(&d_dir_c, "%s%sdir.c", root, PATH_SEP)) {
   }
-  makedir(d_dir_c);
+  g_cdd_last_alloc_err = makedir(d_dir_c);
 
   /* return strndup */
   if (asprintf(&f_strndup, "%s%sstrndup_test.c", root, PATH_SEP)) {
   }
-  write_to_file(f_strndup, "char* f() { return strndup(\"a\", 1); }");
+  g_cdd_last_alloc_err =
+      write_to_file(f_strndup, "char* f() { return strndup(\"a\", 1); }");
 
   /* Unreadable file */
   if (asprintf(&f_unreadable, "%s%sunreadable.c", root, PATH_SEP)) {
   }
-  write_to_file(f_unreadable, "int unreadable = 1;");
+  g_cdd_last_alloc_err = write_to_file(f_unreadable, "int unreadable = 1;");
   chmod(f_unreadable, 0000);
 
   /* Tokenize failure: Unclosed string literal. */
   if (asprintf(&f_bad_token, "%s%sbad.c", root, PATH_SEP)) {
   }
-  write_to_file(f_bad_token, "char *s = \"unclosed");
+  g_cdd_last_alloc_err = write_to_file(f_bad_token, "char *s = \"unclosed");
 
   /* Test file ending with return and whitespace to cover branch */
   {
     char *f_eof_ret = NULL;
     if (asprintf(&f_eof_ret, "%s%seof_ret.c", root, PATH_SEP)) {
     }
-    write_to_file(f_eof_ret, "void f() { return ");
+    g_cdd_last_alloc_err = write_to_file(f_eof_ret, "void f() { return ");
 
-    audit_project(root, &stats);
+    g_cdd_last_alloc_err = audit_project(root, &stats);
 
     /* strndup should be counted in functions_returning_alloc */
     ASSERT(stats.functions_returning_alloc >= 1);
 
-    audit_stats_free(&stats);
+    g_cdd_last_alloc_err = audit_stats_free(&stats);
 
     remove(f_noext);
     rmdir(d_dir_c);
@@ -422,19 +426,20 @@ TEST test_audit_extras(void) {
     int step;
     ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_tok));
 
-    tempdir(&sys_tmp);
+    g_cdd_last_alloc_err = tempdir(&sys_tmp);
     if (asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP,
                  rand())) {
     }
-    makedir(root);
+    g_cdd_last_alloc_err = makedir(root);
     if (asprintf(&f_tok, "%s%stok.c", root, PATH_SEP)) {
     }
-    write_to_file(f_tok, "int main() { char *p = malloc(1); return 0; }");
+    g_cdd_last_alloc_err =
+        write_to_file(f_tok, "int main() { char *p = malloc(1); return 0; }");
 
 #ifdef CDD_BUILD_TESTS
     for (step = 1; step <= 12; ++step) {
       g_cdd_alloc_fail = step;
-      audit_project(root, &stats_tok);
+      g_cdd_last_alloc_err = audit_project(root, &stats_tok);
       g_cdd_alloc_fail = 0;
     }
 #endif
@@ -444,16 +449,16 @@ TEST test_audit_extras(void) {
     C_CDD_FREE(f_tok);
     C_CDD_FREE(root);
     C_CDD_FREE(sys_tmp);
-    audit_stats_free(&stats_tok);
+    g_cdd_last_alloc_err = audit_stats_free(&stats_tok);
   }
 
   /* test json output on empty violation list */
-  audit_print_json(&stats, &json);
+  g_cdd_last_alloc_err = audit_print_json(&stats, &json);
   ASSERT(json != NULL);
   ASSERT(strstr(json, "\"violations\": []") != NULL);
   free(json);
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
   g_fail_io_after = -1;
   PASS();
 }
@@ -473,7 +478,7 @@ TEST test_audit_oom(void) {
     int rc;
     char *json;
 
-    makedirs("test_audit_dir");
+    g_cdd_last_alloc_err = makedirs("test_audit_dir");
 #if defined(_MSC_VER)
     if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)
       f = NULL;
@@ -488,7 +493,7 @@ TEST test_audit_oom(void) {
       g_cdd_alloc_fail = i;
       rc = audit_project("test_audit_dir", &stats);
       g_cdd_alloc_fail = 0;
-      audit_stats_free(&stats);
+      g_cdd_last_alloc_err = audit_stats_free(&stats);
     }
 
     /* Also test OOM for audit_print_json using parson custom allocator */
@@ -511,7 +516,7 @@ TEST test_audit_oom(void) {
       }
     }
     json_set_allocation_functions(malloc, free);
-    audit_stats_free(&stats);
+    g_cdd_last_alloc_err = audit_stats_free(&stats);
 
     remove("test_audit_dir/test.c");
     remove("test_audit_dir");
@@ -534,7 +539,7 @@ TEST test_audit_capacity(void) {
   {
     FILE *f;
 
-    makedirs("test_audit_dir");
+    g_cdd_last_alloc_err = makedirs("test_audit_dir");
 #if defined(_MSC_VER)
     if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)
       f = NULL;
@@ -558,7 +563,7 @@ TEST test_audit_capacity(void) {
   }
 #endif
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
   g_fail_io_after = -1;
   PASS();
 }
@@ -572,8 +577,8 @@ TEST test_audit_failure_hooks(void) {
   int rc;
   FILE *f;
 
-  audit_stats_init(&stats);
-  makedir("test_audit_fail_dir");
+  g_cdd_last_alloc_err = audit_stats_init(&stats);
+  g_cdd_last_alloc_err = makedir("test_audit_fail_dir");
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_audit_fail_dir/test.c", "w") != 0)
     f = NULL;
@@ -610,7 +615,7 @@ TEST test_audit_failure_hooks(void) {
   rmdir("test_audit_fail_dir");
 #endif
 
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
   g_fail_io_after = -1;
   PASS();
 }

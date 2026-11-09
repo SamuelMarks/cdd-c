@@ -73,9 +73,9 @@ TEST test_generated_copy_logic(void) {
   size_t output_len;
   FILE *tmp;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "int_arr", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "str_arr", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "int_arr", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "str_arr", "array", "string", NULL, NULL);
 
   #if defined(_MSC_VER)
   if(((tmp = cdd_test_tmpfile_global()) == NULL)) tmp = NULL;
@@ -84,7 +84,7 @@ TEST test_generated_copy_logic(void) {
 #endif
   ASSERT(tmp);
 
-  write_struct_from_jsonObject_func(tmp, "ArrayStruct", &sf, NULL);
+  g_cdd_last_alloc_err = write_struct_from_jsonObject_func(tmp, "ArrayStruct", &sf, NULL);
   /* Rewind and read */
   fseek(tmp, 0, SEEK_END);
   output_len = (size_t)ftell(tmp);
@@ -107,7 +107,7 @@ TEST test_generated_copy_logic(void) {
 
   free(output_buf);
   if (tmp) fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -135,7 +135,7 @@ TEST test_code2schema_array_detection(void) {
   char *json_content;
   size_t len;
 
-  write_to_file("test_array.h", header);
+  g_cdd_last_alloc_err = write_to_file("test_array.h", header);
 
   {
     /* Run code2schema main logic manually or via exec?

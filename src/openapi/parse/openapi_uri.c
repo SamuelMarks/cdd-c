@@ -29,17 +29,22 @@ cdd_c_error_t json_pointer_unescape(const char *in, char **_out_val) {
  *
  * @param[in] uri URI string to inspect.
  * @param[in] len Number of characters to inspect.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if scheme is present, CDD_C_SUCCESS
- * (0) otherwise.
+ * @param[out] out_has Set to 1 if scheme is present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len) {
+cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len, int *out_has) {
   size_t i;
+  if (!out_has)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_has = 0;
   if (!uri || len == 0)
     return CDD_C_SUCCESS;
   for (i = 0; i < len; ++i) {
     char c = uri[i];
-    if (c == ':')
-      return CDD_C_ERROR_UNKNOWN;
+    if (c == ':') {
+      *out_has = 1;
+      return CDD_C_SUCCESS;
+    }
     if (c == '/' || c == '?' || c == '#')
       break;
   }
@@ -280,9 +285,13 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     *_out_val = NULL;
     return c_cdd_strdup("", _out_val);
   }
-  if (uri_has_scheme_prefix(ref, ref_len)) {
-    *_out_val = NULL;
-    return c_cdd_strdup(ref, _out_val);
+  {
+    int has_scheme = 0;
+    g_cdd_last_alloc_err = uri_has_scheme_prefix(ref, ref_len, &has_scheme);
+    if (has_scheme) {
+      *_out_val = NULL;
+      return c_cdd_strdup(ref, _out_val);
+    }
   }
   if (!base_uri || !*base_uri) {
     *_out_val = NULL;
@@ -292,8 +301,8 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
   if (ref_len >= 2 && memcmp(ref, "//", 2) == 0) {
     size_t b_len = 0;
     size_t scheme_len = 0;
-    uri_base_len(base_uri, &b_len);
-    uri_scheme_len(base_uri, b_len, &scheme_len);
+    g_cdd_last_alloc_err = uri_base_len(base_uri, &b_len);
+    g_cdd_last_alloc_err = uri_scheme_len(base_uri, b_len, &scheme_len);
     if (scheme_len > 0) {
       size_t out_len = scheme_len + 1 + ref_len;
       out = (char *)C_CDD_MALLOC(out_len + 1);
@@ -311,18 +320,23 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     return c_cdd_strdup(ref, _out_val);
   }
 
-  uri_base_len(base_uri, &base_len);
-  if (uri_has_scheme_prefix(base_uri, base_len)) {
-    size_t scheme_len = 0;
-    uri_scheme_len(base_uri, base_len, &scheme_len);
-    if (scheme_len + 2 < base_len &&
-        memcmp(base_uri + scheme_len + 1, "//", 2) == 0) {
-      size_t auth_start = scheme_len + 3;
-      size_t i = auth_start;
-      while (i < base_len && base_uri[i] != '/')
-        ++i;
-      prefix_len = i;
-      path_offset = i;
+  g_cdd_last_alloc_err = uri_base_len(base_uri, &base_len);
+  {
+    int has_scheme = 0;
+    g_cdd_last_alloc_err =
+        uri_has_scheme_prefix(base_uri, base_len, &has_scheme);
+    if (has_scheme) {
+      size_t scheme_len = 0;
+      g_cdd_last_alloc_err = uri_scheme_len(base_uri, base_len, &scheme_len);
+      if (scheme_len + 2 < base_len &&
+          memcmp(base_uri + scheme_len + 1, "//", 2) == 0) {
+        size_t auth_start = scheme_len + 3;
+        size_t i = auth_start;
+        while (i < base_len && base_uri[i] != '/')
+          ++i;
+        prefix_len = i;
+        path_offset = i;
+      }
     }
   }
 
@@ -407,12 +421,13 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
 
   if (self_uri && *self_uri) {
     if (retrieval_uri && *retrieval_uri) {
-      resolve_uri_reference(retrieval_uri, self_uri, &resolved);
+      g_cdd_last_alloc_err =
+          resolve_uri_reference(retrieval_uri, self_uri, &resolved);
     } else {
-      c_cdd_strdup(self_uri, &resolved);
+      g_cdd_last_alloc_err = c_cdd_strdup(self_uri, &resolved);
     }
   } else {
-    c_cdd_strdup(retrieval_uri, &resolved);
+    g_cdd_last_alloc_err = c_cdd_strdup(retrieval_uri, &resolved);
   }
 
   if (!resolved) {
@@ -422,8 +437,8 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
 
   {
     size_t len = 0;
-    uri_base_len(resolved, &len);
-    dup_substr(resolved, len, &out);
+    g_cdd_last_alloc_err = uri_base_len(resolved, &len);
+    g_cdd_last_alloc_err = dup_substr(resolved, len, &out);
   }
   C_CDD_FREE(resolved);
   if (!out) {
@@ -439,41 +454,72 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
  * fields.
  *
  * @param[in] root_obj Root JSON object.
- * @return Non-zero if OpenAPI document fields are present, 0 otherwise.
+ * @param[out] out_has Set to 1 if OpenAPI document fields are present, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-cdd_c_error_t root_has_openapi_fields(const JSON_Object *root_obj) {
+cdd_c_error_t root_has_openapi_fields(const JSON_Object *root_obj,
+                                      int *out_has) {
   int has_info = 0, has_paths = 0, has_comps = 0, has_servers = 0;
   int has_webhooks = 0, has_tags = 0, has_sec = 0, has_ext = 0;
   int has_self = 0, has_dialect = 0;
+  if (!out_has)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_has = 0;
   if (!root_obj)
     return CDD_C_SUCCESS;
-  cdd_json_object_has_value(root_obj, "info", &has_info);
-  if (has_info)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "paths", &has_paths);
-  if (has_paths)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "components", &has_comps);
-  if (has_comps)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "servers", &has_servers);
-  if (has_servers)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "webhooks", &has_webhooks);
-  if (has_webhooks)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "tags", &has_tags);
-  if (has_tags)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "security", &has_sec);
-  if (has_sec)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "externalDocs", &has_ext);
-  if (has_ext)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_has_value(root_obj, "$self", &has_self);
-  cdd_json_object_has_value(root_obj, "jsonSchemaDialect", &has_dialect);
-  return (has_self | has_dialect) ? CDD_C_ERROR_UNKNOWN : CDD_C_SUCCESS;
+  g_cdd_last_alloc_err = cdd_json_object_has_value(root_obj, "info", &has_info);
+  if (has_info) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "paths", &has_paths);
+  if (has_paths) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "components", &has_comps);
+  if (has_comps) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "servers", &has_servers);
+  if (has_servers) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "webhooks", &has_webhooks);
+  if (has_webhooks) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err = cdd_json_object_has_value(root_obj, "tags", &has_tags);
+  if (has_tags) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "security", &has_sec);
+  if (has_sec) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "externalDocs", &has_ext);
+  if (has_ext) {
+    *out_has = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "$self", &has_self);
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "jsonSchemaDialect", &has_dialect);
+  *out_has = (has_self | has_dialect) ? 1 : 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -482,27 +528,38 @@ cdd_c_error_t root_has_openapi_fields(const JSON_Object *root_obj) {
  *
  * @param[in] root Root JSON value.
  * @param[in] root_obj Root JSON object (if object).
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if standalone schema document,
- * CDD_C_SUCCESS (0) otherwise.
+ * @param[out] out_is_schema Set to 1 if standalone schema document, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t root_is_schema_document(const JSON_Value *root,
-                                      const JSON_Object *root_obj) {
+                                      const JSON_Object *root_obj,
+                                      int *out_is_schema) {
   JSON_Value_Type type = JSONError;
-  int has_oa = 0, has_sw = 0;
+  int has_oa = 0, has_sw = 0, has_oa_fields = 0;
+  if (!out_is_schema)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_schema = 0;
   if (!root)
     return CDD_C_SUCCESS;
-  cdd_json_value_get_type(root, &type);
-  if (type == JSONBoolean)
-    return CDD_C_ERROR_UNKNOWN;
+  g_cdd_last_alloc_err = cdd_json_value_get_type(root, &type);
+  if (type == JSONBoolean) {
+    *out_is_schema = 1;
+    return CDD_C_SUCCESS;
+  }
   if (type != JSONObject)
     return CDD_C_SUCCESS;
-  cdd_json_object_has_value(root_obj, "openapi", &has_oa);
-  cdd_json_object_has_value(root_obj, "swagger", &has_sw);
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "openapi", &has_oa);
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value(root_obj, "swagger", &has_sw);
   if (has_oa || has_sw)
     return CDD_C_SUCCESS;
-  if (root_has_openapi_fields(root_obj))
+  g_cdd_last_alloc_err = root_has_openapi_fields(root_obj, &has_oa_fields);
+  if (has_oa_fields)
     return CDD_C_SUCCESS;
-  return CDD_C_ERROR_UNKNOWN;
+  *out_is_schema = 1;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -527,7 +584,7 @@ cdd_c_error_t store_schema_root_json(struct OpenAPI_Spec *spec,
       g_cdd_fail_json_serialize = 0;
       raw_json = NULL;
     } else {
-      cdd_json_serialize_to_string(root, &raw_json);
+      g_cdd_last_alloc_err = cdd_json_serialize_to_string(root, &raw_json);
     }
   }
 #else
@@ -535,8 +592,8 @@ cdd_c_error_t store_schema_root_json(struct OpenAPI_Spec *spec,
 #endif
   if (!raw_json)
     return CDD_C_ERROR_MEMORY;
-  c_cdd_strdup(raw_json, &spec->schema_root_json);
-  cdd_json_free_serialized_string(raw_json);
+  g_cdd_last_alloc_err = c_cdd_strdup(raw_json, &spec->schema_root_json);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(raw_json);
   if (!spec->schema_root_json)
     return CDD_C_ERROR_MEMORY;
   return CDD_C_SUCCESS;
@@ -575,14 +632,15 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
   }
 
   base_len = (size_t)(hash - ref);
-  dup_substr(ref, base_len, &base_part);
+  g_cdd_last_alloc_err = dup_substr(ref, base_len, &base_part);
   if (!base_part) {
     *_out_val = out;
     return CDD_C_ERROR_MEMORY;
   }
 
   if (spec->document_uri && *spec->document_uri) {
-    resolve_uri_reference(spec->document_uri, base_part, &resolved_base);
+    g_cdd_last_alloc_err =
+        resolve_uri_reference(spec->document_uri, base_part, &resolved_base);
     if (resolved_base) {
       C_CDD_FREE(base_part);
     } else {
@@ -633,32 +691,44 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
  * @param[in] spec OpenAPI specification context.
  * @param[in] ref Full reference string.
  * @param[in] hash Pointer to the `#` character within `ref`.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if base matches self, CDD_C_SUCCESS
- * (0) otherwise.
+ * @param[out] out_matches Set to 1 if base matches self, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
-                                    const char *ref, const char *hash) {
+                                    const char *ref, const char *hash,
+                                    int *out_matches) {
   size_t base_len;
   const char *self_uri;
   const char *self_hash;
   const char *self_base;
   size_t self_len;
+  int has_scheme = 0;
+
+  if (!out_matches)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_matches = 0;
 
   if (!ref || !hash)
     return CDD_C_SUCCESS;
-  if (hash == ref)
-    return CDD_C_ERROR_UNKNOWN;
+  if (hash == ref) {
+    *out_matches = 1;
+    return CDD_C_SUCCESS;
+  }
   if (!spec)
     return CDD_C_SUCCESS;
 
   if (spec->document_uri && *spec->document_uri) {
     const char *base_uri = spec->document_uri;
     size_t uri_len = 0;
-    uri_base_len(base_uri, &uri_len);
+    g_cdd_last_alloc_err = uri_base_len(base_uri, &uri_len);
     base_len = (size_t)(hash - ref);
-    if (uri_len == base_len && strncmp(ref, base_uri, base_len) == 0)
-      return CDD_C_ERROR_UNKNOWN;
-    if (!uri_has_scheme_prefix(base_uri, uri_len)) {
+    if (uri_len == base_len && strncmp(ref, base_uri, base_len) == 0) {
+      *out_matches = 1;
+      return CDD_C_SUCCESS;
+    }
+    g_cdd_last_alloc_err =
+        uri_has_scheme_prefix(base_uri, uri_len, &has_scheme);
+    if (!has_scheme) {
       const char *rel = base_uri;
       size_t rel_len = uri_len;
       while (rel_len >= 2 && ((rel[0] == '.') & (rel[1] == '/'))) {
@@ -670,8 +740,10 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
       if (base_len >= rel_len &&
           strncmp(ref + (base_len - rel_len), rel, rel_len) == 0 &&
           (rel[0] == '/' || base_len == rel_len ||
-           ref[base_len - rel_len - 1] == '/'))
-        return CDD_C_ERROR_UNKNOWN;
+           ref[base_len - rel_len - 1] == '/')) {
+        *out_matches = 1;
+        return CDD_C_SUCCESS;
+      }
     }
     return CDD_C_SUCCESS;
   }
@@ -686,11 +758,15 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
   self_len = self_hash ? (size_t)(self_hash - self_uri) : strlen(self_uri);
 
   /* Exact base match (absolute $self). */
-  if (base_len == self_len && strncmp(ref, self_base, base_len) == 0)
-    return CDD_C_ERROR_UNKNOWN;
+  if (base_len == self_len && strncmp(ref, self_base, base_len) == 0) {
+    *out_matches = 1;
+    return CDD_C_SUCCESS;
+  }
 
   /* Relative $self: allow refs whose base URI ends with the self path. */
-  if (!uri_has_scheme_prefix(self_base, self_len)) {
+  g_cdd_last_alloc_err =
+      uri_has_scheme_prefix(self_base, self_len, &has_scheme);
+  if (!has_scheme) {
     while (self_len >= 2 && ((self_base[0] == '.') & (self_base[1] == '/'))) {
       self_base += 2;
       self_len -= 2;
@@ -699,12 +775,11 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
       return CDD_C_SUCCESS;
     if (base_len >= self_len &&
         strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
-      if (self_base[0] == '/')
-        return CDD_C_ERROR_UNKNOWN;
-      if (base_len == self_len)
-        return CDD_C_ERROR_UNKNOWN;
-      if (ref[base_len - self_len - 1] == '/')
-        return CDD_C_ERROR_UNKNOWN;
+      if (self_base[0] == '/' || base_len == self_len ||
+          ref[base_len - self_len - 1] == '/') {
+        *out_matches = 1;
+        return CDD_C_SUCCESS;
+      }
     }
   }
 
@@ -727,6 +802,7 @@ cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
   size_t prefix_len;
   const char *name;
   const char *hash;
+  int matches_self = 0;
   if (!ref || !prefix) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -752,7 +828,8 @@ cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  if (!ref_base_matches_self(spec, ref, hash)) {
+  g_cdd_last_alloc_err = ref_base_matches_self(spec, ref, hash, &matches_self);
+  if (!matches_self) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }

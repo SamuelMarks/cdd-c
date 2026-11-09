@@ -87,8 +87,8 @@ TEST test_patch_list_to_diff_basic(void) {
   ASSERT(strstr(diff_str, "+      return 1;\n") != NULL);
 
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -146,8 +146,8 @@ TEST test_patch_list_to_diff_empty(void) {
   ASSERT_STR_EQ("", diff_str);
   free(diff_str);
 
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -189,8 +189,8 @@ TEST test_diff_invalid_args(void) {
   ASSERT(diff_str != NULL);
   free(diff_str);
 
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -226,8 +226,8 @@ TEST test_diff_sort_fail(void) {
   g_cdd_fail_patch_list_sort = 0;
 #endif
 
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -292,8 +292,8 @@ TEST test_diff_insert_delete_adjacent(void) {
   ASSERT(diff_str != NULL);
 
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -327,8 +327,8 @@ TEST test_diff_end_token_zero_and_max_mod(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(diff_str != NULL);
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   /* Test 2: Pure insertion on line 2 (start = end = token 5: 'int' on line 2)
    */
@@ -351,8 +351,8 @@ TEST test_diff_end_token_zero_and_max_mod(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(diff_str != NULL);
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -383,8 +383,8 @@ TEST test_diff_empty_block_and_cursor_end(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(diff_str != NULL);
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -458,8 +458,8 @@ TEST test_diff_find_line_errors(void) {
     g_cdd_fail_find_line_for_token = 0;
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
-    patch_list_free(&list);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = patch_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tokens);
   }
 
   /* Test failure at tokens[0] fallback when end_token_idx == 0 */
@@ -489,8 +489,8 @@ TEST test_diff_find_line_errors(void) {
     g_cdd_fail_find_line_for_token = 0;
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
-    patch_list_free(&list);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = patch_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tokens);
   }
 #endif
   PASS();
@@ -537,8 +537,8 @@ TEST test_diff_append_errors(void) {
       free(diff_str);
     }
 
-    patch_list_free(&list);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = patch_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tokens);
   }
 
   /* Del and ins with no trailing newline */
@@ -574,8 +574,8 @@ TEST test_diff_append_errors(void) {
       free(diff_str);
     }
 
-    patch_list_free(&list);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = patch_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tokens);
   }
 #endif
   PASS();
@@ -656,8 +656,8 @@ TEST test_diff_multiple_blocks(void) {
   ASSERT(diff_str != NULL);
 
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -695,8 +695,8 @@ TEST test_diff_no_newline_eof(void) {
   ASSERT(strstr(diff_str, "\\ No newline at end of file") != NULL);
 
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   /* Test where the last line is in keep_end */
   rc = tokenize(az_span_create_from_str("one\ntwo\nthree"), &tokens);
@@ -721,8 +721,8 @@ TEST test_diff_no_newline_eof(void) {
   ASSERT(strstr(diff_str, "\\ No newline at end of file") != NULL);
 
   free(diff_str);
-  patch_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -761,8 +761,8 @@ TEST test_diff_alloc_failures(void) {
     if (rc == CDD_C_SUCCESS && diff_str) {
       free(diff_str);
     }
-    patch_list_free(&list);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = patch_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tokens);
   }
 #endif
   PASS();

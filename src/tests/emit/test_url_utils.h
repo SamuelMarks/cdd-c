@@ -219,7 +219,7 @@ TEST test_query_lifecycle(void) {
   ASSERT_STR_EQ("key", qp.params[0].key);
   ASSERT_STR_EQ("val", qp.params[0].value);
 
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   ASSERT_EQ(0, qp.count);
   ASSERT(qp.params == NULL);
   g_fail_io_after = -1;
@@ -241,7 +241,7 @@ TEST test_query_build_empty(void) {
   ASSERT_STR_EQ("", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -262,7 +262,7 @@ TEST test_query_build_single(void) {
   ASSERT_STR_EQ("?q=hello%20world", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -285,7 +285,7 @@ TEST test_query_build_multiple(void) {
   ASSERT_STR_EQ("?a=1&b=2%2B2", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -306,7 +306,7 @@ TEST test_query_build_form_single(void) {
   ASSERT_STR_EQ("q=hello+world", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -328,7 +328,7 @@ TEST test_query_build_form_multiple(void) {
   ASSERT_STR_EQ("a=1&b=2%2B2", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -349,7 +349,7 @@ TEST test_query_build_form_preserves_encoded_value(void) {
   ASSERT_STR_EQ("color=blue,black", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -438,7 +438,7 @@ TEST test_query_build_preserves_encoded_value(void) {
   ASSERT_STR_EQ("?color=blue,black&q=hello%20world", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -459,7 +459,7 @@ TEST test_query_build_encoding_keys(void) {
   ASSERT_STR_EQ("?user%20id=100", res);
 
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -482,8 +482,8 @@ TEST test_query_null_safety(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_build(NULL, &res));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_build(&qp, NULL));
 
-  url_query_free(NULL); /* Safe */
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(NULL); /* Safe */
+  g_cdd_last_alloc_err = url_query_free(&qp);
   g_fail_io_after = -1;
 
   PASS();
@@ -576,14 +576,14 @@ TEST test_url_encode_unreserved_form_asterisk(void) {
  */
 TEST test_url_query_add_encoded_null(void) {
   struct UrlQueryParams qp;
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             url_query_add_encoded(NULL, "k", "v"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             url_query_add_encoded(&qp, NULL, "v"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             url_query_add_encoded(&qp, "k", NULL));
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   PASS();
 }
 
@@ -761,12 +761,12 @@ TEST test_openapi_kv_join_form_all_skipped(void) {
 TEST test_url_query_build_form_empty(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   ASSERT_EQ(CDD_C_SUCCESS, url_query_build_form(&qp, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("", res);
   free(res);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
   PASS();
 }
 
@@ -863,10 +863,10 @@ TEST test_url_utils_full_coverage(void) {
   qp.params[0].value = NULL;
   qp.params[1].key = strdup("k");
   qp.params[1].value = NULL;
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* 9. url_query_add capacity expansion (>4 items) and failures */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   rc = url_query_add(&qp, "k1", "v1");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = url_query_add(&qp, "k2", "v2");
@@ -878,10 +878,10 @@ TEST test_url_utils_full_coverage(void) {
   /* Triggers capacity expansion with capacity != 0 */
   rc = url_query_add(&qp, "k5", "v5");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* url_query_add realloc fail */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   g_cdd_alloc_fail = 1;
   rc = url_query_add(&qp, "k", "v");
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -898,10 +898,10 @@ TEST test_url_utils_full_coverage(void) {
   rc = url_query_add(&qp, "k", "v");
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* 10. url_query_add_encoded capacity expansion (>4 items) and failures */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   rc = url_query_add_encoded(&qp, "k1", "v1");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = url_query_add_encoded(&qp, "k2", "v2");
@@ -912,10 +912,10 @@ TEST test_url_utils_full_coverage(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = url_query_add_encoded(&qp, "k5", "v5");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* url_query_add_encoded realloc fail */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   g_cdd_alloc_fail = 1;
   rc = url_query_add_encoded(&qp, "k", "v");
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -932,10 +932,10 @@ TEST test_url_utils_full_coverage(void) {
   rc = url_query_add_encoded(&qp, "k", "v");
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* 11. url_query_build with raw_val == NULL and OOM injections */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   rc = url_query_add_encoded(&qp, "enc_key", NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = url_query_add(&qp, "k", "v");
@@ -954,17 +954,17 @@ TEST test_url_utils_full_coverage(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
   g_cdd_alloc_fail = 0;
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* 12. url_query_build_form OOM injections */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   g_cdd_alloc_fail = 1;
   rc = url_query_build_form(&qp, &res);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   rc = url_query_add(&qp, "k", "v");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = url_query_add_encoded(&qp, "enc", "val");
@@ -981,7 +981,7 @@ TEST test_url_utils_full_coverage(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
   g_cdd_alloc_fail = 0;
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* 13. append_str OOM */
   {
@@ -1020,10 +1020,10 @@ TEST test_url_utils_full_coverage(void) {
   }
 
   /* url_query_build_form invalid argument */
-  url_query_init(&qp);
+  g_cdd_last_alloc_err = url_query_init(&qp);
   rc = url_query_build_form(&qp, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  url_query_free(&qp);
+  g_cdd_last_alloc_err = url_query_free(&qp);
 
   /* openapi_kv_join_form edge cases: skipped keys, skipped raw_vals, and OOM
    * loops */

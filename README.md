@@ -180,11 +180,14 @@ cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1
 
 #### 1. Compiler Programmatic SDK (`cdd_api.h` & `functions/emit/sync.h`)
 
-Link against `libc_cdd` and include `cdd_api.h` and `functions/emit/sync.h` to invoke the `cdd-c` compiler, Arazzo workflow generator, and lossless CST header/source synchronizer directly from C89/C++ applications:
+Link against `libc_cdd` and include `cdd_api.h`, `openapi/parse/openapi.h`, `arazzo/parse/arazzo.h`, and `functions/emit/sync.h` to invoke the `cdd-c` compiler, in-memory OpenAPI/Arazzo AST parsers, and lossless CST header/source synchronizer directly from C89/C++ applications with deterministic cleanup:
 
 ```c
+#include "arazzo/parse/arazzo.h"
+#include "c_cdd/json_dom.h"
 #include "cdd_api.h"
 #include "functions/emit/sync.h"
+#include "openapi/parse/openapi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -194,49 +197,71 @@ int main(void) {
   cdd_to_openapi_config_t oas_cfg;
   cdd_from_arazzo_config_t arazzo_cfg;
   cdd_docs_json_config_t docs_cfg;
+  JSON_Value *oas_json = NULL;
+  struct OpenAPI_Spec oas_spec;
+  struct Arazzo_Spec arazzo_spec;
+  char *refactored_c = NULL;
   char *sync_argv[2];
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  /* 1. Generate a C89 Client SDK + contract tests from an OpenAPI 3.2.0 spec */
+  memset(&oas_spec, 0, sizeof(oas_spec));
+  memset(&arazzo_spec, 0, sizeof(arazzo_spec));
+
+  /* 1. Parse OpenAPI 3.2.0 and Arazzo 1.1.0 ASTs in-memory (and free when done) */
+  rc = cdd_json_parse_file("openapi.json", &oas_json);
+  if (rc != CDD_C_SUCCESS) goto cleanup;
+  rc = openapi_load_from_json(oas_json, &oas_spec);
+  if (rc != CDD_C_SUCCESS) goto cleanup;
+  rc = arazzo_parse_file("petstore.arazzo.json", &arazzo_spec);
+  if (rc != CDD_C_SUCCESS) goto cleanup;
+
+  /* 2. Generate a C89 Client SDK + contract tests from an OpenAPI 3.2.0 spec */
   memset(&sdk_cfg, 0, sizeof(sdk_cfg));
   sdk_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   sdk_cfg.input = "openapi.json";
   sdk_cfg.output = "./generated_sdk";
   sdk_cfg.tests = 1;
   rc = cdd_generate_from_openapi(&sdk_cfg);
-  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+  if (rc != CDD_C_SUCCESS) goto cleanup;
 
-  /* 2. Extract an OpenAPI 3.2.0 specification from C source/header files */
+  /* 3. Extract an OpenAPI 3.2.0 specification from C source/header files */
   memset(&oas_cfg, 0, sizeof(oas_cfg));
   oas_cfg.input = "./src";
   oas_cfg.output = "./extracted_openapi.json";
   rc = cdd_generate_to_openapi(&oas_cfg);
-  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+  if (rc != CDD_C_SUCCESS) goto cleanup;
 
-  /* 3. Compile Arazzo 1.1.0 multi-step workflows into C SDK orchestrators */
+  /* 4. Compile Arazzo 1.1.0 multi-step workflows into C SDK orchestrators */
   memset(&arazzo_cfg, 0, sizeof(arazzo_cfg));
   arazzo_cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
   arazzo_cfg.input = "petstore.arazzo.json";
   arazzo_cfg.output = "./workflows";
   rc = cdd_generate_from_arazzo(&arazzo_cfg);
-  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+  if (rc != CDD_C_SUCCESS) goto cleanup;
 
-  /* 4. Synchronize C implementation and header files in-place via CST diffing */
+  /* 5. Synchronize C implementation and header files in-place via CST diffing */
+  rc = sync_header_to_source("src/client.h", "int api_ping(void) { return 0; }\n",
+                             &refactored_c);
+  if (rc != CDD_C_SUCCESS) goto cleanup;
   sync_argv[0] = "src/client.h";
   sync_argv[1] = "src/client.c";
   rc = sync_code_main(2, sync_argv);
-  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
+  if (rc != CDD_C_SUCCESS) goto cleanup;
 
-  /* 5. Generate documentation-ready C code snippets JSON */
+  /* 6. Generate documentation-ready C code snippets JSON */
   memset(&docs_cfg, 0, sizeof(docs_cfg));
   docs_cfg.input = "openapi.json";
   docs_cfg.output = "./docs.json";
   docs_cfg.no_imports = 0;
   docs_cfg.no_wrapping = 0;
   rc = cdd_generate_docs_json(&docs_cfg);
-  if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
 
-  return EXIT_SUCCESS;
+cleanup:
+  if (refactored_c != NULL) free(refactored_c);
+  arazzo_spec_free(&arazzo_spec);
+  openapi_spec_free(&oas_spec);
+  if (oas_json != NULL) cdd_json_value_free(oas_json);
+  return rc == CDD_C_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 ```
 
@@ -255,27 +280,37 @@ int main(void) {
   struct ApiError *api_err = NULL;
   struct Pet *pet = NULL;
   cdd_c_error_t rc;
+  cdd_c_error_t clean_rc;
 
   /* Initialize HTTP client & configure Bearer token authentication */
-  rc = init(&client, "https://petstore3.swagger.io/api/v3");
+  rc = api_init(&client, "https://petstore3.swagger.io/api/v3");
   if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
-  client.bearer_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...";
+  rc = api_set_bearer_token(&client, "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...");
+  if (rc != CDD_C_SUCCESS) {
+    api_cleanup(&client);
+    return EXIT_FAILURE;
+  }
 
   /* Execute typed operation: GET /pet/{petId} */
-  rc = pet_getPetById(&client, 42, &pet, &api_err);
+  rc = api_pet_getPetById(&client, 42, &pet, &api_err);
   if (rc == CDD_C_SUCCESS && pet != NULL) {
     printf("Fetched pet: id=%d, name=%s\n", pet->id,
            pet->name ? pet->name : "(unnamed)");
-    rc = Pet_cleanup(pet);
-    if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
   } else if (api_err != NULL) {
     fprintf(stderr, "API error (HTTP %d): %s\n", api_err->status,
             api_err->detail ? api_err->detail : "");
-    rc = ApiError_cleanup(api_err);
-    if (rc != CDD_C_SUCCESS) return EXIT_FAILURE;
   }
 
-  cleanup(&client);
+  if (pet != NULL) {
+    clean_rc = Pet_cleanup(pet);
+    if (rc == CDD_C_SUCCESS) rc = clean_rc;
+  }
+  if (api_err != NULL) {
+    clean_rc = ApiError_cleanup(api_err);
+    if (rc == CDD_C_SUCCESS) rc = clean_rc;
+  }
+  clean_rc = api_cleanup(&client);
+  if (rc == CDD_C_SUCCESS) rc = clean_rc;
   return rc == CDD_C_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 ```

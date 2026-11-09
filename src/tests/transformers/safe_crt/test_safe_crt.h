@@ -421,7 +421,7 @@ TEST test_cdd_transform_safe_crt(void) {
          NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   {
     const char *code4 =
@@ -429,14 +429,14 @@ TEST test_cdd_transform_safe_crt(void) {
     cdd_cst_tree_t *tree4 = NULL;
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code4), &tree4));
     ASSERT_EQ(0, cdd_transform_safe_crt(tree4, &config));
-    cdd_cst_tree_free(tree4);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree4);
 
     {
       const char *code5 = "void edge5() { char *u; (strcpy(u, \"a\")); }";
       cdd_cst_tree_t *tree5 = NULL;
       ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code5), &tree5));
       ASSERT_EQ(0, cdd_transform_safe_crt(tree5, &config));
-      cdd_cst_tree_free(tree5);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree5);
 
       {
         const char *code6 =
@@ -444,7 +444,7 @@ TEST test_cdd_transform_safe_crt(void) {
         cdd_cst_tree_t *tree6 = NULL;
         ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code6), &tree6));
         ASSERT_EQ(0, cdd_transform_safe_crt(tree6, &config));
-        cdd_cst_tree_free(tree6);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree6);
 
         {
           const char *code7 = "void edge7() { FILE *f;\n"
@@ -456,7 +456,7 @@ TEST test_cdd_transform_safe_crt(void) {
           cdd_cst_tree_t *tree7 = NULL;
           ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code7), &tree7));
           ASSERT_EQ(0, cdd_transform_safe_crt(tree7, &config));
-          cdd_cst_tree_free(tree7);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree7);
 
           {
             const char *code8 =
@@ -464,7 +464,7 @@ TEST test_cdd_transform_safe_crt(void) {
             cdd_cst_tree_t *tree8 = NULL;
             ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code8), &tree8));
             ASSERT_EQ(0, cdd_transform_safe_crt(tree8, &config));
-            cdd_cst_tree_free(tree8);
+            g_cdd_last_alloc_err = cdd_cst_tree_free(tree8);
 
             {
               const char *code9 =
@@ -476,7 +476,7 @@ TEST test_cdd_transform_safe_crt(void) {
               ASSERT_EQ(0,
                         cdd_cst_parse(az_span_create_from_str(code9), &tree9));
               ASSERT_EQ(0, cdd_transform_safe_crt(tree9, &config));
-              cdd_cst_tree_free(tree9);
+              g_cdd_last_alloc_err = cdd_cst_tree_free(tree9);
 
               {
                 const char *code10 = "void edge10() { scanf(\"%s\", NULL); }";
@@ -484,7 +484,7 @@ TEST test_cdd_transform_safe_crt(void) {
                 ASSERT_EQ(
                     0, cdd_cst_parse(az_span_create_from_str(code10), &tree10));
                 ASSERT_EQ(0, cdd_transform_safe_crt(tree10, &config));
-                cdd_cst_tree_free(tree10);
+                g_cdd_last_alloc_err = cdd_cst_tree_free(tree10);
 
                 {
                   const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
@@ -492,7 +492,7 @@ TEST test_cdd_transform_safe_crt(void) {
                   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code11),
                                              &tree11));
                   ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
-                  cdd_cst_tree_free(tree11);
+                  g_cdd_last_alloc_err = cdd_cst_tree_free(tree11);
 
                   {
                     const char code12[] = {
@@ -529,7 +529,7 @@ TEST test_cdd_transform_safe_crt(void) {
                     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code12),
                                                &tree12));
                     ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
-                    cdd_cst_tree_free(tree12);
+                    g_cdd_last_alloc_err = cdd_cst_tree_free(tree12);
 
                     g_fail_io_after = -1;
                     PASS();
@@ -639,8 +639,8 @@ TEST test_cdd_transform_safe_crt_extended_functions(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
 
-  cdd_cst_emit(tree, &out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_emit(tree, &out);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   printf("EXT OUT:\n%s\n", out);
   printf("\n\nEXT OUT:\n%s\n\n", out);
@@ -787,7 +787,7 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }

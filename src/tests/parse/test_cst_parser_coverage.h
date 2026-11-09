@@ -60,7 +60,7 @@ TEST test_cst_full_coverage(void) {
   rc = cst_list_add(&list, CST_NODE_OTHER, (const uint8_t *)"x", 1, 0, 1);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   memset(&list, 0, sizeof(list));
   g_cdd_alloc_fail = 2;
@@ -69,7 +69,7 @@ TEST test_cst_full_coverage(void) {
   rc = cst_list_add(&list, CST_NODE_OTHER, (const uint8_t *)"x", 1, 0, 1);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   memset(&list, 0, sizeof(list));
 
@@ -102,12 +102,13 @@ TEST test_cst_full_coverage(void) {
   ASSERT_EQ(CST_NODE_FUNCTION, found_node->kind);
 
   /* 3. free_cst_node_list tests */
-  free_cst_node_list(NULL);
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(NULL);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
   ASSERT(list.nodes == NULL);
   ASSERT_EQ(0, list.size);
   ASSERT_EQ(0, list.capacity);
-  free_cst_node_list(&list); /* Second free on empty list */
+  g_cdd_last_alloc_err =
+      free_cst_node_list(&list); /* Second free on empty list */
 
   /* 4. Function definition edge branches */
   /* EOF right after closing paren (k >= limit) */
@@ -116,8 +117,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Unclosed brace at EOF (brace_depth > 0) */
@@ -126,8 +127,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Unclosed paren at EOF */
@@ -136,8 +137,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Non-brace after closing paren */
@@ -146,8 +147,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Assignment / Number / Semicolon before paren */
@@ -156,8 +157,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Failure injections in match_function_definition */
@@ -168,29 +169,29 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_is_type_start = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_skip_ws = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_match_function_definition = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_match_function_definition = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 5. GCC Attributes */
@@ -201,8 +202,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("__attribute__((unused"), &tl);
@@ -210,8 +211,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 6. MSVC Declspec */
@@ -222,8 +223,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("__declspec(dllexport"), &tl);
@@ -231,8 +232,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 7. C23 Attributes */
@@ -243,15 +244,15 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_consume_attributes = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("[[nodiscard"), &tl);
@@ -259,8 +260,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 8. Static Assert */
@@ -271,29 +272,29 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_skip_ws = 2;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_consume_static_assert = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_consume_static_assert = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 9. C11 _Generic */
@@ -305,29 +306,29 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_consume_balanced_parens = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_consume_balanced_parens = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_consume_generic_selection = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_consume_generic_selection = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("generic_selection(1, int: 2);"), &tl);
@@ -335,8 +336,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 10. Struct / Enum / Union */
@@ -347,8 +348,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Struct with preceding tokens not LPAREN */
@@ -357,8 +358,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Failures on struct parsing */
@@ -369,36 +370,36 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws_back = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_consume_balanced_braces = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_consume_balanced_braces = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_skip_ws = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 2; /* Fails in inner recursive parse */
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Forward declaration with and without semicolon */
@@ -409,8 +410,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("struct ForwardNoSemi"), &tl);
@@ -418,8 +419,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("struct"), &tl);
@@ -427,8 +428,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("enum ForwardEnum;"), &tl);
@@ -436,8 +437,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("union ForwardUnion;"), &tl);
@@ -445,8 +446,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 11. Comments and Macros */
@@ -457,8 +458,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("#define FOO 1\nint x;\n"), &tl);
@@ -466,8 +467,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("#define FOO 1\n"), &tl);
@@ -477,8 +478,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 12. Expression braces and statements */
@@ -489,29 +490,29 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_is_expression_brace = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_skip_ws_back = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws_back = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_consume_balanced_braces = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_consume_balanced_braces = 0;
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
 
   g_cdd_fail_cst_list_add = 1;
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Expression brace preceded by paren: bpk == TOKEN_KEYWORD_IF */
@@ -520,8 +521,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Expression brace preceded by paren: not if */
@@ -533,8 +534,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws_back = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Statement with cast: (struct S *)p; */
@@ -543,8 +544,8 @@ TEST test_cst_full_coverage(void) {
   memset(&list, 0, sizeof(list));
   rc = parse_tokens(tl, &list);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("int y; struct S *p;"), &tl);
@@ -554,8 +555,8 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_skip_ws_back = 0;
-  free_cst_node_list(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   PASS();

@@ -82,7 +82,7 @@ TEST test_aggregator_add_new(void) {
   /* Verify the input op was zeroed (ownership transfer) */
   ASSERT_EQ(NULL, op.operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -114,7 +114,7 @@ TEST test_aggregator_merge_paths(void) {
   ASSERT_STR_EQ("getUsers", spec.paths[0].operations[0].operation_id);
   ASSERT_STR_EQ("createUser", spec.paths[0].operations[1].operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -138,7 +138,7 @@ TEST test_aggregator_distinct_paths(void) {
   ASSERT_STR_EQ("/a", spec.paths[0].route);
   ASSERT_STR_EQ("/b", spec.paths[1].route);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -167,7 +167,7 @@ TEST test_aggregator_add_additional_operation(void) {
                 spec.paths[0].additional_operations[0].operation_id);
   ASSERT_STR_EQ("COPY", spec.paths[0].additional_operations[0].method);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -193,7 +193,7 @@ TEST test_aggregator_add_webhook(void) {
   ASSERT_STR_EQ("webhookOp", spec.webhooks[0].operations[0].operation_id);
   ASSERT_EQ(NULL, op.operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -218,7 +218,7 @@ TEST test_aggregator_bad_args(void) {
   /* Since calls failed, ownership RETAINED by op. We must free it manually
    * here. */
   free(op.operation_id);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -275,7 +275,7 @@ TEST test_aggregator_oom(void) {
 
   /* Clean up the dangling op */
   free(op.operation_id);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -286,7 +286,7 @@ TEST test_aggregator_webhook_additional(void) {
   dummy_op(&op, "op1");
   op.is_additional = 1;
   ASSERT_EQ(0, openapi_aggregator_add_webhook_operation(&spec, "/hooks", &op));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -302,7 +302,7 @@ TEST test_aggregator_webhook_bad_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             openapi_aggregator_add_webhook_operation(&spec, "/hooks", NULL));
   free(op.operation_id);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 TEST test_aggregator_webhook_existing(void) {
@@ -323,7 +323,7 @@ TEST test_aggregator_webhook_existing(void) {
   ASSERT_EQ(1, spec.n_webhooks);
   ASSERT_EQ(2, spec.webhooks[0].n_operations);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 #endif

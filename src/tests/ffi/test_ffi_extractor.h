@@ -50,11 +50,11 @@ TEST test_ffi_ir_extract_mock_failures(void) {
   extern C_CDD_EXPORT int g_cdd_ffi_fail_token;
 
   g_cdd_ffi_fail_cst_node = 1;
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   rc = cdd_ffi_ir_extract_exports(filename, code, &config, &ir);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   if (ir) {
-    cdd_ffi_ir_free(ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     free(ir);
     ir = NULL;
   }
@@ -64,7 +64,7 @@ TEST test_ffi_ir_extract_mock_failures(void) {
   rc = cdd_ffi_ir_extract_exports(filename, code, &config, &ir);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   if (ir) {
-    cdd_ffi_ir_free(ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     free(ir);
     ir = NULL;
   }
@@ -119,10 +119,10 @@ TEST test_ffi_ir_extract_exports_all_types(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
   ASSERT_EQ(1, ir != NULL);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -140,7 +140,7 @@ TEST test_ffi_ir_extract_exports_basic(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
 
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
 
@@ -180,7 +180,7 @@ TEST test_ffi_ir_extract_exports_basic(void) {
     ASSERT_EQ(1, found_func);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -200,7 +200,7 @@ TEST test_ffi_ir_extract_macros(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
 
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
 
@@ -241,7 +241,7 @@ TEST test_ffi_ir_extract_macros(void) {
     ASSERT_EQ(1, found_str);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -259,7 +259,7 @@ TEST test_ffi_ir_extract_templates(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
 
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
 
@@ -290,7 +290,7 @@ TEST test_ffi_ir_extract_templates(void) {
     ASSERT_EQ(1, found_point_int);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -315,9 +315,9 @@ TEST test_ffi_ir_extract_includes(void) {
 
   config.recursive_includes = 1;
 
-  write_to_file(filename_main, code_main);
-  write_to_file(filename_inc, code_inc);
-  write_to_file(filename_inc2, code_inc2);
+  g_cdd_last_alloc_err = write_to_file(filename_main, code_main);
+  g_cdd_last_alloc_err = write_to_file(filename_inc, code_inc);
+  g_cdd_last_alloc_err = write_to_file(filename_inc2, code_inc2);
 
   ASSERT_EQ(0,
             cdd_ffi_ir_extract_exports(filename_main, code_main, &config, &ir));
@@ -346,7 +346,7 @@ TEST test_ffi_ir_extract_includes(void) {
     ASSERT_EQ(1, found_inc2);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename_main);
   remove(filename_inc);
@@ -357,15 +357,15 @@ TEST test_ffi_ir_extract_includes(void) {
     const char *err_main = "err_main.h";
     const char *code_em = "#include \"err_missing_file_999.h\"\n";
     cdd_ffi_ir_t *err_ir = NULL;
-    write_to_file(err_main, code_em);
+    g_cdd_last_alloc_err = write_to_file(err_main, code_em);
     remove(err_main);
     ASSERT(cdd_ffi_ir_extract_exports(err_main, code_em, &config, &err_ir) !=
            CDD_C_SUCCESS);
-    write_to_file("ok_v.h", "int foo_clean(void);\n");
+    g_cdd_last_alloc_err = write_to_file("ok_v.h", "int foo_clean(void);\n");
     if (cdd_ffi_ir_extract_exports("ok_v.h", "int foo_clean(void);\n", &config,
                                    &err_ir) == CDD_C_SUCCESS &&
         err_ir) {
-      cdd_ffi_ir_free(err_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(err_ir);
       free(err_ir);
     }
     remove("ok_v.h");
@@ -428,7 +428,7 @@ TEST test_ffi_ir_extract_stl_types(void) {
   ASSERT_STR_EQ("v", node->fields[0].name);
   ASSERT_EQ(CDD_FFI_KIND_STD_VECTOR, node->fields[0].type.kind);
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 
@@ -454,7 +454,7 @@ TEST test_ffi_ir_extract_exports_oom(void) {
       "/**\n * @blocking\n * @param[out] out_a Output val\n */\n"
       "void foo(int a, int *out_a);";
 
-  write_to_file("dummy_oom.h", code);
+  g_cdd_last_alloc_err = write_to_file("dummy_oom.h", code);
   for (k = 1; k < 60; k++) {
     ir = NULL;
     g_ffi_extractor_alloc_fail = k;
@@ -462,12 +462,13 @@ TEST test_ffi_ir_extract_exports_oom(void) {
     ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
     g_ffi_extractor_alloc_fail = 0;
     if (ir)
-      cdd_ffi_ir_free(ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     free(ir);
   }
   remove("dummy_oom.h");
 
-  write_to_file("dummy_fn_oom.h", "int my_func(int a) { return a; }\n");
+  g_cdd_last_alloc_err =
+      write_to_file("dummy_fn_oom.h", "int my_func(int a) { return a; }\n");
   for (k = 1; k < 10; k++) {
     ir = NULL;
     g_ffi_extractor_alloc_fail = k;
@@ -476,7 +477,7 @@ TEST test_ffi_ir_extract_exports_oom(void) {
     ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
     g_ffi_extractor_alloc_fail = 0;
     if (ir)
-      cdd_ffi_ir_free(ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     free(ir);
   }
   remove("dummy_fn_oom.h");
@@ -579,7 +580,7 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
   ASSERT_STR_EQ("Derived", ir.nodes[2].return_or_base_type.ref_name);
   ASSERT_STR_EQ("Base", ir.nodes[2].fields[0].type.ref_name);
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 
@@ -674,7 +675,7 @@ TEST test_ffi_ir_extract_trampoline(void) {
   ASSERT_STR_EQ("cb_onError", ir.nodes[1].fields[4].name);
   ASSERT_EQ(CDD_FFI_KIND_FUNCTION_PTR, ir.nodes[1].fields[4].type.kind);
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 
@@ -697,7 +698,7 @@ TEST test_ffi_ir_free_robustness(void) {
   ir.nodes[0].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   /* intentionally leaving type.ref_name NULL to test robustness */
 
-  cdd_ffi_ir_free(&ir); /* Should not crash */
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir); /* Should not crash */
   PASS();
 }
 
@@ -765,7 +766,7 @@ TEST test_ffi_ir_toposort_basic(void) {
     ASSERT_EQ(1, idx_a < idx_f);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -781,7 +782,7 @@ TEST test_ffi_ir_extract_array_out(void) {
   cdd_generate_bindings_config_t config = {0};
   int rc = 0;
 
-  write_to_file("test_array.c", content);
+  g_cdd_last_alloc_err = write_to_file("test_array.c", content);
 
   rc = cdd_ffi_ir_extract_exports("test_array.c", content, &config, &ir);
   ASSERT_EQ(0, rc);
@@ -801,7 +802,7 @@ TEST test_ffi_ir_extract_array_out(void) {
   ASSERT(ir->nodes[0].fields[0].array_length_ref != NULL);
   ASSERT_STR_EQ("len", ir->nodes[0].fields[0].array_length_ref);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove("test_array.c");
   PASS();

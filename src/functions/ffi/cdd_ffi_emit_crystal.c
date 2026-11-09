@@ -139,11 +139,11 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  struct %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        map_crystal_type(&node->fields[j].type, &ct);
+        g_cdd_last_alloc_err = map_crystal_type(&node->fields[j].type, &ct);
         fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
@@ -151,12 +151,12 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       fprintf(f, "  union %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        map_crystal_type(&node->fields[j].type, &ct);
+        g_cdd_last_alloc_err = map_crystal_type(&node->fields[j].type, &ct);
         fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  enum %s\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -169,14 +169,15 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ct = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  fun %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        map_crystal_type(&node->fields[j].type, &ct);
+        g_cdd_last_alloc_err = map_crystal_type(&node->fields[j].type, &ct);
         fprintf(f, "%s%s : %s", j > 0 ? ", " : "", node->fields[j].name, ct);
       }
-      map_crystal_type(&node->return_or_base_type, &ret_ct);
+      g_cdd_last_alloc_err =
+          map_crystal_type(&node->return_or_base_type, &ret_ct);
       fprintf(f, ") : %s\n", ret_ct);
     }
   }

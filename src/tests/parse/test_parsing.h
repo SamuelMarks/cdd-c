@@ -85,8 +85,8 @@ TEST parsing_test(const char *const test_name, const az_span source,
 
   printf("Test '%s' passed.\n", test_name);
 
-  free_token_list(tokens);
-  free_cst_node_list(cst_nodes);
+  g_cdd_last_alloc_err = free_token_list(tokens);
+  g_cdd_last_alloc_err = free_cst_node_list(cst_nodes);
   free(cst_nodes);
   PASS();
 }

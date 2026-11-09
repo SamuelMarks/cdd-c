@@ -55,7 +55,7 @@ TEST test_schema_id_ref_resolution(void) {
   {
     struct OpenAPI_Parameter *p = &spec.paths[0].operations[0].parameters[0];
     const struct StructFields *sf =
-        (openapi_spec_find_schema_for_ref(
+        (g_cdd_last_alloc_err = openapi_spec_find_schema_for_ref(
              &spec, &p->schema, &_ast_openapi_spec_find_schema_for_ref_9),
          _ast_openapi_spec_find_schema_for_ref_9);
     ASSERT(sf != NULL);
@@ -64,7 +64,7 @@ TEST test_schema_id_ref_resolution(void) {
                   spec.defined_schema_ids[0]);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -108,7 +108,7 @@ TEST test_schema_anchor_ref_resolution(void) {
   {
     struct OpenAPI_Parameter *p = &spec.paths[0].operations[0].parameters[0];
     const struct StructFields *sf =
-        (openapi_spec_find_schema_for_ref(
+        (g_cdd_last_alloc_err = openapi_spec_find_schema_for_ref(
              &spec, &p->schema, &_ast_openapi_spec_find_schema_for_ref_10),
          _ast_openapi_spec_find_schema_for_ref_10);
     ASSERT(sf != NULL);
@@ -116,7 +116,7 @@ TEST test_schema_anchor_ref_resolution(void) {
     ASSERT_STR_EQ("FooAnchor", spec.defined_schema_anchors[0]);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -160,7 +160,7 @@ TEST test_schema_dynamic_ref_resolution(void) {
   {
     struct OpenAPI_Parameter *p = &spec.paths[0].operations[0].parameters[0];
     const struct StructFields *sf =
-        (openapi_spec_find_schema_for_ref(
+        (g_cdd_last_alloc_err = openapi_spec_find_schema_for_ref(
              &spec, &p->schema, &_ast_openapi_spec_find_schema_for_ref_11),
          _ast_openapi_spec_find_schema_for_ref_11);
     ASSERT(sf != NULL);
@@ -168,7 +168,7 @@ TEST test_schema_dynamic_ref_resolution(void) {
     ASSERT_STR_EQ("FooDyn", spec.defined_schema_dynamic_anchors[0]);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -230,9 +230,9 @@ TEST test_external_component_ref_registry_absolute(void) {
     ASSERT_EQ(OA_PARAM_IN_QUERY, p->in);
   }
 
-  openapi_spec_free(&root_spec);
-  openapi_spec_free(&shared_spec);
-  openapi_doc_registry_free(&registry);
+  g_cdd_last_alloc_err = openapi_spec_free(&root_spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&shared_spec);
+  g_cdd_last_alloc_err = openapi_doc_registry_free(&registry);
   g_fail_io_after = -1;
   PASS();
 }
@@ -293,9 +293,9 @@ TEST test_external_component_ref_registry_relative(void) {
     ASSERT_EQ(OA_PARAM_IN_QUERY, p->in);
   }
 
-  openapi_spec_free(&root_spec);
-  openapi_spec_free(&shared_spec);
-  openapi_doc_registry_free(&registry);
+  g_cdd_last_alloc_err = openapi_spec_free(&root_spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&shared_spec);
+  g_cdd_last_alloc_err = openapi_doc_registry_free(&registry);
   g_fail_io_after = -1;
   PASS();
 }
@@ -324,7 +324,7 @@ TEST test_load_query_verb_and_external_docs(void) {
   ASSERT_STR_EQ("Op docs",
                 spec.paths[0].operations[0].external_docs.description);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -356,7 +356,7 @@ TEST test_load_path_and_operation_servers(void) {
                 spec.paths[0].operations[0].servers[0].url);
   ASSERT_STR_EQ("Op", spec.paths[0].operations[0].servers[0].description);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -381,7 +381,7 @@ TEST test_load_webhooks(void) {
   ASSERT_EQ(OA_VERB_POST, spec.webhooks[0].operations[0].verb);
   ASSERT_STR_EQ("onPetEvent", spec.webhooks[0].operations[0].operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -403,7 +403,7 @@ TEST test_load_path_ref(void) {
   ASSERT_STR_EQ("/foo", spec.paths[0].route);
   ASSERT_STR_EQ("#/components/pathItems/Foo", spec.paths[0].ref);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -435,7 +435,7 @@ TEST test_load_component_parameter_ref(void) {
     ASSERT_STR_EQ("#/components/parameters/LimitParam", p->ref);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -508,7 +508,7 @@ TEST test_load_component_response_and_headers(void) {
     ASSERT_STR_EQ("#/components/headers/RateLimit", resp_200->headers[0].ref);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -537,7 +537,7 @@ TEST test_load_additional_operations(void) {
   ASSERT_STR_EQ("copyItem",
                 spec.paths[0].additional_operations[0].operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -576,7 +576,7 @@ TEST test_load_component_media_type_ref(void) {
     ASSERT_STR_EQ("P", resp->schema.ref_name);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -603,7 +603,7 @@ TEST test_load_schema_conditional_keywords(void) {
   ASSERT(spec.paths[0].operations[0].parameters[0].schema.if_schema != NULL);
   ASSERT(spec.paths[0].operations[0].parameters[0].schema.then_schema != NULL);
   ASSERT(spec.paths[0].operations[0].parameters[0].schema.else_schema != NULL);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -626,7 +626,7 @@ TEST test_load_path_item_ref_with_operation_security(void) {
   ASSERT_EQ(1, spec.n_paths);
   ASSERT_EQ(1, spec.paths[0].n_operations);
   ASSERT_EQ(1, spec.paths[0].operations[0].n_security);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -652,7 +652,7 @@ TEST test_load_component_path_items(void) {
   ASSERT_STR_EQ("getFoo",
                 spec.component_path_items[0].operations[0].operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -713,7 +713,7 @@ TEST test_load_response_links_and_component_links(void) {
     ASSERT_STR_EQ("https://api.example.com", link->server->url);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -763,7 +763,7 @@ TEST test_load_callbacks_and_component_callbacks(void) {
   ASSERT_STR_EQ("{$request.body#/url}",
                 spec.paths[0].operations[0].callbacks[0].paths[0].route);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -811,7 +811,7 @@ TEST test_load_path_item_ref_resolves_component(void) {
   ASSERT_EQ(OA_VERB_GET, spec.paths[0].operations[0].verb);
   ASSERT_STR_EQ("listPets", spec.paths[0].operations[0].operation_id);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -871,7 +871,7 @@ TEST test_load_callback_ref_resolves_component(void) {
     ASSERT_STR_EQ("{$request.body#/url}", cb->paths[0].route);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

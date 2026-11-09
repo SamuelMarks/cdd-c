@@ -42,7 +42,7 @@ TEST test_ffi_ir_emit_python(void) {
   config.generate_tests = 1;
 
   /* create dummy dir */
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -81,7 +81,7 @@ TEST test_ffi_ir_emit_python(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -103,7 +103,7 @@ TEST test_ffi_ir_emit_rust(void) {
   config.generate_tests = 1;
 
   /* create dummy dir */
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -142,7 +142,7 @@ TEST test_ffi_ir_emit_rust(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -164,7 +164,7 @@ TEST test_ffi_ir_emit_csharp(void) {
   config.generate_tests = 1;
 
   /* create dummy dir */
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -203,7 +203,7 @@ TEST test_ffi_ir_emit_csharp(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -224,7 +224,7 @@ TEST test_ffi_ir_emit_typescript(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -260,7 +260,7 @@ TEST test_ffi_ir_emit_typescript(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -282,7 +282,7 @@ TEST test_ffi_ir_emit_napi(void) {
   config.generate_tests = 1;
   config.input = "dummy_header.h";
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -318,7 +318,7 @@ TEST test_ffi_ir_emit_napi(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -339,7 +339,7 @@ TEST test_ffi_ir_emit_java(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -380,7 +380,7 @@ TEST test_ffi_ir_emit_java(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -401,7 +401,7 @@ TEST test_ffi_ir_emit_cpp(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -437,7 +437,7 @@ TEST test_ffi_ir_emit_cpp(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -458,7 +458,7 @@ TEST test_ffi_ir_emit_go(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -494,7 +494,7 @@ TEST test_ffi_ir_emit_go(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -515,7 +515,7 @@ TEST test_ffi_ir_emit_swift(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -551,7 +551,7 @@ TEST test_ffi_ir_emit_swift(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -572,7 +572,7 @@ TEST test_ffi_ir_emit_dart(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -608,7 +608,7 @@ TEST test_ffi_ir_emit_dart(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }

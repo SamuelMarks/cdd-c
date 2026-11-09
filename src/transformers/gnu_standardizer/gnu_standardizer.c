@@ -22,7 +22,8 @@ cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_cst_traverse_preorder(tree->root, cdd_asm_visitor, NULL);
+  g_cdd_last_alloc_err =
+      cdd_cst_traverse_preorder(tree->root, cdd_asm_visitor, NULL);
 
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
@@ -42,7 +43,8 @@ cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
             ctx.tree = tree;
             ctx.func_name = name_tok->start;
             ctx.func_len = name_tok->length;
-            cdd_cst_traverse_preorder(func, cdd_magic_visitor, &ctx);
+            g_cdd_last_alloc_err =
+                cdd_cst_traverse_preorder(func, cdd_magic_visitor, &ctx);
           }
           break;
         }
@@ -65,9 +67,11 @@ cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
         parent_func = parent_func->parent;
       }
       if (parent_func) {
-        cdd_cst_traverse_preorder(parent_func, cdd_tramp_visitor, &t_ctx);
+        g_cdd_last_alloc_err =
+            cdd_cst_traverse_preorder(parent_func, cdd_tramp_visitor, &t_ctx);
       } else {
-        cdd_cst_traverse_preorder(tree->root, cdd_tramp_visitor, &t_ctx);
+        g_cdd_last_alloc_err =
+            cdd_cst_traverse_preorder(tree->root, cdd_tramp_visitor, &t_ctx);
       }
 
       if (t_ctx.is_tramp) {

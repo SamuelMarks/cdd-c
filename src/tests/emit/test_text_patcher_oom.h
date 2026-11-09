@@ -44,10 +44,10 @@ TEST test_patcher_oom(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&list));
     g_cdd_alloc_fail = 0;
 
-    patch_list_init(&list);
+    g_cdd_last_alloc_err = patch_list_init(&list);
     /* fill it up to trigger realloc */
     for (i = 0; i < 8; i++) {
-      patch_list_add(&list, 0, 1, strdup("a"));
+      g_cdd_last_alloc_err = patch_list_add(&list, 0, 1, strdup("a"));
     }
     {
       int j;
@@ -89,22 +89,23 @@ TEST test_patcher_oom(void) {
     if (list.patches[0].text)
       free(list.patches[0].text);
     list.patches[0].text = NULL;
-    patch_list_free(&list);
+    g_cdd_last_alloc_err = patch_list_free(&list);
 
     /* Test patch_list_apply OOM */
     {
       struct PatchList p_oom;
       char *out_oom = NULL;
-      patch_list_init(&p_oom);
+      g_cdd_last_alloc_err = patch_list_init(&p_oom);
       {
         struct TokenList *tl_alloc = NULL;
-        tokenize(az_span_create_from_str("int main(){}"), &tl_alloc);
+        g_cdd_last_alloc_err =
+            tokenize(az_span_create_from_str("int main(){}"), &tl_alloc);
 
         {
           char huge_oom[3000];
           memset(huge_oom, 'O', 2999);
           huge_oom[2999] = '\0';
-          patch_list_add(&p_oom, 0, 1, strdup(huge_oom));
+          g_cdd_last_alloc_err = patch_list_add(&p_oom, 0, 1, strdup(huge_oom));
           {
             int j;
             for (j = 1; j < 180; j++) {
@@ -135,13 +136,14 @@ TEST test_patcher_oom(void) {
           }
 
           /* Also test OOM for tokens */
-          patch_list_free(&p_oom);
-          patch_list_init(&p_oom);
+          g_cdd_last_alloc_err = patch_list_free(&p_oom);
+          g_cdd_last_alloc_err = patch_list_init(&p_oom);
           {
             char huge_oom2[3000];
             memset(huge_oom2, 'O', 2999);
             huge_oom2[2999] = '\0';
-            patch_list_add(&p_oom, 4, 4, strdup(huge_oom2));
+            g_cdd_last_alloc_err =
+                patch_list_add(&p_oom, 4, 4, strdup(huge_oom2));
             {
               int j;
               for (j = 1; j < 180; j++) {
@@ -780,8 +782,8 @@ TEST test_patcher_oom(void) {
                 }
               }
             }
-            patch_list_free(&p_oom);
-            free_token_list(tl_alloc);
+            g_cdd_last_alloc_err = patch_list_free(&p_oom);
+            g_cdd_last_alloc_err = free_token_list(tl_alloc);
           }
         }
       }

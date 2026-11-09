@@ -171,14 +171,14 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
         fprintf(f, "    TYPE(c_ptr) :: data\n");
       } else {
         for (j = 0; j < node->fields_count; j++) {
-          map_fortran_type(&node->fields[j].type, type_str, sizeof(type_str),
-                           0);
+          g_cdd_last_alloc_err = map_fortran_type(
+              &node->fields[j].type, type_str, sizeof(type_str), 0);
           fprintf(f, "    %s :: %s\n", type_str, node->fields[j].name);
         }
       }
       fprintf(f, "  END TYPE %s\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       /* Emit as integer parameters */
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -199,7 +199,7 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
 
@@ -217,7 +217,8 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
       fprintf(f, "      IMPORT\n");
 
       for (j = 0; j < node->fields_count; j++) {
-        map_fortran_type(&node->fields[j].type, type_str, sizeof(type_str), 0);
+        g_cdd_last_alloc_err = map_fortran_type(&node->fields[j].type, type_str,
+                                                sizeof(type_str), 0);
         /* FFI generally implies pass by value unless it's a pointer in C */
         if (node->fields[j].type.pointer_depth > 0) {
           fprintf(f, "      %s, VALUE :: %s\n", type_str, node->fields[j].name);
@@ -227,8 +228,8 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
       }
 
       if (!is_void) {
-        map_fortran_type(&node->return_or_base_type, ret_type_str,
-                         sizeof(ret_type_str), 1);
+        g_cdd_last_alloc_err = map_fortran_type(
+            &node->return_or_base_type, ret_type_str, sizeof(ret_type_str), 1);
         fprintf(f, "      %s :: %s\n", ret_type_str, node->name);
       }
 

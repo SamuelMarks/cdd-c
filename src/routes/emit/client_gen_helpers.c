@@ -91,7 +91,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
       }
       memcpy(name, url + i + 1, name_len);
       name[name_len] = '\0';
-      find_server_variable(srv, name, &var);
+      g_cdd_last_alloc_err = find_server_variable(srv, name, &var);
       C_CDD_FREE(name);
       if (!var || !var->default_value) {
         *_out_val = NULL;
@@ -127,7 +127,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         }
         memcpy(name, url + i + 1, name_len);
         name[name_len] = '\0';
-        find_server_variable(srv, name, &var);
+        g_cdd_last_alloc_err = find_server_variable(srv, name, &var);
         C_CDD_FREE(name);
         memcpy(out + out_pos, var->default_value, strlen(var->default_value));
         out_pos += strlen(var->default_value);
@@ -262,7 +262,7 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
     return CDD_C_SUCCESS;
   }
 
-  escape_c_string_literal(url, &escaped);
+  g_cdd_last_alloc_err = escape_c_string_literal(url, &escaped);
   if (!escaped) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -390,13 +390,19 @@ cdd_c_error_t sanitize_tag(const char *tag, char **_out_val) {
  *
  * @param[in] a First OpenAPI parameter.
  * @param[in] b Second OpenAPI parameter.
- * @return Non-zero if matching, CDD_C_SUCCESS otherwise.
+ * @param[out] out_match Set to 1 if matching, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t param_keys_match(const struct OpenAPI_Parameter *a,
-                               const struct OpenAPI_Parameter *b) {
+                               const struct OpenAPI_Parameter *b,
+                               int *out_match) {
+  if (!out_match)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_match = 0;
   if (!a || !b || !a->name || !b->name)
     return CDD_C_SUCCESS;
-  return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
+  *out_match = ((a->in == b->in) && (strcmp(a->name, b->name) == 0)) ? 1 : 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -450,7 +456,10 @@ cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
       size_t k;
       int replaced = 0;
       for (k = 0; k < count; ++k) {
-        if (param_keys_match(&params[k], &op->parameters[i])) {
+        int match = 0;
+        g_cdd_last_alloc_err =
+            param_keys_match(&params[k], &op->parameters[i], &match);
+        if (match) {
           params[k] = op->parameters[i];
           replaced = 1;
           break;

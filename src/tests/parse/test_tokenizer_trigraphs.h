@@ -66,7 +66,8 @@ TEST test_trigraph_basic(void) {
 
   /* ??= is # */
 
-  tl = (tokenize_string("?\?= include", &_ast_tokenize_string_0),
+  tl = (g_cdd_last_alloc_err =
+            tokenize_string("?\?= include", &_ast_tokenize_string_0),
         _ast_tokenize_string_0);
 
   ASSERT(tl);
@@ -75,7 +76,7 @@ TEST test_trigraph_basic(void) {
 
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind); /* index 1 is WS */
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
 
   PASS();
@@ -90,9 +91,9 @@ TEST test_splice_basic(void) {
 
   /* i\nnt -> int */
 
-  struct TokenList *tl =
-      (tokenize_string("i\\\nnt x;", &_ast_tokenize_string_1),
-       _ast_tokenize_string_1);
+  struct TokenList *tl = (g_cdd_last_alloc_err = tokenize_string(
+                              "i\\\nnt x;", &_ast_tokenize_string_1),
+                          _ast_tokenize_string_1);
 
   ASSERT(tl);
 
@@ -102,7 +103,7 @@ TEST test_splice_basic(void) {
 
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
 
   PASS();
@@ -119,15 +120,15 @@ TEST test_trigraph_splice_interaction(void) {
 
   /* i??/\nnt -> int */
 
-  struct TokenList *tl =
-      (tokenize_string("i?\?/\nnt x;", &_ast_tokenize_string_2),
-       _ast_tokenize_string_2);
+  struct TokenList *tl = (g_cdd_last_alloc_err = tokenize_string(
+                              "i?\?/\nnt x;", &_ast_tokenize_string_2),
+                          _ast_tokenize_string_2);
 
   ASSERT(tl);
 
   ASSERT_EQ(TOKEN_KEYWORD_INT, tl->tokens[0].kind);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
 
   PASS();
@@ -162,7 +163,8 @@ TEST test_splice_does_not_create_trigraph(void) {
 
   /* It is NOT a TOKEN_HASH */
 
-  struct TokenList *tl = (tokenize_string("?\\\n?=", &_ast_tokenize_string_3),
+  struct TokenList *tl = (g_cdd_last_alloc_err = tokenize_string(
+                              "?\\\n?=", &_ast_tokenize_string_3),
                           _ast_tokenize_string_3);
 
   ASSERT(tl);
@@ -175,7 +177,7 @@ TEST test_splice_does_not_create_trigraph(void) {
 
   ASSERT_EQ(TOKEN_ASSIGN, tl->tokens[2].kind);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
 
   PASS();
@@ -189,9 +191,9 @@ TEST test_matches_string_with_splice(void) {
   struct TokenList *_ast_tokenize_string_4;
   int _ast_token_matches_string_0 = 0;
 
-  struct TokenList *tl =
-      (tokenize_string("RE\\\nTURN", &_ast_tokenize_string_4),
-       _ast_tokenize_string_4);
+  struct TokenList *tl = (g_cdd_last_alloc_err = tokenize_string(
+                              "RE\\\nTURN", &_ast_tokenize_string_4),
+                          _ast_tokenize_string_4);
 
   ASSERT(tl);
 
@@ -211,11 +213,11 @@ TEST test_matches_string_with_splice(void) {
 
      But token_matches_string should handle semantic match. */
 
-  ASSERT((token_matches_string(&tl->tokens[0], "RETURN",
-                               &_ast_token_matches_string_0),
+  ASSERT((g_cdd_last_alloc_err = token_matches_string(
+              &tl->tokens[0], "RETURN", &_ast_token_matches_string_0),
           _ast_token_matches_string_0));
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
 
   PASS();
@@ -234,49 +236,49 @@ TEST test_all_remaining_trigraphs(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_LBRACKET, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ??) ] */
   rc = tokenize_string("?\?)", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_RBRACKET, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ??' ^ */
   rc = tokenize_string("?\?'", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_CARET, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ??< { */
   rc = tokenize_string("?\?<", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_LBRACE, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ??> } */
   rc = tokenize_string("?\?>", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_RBRACE, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ??! | */
   rc = tokenize_string("?\?!", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_PIPE, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ??- ~ */
   rc = tokenize_string("?\?-", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_TILDE, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test non-trigraph ??z */
   rc = tokenize_string("?\?z", &tl);
@@ -285,7 +287,7 @@ TEST test_all_remaining_trigraphs(void) {
   ASSERT_EQ(TOKEN_QUESTION, tl->tokens[0].kind);
   ASSERT_EQ(TOKEN_QUESTION, tl->tokens[1].kind);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -306,7 +308,7 @@ TEST test_splice_crlf_and_eof(void) {
   ASSERT_EQ(TOKEN_KEYWORD_INT, tl->tokens[0].kind);
   ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[1].kind);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test trailing backslash before EOF */
   rc = tokenize_string("x\\", &tl);
@@ -314,21 +316,21 @@ TEST test_splice_crlf_and_eof(void) {
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
   ASSERT_EQ(TOKEN_OTHER, tl->tokens[1].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test backslash-r at EOF */
   rc = tokenize_string("x\\\r", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test backslash-r not followed by newline */
   rc = tokenize_string("x\\\ra", &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();

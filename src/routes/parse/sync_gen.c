@@ -140,7 +140,7 @@ cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
     size_t len;
     size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     buf[bytes_read] = '\0';
-    c_cdd_str_trim_trailing_whitespace(buf);
+    g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(buf);
     len = strlen(buf);
 #ifdef CDD_BUILD_TESTS
     {
@@ -153,7 +153,7 @@ cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
 #endif
     if (buf[len - 1] == '{')
       buf[len - 1] = '\0';
-    c_cdd_str_trim_trailing_whitespace(buf);
+    g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(buf);
   }
   fclose(tmp);
   *_out_val = buf;

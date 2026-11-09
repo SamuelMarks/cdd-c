@@ -37,9 +37,9 @@ TEST test_cdd_cst_builder_long_token(void) {
   char long_tok[4200];
   memset(long_tok, 'a', sizeof(long_tok) - 1);
   long_tok[sizeof(long_tok) - 1] = '\0';
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(""), &tree);
   node = tree->root;
-  cdd_cst_builder_init(&b, tree, node);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, node);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_pool_string(tree, NULL, &pooled));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -50,7 +50,7 @@ TEST test_cdd_cst_builder_long_token(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT_STR_EQ(long_tok, out);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -64,9 +64,9 @@ TEST test_cdd_cst_builder_branches(void) {
   cdd_cst_node_t *node = NULL;
 
   int fail_i;
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(""), &tree);
   node = tree->root;
-  cdd_cst_builder_init(&b, tree, node);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, node);
 
   /* 1. cdd_cst_bld_int token fail */
   b.target_node = NULL;
@@ -77,13 +77,13 @@ TEST test_cdd_cst_builder_branches(void) {
   /* 2. cdd_cst_bld_include branches */
   for (fail_i = 1; fail_i <= 10; fail_i++) {
     g_cdd_alloc_fail = fail_i;
-    cdd_cst_bld_include(&b, "test.h", 1);
+    g_cdd_last_alloc_err = cdd_cst_bld_include(&b, "test.h", 1);
     g_cdd_alloc_fail = 0;
     b.error_state = 0;
   }
   for (fail_i = 1; fail_i <= 10; fail_i++) {
     g_cdd_alloc_fail = fail_i;
-    cdd_cst_bld_include(&b, "test.h", 0);
+    g_cdd_last_alloc_err = cdd_cst_bld_include(&b, "test.h", 0);
     g_cdd_alloc_fail = 0;
     b.error_state = 0;
   }
@@ -123,25 +123,25 @@ TEST test_cdd_cst_builder_branches(void) {
   {
     cdd_cst_node_t *s1 = NULL;
     cdd_cst_node_t *s2 = NULL;
-    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &s1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &s1);
     g_cdd_alloc_fail = 2;
-    cdd_cst_splice_nodes(&b, node, 0, &s1, 1);
+    g_cdd_last_alloc_err = cdd_cst_splice_nodes(&b, node, 0, &s1, 1);
     g_cdd_alloc_fail = 0;
     b.error_state = 0;
-    cdd_cst_free_node(s1);
+    g_cdd_last_alloc_err = cdd_cst_free_node(s1);
 
-    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &s2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &s2);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_splice_nodes(&b, node, 0, &s2, 1));
     g_cdd_alloc_fail = 0;
     b.error_state = 0;
-    cdd_cst_free_node(s2);
+    g_cdd_last_alloc_err = cdd_cst_free_node(s2);
   }
 
   /* 7. cdd_cst_splice_nodes parameter & branch checks */
   {
     cdd_cst_node_t *test_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &test_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &test_node);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cst_splice_nodes(NULL, test_node, 0, NULL, 0));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -155,20 +155,20 @@ TEST test_cdd_cst_builder_branches(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_splice_nodes(&b, test_node, 0, NULL, 0));
     {
       cdd_cst_node_t *s = NULL;
-      cdd_cst_alloc_node(CDD_CST_STATEMENT, &s);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &s);
       ASSERT(cdd_cst_splice_nodes(&b, test_node, 9999, &s, 1) != CDD_C_SUCCESS);
       b.error_state = 0;
-      cdd_cst_free_node(s);
+      g_cdd_last_alloc_err = cdd_cst_free_node(s);
     }
-    cdd_cst_free_node(test_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node(test_node);
   }
 
   /* 8. cdd_cst_replace_node_preserve_trivia parameter & branch checks */
   {
     cdd_cst_node_t *target = NULL;
     cdd_cst_node_t *repl = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &target);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &repl);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &target);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &repl);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cst_replace_node_preserve_trivia(NULL, target, repl));
@@ -204,8 +204,8 @@ TEST test_cdd_cst_builder_branches(void) {
       target->num_children = 0;
     }
 
-    cdd_cst_free_node(target);
-    cdd_cst_free_node(repl);
+    g_cdd_last_alloc_err = cdd_cst_free_node(target);
+    g_cdd_last_alloc_err = cdd_cst_free_node(repl);
   }
 
   /* 9. cdd_cst_transfer_trivia checks */
@@ -233,8 +233,8 @@ TEST test_cdd_cst_builder_branches(void) {
     tok_src.leading_trivia = l1;
     tok_src.trailing_trivia = t1;
 
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n_src);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n_dst);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n_src);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n_dst);
 
     ch_src.kind = CDD_CST_CHILD_TOKEN;
     ch_src.val.token = &tok_src;
@@ -452,11 +452,11 @@ TEST test_cdd_cst_builder_branches(void) {
     n_src->num_children = 0;
     n_dst->children = NULL;
     n_dst->num_children = 0;
-    cdd_cst_free_node(n_src);
-    cdd_cst_free_node(n_dst);
+    g_cdd_last_alloc_err = cdd_cst_free_node(n_src);
+    g_cdd_last_alloc_err = cdd_cst_free_node(n_dst);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 

@@ -92,18 +92,28 @@ TEST test_codegen_security_requires_nulls(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityRequirementSet set;
   struct OpenAPI_SecurityScheme sch;
+  int req = 0;
   memset(&op, 0, sizeof(op));
   memset(&spec, 0, sizeof(spec));
   memset(&set, 0, sizeof(set));
   memset(&sch, 0, sizeof(sch));
 
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_requires_query(&op, &spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_requires_cookie(&op, &spec, NULL));
+
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, NULL, &req));
+  ASSERT_EQ(0, req);
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, NULL, &req));
+  ASSERT_EQ(0, req);
 
   op.security_set = 1;
   op.n_security = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec, &req));
+  ASSERT_EQ(0, req);
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec, &req));
+  ASSERT_EQ(0, req);
 
   op.security_set = 0;
   op.n_security = 1;
@@ -117,17 +127,20 @@ TEST test_codegen_security_requires_nulls(void) {
   sch.in = OA_SEC_IN_QUERY;
   sch.name = cdd_test_mut_str("query_key");
 
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec, &req));
+  ASSERT_EQ(0, req);
 
   spec.security_set = 1;
   spec.n_security = 1;
   spec.security = &set;
 
   /* active set, but req not matching */
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec, &req));
+  ASSERT_EQ(0, req);
 
   sch.in = OA_SEC_IN_COOKIE;
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec, &req));
+  ASSERT_EQ(0, req);
 
   PASS();
 }
@@ -214,6 +227,7 @@ TEST test_codegen_security_branches(void) {
   struct OpenAPI_SecurityScheme schemes[10];
   struct OpenAPI_SecurityRequirement req;
   struct OpenAPI_SecurityRequirementSet set;
+  int res = 0;
   FILE *tmp = TMPFILE();
 
   memset(&op, 0, sizeof(op));
@@ -223,12 +237,15 @@ TEST test_codegen_security_branches(void) {
   memset(&set, 0, sizeof(set));
 
   /* 1. Line 61: strncmp != 0 when base_len >= self_len */
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(
-                               "self_longer_str", "different_prefix", 16));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("self_longer_str",
+                                           "different_prefix", 16, &res));
+  ASSERT_EQ(0, res);
 
   /* 2. Line 96: strncmp != 0 with hash present */
   ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
-                               "file.json#not_components", "foo", &spec));
+                               "file.json#not_components", "foo", &spec, &res));
+  ASSERT_EQ(0, res);
 
   /* 3. Line 148: op == NULL in resolve_active_security */
   spec.security_set = 1;
@@ -245,14 +262,18 @@ TEST test_codegen_security_branches(void) {
   /* Make scheme active by matching requirement or no security_set */
   op.security_set = 0;
   spec.security_set = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec, &res));
+  ASSERT_EQ(0, res);
 
   /* Non-APIKEY scheme (e.g. OA_SEC_HTTP) */
   schemes[0].type = OA_SEC_HTTP;
   schemes[0].name = cdd_test_mut_str("httpSch");
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
-  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec, &res));
+  ASSERT_EQ(0, res);
 
   /* 5. Line 257 & 387: null checks on fp, op, spec */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

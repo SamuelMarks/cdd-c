@@ -89,7 +89,7 @@ TEST test_cdd_ffi_ir_json_basic(void) {
   ASSERT_EQ(1, out_ir->nodes_count);
   ASSERT_STR_EQ("test_func", out_ir->nodes[0].name);
 
-  cdd_ffi_ir_free(out_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(out_ir);
   free(out_ir);
   free(json_str);
 
@@ -294,7 +294,7 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
     out_ir = NULL;
     rc = cdd_ffi_ir_from_json(json_str, &out_ir);
     if (out_ir) {
-      cdd_ffi_ir_free(out_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(out_ir);
       free(out_ir);
       out_ir = NULL;
     }
@@ -309,7 +309,7 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
     rc = cdd_ffi_ir_from_json(json_str, &out_ir);
     g_cdd_alloc_fail = 0;
     if (out_ir) {
-      cdd_ffi_ir_free(out_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(out_ir);
       free(out_ir);
       out_ir = NULL;
     }
@@ -326,7 +326,7 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
         &triv_ir);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     if (triv_ir) {
-      cdd_ffi_ir_free(triv_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(triv_ir);
       free(triv_ir);
     }
   }
@@ -340,7 +340,7 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
         &bc_ir);
     g_cdd_strdup_fail = 0;
     if (bc_ir) {
-      cdd_ffi_ir_free(bc_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(bc_ir);
       free(bc_ir);
     }
   }
@@ -349,7 +349,7 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_ffi_ir_from_json("[]", &out_ir));
 
   free(json_str);
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
 
   json_set_allocation_functions(malloc, free);
   PASS();

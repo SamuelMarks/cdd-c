@@ -39,7 +39,7 @@ TEST test_cst_alloc_node(void) {
   ASSERT(node != NULL);
   ASSERT_EQ(CDD_CST_DECLARATION, node->kind);
 
-  cdd_cst_free_node_only(node);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(node);
   g_fail_io_after = -1;
   PASS();
 }
@@ -88,7 +88,7 @@ TEST test_cst_create_token(void) {
     ASSERT_EQ(52, tree->num_synthesized);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -131,12 +131,13 @@ TEST test_cst_append_child_node(void) {
   {
     size_t i;
     for (i = 1; i < parent->num_children; i++) {
-      cdd_cst_free_node_only(parent->children[i].val.node);
+      g_cdd_last_alloc_err =
+          cdd_cst_free_node_only(parent->children[i].val.node);
     }
   }
 
-  cdd_cst_free_node_only(child);
-  cdd_cst_free_node_only(parent);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(child);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(parent);
   g_fail_io_after = -1;
   PASS();
 }
@@ -186,8 +187,8 @@ TEST test_cst_append_child_token(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_token(parent, tok));
   g_cdd_cst_realloc_fail = 0;
 
-  cdd_cst_free_node_only(parent);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(parent);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -218,16 +219,16 @@ TEST test_cst_parse_format(void) {
   rc = cdd_cst_parse_format(tree, &node, "int a = %d;", 5);
   ASSERT_EQ(0, rc);
   ASSERT(node != NULL);
-  cdd_cst_free_node_only(node);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(node);
 
   /* Try parse with invalid tokens to trigger token skip logic */
   rc = cdd_cst_parse_format(tree, &node, "int a = @;");
   ASSERT_EQ(0, rc);
   ASSERT(node != NULL);
-  cdd_cst_free_node_only(node);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(node);
 
   /* Clean up */
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -248,8 +249,8 @@ TEST test_cdd_cst_parse_format_oom(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
   g_cdd_cst_alloc_token_fail = 2;
-  cdd_cst_parse_format(tree, &node, "int x;");
-  cdd_cst_free_node(node);
+  g_cdd_last_alloc_err = cdd_cst_parse_format(tree, &node, "int x;");
+  g_cdd_last_alloc_err = cdd_cst_free_node(node);
   node = NULL;
   g_cdd_cst_alloc_token_fail = 1;
   {
@@ -271,7 +272,7 @@ TEST test_cdd_cst_parse_format_oom(void) {
           ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
         }
         if (node) {
-          cdd_cst_free_node(node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(node);
           node = NULL;
         }
       }
@@ -282,9 +283,9 @@ TEST test_cdd_cst_parse_format_oom(void) {
      CDD_C_ERROR_MEMORY Or just an empty parsing result */
   ASSERT_EQ(0, cdd_cst_parse_format(tree, &node, " "));
   if (node)
-    cdd_cst_free_node(node);
+    g_cdd_last_alloc_err = cdd_cst_free_node(node);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -295,7 +296,7 @@ TEST test_cst_free_node(void) {
   cdd_token_t *child_token = NULL;
 
   /* Calling with NULL should just return */
-  cdd_cst_free_node(NULL);
+  g_cdd_last_alloc_err = cdd_cst_free_node(NULL);
 
   /* Set up a tree with a child node and a child token */
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &parent));
@@ -309,7 +310,7 @@ TEST test_cst_free_node(void) {
   /* cdd_cst_free_node should recursively free parent and child_node,
      but leaves child_token allocation alone (since tokens are usually owned by
      the tree). */
-  cdd_cst_free_node(parent);
+  g_cdd_last_alloc_err = cdd_cst_free_node(parent);
   free(child_token);
 
   g_fail_io_after = -1;
@@ -332,7 +333,7 @@ TEST test_cst_parse_format_branches(void) {
   rc = cdd_cst_parse_format(tree, &node, "/* comment */\n");
   ASSERT_EQ(0, rc);
   if (node)
-    cdd_cst_free_node(node);
+    g_cdd_last_alloc_err = cdd_cst_free_node(node);
   node = NULL;
 
 #ifdef CDD_BUILD_TESTS
@@ -342,7 +343,7 @@ TEST test_cst_parse_format_branches(void) {
     rc = cdd_cst_parse_format(tree, &node, "int x;");
     g_cdd_cst_realloc_fail = 0;
     if (rc == 0 && node) {
-      cdd_cst_free_node(node);
+      g_cdd_last_alloc_err = cdd_cst_free_node(node);
       node = NULL;
     }
 
@@ -351,13 +352,13 @@ TEST test_cst_parse_format_branches(void) {
         cdd_cst_parse_format(tree, &node, "{ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; }");
     g_cdd_cst_realloc_fail = 0;
     if (rc == 0 && node) {
-      cdd_cst_free_node(node);
+      g_cdd_last_alloc_err = cdd_cst_free_node(node);
       node = NULL;
     }
   }
 #endif
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -378,7 +379,7 @@ TEST test_cst_parse_format_extra(void) {
   rc = cdd_cst_parse_format(tree, &node, "int a = %*d;", 1000, 5);
   ASSERT_EQ(0, rc);
   ASSERT(node != NULL);
-  cdd_cst_free_node_only(node);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(node);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -401,7 +402,7 @@ TEST test_cst_parse_format_extra(void) {
   }
 #endif
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }

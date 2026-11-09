@@ -61,16 +61,21 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_ffi_do_strdup(const char *s,
 
 /** @brief Allocates memory via FFI test-aware allocator */
 #define CDD_MALLOC(sz)                                                         \
-  (cdd_ffi_do_malloc((sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+  (g_cdd_last_alloc_err = cdd_ffi_do_malloc((sz), &g_cdd_last_alloc_ptr),      \
+   g_cdd_last_alloc_ptr)
 /** @brief Zero-allocates memory via FFI test-aware allocator */
 #define CDD_CALLOC(n, sz)                                                      \
-  (cdd_ffi_do_calloc((n), (sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+  (g_cdd_last_alloc_err = cdd_ffi_do_calloc((n), (sz), &g_cdd_last_alloc_ptr), \
+   g_cdd_last_alloc_ptr)
 /** @brief Reallocates memory via FFI test-aware allocator */
 #define CDD_REALLOC(ptr, sz)                                                   \
-  (cdd_ffi_do_realloc((ptr), (sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+  (g_cdd_last_alloc_err =                                                      \
+       cdd_ffi_do_realloc((ptr), (sz), &g_cdd_last_alloc_ptr),                 \
+   g_cdd_last_alloc_ptr)
 /** @brief Duplicates string via FFI test-aware allocator */
 #define CDD_STRDUP(s)                                                          \
-  (cdd_ffi_do_strdup((s), &g_cdd_last_strdup_ptr), g_cdd_last_strdup_ptr)
+  (g_cdd_last_alloc_err = cdd_ffi_do_strdup((s), &g_cdd_last_strdup_ptr),      \
+   g_cdd_last_strdup_ptr)
 
 /**
  * @brief Maps a C type string to its corresponding FFI primitive kind.

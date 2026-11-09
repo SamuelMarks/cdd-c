@@ -39,7 +39,7 @@ TEST test_cdd_transform_percolate_errors(void) {
     int rc = cdd_transform_percolate_errors(tree, &config);
     ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     PASS();
   }
 }
@@ -527,7 +527,7 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
     int rc = cdd_transform_percolate_errors(tree, &config);
     ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     PASS();
   }
 }
@@ -579,7 +579,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
     int rc = cdd_transform_percolate_errors(tree, &config);
     ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
     PASS();
   }
@@ -605,47 +605,48 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   int f_idx;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_transform_percolate_errors(tree, &config);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
+    g_cdd_last_alloc_err = cdd_cst_parse(
         az_span_create_from_str("CDD_VOID edge_void() { malloc(1); }"), &t);
-    cdd_transform_percolate_errors(t, &config);
-    cdd_cst_tree_free(t);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(t, &config);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(az_span_create_from_str(
-                      "int /* comment */ edge_void2() { malloc(1); }"),
-                  &t);
-    cdd_transform_percolate_errors(t, &config);
-    cdd_cst_tree_free(t);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str(
+                          "int /* comment */ edge_void2() { malloc(1); }"),
+                      &t);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(t, &config);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
+    g_cdd_last_alloc_err = cdd_cst_parse(
         az_span_create_from_str("void edge_void3() { malloc(1); malloc(1); }"),
         &t);
-    cdd_transform_percolate_errors(t, &config);
-    cdd_cst_tree_free(t);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(t, &config);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
+    g_cdd_last_alloc_err = cdd_cst_parse(
         az_span_create_from_str("void edge_void4() { if (1) malloc(1); }"), &t);
-    cdd_transform_percolate_errors(t, &config);
-    cdd_cst_tree_free(t);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(t, &config);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
+    g_cdd_last_alloc_err = cdd_cst_parse(
         az_span_create_from_str("void edge_void5() { if (1) { malloc(1); } }"),
         &t);
-    cdd_transform_percolate_errors(t, &config);
-    cdd_cst_tree_free(t);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(t, &config);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t);
   }
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
@@ -664,11 +665,12 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   unknown_node->num_children = 1;
   if (tree->root && tree->root->num_children > 0 &&
       tree->root->children[0].kind == CDD_CST_CHILD_NODE) {
-    cdd_cst_append_child_node(tree->root->children[0].val.node, unknown_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(
+        tree->root->children[0].val.node, unknown_node);
   }
 
-  cdd_transform_percolate_errors(tree, &config);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_transform_percolate_errors(tree, &config);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   if (rbrace_tok_to_free)
     free(rbrace_tok_to_free);
   tree = NULL;
@@ -676,16 +678,16 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   for (f_idx = 1; f_idx <= 120; f_idx++) {
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
     g_cdd_alloc_fail = f_idx;
-    cdd_transform_percolate_errors(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(tree, &config);
     g_cdd_alloc_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
 
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
     g_cdd_cst_realloc_fail = f_idx;
-    cdd_transform_percolate_errors(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_percolate_errors(tree, &config);
     g_cdd_cst_realloc_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
@@ -890,7 +892,7 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
       g_cdd_alloc_fail = i;
       rc = cdd_transform_percolate_errors(tree, &config);
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       if (rc == CDD_C_SUCCESS)
         break;
     }

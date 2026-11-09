@@ -131,7 +131,7 @@ TEST test_declarator_unit_helpers(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_skip_ws(tl_comment, 1, tl_comment->size, &val));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_skip_ws_back(tl_comment, 3, 0, &val));
-  free_token_list(tl_comment);
+  g_cdd_last_alloc_err = free_token_list(tl_comment);
   tl_comment = NULL;
 
   /* skip_ws_back */
@@ -167,7 +167,7 @@ TEST test_declarator_unit_helpers(void) {
   reset_decl_helpers_mocks();
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_BASE, &node));
   ASSERT(node != NULL);
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
 
   /* add_type_node */
@@ -181,7 +181,7 @@ TEST test_declarator_unit_helpers(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_type_node(&info, &tail, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, add_type_node(&info, &tail, node));
   node = NULL;
-  decl_info_free(&info);
+  g_cdd_last_alloc_err = decl_info_free(&info);
 
   /* is_grouping_paren */
   g_cdd_fail_is_grouping_paren = 1;
@@ -210,33 +210,33 @@ TEST test_declarator_unit_helpers(void) {
             cdd_test_find_abstract_pivot(tl, 0, 1, NULL));
 
   /* cdd_test_free_decl_type branches */
-  cdd_test_free_decl_type(NULL);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(NULL);
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_PTR, &node));
   node->data.ptr.qualifiers = (char *)C_CDD_MALLOC(5);
   memcpy(node->data.ptr.qualifiers, "test", 5);
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_ARRAY, &node));
   node->data.array.size_expr = (char *)C_CDD_MALLOC(5);
   memcpy(node->data.array.size_expr, "test", 5);
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_FUNC, &node));
   node->data.func.args_str = (char *)C_CDD_MALLOC(5);
   memcpy(node->data.func.args_str, "test", 5);
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_BASE, &node));
   node->data.base.name = (char *)C_CDD_MALLOC(5);
   memcpy(node->data.base.name, "test", 5);
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -268,7 +268,7 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_skip_ws = 1;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* abstract declarator skip_ws_back on left */
   tl = setup_tokens_helpers("int *");
@@ -280,7 +280,7 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_skip_ws = 1;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* array failures */
   tl = setup_tokens_helpers("int a[10]");
@@ -303,7 +303,7 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_skip_ws = 2;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* function failures */
   tl = setup_tokens_helpers("int f(void)");
@@ -326,7 +326,7 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_skip_ws = 2;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* pointer and qualifier failures */
   tl = setup_tokens_helpers("int * const p");
@@ -349,7 +349,7 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_skip_ws_back = 3;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* grouping paren unnesting */
   tl = setup_tokens_helpers("int (*p)");
@@ -360,7 +360,7 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_skip_ws = 2;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* base type failures */
   tl = setup_tokens_helpers("int x");
@@ -375,13 +375,13 @@ TEST test_declarator_mock_failures(void) {
   g_cdd_fail_add_type_node = 1;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("x");
   g_cdd_strdup_fail = 1;
   ASSERT_NEQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }
@@ -409,7 +409,7 @@ TEST test_declarator_abstract_pivot_branches(void) {
   ASSERT_NEQ(CDD_C_SUCCESS,
              cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("typeof(int) *");
   g_cdd_fail_skip_ws = 1;
@@ -421,7 +421,7 @@ TEST test_declarator_abstract_pivot_branches(void) {
   ASSERT_NEQ(CDD_C_SUCCESS,
              cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("int (*)(int)");
   g_cdd_fail_is_grouping_paren = 1;
@@ -433,30 +433,30 @@ TEST test_declarator_abstract_pivot_branches(void) {
   ASSERT_NEQ(CDD_C_SUCCESS,
              cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("struct S *");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("typeof *");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("struct");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("typeof");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("int [5]");
   g_cdd_fail_skip_group = 1;
   ASSERT_NEQ(CDD_C_SUCCESS,
              cdd_test_find_abstract_pivot(tl, 0, tl->size, &val));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }
@@ -485,7 +485,7 @@ TEST test_declarator_find_pivot_branches(void) {
   ASSERT_NEQ(CDD_C_SUCCESS,
              cdd_test_find_pivot(tl, 0, tl->size, &is_abstract, &val));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("typeof(int) x;");
   g_cdd_fail_skip_ws = 1;
@@ -497,27 +497,27 @@ TEST test_declarator_find_pivot_branches(void) {
   ASSERT_NEQ(CDD_C_SUCCESS,
              cdd_test_find_pivot(tl, 0, tl->size, &is_abstract, &val));
   reset_decl_helpers_mocks();
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("struct S x;");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_find_pivot(tl, 0, tl->size, &is_abstract, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("typeof x;");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_find_pivot(tl, 0, tl->size, &is_abstract, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("struct");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_find_pivot(tl, 0, tl->size, &is_abstract, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   tl = setup_tokens_helpers("typeof");
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_find_pivot(tl, 0, tl->size, &is_abstract, &val));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   PASS();
 }
@@ -566,15 +566,15 @@ TEST test_declarator_mock_cycles(void) {
   node = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_BASE, &node));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, add_type_node(&info, &tail, node));
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
-  decl_info_free(&info);
+  g_cdd_last_alloc_err = decl_info_free(&info);
   reset_decl_helpers_mocks();
 
   /* create_node cycle */
   g_cdd_fail_create_node = 2;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_BASE, &node));
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_create_node(DECL_BASE, &node));
   reset_decl_helpers_mocks();
@@ -583,7 +583,7 @@ TEST test_declarator_mock_cycles(void) {
   g_cdd_fail_create_node = 0;
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_BASE, &node));
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_create_node(DECL_BASE, &node));
   reset_decl_helpers_mocks();
@@ -627,10 +627,10 @@ TEST test_declarator_mock_cycles(void) {
 
   /* default switch branch in free_decl_type */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node((enum DeclTypeKind)99, &node));
-  cdd_test_free_decl_type(node);
+  g_cdd_last_alloc_err = cdd_test_free_decl_type(node);
   node = NULL;
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 

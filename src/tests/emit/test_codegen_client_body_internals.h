@@ -335,18 +335,21 @@ TEST test_client_body_type_predicates(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, flag);
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
   rc = client_body_struct_fields_all_primitive(&sf, &flag);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, flag);
 
-  struct_fields_add(&sf, "sub", "object", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "sub", "object", NULL, NULL, NULL);
   rc = client_body_struct_fields_all_primitive(&sf, &flag);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, flag);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* schema_has_inline */
   rc = client_body_schema_has_inline(NULL, NULL);
@@ -863,12 +866,13 @@ TEST test_client_body_fail_is_primitive_type_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* struct_fields_all_primitive failure */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
   g_cdd_fail_is_primitive_type = 1;
   rc = client_body_struct_fields_all_primitive(&sf, &flag);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* write_header_param_logic array primitive failure */
   fp = cdd_test_tmpfile_global();

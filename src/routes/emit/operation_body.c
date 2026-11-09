@@ -42,10 +42,10 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
   if (!val)
     return CDD_C_SUCCESS;
 
-  cdd_json_value_get_type(val, &t);
+  g_cdd_last_alloc_err = cdd_json_value_get_type(val, &t);
   switch (t) {
   case JSONString:
-    cdd_json_value_get_string(val, &s);
+    g_cdd_last_alloc_err = cdd_json_value_get_string(val, &s);
     out->type = OA_ANY_STRING;
     rc = c_cdd_strdup(s, &out->string);
     if (rc != CDD_C_SUCCESS)
@@ -53,18 +53,18 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
     return CDD_C_SUCCESS;
   case JSONNumber:
     out->type = OA_ANY_NUMBER;
-    cdd_json_value_get_number(val, &out->number);
+    g_cdd_last_alloc_err = cdd_json_value_get_number(val, &out->number);
     return CDD_C_SUCCESS;
   case JSONBoolean:
     out->type = OA_ANY_BOOL;
-    cdd_json_value_get_boolean(val, &out->boolean);
+    g_cdd_last_alloc_err = cdd_json_value_get_boolean(val, &out->boolean);
     return CDD_C_SUCCESS;
   case JSONObject:
   case JSONArray:
-    cdd_json_serialize_to_string(val, &json_str);
+    g_cdd_last_alloc_err = cdd_json_serialize_to_string(val, &json_str);
     out->type = OA_ANY_JSON;
     rc = c_cdd_strdup(json_str, &out->json);
-    cdd_json_free_serialized_string(json_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(json_str);
     if (rc != CDD_C_SUCCESS)
       return rc;
     return CDD_C_SUCCESS;
@@ -92,7 +92,7 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
   if (!example)
     return CDD_C_SUCCESS;
 
-  cdd_json_parse_string(example, &val);
+  g_cdd_last_alloc_err = cdd_json_parse_string(example, &val);
   if (!val) {
     out->type = OA_ANY_STRING;
     rc = c_cdd_strdup(example, &out->string);
@@ -102,7 +102,7 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
   }
 
   rc = any_from_json_value(val, out);
-  cdd_json_value_free(val);
+  g_cdd_last_alloc_err = cdd_json_value_free(val);
   return rc;
 }
 
@@ -225,24 +225,24 @@ cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
     struct OpenAPI_ServerVariable *dv = &dst->variables[i];
 
     if (!sv->name || !sv->default_value) {
-      free_openapi_server_variables_op(dst);
+      g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
 
     rc = c_cdd_strdup(sv->name, &dv->name);
     if (rc != CDD_C_SUCCESS) {
-      free_openapi_server_variables_op(dst);
+      g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
       return rc;
     }
     rc = c_cdd_strdup(sv->default_value, &dv->default_value);
     if (rc != CDD_C_SUCCESS) {
-      free_openapi_server_variables_op(dst);
+      g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
       return rc;
     }
     if (sv->description) {
       rc = c_cdd_strdup(sv->description, &dv->description);
       if (rc != CDD_C_SUCCESS) {
-        free_openapi_server_variables_op(dst);
+        g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
         return rc;
       }
     }
@@ -250,21 +250,21 @@ cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
       dv->enum_values =
           (char **)C_CDD_CALLOC(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
-        free_openapi_server_variables_op(dst);
+        g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
         return CDD_C_ERROR_MEMORY;
       }
       dv->n_enum_values = sv->n_enum_values;
       for (e = 0; e < sv->n_enum_values; ++e) {
         rc = c_cdd_strdup(sv->enum_values[e], &dv->enum_values[e]);
         if (rc != CDD_C_SUCCESS) {
-          free_openapi_server_variables_op(dst);
+          g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
           return rc;
         }
         if (strcmp(sv->enum_values[e], sv->default_value) == 0)
           found_default = 1;
       }
       if (!found_default) {
-        free_openapi_server_variables_op(dst);
+        g_cdd_last_alloc_err = free_openapi_server_variables_op(dst);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
@@ -389,14 +389,14 @@ cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
   if (src->ref_name) {
     rc = c_cdd_strdup(src->ref_name, &dst->ref_name);
     if (rc != CDD_C_SUCCESS) {
-      free_schema_ref_fields(dst);
+      g_cdd_last_alloc_err = free_schema_ref_fields(dst);
       return rc;
     }
   }
   if (src->ref) {
     rc = c_cdd_strdup(src->ref, &dst->ref);
     if (rc != CDD_C_SUCCESS) {
-      free_schema_ref_fields(dst);
+      g_cdd_last_alloc_err = free_schema_ref_fields(dst);
       return rc;
     }
   }
@@ -404,14 +404,14 @@ cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
   if (src->inline_type) {
     rc = c_cdd_strdup(src->inline_type, &dst->inline_type);
     if (rc != CDD_C_SUCCESS) {
-      free_schema_ref_fields(dst);
+      g_cdd_last_alloc_err = free_schema_ref_fields(dst);
       return rc;
     }
   }
   if (src->items_ref) {
     rc = c_cdd_strdup(src->items_ref, &dst->items_ref);
     if (rc != CDD_C_SUCCESS) {
-      free_schema_ref_fields(dst);
+      g_cdd_last_alloc_err = free_schema_ref_fields(dst);
       return rc;
     }
   }
@@ -419,14 +419,14 @@ cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
   if (src->format) {
     rc = c_cdd_strdup(src->format, &dst->format);
     if (rc != CDD_C_SUCCESS) {
-      free_schema_ref_fields(dst);
+      g_cdd_last_alloc_err = free_schema_ref_fields(dst);
       return rc;
     }
   }
   if (src->items_format) {
     rc = c_cdd_strdup(src->items_format, &dst->items_format);
     if (rc != CDD_C_SUCCESS) {
-      free_schema_ref_fields(dst);
+      g_cdd_last_alloc_err = free_schema_ref_fields(dst);
       return rc;
     }
   }
@@ -489,7 +489,7 @@ cdd_c_error_t init_media_type_from_request_body(
   rc = c_cdd_strdup(name, &mt->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  schema_ref_has_data_basic(&op->req_body, &has_data);
+  g_cdd_last_alloc_err = schema_ref_has_data_basic(&op->req_body, &has_data);
   if (has_data) {
     if (is_item_schema) {
       rc = copy_schema_ref_basic(&mt->item_schema, &op->req_body);
@@ -549,7 +549,7 @@ cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
     }
   }
 
-  request_body_has_media_type(op, name, &_has_mt);
+  g_cdd_last_alloc_err = request_body_has_media_type(op, name, &_has_mt);
   if (_has_mt)
     return CDD_C_SUCCESS;
 

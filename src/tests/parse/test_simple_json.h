@@ -39,17 +39,17 @@ static FILE *open_simple_json_tmp(void) {
  * @return TEST
  */
 TEST test_simple_cleanup_and_null(void) {
-  Haz_cleanup(NULL); /* Safe to call on NULL */
-  Foo_cleanup(NULL);
-  HazE_cleanup(NULL);
-  FooE_cleanup(NULL);
+  g_cdd_last_alloc_err = Haz_cleanup(NULL); /* Safe to call on NULL */
+  g_cdd_last_alloc_err = Foo_cleanup(NULL);
+  g_cdd_last_alloc_err = HazE_cleanup(NULL);
+  g_cdd_last_alloc_err = FooE_cleanup(NULL);
 
   {
     struct Haz *hz = (struct Haz *)malloc(sizeof(*hz));
     if (hz) {
       hz->bzr = strdup("hello");
       free(hz->bzr);
-      Haz_cleanup(hz);
+      g_cdd_last_alloc_err = Haz_cleanup(hz);
     }
   }
 
@@ -60,7 +60,7 @@ TEST test_simple_cleanup_and_null(void) {
     foo->can = 0;
     foo->haz = (struct Haz *)calloc(1, sizeof(*foo->haz));
     ASSERT(foo->haz != NULL);
-    Foo_cleanup(foo);
+    g_cdd_last_alloc_err = Foo_cleanup(foo);
   }
 
   {
@@ -95,7 +95,7 @@ TEST test_foo_e_json(void) {
   ASSERT(json != NULL);
   ASSERT(strstr(json, "\"can\": 42"));
 
-  FooE_cleanup(foo_e);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_e);
   free(json);
   PASS();
 }
@@ -180,7 +180,7 @@ TEST test_foo_e_full_coverage(void) {
   ASSERT_EQ(0, HazE_to_json(haz_e, &json));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json(json, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json(NULL, &haz_e2));
-  HazE_cleanup(haz_e2);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_e2);
   ASSERT_EQ(0, HazE_from_json(json, &haz_e2));
   free(json);
   json = NULL;
@@ -224,7 +224,7 @@ TEST test_foo_e_full_coverage(void) {
   ASSERT_EQ(0, FooE_to_json(foo_e, &json));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json(json, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json(NULL, &foo_e2));
-  FooE_cleanup(foo_e2);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_e2);
   ASSERT_EQ(0, FooE_from_json(json, &foo_e2));
   free(json);
   json = NULL;
@@ -244,49 +244,49 @@ TEST test_foo_e_full_coverage(void) {
 
   printf("DEBUG: FooE_cleanup(foo_e2) at %d\n", __LINE__);
   fflush(stdout);
-  FooE_cleanup(foo_e2);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_e2);
   foo_e2 = NULL;
   printf("DEBUG: FooE_cleanup(foo_e) at %d\n", __LINE__);
   fflush(stdout);
-  FooE_cleanup(foo_e);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_e);
   foo_e = NULL;
   printf("DEBUG: HazE_cleanup(haz_e2) at %d\n", __LINE__);
   fflush(stdout);
-  HazE_cleanup(haz_e2);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_e2);
   /* Test HazE_from_jsonObject */
-  HazE_cleanup(haz_e);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_e);
   haz_e = NULL;
   {
     JSON_Value *v = NULL;
     JSON_Object *vo = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"tank\": \"BIG\"}", &v));
-    cdd_json_value_get_object(v, &vo);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(v, &vo);
     ASSERT_EQ(0, HazE_from_jsonObject(vo, &haz_e));
-    HazE_cleanup(haz_e);
+    g_cdd_last_alloc_err = HazE_cleanup(haz_e);
     haz_e = NULL;
-    cdd_json_value_free(v);
+    g_cdd_last_alloc_err = cdd_json_value_free(v);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(NULL, &haz_e));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{}", &v));
-    cdd_json_value_get_object(v, &vo);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(v, &vo);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(vo, NULL));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(vo, &haz_e));
-    cdd_json_value_free(v);
+    g_cdd_last_alloc_err = cdd_json_value_free(v);
   }
 
   /* Test FooE_from_jsonObject */
-  FooE_cleanup(foo_e);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_e);
   foo_e = NULL;
   {
     JSON_Value *v = NULL;
     JSON_Object *vo = NULL;
     ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"can\": 1}", &v));
-    cdd_json_value_get_object(v, &vo);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(v, &vo);
     ASSERT_EQ(0, FooE_from_jsonObject(vo, &foo_e));
-    FooE_cleanup(foo_e);
+    g_cdd_last_alloc_err = FooE_cleanup(foo_e);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_jsonObject(vo, NULL));
-    cdd_json_value_free(v);
+    g_cdd_last_alloc_err = cdd_json_value_free(v);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_jsonObject(NULL, &foo_e));
   }
@@ -317,7 +317,7 @@ TEST test_foo_e_full_coverage(void) {
     }
 
     g_simple_json_fail_alloc = 0;
-    HazE_default(&haz_e);
+    g_cdd_last_alloc_err = HazE_default(&haz_e);
     g_simple_json_fail_alloc = 0;
     haz_e->bzr = malloc(4);
     memcpy(haz_e->bzr, "foo", 4);
@@ -325,14 +325,14 @@ TEST test_foo_e_full_coverage(void) {
     g_simple_json_fail_alloc = i;
     rc = HazE_default(&haz_e2);
     if (haz_e2) {
-      HazE_cleanup(haz_e2);
+      g_cdd_last_alloc_err = HazE_cleanup(haz_e2);
       haz_e2 = NULL;
     }
 
     g_simple_json_fail_alloc = i;
     rc = HazE_deepcopy(haz_e, &haz_e2);
     if (haz_e2) {
-      HazE_cleanup(haz_e2);
+      g_cdd_last_alloc_err = HazE_cleanup(haz_e2);
       haz_e2 = NULL;
     }
 
@@ -341,7 +341,7 @@ TEST test_foo_e_full_coverage(void) {
     g_simple_json_fail_alloc = i;
     rc = HazE_deepcopy(haz_e, &haz_e2);
     if (haz_e2) {
-      HazE_cleanup(haz_e2);
+      g_cdd_last_alloc_err = HazE_cleanup(haz_e2);
       haz_e2 = NULL;
     }
     g_simple_json_fail_alloc = 0;
@@ -351,10 +351,10 @@ TEST test_foo_e_full_coverage(void) {
     f = open_simple_json_tmp();
     ASSERT(f);
     g_simple_json_fail_alloc = i;
-    HazE_display(haz_e, f);
+    g_cdd_last_alloc_err = HazE_display(haz_e, f);
 
     g_simple_json_fail_alloc = i;
-    HazE_debug(haz_e, f);
+    g_cdd_last_alloc_err = HazE_debug(haz_e, f);
     fclose(f);
 
     g_simple_json_fail_alloc = i;
@@ -374,43 +374,44 @@ TEST test_foo_e_full_coverage(void) {
     {
       JSON_Value *v = NULL;
       JSON_Object *vo = NULL;
-      cdd_json_parse_string("{\"tank\": \"BIG\", \"bzr\": \"test\"}", &v);
-      cdd_json_value_get_object(v, &vo);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"tank\": \"BIG\", \"bzr\": \"test\"}", &v);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(v, &vo);
       g_simple_json_fail_alloc = i;
       rc = HazE_from_jsonObject(vo, &haz_e2);
       if (haz_e2) {
-        HazE_cleanup(haz_e2);
+        g_cdd_last_alloc_err = HazE_cleanup(haz_e2);
         haz_e2 = NULL;
       }
-      cdd_json_value_free(v);
+      g_cdd_last_alloc_err = cdd_json_value_free(v);
     }
 
     g_simple_json_fail_alloc = 0;
-    FooE_default(&foo_e);
+    g_cdd_last_alloc_err = FooE_default(&foo_e);
     foo_e->bar = malloc(5);
     memcpy(foo_e->bar, "test", 5);
 
     g_simple_json_fail_alloc = i;
     rc = FooE_default(&foo_e2);
     if (foo_e2) {
-      FooE_cleanup(foo_e2);
+      g_cdd_last_alloc_err = FooE_cleanup(foo_e2);
       foo_e2 = NULL;
     }
 
     g_simple_json_fail_alloc = i;
     rc = FooE_deepcopy(foo_e, &foo_e2);
     if (foo_e2) {
-      FooE_cleanup(foo_e2);
+      g_cdd_last_alloc_err = FooE_cleanup(foo_e2);
       foo_e2 = NULL;
     }
 
     f = open_simple_json_tmp();
     ASSERT(f);
     g_simple_json_fail_alloc = i;
-    FooE_display(foo_e, f);
+    g_cdd_last_alloc_err = FooE_display(foo_e, f);
 
     g_simple_json_fail_alloc = i;
-    FooE_debug(foo_e, f);
+    g_cdd_last_alloc_err = FooE_debug(foo_e, f);
     fclose(f);
 
     g_simple_json_fail_alloc = i;
@@ -430,24 +431,24 @@ TEST test_foo_e_full_coverage(void) {
     {
       JSON_Value *v = NULL;
       JSON_Object *vo = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"can\": 1, \"bar\": \"test\", \"haz\": {\"tank\": \"BIG\"}}", &v);
-      cdd_json_value_get_object(v, &vo);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(v, &vo);
       g_simple_json_fail_alloc = i;
       rc = FooE_from_jsonObject(vo, &foo_e2);
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
       if (foo_e2) {
-        FooE_cleanup(foo_e2);
+        g_cdd_last_alloc_err = FooE_cleanup(foo_e2);
         foo_e2 = NULL;
       }
-      cdd_json_value_free(v);
+      g_cdd_last_alloc_err = cdd_json_value_free(v);
     }
 
-    HazE_cleanup(haz_e);
+    g_cdd_last_alloc_err = HazE_cleanup(haz_e);
     haz_e = NULL;
-    FooE_cleanup(foo_e);
+    g_cdd_last_alloc_err = FooE_cleanup(foo_e);
     foo_e = NULL;
   }
   g_simple_json_fail_alloc = 0;
@@ -508,7 +509,7 @@ TEST test_run_mocks_test(void) {
     rc = HazE_from_json("{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}", &h);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     if (h) {
-      HazE_cleanup(h);
+      g_cdd_last_alloc_err = HazE_cleanup(h);
     }
   }
 

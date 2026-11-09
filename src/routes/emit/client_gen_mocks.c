@@ -35,27 +35,28 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
   }
 
   CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
-  cdd_vfs_fopen(tfile, "w", &tfp);
+  g_cdd_last_alloc_err = cdd_vfs_fopen(tfile, "w", &tfp);
   if (tfp) {
-    fprintf(tfp,
-            "#include <stdio.h>\n#include <stdlib.h>\n#include "
-            "<string.h>\n#include <c_abstract_http/http_types.h>\n#include "
-            "\"generated_client_models.h\"\n#if defined(_MSC_VER)\n#define "
-            "CDD_SNPRINTF _snprintf\n#else\n#define CDD_SNPRINTF "
-            "snprintf\n#endif\n");
-    fprintf(tfp, "#if defined(__APPLE__)\n#include "
-                 "<c_abstract_http/http_apple.h>\n#define "
-                 "C_ABSTRACT_HTTP_INIT http_apple_context_init\n#define "
-                 "C_ABSTRACT_HTTP_SEND http_apple_send\n#else\n#include "
-                 "<c_abstract_http/http_curl.h>\n#define "
-                 "C_ABSTRACT_HTTP_INIT http_curl_context_init\n#define "
-                 "C_ABSTRACT_HTTP_SEND http_curl_send\n#endif\n");
-    fprintf(tfp,
-            "int main(void) {\n  int failures = 0;\n  struct HttpClient "
-            "client;\n  "
-            "if (C_ABSTRACT_HTTP_INIT(&client.transport) != 0) failures++;\n  "
-            "client.send = "
-            "C_ABSTRACT_HTTP_SEND;\n");
+    g_cdd_last_alloc_err = fprintf(
+        tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "
+             "<string.h>\n#include <c_abstract_http/http_types.h>\n#include "
+             "\"generated_client_models.h\"\n#if defined(_MSC_VER)\n#define "
+             "CDD_SNPRINTF _snprintf\n#else\n#define CDD_SNPRINTF "
+             "snprintf\n#endif\n");
+    g_cdd_last_alloc_err =
+        fprintf(tfp, "#if defined(__APPLE__)\n#include "
+                     "<c_abstract_http/http_apple.h>\n#define "
+                     "C_ABSTRACT_HTTP_INIT http_apple_context_init\n#define "
+                     "C_ABSTRACT_HTTP_SEND http_apple_send\n#else\n#include "
+                     "<c_abstract_http/http_curl.h>\n#define "
+                     "C_ABSTRACT_HTTP_INIT http_curl_context_init\n#define "
+                     "C_ABSTRACT_HTTP_SEND http_curl_send\n#endif\n");
+    g_cdd_last_alloc_err = fprintf(
+        tfp, "int main(void) {\n  int failures = 0;\n  struct HttpClient "
+             "client;\n  "
+             "if (C_ABSTRACT_HTTP_INIT(&client.transport) != 0) failures++;\n  "
+             "client.send = "
+             "C_ABSTRACT_HTTP_SEND;\n");
 
     for (i = 0; i < spec->n_paths; ++i) {
       for (j = 0; j < spec->paths[i].n_operations; ++j) {
@@ -78,14 +79,15 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
         else
           method = "GET";
 
-        fprintf(tfp,
-                "  {\n    struct HttpRequest req;\n    struct HttpHeader "
-                "*hdrs = NULL;\n"
-                "    const char *base_url = NULL;\n    char url_buf[1024];\n"
-                "    struct HttpResponse *res = NULL;\n"
-                "    int allowed = 0;\n    "
-                "if (http_request_init(&req) != 0) failures++;\n");
-        fprintf(tfp, "    req.method = HTTP_%s;\n", method);
+        g_cdd_last_alloc_err = fprintf(
+            tfp, "  {\n    struct HttpRequest req;\n    struct HttpHeader "
+                 "*hdrs = NULL;\n"
+                 "    const char *base_url = NULL;\n    char url_buf[1024];\n"
+                 "    struct HttpResponse *res = NULL;\n"
+                 "    int allowed = 0;\n    "
+                 "if (http_request_init(&req) != 0) failures++;\n");
+        g_cdd_last_alloc_err =
+            fprintf(tfp, "    req.method = HTTP_%s;\n", method);
         if (op->verb == OA_VERB_POST || op->verb == OA_VERB_PUT ||
             op->verb == OA_VERB_PATCH) {
           const char *body_str =
@@ -97,37 +99,38 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
                     "\\\"quantity\\\":1,\\\"username\\\":\\\"testuser\\\","
                     "\\\"password\\\":\\\"123\\\",\\\"status\\\":"
                     "\\\"available\\\"}";
-          fprintf(tfp,
-                  "    req.body = (uint8_t*)\"%s\";\n    req.body_len = "
-                  "strlen(\"%s\");\n",
-                  body_str, body_str);
-          fprintf(tfp,
-                  "    hdrs = malloc(sizeof(struct "
-                  "HttpHeader) * 4);\n"
-                  "    hdrs[0].key = \"Content-Type\";\n"
-                  "    hdrs[0].value = \"%s\";\n"
-                  "    hdrs[1].key = \"api_key\";\n"
-                  "    hdrs[1].value = \"special-key\";\n"
-                  "    hdrs[2].key = \"Authorization\";\n"
-                  "    hdrs[2].value = \"Bearer special-key\";\n"
-                  "    hdrs[3].key = \"Accept\";\n"
-                  "    hdrs[3].value = \"application/json\";\n"
-                  "    req.headers.headers = hdrs;\n"
-                  "    req.headers.count = 4;\n",
-                  op->n_req_body_media_types > 0
-                      ? op->req_body_media_types[0].name
-                      : "application/json");
+          g_cdd_last_alloc_err =
+              fprintf(tfp,
+                      "    req.body = (uint8_t*)\"%s\";\n    req.body_len = "
+                      "strlen(\"%s\");\n",
+                      body_str, body_str);
+          g_cdd_last_alloc_err = fprintf(
+              tfp,
+              "    hdrs = malloc(sizeof(struct "
+              "HttpHeader) * 4);\n"
+              "    hdrs[0].key = \"Content-Type\";\n"
+              "    hdrs[0].value = \"%s\";\n"
+              "    hdrs[1].key = \"api_key\";\n"
+              "    hdrs[1].value = \"special-key\";\n"
+              "    hdrs[2].key = \"Authorization\";\n"
+              "    hdrs[2].value = \"Bearer special-key\";\n"
+              "    hdrs[3].key = \"Accept\";\n"
+              "    hdrs[3].value = \"application/json\";\n"
+              "    req.headers.headers = hdrs;\n"
+              "    req.headers.count = 4;\n",
+              op->n_req_body_media_types > 0 ? op->req_body_media_types[0].name
+                                             : "application/json");
         } else {
-          fprintf(tfp,
-                  "    hdrs = malloc(sizeof(struct "
-                  "HttpHeader) * 3);\n    hdrs[0].key = \"api_key\";\n    "
-                  "hdrs[0].value = \"special-key\";\n    hdrs[1].key = "
-                  "\"Authorization\";\n"
-                  "    hdrs[1].value = \"Bearer special-key\";\n"
-                  "    hdrs[2].key = \"Accept\";\n"
-                  "    hdrs[2].value = \"application/json\";\n"
-                  "    req.headers.headers = hdrs;\n    req.headers.count = "
-                  "3;\n");
+          g_cdd_last_alloc_err = fprintf(
+              tfp, "    hdrs = malloc(sizeof(struct "
+                   "HttpHeader) * 3);\n    hdrs[0].key = \"api_key\";\n    "
+                   "hdrs[0].value = \"special-key\";\n    hdrs[1].key = "
+                   "\"Authorization\";\n"
+                   "    hdrs[1].value = \"Bearer special-key\";\n"
+                   "    hdrs[2].key = \"Accept\";\n"
+                   "    hdrs[2].value = \"application/json\";\n"
+                   "    req.headers.headers = hdrs;\n    req.headers.count = "
+                   "3;\n");
         }
 
         in = spec->paths[i].route;
@@ -176,68 +179,80 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
         if (strcmp(parsed_base_path, "/") == 0)
           parsed_base_path = "";
 
-        fprintf(tfp, "    base_url = getenv(\"BASE_URL\");\n");
-        fprintf(tfp, "    if (!base_url) {\n");
-        fprintf(tfp,
-                "        CDD_SNPRINTF(url_buf, sizeof(url_buf), "
-                "\"http://localhost:8080/v2%%s\", \"%s\");\n",
-                formatted_path);
-        fprintf(tfp, "    } else {\n");
-        fprintf(tfp,
-                "        CDD_SNPRINTF(url_buf, sizeof(url_buf), \"%%s%%s%%s\", "
-                "base_url, \"%s\", \"%s\");\n",
-                parsed_base_path, formatted_path);
-        fprintf(tfp, "    }\n");
-        fprintf(tfp, "    req.url = url_buf;\n");
-        fprintf(tfp,
-                "    if (client.send(client.transport, &req, &res) != 0) {}\n");
+        g_cdd_last_alloc_err =
+            fprintf(tfp, "    base_url = getenv(\"BASE_URL\");\n");
+        g_cdd_last_alloc_err = fprintf(tfp, "    if (!base_url) {\n");
+        g_cdd_last_alloc_err =
+            fprintf(tfp,
+                    "        CDD_SNPRINTF(url_buf, sizeof(url_buf), "
+                    "\"http://localhost:8080/v2%%s\", \"%s\");\n",
+                    formatted_path);
+        g_cdd_last_alloc_err = fprintf(tfp, "    } else {\n");
+        g_cdd_last_alloc_err = fprintf(
+            tfp,
+            "        CDD_SNPRINTF(url_buf, sizeof(url_buf), \"%%s%%s%%s\", "
+            "base_url, \"%s\", \"%s\");\n",
+            parsed_base_path, formatted_path);
+        g_cdd_last_alloc_err = fprintf(tfp, "    }\n");
+        g_cdd_last_alloc_err = fprintf(tfp, "    req.url = url_buf;\n");
+        g_cdd_last_alloc_err = fprintf(
+            tfp,
+            "    if (client.send(client.transport, &req, &res) != 0) {}\n");
 
-        fprintf(tfp, "    if (res && res->status_code >= 200 && "
-                     "res->status_code < 300) allowed = 1;\n");
+        g_cdd_last_alloc_err =
+            fprintf(tfp, "    if (res && res->status_code >= 200 && "
+                         "res->status_code < 300) allowed = 1;\n");
         for (r = 0; r < op->n_responses; ++r) {
           if (op->responses[r].code &&
               strcmp(op->responses[r].code, "default") != 0) {
-            fprintf(tfp,
-                    "    if (res && res->status_code == %d) allowed = 1;\n",
-                    atoi(op->responses[r].code));
+            g_cdd_last_alloc_err = fprintf(
+                tfp, "    if (res && res->status_code == %d) allowed = 1;\n",
+                atoi(op->responses[r].code));
           }
         }
-        fprintf(tfp, "    if (!res || res->status_code >= 400) allowed = 0;\n");
-        fprintf(tfp, "    if (allowed) {\n");
+        g_cdd_last_alloc_err = fprintf(
+            tfp, "    if (!res || res->status_code >= 400) allowed = 0;\n");
+        g_cdd_last_alloc_err = fprintf(tfp, "    if (allowed) {\n");
 
         if (op->n_responses > 0 && op->responses[0].schema.ref_name &&
             !op->responses[0].schema.is_array) {
-          fprintf(tfp, "        struct %s *out = NULL;\n",
-                  op->responses[0].schema.ref_name);
-          fprintf(tfp, "        if (res->body && res->status_code >= 200 && "
-                       "res->status_code < 300) {\n");
-          fprintf(tfp,
-                  "            char *body_str = malloc(res->body_len + 1);\n"
-                  "            int rc;\n");
-          fprintf(tfp,
-                  "            memcpy(body_str, res->body, res->body_len);\n");
-          fprintf(tfp, "            body_str[res->body_len] = '\\0';\n");
-          fprintf(tfp,
-                  "            rc = %s_from_json(body_str, "
-                  "&out);\n",
-                  op->responses[0].schema.ref_name);
-          fprintf(tfp, "            if (rc != CDD_C_SUCCESS) { "
-                       "fprintf(stderr, \"Parse "
-                       "failed\\n\"); failures++; }\n");
-          fprintf(tfp, "            free(body_str);\n");
-          fprintf(tfp, "        }\n");
+          g_cdd_last_alloc_err =
+              fprintf(tfp, "        struct %s *out = NULL;\n",
+                      op->responses[0].schema.ref_name);
+          g_cdd_last_alloc_err = fprintf(
+              tfp, "        if (res->body && res->status_code >= 200 && "
+                   "res->status_code < 300) {\n");
+          g_cdd_last_alloc_err = fprintf(
+              tfp, "            char *body_str = malloc(res->body_len + 1);\n"
+                   "            int rc;\n");
+          g_cdd_last_alloc_err = fprintf(
+              tfp, "            memcpy(body_str, res->body, res->body_len);\n");
+          g_cdd_last_alloc_err =
+              fprintf(tfp, "            body_str[res->body_len] = '\\0';\n");
+          g_cdd_last_alloc_err =
+              fprintf(tfp,
+                      "            rc = %s_from_json(body_str, "
+                      "&out);\n",
+                      op->responses[0].schema.ref_name);
+          g_cdd_last_alloc_err =
+              fprintf(tfp, "            if (rc != CDD_C_SUCCESS) { "
+                           "fprintf(stderr, \"Parse "
+                           "failed\\n\"); failures++; }\n");
+          g_cdd_last_alloc_err = fprintf(tfp, "            free(body_str);\n");
+          g_cdd_last_alloc_err = fprintf(tfp, "        }\n");
         }
-        fprintf(tfp,
-                "    } else { fprintf(stderr, \"Status %%d on %%s\\n\", res ? "
-                "res->status_code : 0, req.url); failures++; }\n");
-        fprintf(tfp, "    if (res) { if (http_response_free(res) != 0) {} "
-                     "free(res); }\n");
-        fprintf(tfp, "    free(hdrs);\n");
-        fprintf(tfp, "  }\n");
+        g_cdd_last_alloc_err = fprintf(
+            tfp, "    } else { fprintf(stderr, \"Status %%d on %%s\\n\", res ? "
+                 "res->status_code : 0, req.url); failures++; }\n");
+        g_cdd_last_alloc_err =
+            fprintf(tfp, "    if (res) { if (http_response_free(res) != 0) {} "
+                         "free(res); }\n");
+        g_cdd_last_alloc_err = fprintf(tfp, "    free(hdrs);\n");
+        g_cdd_last_alloc_err = fprintf(tfp, "  }\n");
       }
     }
 
-    fprintf(tfp, "  return failures > 0 ? 1 : 0;\n}\n");
+    g_cdd_last_alloc_err = fprintf(tfp, "  return failures > 0 ? 1 : 0;\n}\n");
     fclose(tfp);
   }
 

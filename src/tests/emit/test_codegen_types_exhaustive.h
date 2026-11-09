@@ -35,22 +35,37 @@ TEST test_types_exhaustive_io(void) {
   struct StructFields sf;
   struct CodegenTypesConfig config = {0};
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
-  struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
-  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
-  struct_fields_add(&sf, "arr_str", "array", "string", NULL, NULL);
-  struct_fields_add(&sf, "arr_obj", "array", "Object", NULL, NULL);
-  struct_fields_add(&sf, "obj1", "object", "Object", NULL, NULL);
-  struct_fields_add(&sf, "arr_null_ref", "array", NULL, NULL, NULL);
-  struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "arr_enum", "array", "enum", "MyEnum", NULL);
-  struct_fields_add(&sf, "arr_unk", "array", "unknown", NULL, NULL);
-  struct_fields_add(&sf, "num1", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "bool1", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "enum1", "enum", "MyEnum", NULL, NULL);
-  struct_fields_add(&sf, "null1", "null", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_str", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_obj", "array", "Object", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "obj1", "object", "Object", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_null_ref", "array", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_enum", "array", "enum", "MyEnum", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_unk", "array", "unknown", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "num1", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "bool1", "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "enum1", "enum", "MyEnum", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "null1", "null", NULL, NULL, NULL);
 
   sf.union_discriminator = (char *)malloc(5);
 #if defined(_MSC_VER)
@@ -385,8 +400,8 @@ TEST test_types_exhaustive_io(void) {
       break;
   }
 
-  struct_fields_free(&sf);
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   sf.union_discriminator = (char *)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_discriminator, 5, "type");
@@ -412,9 +427,10 @@ TEST test_types_exhaustive_io(void) {
       break;
   }
 
-  struct_fields_free(&sf);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
   sf.union_discriminator = (char *)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_discriminator, 5, "type");
@@ -466,13 +482,19 @@ TEST test_types_exhaustive_io(void) {
   {
     struct StructFields sf_tag;
     char *al_arr[2];
-    struct_fields_init(&sf_tag);
-    struct_fields_add(&sf_tag, "v_obj", "object", "SubObj", NULL, NULL);
-    struct_fields_add(&sf_tag, "v_int", "integer", NULL, NULL, NULL);
-    struct_fields_add(&sf_tag, "v_num", "number", NULL, NULL, NULL);
-    struct_fields_add(&sf_tag, "v_bool", "boolean", NULL, NULL, NULL);
-    struct_fields_add(&sf_tag, "v_str", "string", NULL, NULL, NULL);
-    struct_fields_add(&sf_tag, "v_null", "null", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf_tag);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_tag, "v_obj", "object", "SubObj", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_tag, "v_int", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_tag, "v_num", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_tag, "v_bool", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_tag, "v_str", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_tag, "v_null", "null", NULL, NULL, NULL);
 
     al_arr[0] = cdd_test_mut_str("alias_obj");
     al_arr[1] = NULL;
@@ -487,7 +509,8 @@ TEST test_types_exhaustive_io(void) {
     sf_tag.union_discriminator = (char *)calloc(1, 1);
     {
       FILE *tmp = cdd_test_tmpfile_global();
-      write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      g_cdd_last_alloc_err =
+          write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
       if (tmp)
         fclose(tmp);
     }
@@ -514,7 +537,8 @@ TEST test_types_exhaustive_io(void) {
     {
       FILE *tmp = cdd_test_tmpfile_global();
       g_fail_io_after = -1;
-      write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      g_cdd_last_alloc_err =
+          write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
       if (tmp)
         fclose(tmp);
     }
@@ -552,7 +576,8 @@ TEST test_types_exhaustive_io(void) {
     {
       FILE *tmp = cdd_test_tmpfile_global();
       g_fail_io_after = -1;
-      write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
+      g_cdd_last_alloc_err =
+          write_union_to_json_func(tmp, "TagU", &sf_tag, &config);
       if (tmp)
         fclose(tmp);
     }
@@ -570,19 +595,20 @@ TEST test_types_exhaustive_io(void) {
       struct CodegenTypesConfig no_guard_cfg = {0};
       FILE *tmp = cdd_test_tmpfile_global();
       g_fail_io_after = -1;
-      write_union_from_jsonObject_func(tmp, "TagU", &sf_tag, &no_guard_cfg);
+      g_cdd_last_alloc_err =
+          write_union_from_jsonObject_func(tmp, "TagU", &sf_tag, &no_guard_cfg);
       if (tmp)
         fclose(tmp);
     }
 
     sf_tag.fields[0].serde_aliases = NULL;
     sf_tag.fields[0].n_serde_aliases = 0;
-    struct_fields_free(&sf_tag);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_tag);
     g_fail_io_after = -1;
     g_io_calls = 0;
   }
 #endif
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

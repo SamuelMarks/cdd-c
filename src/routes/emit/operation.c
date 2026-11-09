@@ -59,39 +59,42 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     int diff;
     /* Map string verb to enum */
     /* Only basic check here, loader does robust parsing */
-    c_cdd_stricmp(doc->verb, "GET", &diff);
+    g_cdd_last_alloc_err = c_cdd_stricmp(doc->verb, "GET", &diff);
     if (diff == 0)
       out_op->verb = OA_VERB_GET;
     else {
-      c_cdd_stricmp(doc->verb, "POST", &diff);
+      g_cdd_last_alloc_err = c_cdd_stricmp(doc->verb, "POST", &diff);
       if (diff == 0)
         out_op->verb = OA_VERB_POST;
       else {
-        c_cdd_stricmp(doc->verb, "PUT", &diff);
+        g_cdd_last_alloc_err = c_cdd_stricmp(doc->verb, "PUT", &diff);
         if (diff == 0)
           out_op->verb = OA_VERB_PUT;
         else {
-          c_cdd_stricmp(doc->verb, "DELETE", &diff);
+          g_cdd_last_alloc_err = c_cdd_stricmp(doc->verb, "DELETE", &diff);
           if (diff == 0)
             out_op->verb = OA_VERB_DELETE;
           else {
-            c_cdd_stricmp(doc->verb, "PATCH", &diff);
+            g_cdd_last_alloc_err = c_cdd_stricmp(doc->verb, "PATCH", &diff);
             if (diff == 0)
               out_op->verb = OA_VERB_PATCH;
             else {
-              c_cdd_stricmp(doc->verb, "HEAD", &diff);
+              g_cdd_last_alloc_err = c_cdd_stricmp(doc->verb, "HEAD", &diff);
               if (diff == 0)
                 out_op->verb = OA_VERB_HEAD;
               else {
-                c_cdd_stricmp(doc->verb, "OPTIONS", &diff);
+                g_cdd_last_alloc_err =
+                    c_cdd_stricmp(doc->verb, "OPTIONS", &diff);
                 if (diff == 0)
                   out_op->verb = OA_VERB_OPTIONS;
                 else {
-                  c_cdd_stricmp(doc->verb, "TRACE", &diff);
+                  g_cdd_last_alloc_err =
+                      c_cdd_stricmp(doc->verb, "TRACE", &diff);
                   if (diff == 0)
                     out_op->verb = OA_VERB_TRACE;
                   else {
-                    c_cdd_stricmp(doc->verb, "QUERY", &diff);
+                    g_cdd_last_alloc_err =
+                        c_cdd_stricmp(doc->verb, "QUERY", &diff);
                     if (diff == 0)
                       out_op->verb = OA_VERB_QUERY;
                     else {
@@ -115,15 +118,18 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     /* Guess from name? e.g. "api_get_..." */
     int is_prefix = 0;
     if (ctx->func_name) {
-      c_cdd_str_starts_with(ctx->func_name, "api_post_", &is_prefix);
+      g_cdd_last_alloc_err =
+          c_cdd_str_starts_with(ctx->func_name, "api_post_", &is_prefix);
       if (is_prefix || strstr(ctx->func_name, "_create"))
         out_op->verb = OA_VERB_POST;
       else {
-        c_cdd_str_starts_with(ctx->func_name, "api_put_", &is_prefix);
+        g_cdd_last_alloc_err =
+            c_cdd_str_starts_with(ctx->func_name, "api_put_", &is_prefix);
         if (is_prefix || strstr(ctx->func_name, "_update"))
           out_op->verb = OA_VERB_PUT;
         else {
-          c_cdd_str_starts_with(ctx->func_name, "api_delete_", &is_prefix);
+          g_cdd_last_alloc_err =
+              c_cdd_str_starts_with(ctx->func_name, "api_delete_", &is_prefix);
           if (is_prefix || strstr(ctx->func_name, "_delete"))
             out_op->verb = OA_VERB_DELETE;
           else
@@ -278,7 +284,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     rc = c_mapping_init(&type_map);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    find_doc_param(doc, arg->name, &dp);
+    g_cdd_last_alloc_err = find_doc_param(doc, arg->name, &dp);
 
     /* --- Heuristic: Role Detection --- */
 
@@ -295,7 +301,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     } else {
       /* B. Implicit Path: Matches {name} in route */
       if (doc && doc->route) {
-        is_path_param(doc->route, arg->name, &_is_path_param);
+        g_cdd_last_alloc_err =
+            is_path_param(doc->route, arg->name, &_is_path_param);
         if (_is_path_param)
           is_path = 1;
       }
@@ -303,7 +310,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (!is_path) {
         int is_double = 0;
         int _is_struct_ptr = 0;
-        is_struct_pointer(arg->type, &is_double, &_is_struct_ptr);
+        g_cdd_last_alloc_err =
+            is_struct_pointer(arg->type, &is_double, &_is_struct_ptr);
         if (_is_struct_ptr) {
           if (is_double) {
             /* Double pointer usually `struct X **out` -> Response Body (Output)
@@ -345,7 +353,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
               out_op->responses,
               (out_op->n_responses + 1) * sizeof(struct OpenAPI_Response));
       if (!new_resps) {
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return CDD_C_ERROR_MEMORY;
       }
       out_op->responses = new_resps;
@@ -353,14 +361,14 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       memset(r, 0, sizeof(*r));
       rc = c_cdd_strdup("200", &r->code);
       if (rc != CDD_C_SUCCESS) {
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       rc = c_cdd_strdup("Success", &r->description);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(r->code);
         r->code = NULL;
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       out_op->n_responses++;
@@ -370,13 +378,13 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (type_map.ref_name) {
         rc = c_cdd_strdup(type_map.ref_name, &r->schema.ref_name);
         if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       } else {
         rc = c_cdd_strdup(type_map.oa_type, &r->schema.inline_type);
         if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
@@ -385,12 +393,12 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         rc = apply_format_to_schema_ref(&r->schema, &type_map, NULL,
                                         &fmt_applied);
         if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
 
-      c_mapping_free(&type_map);
+      g_cdd_last_alloc_err = c_mapping_free(&type_map);
       continue; /* Done with this arg */
     }
 
@@ -398,7 +406,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       /* Request Body Population */
       rc = c_cdd_strdup("application/json", &out_op->req_body.content_type);
       if (rc != CDD_C_SUCCESS) {
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       out_op->req_body.is_array = (type_map.kind == OA_TYPE_ARRAY);
@@ -406,13 +414,13 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (type_map.ref_name) {
         rc = c_cdd_strdup(type_map.ref_name, &out_op->req_body.ref_name);
         if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       } else {
         rc = c_cdd_strdup(type_map.oa_type, &out_op->req_body.inline_type);
         if (rc != CDD_C_SUCCESS) {
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
@@ -427,12 +435,12 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           out_op->req_body.content_type = NULL;
           C_CDD_FREE(out_op->req_body.inline_type);
           out_op->req_body.inline_type = NULL;
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
 
-      c_mapping_free(&type_map);
+      g_cdd_last_alloc_err = c_mapping_free(&type_map);
       continue;
     }
 
@@ -440,7 +448,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
     rc = c_cdd_strdup(arg->name, &curr_param.name);
     if (rc != CDD_C_SUCCESS) {
-      c_mapping_free(&type_map);
+      g_cdd_last_alloc_err = c_mapping_free(&type_map);
       return rc;
     }
     curr_param.required = is_path; /* Path params always required */
@@ -449,8 +457,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     if (dp && dp->description) {
       rc = c_cdd_strdup(dp->description, &curr_param.description);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
     }
@@ -466,13 +474,13 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     if (curr_param.in == OA_PARAM_IN_HEADER) {
       rc = is_reserved_header_name(curr_param.name, &_is_reserved);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       if (_is_reserved) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         continue;
       }
     }
@@ -482,14 +490,14 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       rc = c_cdd_strdup("application/x-www-form-urlencoded",
                         &curr_param.content_type);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       rc = set_querystring_schema_from_type_map(&curr_param, &type_map);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
     } else if (type_map.kind == OA_TYPE_ARRAY) {
@@ -499,23 +507,23 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (type_map.oa_type) {
         rc = c_cdd_strdup(type_map.oa_type, &curr_param.items_type);
         if (rc != CDD_C_SUCCESS) {
-          free_param_fields(&curr_param);
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = free_param_fields(&curr_param);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       } else {
         rc = c_cdd_strdup(type_map.ref_name, &curr_param.items_type);
         if (rc != CDD_C_SUCCESS) {
-          free_param_fields(&curr_param);
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = free_param_fields(&curr_param);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
 
       rc = c_cdd_strdup("array", &curr_param.type);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
     } else {
@@ -528,8 +536,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       else
         rc = c_cdd_strdup("string", &curr_param.type);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
     }
@@ -540,8 +548,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       rc = apply_format_to_schema_ref(&curr_param.schema, &type_map,
                                       fmt_override, &fmt_applied);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       if (fmt_applied) {
@@ -558,15 +566,15 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           C_CDD_FREE(curr_param.content_type);
         rc = c_cdd_strdup(dp->content_type, &curr_param.content_type);
         if (rc != CDD_C_SUCCESS) {
-          free_param_fields(&curr_param);
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = free_param_fields(&curr_param);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
       if (!curr_param.content_type) {
         if (dp->style_set) {
           enum OpenAPI_Style style = OA_STYLE_UNKNOWN;
-          doc_style_to_openapi(dp->style, &style);
+          g_cdd_last_alloc_err = doc_style_to_openapi(dp->style, &style);
           if (style != OA_STYLE_UNKNOWN)
             curr_param.style = style;
         }
@@ -590,8 +598,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (dp->collection_format) {
         rc = c_cdd_strdup(dp->collection_format, &curr_param.collection_format);
         if (rc != CDD_C_SUCCESS) {
-          free_param_fields(&curr_param);
-          c_mapping_free(&type_map);
+          g_cdd_last_alloc_err = free_param_fields(&curr_param);
+          g_cdd_last_alloc_err = c_mapping_free(&type_map);
           return rc;
         }
       }
@@ -607,8 +615,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     if (dp && dp->example) {
       rc = parse_example_any(dp->example, &curr_param.example);
       if (rc != CDD_C_SUCCESS) {
-        free_param_fields(&curr_param);
-        c_mapping_free(&type_map);
+        g_cdd_last_alloc_err = free_param_fields(&curr_param);
+        g_cdd_last_alloc_err = c_mapping_free(&type_map);
         return rc;
       }
       curr_param.example_set = 1;
@@ -620,9 +628,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     }
 
     rc = add_param_to_op(out_op, &curr_param);
-    c_mapping_free(&type_map);
+    g_cdd_last_alloc_err = c_mapping_free(&type_map);
     if (rc != CDD_C_SUCCESS) {
-      free_param_fields(&curr_param);
+      g_cdd_last_alloc_err = free_param_fields(&curr_param);
       return rc;
     }
   }
@@ -647,9 +655,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           return rc;
         if (rb->example) {
           struct OpenAPI_MediaType *mt = NULL;
-          find_media_type_op(out_op->req_body_media_types,
-                             out_op->n_req_body_media_types, rb_content_type,
-                             &mt);
+          g_cdd_last_alloc_err = find_media_type_op(
+              out_op->req_body_media_types, out_op->n_req_body_media_types,
+              rb_content_type, &mt);
           rc = apply_example_to_media_type(mt, rb->example);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -658,9 +666,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         if (doc->n_encodings > 0) {
           struct OpenAPI_MediaType *mt = NULL;
           size_t enc_i;
-          find_media_type_op(out_op->req_body_media_types,
-                             out_op->n_req_body_media_types, rb_content_type,
-                             &mt);
+          g_cdd_last_alloc_err = find_media_type_op(
+              out_op->req_body_media_types, out_op->n_req_body_media_types,
+              rb_content_type, &mt);
           for (enc_i = 0; enc_i < doc->n_encodings; ++enc_i) {
             const struct DocEncoding *d_enc = &doc->encodings[enc_i];
             struct OpenAPI_Encoding enc;
@@ -674,12 +682,13 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
             if (d_enc->content_type) {
               rc = c_cdd_strdup(d_enc->content_type, &enc.content_type);
               if (rc != CDD_C_SUCCESS) {
-                free_encoding_fields(&enc);
+                g_cdd_last_alloc_err = free_encoding_fields(&enc);
                 return rc;
               }
             }
             if (d_enc->style) {
-              doc_style_to_openapi(d_enc->style, &enc.style);
+              g_cdd_last_alloc_err =
+                  doc_style_to_openapi(d_enc->style, &enc.style);
             }
 
             enc.explode = d_enc->explode;
@@ -692,7 +701,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
                   mt->prefix_encoding, (mt->n_prefix_encoding + 1) *
                                            sizeof(struct OpenAPI_Encoding));
               if (!new_encs) {
-                free_encoding_fields(&enc);
+                g_cdd_last_alloc_err = free_encoding_fields(&enc);
                 return CDD_C_ERROR_MEMORY;
               }
               mt->prefix_encoding = new_encs;
@@ -702,7 +711,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
                 mt->item_encoding =
                     C_CDD_CALLOC(1, sizeof(struct OpenAPI_Encoding));
                 if (!mt->item_encoding) {
-                  free_encoding_fields(&enc);
+                  g_cdd_last_alloc_err = free_encoding_fields(&enc);
                   return CDD_C_ERROR_MEMORY;
                 }
               }
@@ -712,7 +721,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
                   mt->encoding,
                   (mt->n_encoding + 1) * sizeof(struct OpenAPI_Encoding));
               if (!new_encs) {
-                free_encoding_fields(&enc);
+                g_cdd_last_alloc_err = free_encoding_fields(&enc);
                 return CDD_C_ERROR_MEMORY;
               }
               mt->encoding = new_encs;

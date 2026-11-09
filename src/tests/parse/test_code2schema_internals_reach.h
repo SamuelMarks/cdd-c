@@ -44,7 +44,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     src_arr[0] = cdd_test_mut_str("item");
     ASSERT_EQ(CDD_C_SUCCESS,
               copy_string_array_code2schema(&dst, &dst_count, src_arr, 1));
-    free_string_array_code2schema(dst, dst_count);
+    g_cdd_last_alloc_err = free_string_array_code2schema(dst, dst_count);
     dst = NULL;
     dst_count = 0;
     g_cdd_alloc_fail = 1;
@@ -62,18 +62,19 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     int nullable = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[\"string\", \"integer\"]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[\"string\", \"integer\"]", &_cdd_jv_1);
       arr_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, parse_type_union_array_code2schema(
                                  json_value_get_array(arr_v), &u_types, &n_u,
                                  &prim, &nullable));
-    free_string_array_code2schema(u_types, n_u);
-    json_value_free(arr_v);
+    g_cdd_last_alloc_err = free_string_array_code2schema(u_types, n_u);
+    g_cdd_last_alloc_err = json_value_free(arr_v);
 
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[\"null\"]", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("[\"null\"]", &_cdd_jv_1);
       arr_v = _cdd_jv_1;
     }
     u_types = NULL;
@@ -83,8 +84,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, parse_type_union_array_code2schema(
                                  json_value_get_array(arr_v), &u_types, &n_u,
                                  &prim, &nullable));
-    free_string_array_code2schema(u_types, n_u);
-    json_value_free(arr_v);
+    g_cdd_last_alloc_err = free_string_array_code2schema(u_types, n_u);
+    g_cdd_last_alloc_err = json_value_free(arr_v);
   }
 
   /* 3. g_cdd_fail_json_set_value in c2s_merge_schema_extras_strings */
@@ -108,7 +109,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, parse_struct_member_line("int d : (1+2)", &sf));
     ASSERT_EQ(CDD_C_SUCCESS, parse_struct_member_line("int e : MY_FLAG", &sf));
     ASSERT_EQ(CDD_C_SUCCESS, parse_struct_member_line("int f : +1", &sf));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
   }
 
   /* 5. Pointer with * in raw type */
@@ -117,7 +118,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, parse_struct_member_line("char * *ptr;", &sf));
     ASSERT_EQ(CDD_C_SUCCESS, parse_struct_member_line("int * *pp;", &sf));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
   }
 
   /* 6. FAM variations */
@@ -131,7 +132,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
               parse_struct_member_line("uint32_t counts[];", &sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_struct_member_line("/* @shard_key */ int id;", &sf));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
   }
 
   /* 7. json_object_to_struct_fields properties */
@@ -141,40 +142,41 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
 
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"properties\": {\"x\": {\"default\": 10}}}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "{\"properties\": {\"x\": {\"default\": 10}}}", &_cdd_jv_1);
       schema = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
                                  json_value_get_object(schema), &sf, NULL));
-    struct_fields_free(&sf);
-    json_value_free(schema);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(schema);
 
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"properties\": {\"arr\": {\"type\": \"array\"}}}", &_cdd_jv_1);
       schema = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
                                  json_value_get_object(schema), &sf, NULL));
-    struct_fields_free(&sf);
-    json_value_free(schema);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(schema);
 
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"properties\": {\"n\": {\"type\": \"number\", "
-                            "\"exclusiveMaximum\": false}}}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "{\"properties\": {\"n\": {\"type\": \"number\", "
+          "\"exclusiveMaximum\": false}}}",
+          &_cdd_jv_1);
       schema = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
                                  json_value_get_object(schema), &sf, NULL));
-    struct_fields_free(&sf);
-    json_value_free(schema);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(schema);
   }
 
   /* 8. c2s_strip_quotes */
@@ -208,7 +210,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(0, struct_fields_add(&sf_coll, "n_foo", "integer", "", NULL, ""));
     ASSERT_EQ(0, struct_fields_add(&sf_coll, "bar", "string", "", NULL, ""));
     ASSERT_EQ(CDD_C_SUCCESS, c2s_collapse_arrays(&sf_coll));
-    struct_fields_free(&sf_coll);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_coll);
   }
 
   /* 10. ref_points_to_string_enum */
@@ -217,7 +219,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     int pts = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       root_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, ref_points_to_string_enum(
@@ -225,7 +227,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               ref_points_to_string_enum(json_value_get_object(root_v),
                                         "#/components/", &pts));
-    json_value_free(root_v);
+    g_cdd_last_alloc_err = json_value_free(root_v);
   }
 
   /* 11. required_name_in_list */
@@ -234,14 +236,14 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     int in_l = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[\"a\", 123]", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("[\"a\", 123]", &_cdd_jv_1);
       req_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS,
               required_name_in_list(json_value_get_array(req_v), NULL, &in_l));
     ASSERT_EQ(CDD_C_SUCCESS,
               required_name_in_list(json_value_get_array(req_v), "b", &in_l));
-    json_value_free(req_v);
+    g_cdd_last_alloc_err = json_value_free(req_v);
   }
 
   /* 12. resolve_schema_ref_object */
@@ -250,7 +252,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     const JSON_Object *out_obj = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       root_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -259,7 +261,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               resolve_schema_ref_object(json_value_get_object(root_v),
                                         "#/components/", &out_obj));
-    json_value_free(root_v);
+    g_cdd_last_alloc_err = json_value_free(root_v);
   }
 
   /* 13. c2s_collect_string_array with non-string */
@@ -269,13 +271,14 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     size_t cnt = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[123, \"valid\"]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[123, \"valid\"]", &_cdd_jv_1);
       arr_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, c2s_collect_string_array(
                                  json_value_get_array(arr_v), &arr_out, &cnt));
-    free_string_array_code2schema(arr_out, cnt);
-    json_value_free(arr_v);
+    g_cdd_last_alloc_err = free_string_array_code2schema(arr_out, cnt);
+    g_cdd_last_alloc_err = json_value_free(arr_v);
   }
 
   /* 14. sanitize_identifier with char > 'z' */
@@ -298,14 +301,15 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     char *disc_val = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"mapping\": {\"key\": 123}}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"mapping\": {\"key\": 123}}", &_cdd_jv_1);
       sch = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS,
               discriminator_value_for_variant(json_value_get_object(sch),
                                               "schema", "ref", &disc_val));
     C_CDD_FREE(disc_val);
-    json_value_free(sch);
+    g_cdd_last_alloc_err = json_value_free(sch);
   }
 
   /* 17. merge_struct_field exclusive bounds */
@@ -340,13 +344,13 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     struct StructFields sf;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{}]", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("[{}]", &_cdd_jv_1);
       allof_v = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"$ref\": \"#/components/schemas/Foo\"}]",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "[{\"$ref\": \"#/components/schemas/Foo\"}]", &_cdd_jv_1);
       allof_ref = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, apply_allof_to_struct_fields(
@@ -354,19 +358,19 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_allof_to_struct_fields(
                                  json_value_get_array(allof_ref), &sf, NULL));
-    struct_fields_free(&sf);
-    json_value_free(allof_ref);
-    json_value_free(allof_v);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(allof_ref);
+    g_cdd_last_alloc_err = json_value_free(allof_v);
 
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{}]", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("[{}]", &_cdd_jv_1);
       allof_v = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"$ref\": \"#/components/schemas/Foo\"}]",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "[{\"$ref\": \"#/components/schemas/Foo\"}]", &_cdd_jv_1);
       allof_ref = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_fallback(
@@ -374,9 +378,9 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_fallback(
                                  json_value_get_array(allof_ref), &sf, NULL));
-    struct_fields_free(&sf);
-    json_value_free(allof_ref);
-    json_value_free(allof_v);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(allof_ref);
+    g_cdd_last_alloc_err = json_value_free(allof_v);
   }
 
   /* 19. apply_union_to_struct_fields_ex branches */
@@ -395,53 +399,57 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     struct StructFields sf;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"type\": \"string\"}]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[{\"type\": \"string\"}]", &_cdd_jv_1);
       u_v = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"$ref\": \"#/components/schemas/Foo\"}]",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "[{\"$ref\": \"#/components/schemas/Foo\"}]", &_cdd_jv_1);
       u_ref = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"discriminator\": {\"propertyName\": \"\"}}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "{\"discriminator\": {\"propertyName\": \"\"}}", &_cdd_jv_1);
       sch_disc = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"discriminator\": {}}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"discriminator\": {}}", &_cdd_jv_1);
       sch_disc_empty = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"description\": \"desc\"}]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[{\"description\": \"desc\"}]", &_cdd_jv_1);
       u_no_type = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"type\": \"array\"}]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[{\"type\": \"array\"}]", &_cdd_jv_1);
       arr_no_items = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "[{\"type\": \"array\", \"items\": {\"$ref\": \"#/Foo\"}}]",
           &_cdd_jv_1);
       arr_items_ref = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "[{\"type\": \"array\", \"items\": {\"type\": \"object\"}}]",
           &_cdd_jv_1);
       arr_items_obj = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "[{\"type\": \"array\", \"items\": {\"type\": \"object\", "
           "\"properties\": {\"x\": {\"type\": \"integer\"}}}}]",
           &_cdd_jv_1);
@@ -449,7 +457,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "[{\"type\": \"object\", \"properties\": {\"a\": {\"type\": "
           "\"string\"}}}]",
           &_cdd_jv_1);
@@ -457,7 +465,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"components\": {\"schemas\": {\"Foo\": {\"type\": \"string\"}}}}",
           &_cdd_jv_1);
       root_val = _cdd_jv_1;
@@ -470,96 +478,96 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(json_value_get_array(u_ref), &sf,
                                               NULL, NULL, 0, NULL, 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(json_value_get_array(u_ref), &sf,
                                               json_value_get_object(root_val),
                                               NULL, 0, NULL, 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_ex(
                                  json_value_get_array(u_v), &sf, NULL, NULL, 0,
                                  json_value_get_object(sch_disc), 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_ex(
                                  json_value_get_array(u_v), &sf, NULL, NULL, 0,
                                  json_value_get_object(sch_disc_empty), 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(json_value_get_array(u_no_type),
                                               &sf, NULL, NULL, 0, NULL, 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(json_value_get_array(u_obj), &sf,
                                               NULL, NULL, 0, NULL, 1));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(json_value_get_array(u_obj), &sf,
                                               json_value_get_object(root_val),
                                               NULL, 0, NULL, 1));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(json_value_get_array(u_obj), &sf,
                                               json_value_get_object(root_val),
                                               NULL, 0, NULL, 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_ex(
                                  json_value_get_array(arr_no_items), &sf, NULL,
                                  NULL, 0, NULL, 1));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_ex(
                                  json_value_get_array(arr_items_obj), &sf, NULL,
                                  NULL, 0, NULL, 1));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_ex(
                                  json_value_get_array(arr_items_ref), &sf, NULL,
                                  NULL, 0, NULL, 1));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(
                   json_value_get_array(arr_inline_obj), &sf,
                   json_value_get_object(root_val), NULL, 0, NULL, 1));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
     ASSERT_EQ(CDD_C_SUCCESS,
               apply_union_to_struct_fields_ex(
                   json_value_get_array(arr_inline_obj), &sf,
                   json_value_get_object(root_val), NULL, 0, NULL, 0));
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
-    json_value_free(root_val);
-    json_value_free(u_obj);
-    json_value_free(arr_inline_obj);
-    json_value_free(arr_items_obj);
-    json_value_free(arr_items_ref);
-    json_value_free(arr_no_items);
-    json_value_free(u_no_type);
-    json_value_free(sch_disc_empty);
-    json_value_free(sch_disc);
-    json_value_free(u_ref);
-    json_value_free(u_v);
+    g_cdd_last_alloc_err = json_value_free(root_val);
+    g_cdd_last_alloc_err = json_value_free(u_obj);
+    g_cdd_last_alloc_err = json_value_free(arr_inline_obj);
+    g_cdd_last_alloc_err = json_value_free(arr_items_obj);
+    g_cdd_last_alloc_err = json_value_free(arr_items_ref);
+    g_cdd_last_alloc_err = json_value_free(arr_no_items);
+    g_cdd_last_alloc_err = json_value_free(u_no_type);
+    g_cdd_last_alloc_err = json_value_free(sch_disc_empty);
+    g_cdd_last_alloc_err = json_value_free(sch_disc);
+    g_cdd_last_alloc_err = json_value_free(u_ref);
+    g_cdd_last_alloc_err = json_value_free(u_v);
   }
 
   /* 20. default value and constraint writers */
@@ -570,7 +578,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     char *tun[1];
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       pobj_v = _cdd_jv_1;
     }
     pobj = json_value_get_object(pobj_v);
@@ -600,7 +608,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, c2s_write_default_value(pobj, &f));
 
     ASSERT_EQ(CDD_C_SUCCESS, c2s_write_type_union(pobj, "string", tun, 1));
-    json_value_free(pobj_v);
+    g_cdd_last_alloc_err = json_value_free(pobj_v);
   }
 
   /* 21. write_struct_to_json_schema invalid and primitive array ref */
@@ -609,7 +617,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     struct StructFields sf;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       sch_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf));
@@ -627,8 +635,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     sf.fields[1].required = 1;
     ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
                                  json_value_get_object(sch_v), "Test", &sf));
-    struct_fields_free(&sf);
-    json_value_free(sch_v);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(sch_v);
   }
 
   /* 22. c2s_parse_union_and_write invalid arguments and non-field line */
@@ -651,13 +659,13 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     fp = fopen("cdd_test_tmp_union.txt", "r");
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       sch_v = _cdd_jv_1;
     }
     ASSERT_EQ(CDD_C_SUCCESS,
               c2s_parse_union_and_write(fp, json_value_get_object(sch_v), "U"));
     fclose(fp);
-    json_value_free(sch_v);
+    g_cdd_last_alloc_err = json_value_free(sch_v);
     remove("cdd_test_tmp_union.txt");
   }
 
@@ -713,23 +721,23 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     struct StructFields dest;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[{\"properties\":{\"x\":{\"type\":\"string\"}}}]",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "[{\"properties\":{\"x\":{\"type\":\"string\"}}}]", &_cdd_jv_1);
       val = _cdd_jv_1;
     }
     arr = json_value_get_array(val);
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       root_val = _cdd_jv_1;
     }
     root = json_value_get_object(root_val);
     ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&dest));
     ASSERT_EQ(CDD_C_SUCCESS, apply_union_to_struct_fields_ex(arr, &dest, root,
                                                              NULL, 0, NULL, 1));
-    struct_fields_free(&dest);
-    json_value_free(root_val);
-    json_value_free(val);
+    g_cdd_last_alloc_err = struct_fields_free(&dest);
+    g_cdd_last_alloc_err = json_value_free(root_val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 29. unclosed nested struct in code2schema_main */
@@ -853,7 +861,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       JSON_Object *so = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_value_init_object(&_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
         sv = _cdd_jv_1;
       }
       so = json_value_get_object(sv);
@@ -868,7 +876,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, c2s_parse_union_and_write(fhdr, so, "U"));
       g_cdd_alloc_fail = 0;
       fclose(fhdr);
-      json_value_free(sv);
+      g_cdd_last_alloc_err = json_value_free(sv);
     }
 
     remove("cdd_test_tmp_edges.h");
@@ -882,7 +890,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     JSON_Object *o_root = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"MyObj\":{\"type\":\"object\",\"properties\":{"
           "\"x\":{\"type\":\"integer\"}}},"
           "\"MyEnum\":{\"type\":\"string\",\"enum\":[\"A\"]}}",
@@ -897,34 +905,34 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       JSON_Value *v_any2 = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"anyOf\":[{\"$ref\":\"#/components/schemas/MyObj\"}]}",
             &_cdd_jv_1);
         v_any1 = _cdd_jv_1;
       }
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"x\":{\"type\":"
             "\"integer\"}}}]}",
             &_cdd_jv_1);
         v_any2 = _cdd_jv_1;
       }
-      struct_fields_init(&sf);
+      g_cdd_last_alloc_err = struct_fields_init(&sf);
       g_cdd_alloc_fail = 1;
       ASSERT_NEQ(CDD_C_SUCCESS, c2s_json_object_to_struct_fields_internal(
                                     json_value_get_object(v_any1), &sf, o_root,
                                     "AnyFallback", 0));
-      struct_fields_free(&sf);
-      struct_fields_init(&sf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
+      g_cdd_last_alloc_err = struct_fields_init(&sf);
       g_cdd_alloc_fail = 1;
       ASSERT_NEQ(CDD_C_SUCCESS, c2s_json_object_to_struct_fields_internal(
                                     json_value_get_object(v_any2), &sf, o_root,
                                     "AnyFallback", 0));
       g_cdd_alloc_fail = 0;
-      struct_fields_free(&sf);
-      json_value_free(v_any1);
-      json_value_free(v_any2);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
+      g_cdd_last_alloc_err = json_value_free(v_any1);
+      g_cdd_last_alloc_err = json_value_free(v_any2);
     }
 
     /* direct $ref struct_fields_add OOM (lines 255-256 of code2schema_mapper.c)
@@ -934,22 +942,23 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       JSON_Value *v_ref = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"type\":\"object\",\"properties\":{\"direct_ref\":{\"$ref\":\"#/"
             "components/schemas/MyEnum\"}}}",
             &_cdd_jv_1);
         v_ref = _cdd_jv_1;
       }
-      struct_fields_init(&sf);
+      g_cdd_last_alloc_err = struct_fields_init(&sf);
       for (j = 0; j < 8; ++j)
-        struct_fields_add(&sf, "pad", "string", NULL, NULL, NULL);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&sf, "pad", "string", NULL, NULL, NULL);
       g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 c2s_json_object_to_struct_fields_internal(
                     json_value_get_object(v_ref), &sf, o_root, "RefOOM", 0));
       g_cdd_alloc_fail = 0;
-      struct_fields_free(&sf);
-      json_value_free(v_ref);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
+      g_cdd_last_alloc_err = json_value_free(v_ref);
     }
 
     /* union array variant items type union OOM (lines 305-307 of
@@ -959,32 +968,33 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       JSON_Value *v_uarr = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("{\"oneOf\":[{\"type\":\"array\",\"items\":{"
-                              "\"type\":[\"string\",\"null\"]}},"
-                              "{\"type\":\"integer\"}]}",
-                              &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string("{\"oneOf\":[{\"type\":\"array\",\"items\":{"
+                                  "\"type\":[\"string\",\"null\"]}},"
+                                  "{\"type\":\"integer\"}]}",
+                                  &_cdd_jv_1);
         v_uarr = _cdd_jv_1;
       }
       for (j = 1; j < 10; ++j) {
-        struct_fields_init(&sf);
+        g_cdd_last_alloc_err = struct_fields_init(&sf);
         g_cdd_strdup_fail = j;
-        c2s_json_object_to_struct_fields_internal(
+        g_cdd_last_alloc_err = c2s_json_object_to_struct_fields_internal(
             json_value_get_object(v_uarr), &sf, o_root, "UnionArrOOM", 1);
         g_cdd_strdup_fail = 0;
-        struct_fields_free(&sf);
+        g_cdd_last_alloc_err = struct_fields_free(&sf);
       }
       for (j = 1; j < 10; ++j) {
-        struct_fields_init(&sf);
+        g_cdd_last_alloc_err = struct_fields_init(&sf);
         g_cdd_alloc_fail = j;
-        c2s_json_object_to_struct_fields_internal(
+        g_cdd_last_alloc_err = c2s_json_object_to_struct_fields_internal(
             json_value_get_object(v_uarr), &sf, o_root, "UnionArrOOM", 1);
         g_cdd_alloc_fail = 0;
-        struct_fields_free(&sf);
+        g_cdd_last_alloc_err = struct_fields_free(&sf);
       }
-      json_value_free(v_uarr);
+      g_cdd_last_alloc_err = json_value_free(v_uarr);
     }
 
-    json_value_free(v_root);
+    g_cdd_last_alloc_err = json_value_free(v_root);
   }
 
   /* 35. code2schema.c full branch and comment directive coverage */
@@ -1054,12 +1064,12 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
 
     for (k = 1; k <= 60; ++k) {
       g_cdd_strdup_fail = k;
-      code2schema_main(2, av);
+      g_cdd_last_alloc_err = code2schema_main(2, av);
       g_cdd_strdup_fail = 0;
     }
     for (k = 1; k <= 60; ++k) {
       g_cdd_alloc_fail = k;
-      code2schema_main(2, av);
+      g_cdd_last_alloc_err = code2schema_main(2, av);
       g_cdd_alloc_fail = 0;
     }
 
@@ -1086,12 +1096,12 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     fclose(fhdr);
     for (k = 1; k <= 15; ++k) {
       g_cdd_strdup_fail = k;
-      code2schema_main(2, av);
+      g_cdd_last_alloc_err = code2schema_main(2, av);
       g_cdd_strdup_fail = 0;
     }
     for (k = 1; k <= 15; ++k) {
       g_cdd_alloc_fail = k;
-      code2schema_main(2, av);
+      g_cdd_last_alloc_err = code2schema_main(2, av);
       g_cdd_alloc_fail = 0;
     }
 
@@ -1109,24 +1119,27 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     char *requires_arr[2];
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       root_v = _cdd_jv_1;
     }
     schemas_obj = json_value_get_object(root_v);
 
     /* Enum with rename == struct_name, rename != struct_name, replace, other,
      * NULL/UNKNOWN/skip members */
-    struct_fields_init(&sf);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
     sf.is_enum = 1;
-    enum_members_init(&sf.enum_members);
+    g_cdd_last_alloc_err = enum_members_init(&sf.enum_members);
     CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "SameEnum");
     sf.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
     sf.enum_members.serde_rename_all = CDD_SERDE_CASE_NONE;
     CDD_STRCPY(sf.serde_replace_from, sizeof(sf.serde_replace_from), "_");
     CDD_STRCPY(sf.serde_replace_to, sizeof(sf.serde_replace_to), "-");
-    enum_members_add_ex(&sf.enum_members, "UNKNOWN", NULL, 0);
-    enum_members_add_ex(&sf.enum_members, "SKIP_ME", NULL, 1);
-    enum_members_add_ex(&sf.enum_members, "VAL_A", "custom_a", 0);
+    g_cdd_last_alloc_err =
+        enum_members_add_ex(&sf.enum_members, "UNKNOWN", NULL, 0);
+    g_cdd_last_alloc_err =
+        enum_members_add_ex(&sf.enum_members, "SKIP_ME", NULL, 1);
+    g_cdd_last_alloc_err =
+        enum_members_add_ex(&sf.enum_members, "VAL_A", "custom_a", 0);
     sf.enum_members.members[sf.enum_members.size] = NULL;
     sf.enum_members.size++;
     sf.enum_members.serde_other_idx = (int)(sf.enum_members.size - 1);
@@ -1143,10 +1156,10 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               write_struct_to_json_schema(schemas_obj, "OrigEnum", &sf));
     sf.enum_members.size--;
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     /* Object with all container and field serde/cli attributes */
-    struct_fields_init(&sf);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
     CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "RenamedObj");
     sf.serde_rename_all = CDD_SERDE_CASE_CAMELCASE;
     sf.serde_rename_all_ser = CDD_SERDE_CASE_SNAKECASE;
@@ -1169,7 +1182,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     CDD_STRCPY(sf.cli_env_prefix, sizeof(sf.cli_env_prefix), "APP_");
 
     /* Field 0: skip_if null, aliases, conflicts, requires, skip=1 */
-    struct_fields_add(&sf, "f0", "string", NULL, NULL, "4");
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f0", "string", NULL, NULL, "4");
     CDD_STRCPY(sf.fields[0].serde_rename, sizeof(sf.fields[0].serde_rename),
                "f0_ren");
     CDD_STRCPY(sf.fields[0].serde_rename_ser,
@@ -1220,7 +1234,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     sf.fields[0].required = 1;
 
     /* Field 1: skip_serializing=1, skip_deserializing=1, skip_if=empty */
-    struct_fields_add(&sf, "f1", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f1", "string", NULL, NULL, NULL);
     sf.fields[1].serde_skip_serializing = 1;
     sf.fields[1].serde_skip_deserializing = 1;
     sf.fields[1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
@@ -1233,17 +1248,20 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     sf.fields[1].required = 1;
 
     /* Field 2: skip_if=zero */
-    struct_fields_add(&sf, "f2", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f2", "integer", NULL, NULL, NULL);
     sf.fields[2].serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
 
     /* Field 3: skip_if=custom with fn name */
-    struct_fields_add(&sf, "f3", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f3", "integer", NULL, NULL, NULL);
     sf.fields[3].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
     CDD_STRCPY(sf.fields[3].serde_skip_if_fn,
                sizeof(sf.fields[3].serde_skip_if_fn), "my_pred");
 
     /* Field 4: skip_if=custom with empty fn name */
-    struct_fields_add(&sf, "f4", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f4", "integer", NULL, NULL, NULL);
     sf.fields[4].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
     sf.fields[4].has_min = 1;
     sf.fields[4].exclusive_min = 1;
@@ -1251,39 +1269,49 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     sf.fields[4].exclusive_max = 1;
 
     /* Field 5: array of number, array of CustomRef, and empty field name */
-    struct_fields_add(&sf, "f5", "array", "number", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f5", "array", "number", NULL, NULL);
     sf.fields[5].has_min_items = 1;
     sf.fields[5].has_max_items = 1;
     sf.fields[5].unique_items = 1;
-    struct_fields_add(&sf, "f6", "array", "CustomRef", NULL, NULL);
-    struct_fields_add(&sf, "f7", "string", NULL, "\"hello\"", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f6", "array", "CustomRef", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f7", "string", NULL, "\"hello\"", NULL);
     sf.fields[7].name[0] = '\0';
     sf.fields[7].has_min_len = 1;
     sf.fields[7].has_max_len = 1;
     CDD_STRCPY(sf.fields[7].pattern, sizeof(sf.fields[7].pattern), "^[a-z]+$");
-    struct_fields_add(&sf, "f8", "boolean", NULL, "invalid_bool", NULL);
-    struct_fields_add(&sf, "f8b", "boolean", NULL, "true", NULL);
-    struct_fields_add(&sf, "f9", "number", NULL, "3.14", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f8", "boolean", NULL, "invalid_bool", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f8b", "boolean", NULL, "true", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f9", "number", NULL, "3.14", NULL);
     sf.fields[sf.size - 1].has_min = 1;
     sf.fields[sf.size - 1].has_max = 1;
-    struct_fields_add(&sf, "f10", "object", "#/components/schemas/DirectRef",
-                      NULL, NULL);
-    struct_fields_add(&sf, "f11", "object", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "f10", "object", "#/components/schemas/DirectRef", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f11", "object", NULL, NULL, NULL);
     {
       JSON_Value *pv = NULL;
       struct StructField empty_f;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_value_init_object(&_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
         pv = _cdd_jv_1;
       }
       memset(&empty_f, 0, sizeof(empty_f));
-      c2s_write_array_constraints(NULL, &empty_f);
-      c2s_write_array_constraints(json_value_get_object(pv), NULL);
-      c2s_write_array_constraints(json_value_get_object(pv), &empty_f);
+      g_cdd_last_alloc_err = c2s_write_array_constraints(NULL, &empty_f);
+      g_cdd_last_alloc_err =
+          c2s_write_array_constraints(json_value_get_object(pv), NULL);
+      g_cdd_last_alloc_err =
+          c2s_write_array_constraints(json_value_get_object(pv), &empty_f);
       CDD_STRCPY(empty_f.type, sizeof(empty_f.type), "string");
-      c2s_write_array_constraints(json_value_get_object(pv), &empty_f);
-      json_value_free(pv);
+      g_cdd_last_alloc_err =
+          c2s_write_array_constraints(json_value_get_object(pv), &empty_f);
+      g_cdd_last_alloc_err = json_value_free(pv);
     }
 
     ASSERT_EQ(CDD_C_SUCCESS,
@@ -1298,8 +1326,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     sf.fields[1].n_serde_aliases = 0;
     sf.fields[1].n_cli_conflicts_with = 0;
     sf.fields[1].n_cli_requires = 0;
-    struct_fields_free(&sf);
-    json_value_free(root_v);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(root_v);
   }
 
   /* 37. code2schema_mapper.c full branch coverage */
@@ -1326,29 +1354,32 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       int k;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(enum_jsons[ej], &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string(enum_jsons[ej], &_cdd_jv_1);
         ev = _cdd_jv_1;
       }
       eo = json_value_get_object(ev);
-      struct_fields_init(&esf);
+      g_cdd_last_alloc_err = struct_fields_init(&esf);
       ASSERT_EQ(CDD_C_SUCCESS,
                 json_object_to_struct_fields_ex(eo, &esf, NULL, "my-enum"));
-      struct_fields_free(&esf);
+      g_cdd_last_alloc_err = struct_fields_free(&esf);
       for (k = 1; k <= 10; ++k) {
         g_cdd_strdup_fail = k;
-        struct_fields_init(&esf);
-        json_object_to_struct_fields_ex(eo, &esf, NULL, "my-enum");
+        g_cdd_last_alloc_err = struct_fields_init(&esf);
+        g_cdd_last_alloc_err =
+            json_object_to_struct_fields_ex(eo, &esf, NULL, "my-enum");
         g_cdd_strdup_fail = 0;
-        struct_fields_free(&esf);
+        g_cdd_last_alloc_err = struct_fields_free(&esf);
       }
       for (k = 1; k <= 10; ++k) {
         g_cdd_alloc_fail = k;
-        struct_fields_init(&esf);
-        json_object_to_struct_fields_ex(eo, &esf, NULL, "my-enum");
+        g_cdd_last_alloc_err = struct_fields_init(&esf);
+        g_cdd_last_alloc_err =
+            json_object_to_struct_fields_ex(eo, &esf, NULL, "my-enum");
         g_cdd_alloc_fail = 0;
-        struct_fields_free(&esf);
+        g_cdd_last_alloc_err = struct_fields_free(&esf);
       }
-      json_value_free(ev);
+      g_cdd_last_alloc_err = json_value_free(ev);
     }
 
     {
@@ -1441,30 +1472,33 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         int k;
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(obj_parts[oj], &_cdd_jv_1);
+          g_cdd_last_alloc_err =
+              cdd_json_parse_string(obj_parts[oj], &_cdd_jv_1);
           ov = _cdd_jv_1;
         }
         oo = json_value_get_object(ov);
         ASSERT(oo != NULL);
-        struct_fields_init(&osf);
+        g_cdd_last_alloc_err = struct_fields_init(&osf);
         ASSERT_EQ(CDD_C_SUCCESS,
                   json_object_to_struct_fields_ex(oo, &osf, NULL, "my-obj"));
-        struct_fields_free(&osf);
+        g_cdd_last_alloc_err = struct_fields_free(&osf);
         for (k = 1; k <= 25; ++k) {
           g_cdd_strdup_fail = k;
-          struct_fields_init(&osf);
-          json_object_to_struct_fields_ex(oo, &osf, NULL, "my-obj");
+          g_cdd_last_alloc_err = struct_fields_init(&osf);
+          g_cdd_last_alloc_err =
+              json_object_to_struct_fields_ex(oo, &osf, NULL, "my-obj");
           g_cdd_strdup_fail = 0;
-          struct_fields_free(&osf);
+          g_cdd_last_alloc_err = struct_fields_free(&osf);
         }
         for (k = 1; k <= 25; ++k) {
           g_cdd_alloc_fail = k;
-          struct_fields_init(&osf);
-          json_object_to_struct_fields_ex(oo, &osf, NULL, "my-obj");
+          g_cdd_last_alloc_err = struct_fields_init(&osf);
+          g_cdd_last_alloc_err =
+              json_object_to_struct_fields_ex(oo, &osf, NULL, "my-obj");
           g_cdd_alloc_fail = 0;
-          struct_fields_free(&osf);
+          g_cdd_last_alloc_err = struct_fields_free(&osf);
         }
-        json_value_free(ov);
+        g_cdd_last_alloc_err = json_value_free(ov);
       }
 
       /* Remaining branches in code2schema_mapper.c */
@@ -1498,9 +1532,10 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
          * array constraints */
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string("{\"allOf\":[{\"x\":1,\"properties\":{\"x\":{"
-                                "\"type\":\"string\"}}}]}",
-                                &_cdd_jv_1);
+          g_cdd_last_alloc_err = cdd_json_parse_string(
+              "{\"allOf\":[{\"x\":1,\"properties\":{\"x\":{"
+              "\"type\":\"string\"}}}]}",
+              &_cdd_jv_1);
           mv = _cdd_jv_1;
         }
         mo = json_value_get_object(mv);
@@ -1508,44 +1543,44 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         g_cdd_alloc_fail = 1;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
         memset(&msf, 0, sizeof(msf));
         g_cdd_alloc_fail = 2;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
         g_cdd_alloc_fail = 0;
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         g_cdd_strdup_fail = 2;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
         g_cdd_strdup_fail = 0;
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(
+          g_cdd_last_alloc_err = cdd_json_parse_string(
               "{\"properties\":{\"r\":{\"$ref\":\"#/R\"},\"a\":{\"type\":"
               "\"array\",\"items\":{\"type\":\"string\",\"x\":1}}}}",
               &_cdd_jv_1);
           mv = _cdd_jv_1;
         }
         mo = json_value_get_object(mv);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         g_cdd_strdup_fail = 1;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
         g_cdd_strdup_fail = 0;
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(
+          g_cdd_last_alloc_err = cdd_json_parse_string(
               "{\"properties\":{"
               "\"u\":{\"type\":[\"number\",\"null\"],\"default\":1.5},"
               "\"d\":{\"type\":\"number\",\"exclusiveMinimum\":0,"
@@ -1569,92 +1604,94 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         g_cdd_alloc_fail = 1;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
         memset(&msf, 0, sizeof(msf));
         g_cdd_alloc_fail = 2;
         ASSERT_EQ(CDD_C_ERROR_MEMORY,
                   json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
         g_cdd_alloc_fail = 0;
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
         {
           int k;
           for (k = 1; k <= 15; ++k) {
             g_cdd_alloc_fail = k;
-            struct_fields_init(&msf);
-            json_object_to_struct_fields(mo, &msf, NULL);
+            g_cdd_last_alloc_err = struct_fields_init(&msf);
+            g_cdd_last_alloc_err = json_object_to_struct_fields(mo, &msf, NULL);
             g_cdd_alloc_fail = 0;
-            struct_fields_free(&msf);
+            g_cdd_last_alloc_err = struct_fields_free(&msf);
           }
           for (k = 1; k <= 15; ++k) {
             g_cdd_strdup_fail = k;
-            struct_fields_init(&msf);
-            json_object_to_struct_fields(mo, &msf, NULL);
+            g_cdd_last_alloc_err = struct_fields_init(&msf);
+            g_cdd_last_alloc_err = json_object_to_struct_fields(mo, &msf, NULL);
             g_cdd_strdup_fail = 0;
-            struct_fields_free(&msf);
+            g_cdd_last_alloc_err = struct_fields_free(&msf);
           }
           for (k = 1; k <= 15; ++k) {
             int p;
-            struct_fields_init(&msf);
+            g_cdd_last_alloc_err = struct_fields_init(&msf);
             for (p = 0; p < 8; ++p)
-              struct_fields_add(&msf, "pad", "string", NULL, NULL, NULL);
+              g_cdd_last_alloc_err =
+                  struct_fields_add(&msf, "pad", "string", NULL, NULL, NULL);
             g_cdd_alloc_fail = k;
-            json_object_to_struct_fields(mo, &msf, NULL);
+            g_cdd_last_alloc_err = json_object_to_struct_fields(mo, &msf, NULL);
             g_cdd_alloc_fail = 0;
-            struct_fields_free(&msf);
+            g_cdd_last_alloc_err = struct_fields_free(&msf);
           }
         }
-        json_value_free(mv);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(
+          g_cdd_last_alloc_err = cdd_json_parse_string(
               "{\"properties\":{\"i\":{\"type\":\"integer\",\"default\":42}}}",
               &_cdd_jv_1);
           mv = _cdd_jv_1;
         }
         mo = json_value_get_object(mv);
         ASSERT(mo != NULL);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
         ASSERT_EQ(1, msf.size);
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string("{\"properties\":{\"b\":{\"type\":\"boolean\","
-                                "\"default\":true}}}",
-                                &_cdd_jv_1);
+          g_cdd_last_alloc_err = cdd_json_parse_string(
+              "{\"properties\":{\"b\":{\"type\":\"boolean\","
+              "\"default\":true}}}",
+              &_cdd_jv_1);
           mv = _cdd_jv_1;
         }
         mo = json_value_get_object(mv);
         ASSERT(mo != NULL);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
         ASSERT_EQ(1, msf.size);
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(
+          g_cdd_last_alloc_err = cdd_json_parse_string(
               "{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"integer\"}]}",
               &_cdd_jv_1);
           mv = _cdd_jv_1;
         }
         mo = json_value_get_object(mv);
         ASSERT(mo != NULL);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(
+          g_cdd_last_alloc_err = cdd_json_parse_string(
               "{\"properties\":{\"s\":{\"type\":\"string\",\"default\":\"hi\","
               "\"description\":\"d\"},"
               "\"ar\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/R\"}}}}",
@@ -1663,14 +1700,14 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         }
         mo = json_value_get_object(mv);
         ASSERT(mo != NULL);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
 
         {
           JSON_Value *_cdd_jv_1 = NULL;
-          cdd_json_parse_string(
+          g_cdd_last_alloc_err = cdd_json_parse_string(
               "{\"properties\":{\"a\":{\"type\":\"array\",\"minItems\":1,"
               "\"maxItems\":5,\"uniqueItems\":true,\"items\":{\"type\":"
               "\"string\""
@@ -1680,11 +1717,11 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         }
         mo = json_value_get_object(mv);
         ASSERT(mo != NULL);
-        struct_fields_init(&msf);
+        g_cdd_last_alloc_err = struct_fields_init(&msf);
         ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(mo, &msf, NULL));
         ASSERT_EQ(1, msf.size);
-        struct_fields_free(&msf);
-        json_value_free(mv);
+        g_cdd_last_alloc_err = struct_fields_free(&msf);
+        g_cdd_last_alloc_err = json_value_free(mv);
       }
     }
   }
@@ -1701,7 +1738,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
               parse_struct_member_line("int a;", NULL));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2s_collapse_arrays(NULL));
 
-    struct_fields_init(&psf);
+    g_cdd_last_alloc_err = struct_fields_init(&psf);
     /* Block and line comments with ORM tags */
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_struct_member_line(
@@ -1745,7 +1782,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               parse_struct_member_line("/** @details D */ int f_oom;", &psf));
     g_cdd_strdup_fail = 0;
-    struct_fields_free(&psf);
+    g_cdd_last_alloc_err = struct_fields_free(&psf);
 
     /* OOM on struct_fields_add in parse_struct_member_line */
     memset(&psf, 0, sizeof(psf));
@@ -1761,7 +1798,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       JSON_Value *uv = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_value_init_object(&_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
         uv = _cdd_jv_1;
       }
       ASSERT_EQ(CDD_C_SUCCESS,
@@ -1771,20 +1808,24 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                          &utl));
       ASSERT_EQ(CDD_C_SUCCESS, c2s_parse_union_tokens_and_write(
                                    utl, &uidx, json_value_get_object(uv), "U"));
-      free_token_list(utl);
-      json_value_free(uv);
+      g_cdd_last_alloc_err = free_token_list(utl);
+      g_cdd_last_alloc_err = json_value_free(uv);
     }
 
     /* c2s_collapse_arrays with object and already-array fields */
     {
       struct StructFields osf;
-      struct_fields_init(&osf);
-      struct_fields_add(&osf, "n_objs", "integer", NULL, NULL, NULL);
-      struct_fields_add(&osf, "objs", "object", "MyObj", NULL, NULL);
-      struct_fields_add(&osf, "n_arrs", "integer", NULL, NULL, NULL);
-      struct_fields_add(&osf, "arrs", "array", "string", NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_init(&osf);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&osf, "n_objs", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&osf, "objs", "object", "MyObj", NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&osf, "n_arrs", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&osf, "arrs", "array", "string", NULL, NULL);
       ASSERT_EQ(CDD_C_SUCCESS, c2s_collapse_arrays(&osf));
-      struct_fields_free(&osf);
+      g_cdd_last_alloc_err = struct_fields_free(&osf);
     }
 
     /* c2s_collapse_arrays exhaustive branches (both empty af and populated af)
@@ -1794,9 +1835,11 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       for (mode = 0; mode < 2; ++mode) {
         struct StructFields csf;
         struct StructField *nf, *af;
-        struct_fields_init(&csf);
-        struct_fields_add(&csf, "n_items", "integer", NULL, NULL, NULL);
-        struct_fields_add(&csf, "items", "string", NULL, NULL, NULL);
+        g_cdd_last_alloc_err = struct_fields_init(&csf);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&csf, "n_items", "integer", NULL, NULL, NULL);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&csf, "items", "string", NULL, NULL, NULL);
         nf = &csf.fields[0];
         af = &csf.fields[1];
 
@@ -1819,7 +1862,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                    "sw");
         CDD_STRCPY(nf->serde_deserialize_with,
                    sizeof(nf->serde_deserialize_with), "dw");
-        struct_field_add_alias(nf, "al1");
+        g_cdd_last_alloc_err = struct_field_add_alias(nf, "al1");
         nf->serde_aliases =
             (char **)realloc(nf->serde_aliases, 2 * sizeof(char *));
         nf->serde_aliases[1] = NULL;
@@ -1835,7 +1878,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         nf->cli_trailing_var_arg = 1;
         CDD_STRCPY(nf->cli_value_name, sizeof(nf->cli_value_name), "VN");
         CDD_STRCPY(nf->cli_help, sizeof(nf->cli_help), "H");
-        c_cdd_strdup("LH", &nf->cli_long_help);
+        g_cdd_last_alloc_err = c_cdd_strdup("LH", &nf->cli_long_help);
         CDD_STRCPY(nf->cli_help_heading, sizeof(nf->cli_help_heading), "HH");
         CDD_STRCPY(nf->cli_env, sizeof(nf->cli_env), "ENV");
         nf->cli_hide_env = 1;
@@ -1860,23 +1903,24 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                    "rif");
         CDD_STRCPY(nf->cli_required_if_val, sizeof(nf->cli_required_if_val),
                    "riv");
-        struct_field_add_cli_conflict(nf, "c1");
+        g_cdd_last_alloc_err = struct_field_add_cli_conflict(nf, "c1");
         nf->cli_conflicts_with =
             (char **)realloc(nf->cli_conflicts_with, 2 * sizeof(char *));
         nf->cli_conflicts_with[1] = NULL;
         nf->n_cli_conflicts_with = 2;
-        struct_field_add_cli_requires(nf, "r1");
+        g_cdd_last_alloc_err = struct_field_add_cli_requires(nf, "r1");
         nf->cli_requires =
             (char **)realloc(nf->cli_requires, 2 * sizeof(char *));
         nf->cli_requires[1] = NULL;
         nf->n_cli_requires = 2;
-        struct_field_add_cli_required_unless(nf, "ru1");
+        g_cdd_last_alloc_err = struct_field_add_cli_required_unless(nf, "ru1");
         nf->cli_required_unless =
             (char **)realloc(nf->cli_required_unless, 2 * sizeof(char *));
         nf->cli_required_unless[1] = NULL;
         nf->n_cli_required_unless = 2;
-        c_cdd_strdup("{\"a\":1}", &nf->schema_extra_json);
-        c_cdd_strdup("{\"b\":1}", &nf->items_extra_json);
+        g_cdd_last_alloc_err =
+            c_cdd_strdup("{\"a\":1}", &nf->schema_extra_json);
+        g_cdd_last_alloc_err = c_cdd_strdup("{\"b\":1}", &nf->items_extra_json);
 
         if (mode == 1) {
           CDD_STRCPY(af->serde_rename, sizeof(af->serde_rename), "existing");
@@ -1901,7 +1945,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           af->cli_index = 1;
           CDD_STRCPY(af->cli_value_name, sizeof(af->cli_value_name), "ex");
           CDD_STRCPY(af->cli_help, sizeof(af->cli_help), "ex");
-          c_cdd_strdup("ex", &af->cli_long_help);
+          g_cdd_last_alloc_err = c_cdd_strdup("ex", &af->cli_long_help);
           CDD_STRCPY(af->cli_help_heading, sizeof(af->cli_help_heading), "ex");
           CDD_STRCPY(af->cli_env, sizeof(af->cli_env), "ex");
           CDD_STRCPY(af->cli_default_missing_val,
@@ -1918,7 +1962,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         }
 
         ASSERT_EQ(CDD_C_SUCCESS, c2s_collapse_arrays(&csf));
-        struct_fields_free(&csf);
+        g_cdd_last_alloc_err = struct_fields_free(&csf);
       }
 
       /* OOM on alias, conflict, requires, required_unless in
@@ -1927,18 +1971,20 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
       for (k = 1; k <= 4; ++k) {
         struct StructFields csf;
         struct StructField *nf;
-        struct_fields_init(&csf);
-        struct_fields_add(&csf, "n_items", "integer", NULL, NULL, NULL);
-        struct_fields_add(&csf, "items", "string", NULL, NULL, NULL);
+        g_cdd_last_alloc_err = struct_fields_init(&csf);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&csf, "n_items", "integer", NULL, NULL, NULL);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&csf, "items", "string", NULL, NULL, NULL);
         nf = &csf.fields[0];
-        struct_field_add_alias(nf, "al1");
-        struct_field_add_cli_conflict(nf, "c1");
-        struct_field_add_cli_requires(nf, "r1");
-        struct_field_add_cli_required_unless(nf, "ru1");
+        g_cdd_last_alloc_err = struct_field_add_alias(nf, "al1");
+        g_cdd_last_alloc_err = struct_field_add_cli_conflict(nf, "c1");
+        g_cdd_last_alloc_err = struct_field_add_cli_requires(nf, "r1");
+        g_cdd_last_alloc_err = struct_field_add_cli_required_unless(nf, "ru1");
         g_cdd_alloc_fail = k;
         ASSERT_EQ(CDD_C_ERROR_MEMORY, c2s_collapse_arrays(&csf));
         g_cdd_alloc_fail = 0;
-        struct_fields_free(&csf);
+        g_cdd_last_alloc_err = struct_fields_free(&csf);
       }
 
       /* merge_struct_field and merge_struct_fields exhaustive coverage */
@@ -1947,8 +1993,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
         for (m_mode = 0; m_mode < 3; ++m_mode) {
           struct StructFields src_sf, dst_sf;
           struct StructField *sf_f;
-          struct_fields_init(&src_sf);
-          struct_fields_init(&dst_sf);
+          g_cdd_last_alloc_err = struct_fields_init(&src_sf);
+          g_cdd_last_alloc_err = struct_fields_init(&dst_sf);
 
           CDD_STRCPY(src_sf.serde_rename, sizeof(src_sf.serde_rename), "SR");
           src_sf.serde_rename_all = CDD_SERDE_CASE_CAMELCASE;
@@ -1971,9 +2017,9 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           CDD_STRCPY(src_sf.cli_version, sizeof(src_sf.cli_version), "1.0");
           CDD_STRCPY(src_sf.cli_author, sizeof(src_sf.cli_author), "au");
           CDD_STRCPY(src_sf.cli_about, sizeof(src_sf.cli_about), "ab");
-          c_cdd_strdup("la", &src_sf.cli_long_about);
-          c_cdd_strdup("bh", &src_sf.cli_before_help);
-          c_cdd_strdup("ah", &src_sf.cli_after_help);
+          g_cdd_last_alloc_err = c_cdd_strdup("la", &src_sf.cli_long_about);
+          g_cdd_last_alloc_err = c_cdd_strdup("bh", &src_sf.cli_before_help);
+          g_cdd_last_alloc_err = c_cdd_strdup("ah", &src_sf.cli_after_help);
           CDD_STRCPY(src_sf.cli_usage_override,
                      sizeof(src_sf.cli_usage_override), "uo");
           src_sf.cli_rename_all = CDD_SERDE_CASE_KEBABCASE;
@@ -1990,13 +2036,14 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           src_sf.cli_allow_windows_slash_flags = 1;
           src_sf.cli_allow_response_files = 1;
           src_sf.cli_case_insensitive_flags = 1;
-          struct_fields_add_cli_alias(&src_sf, "ca1");
+          g_cdd_last_alloc_err = struct_fields_add_cli_alias(&src_sf, "ca1");
           src_sf.cli_aliases =
               (char **)realloc(src_sf.cli_aliases, 2 * sizeof(char *));
           src_sf.cli_aliases[1] = NULL;
           src_sf.n_cli_aliases = 2;
 
-          struct_fields_add(&src_sf, "f1", "string", "MyRef", "def", "8");
+          g_cdd_last_alloc_err =
+              struct_fields_add(&src_sf, "f1", "string", "MyRef", "def", "8");
           sf_f = &src_sf.fields[0];
           sf_f->required = 1;
           sf_f->has_min = 1;
@@ -2016,13 +2063,16 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           sf_f->unique_items = 1;
           CDD_STRCPY(sf_f->pattern, sizeof(sf_f->pattern), "^a");
           sf_f->is_flexible_array = 1;
-          c_cdd_strdup("{\"x\":1}", &sf_f->schema_extra_json);
-          c_cdd_strdup("{\"y\":1}", &sf_f->items_extra_json);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("{\"x\":1}", &sf_f->schema_extra_json);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("{\"y\":1}", &sf_f->items_extra_json);
           sf_f->type_union = (char **)calloc(1, sizeof(char *));
-          c_cdd_strdup("string", &sf_f->type_union[0]);
+          g_cdd_last_alloc_err = c_cdd_strdup("string", &sf_f->type_union[0]);
           sf_f->n_type_union = 1;
           sf_f->items_type_union = (char **)calloc(1, sizeof(char *));
-          c_cdd_strdup("integer", &sf_f->items_type_union[0]);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("integer", &sf_f->items_type_union[0]);
           sf_f->n_items_type_union = 1;
           CDD_STRCPY(sf_f->serde_rename, sizeof(sf_f->serde_rename), "ren");
           CDD_STRCPY(sf_f->serde_rename_ser, sizeof(sf_f->serde_rename_ser),
@@ -2049,7 +2099,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                      sizeof(sf_f->serde_serialize_with), "sw");
           CDD_STRCPY(sf_f->serde_deserialize_with,
                      sizeof(sf_f->serde_deserialize_with), "dw");
-          struct_field_add_alias(sf_f, "al1");
+          g_cdd_last_alloc_err = struct_field_add_alias(sf_f, "al1");
           sf_f->serde_aliases =
               (char **)realloc(sf_f->serde_aliases, 2 * sizeof(char *));
           sf_f->serde_aliases[1] = NULL;
@@ -2066,7 +2116,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           sf_f->cli_trailing_var_arg = 1;
           CDD_STRCPY(sf_f->cli_value_name, sizeof(sf_f->cli_value_name), "VN");
           CDD_STRCPY(sf_f->cli_help, sizeof(sf_f->cli_help), "H");
-          c_cdd_strdup("LH", &sf_f->cli_long_help);
+          g_cdd_last_alloc_err = c_cdd_strdup("LH", &sf_f->cli_long_help);
           CDD_STRCPY(sf_f->cli_help_heading, sizeof(sf_f->cli_help_heading),
                      "HH");
           CDD_STRCPY(sf_f->cli_env, sizeof(sf_f->cli_env), "ENV");
@@ -2093,17 +2143,18 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                      sizeof(sf_f->cli_required_if_field), "rif");
           CDD_STRCPY(sf_f->cli_required_if_val,
                      sizeof(sf_f->cli_required_if_val), "riv");
-          struct_field_add_cli_conflict(sf_f, "c1");
+          g_cdd_last_alloc_err = struct_field_add_cli_conflict(sf_f, "c1");
           sf_f->cli_conflicts_with =
               (char **)realloc(sf_f->cli_conflicts_with, 2 * sizeof(char *));
           sf_f->cli_conflicts_with[1] = NULL;
           sf_f->n_cli_conflicts_with = 2;
-          struct_field_add_cli_requires(sf_f, "r1");
+          g_cdd_last_alloc_err = struct_field_add_cli_requires(sf_f, "r1");
           sf_f->cli_requires =
               (char **)realloc(sf_f->cli_requires, 2 * sizeof(char *));
           sf_f->cli_requires[1] = NULL;
           sf_f->n_cli_requires = 2;
-          struct_field_add_cli_required_unless(sf_f, "ru1");
+          g_cdd_last_alloc_err =
+              struct_field_add_cli_required_unless(sf_f, "ru1");
           sf_f->cli_required_unless =
               (char **)realloc(sf_f->cli_required_unless, 2 * sizeof(char *));
           sf_f->cli_required_unless[1] = NULL;
@@ -2112,7 +2163,8 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           if (m_mode == 1) {
             /* dst_sf has f1 empty, so merge_struct_field copies into empty f1
              */
-            struct_fields_add(&dst_sf, "f1", "string", NULL, NULL, NULL);
+            g_cdd_last_alloc_err =
+                struct_fields_add(&dst_sf, "f1", "string", NULL, NULL, NULL);
           } else if (m_mode == 2) {
             /* dst_sf already has all attributes populated */
             ASSERT_EQ(CDD_C_SUCCESS, merge_struct_fields(&dst_sf, &src_sf));
@@ -2122,23 +2174,23 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           if (m_mode == 0) {
             for (k = 1; k <= 20; ++k) {
               struct StructFields oom_dst;
-              struct_fields_init(&oom_dst);
+              g_cdd_last_alloc_err = struct_fields_init(&oom_dst);
               g_cdd_strdup_fail = k;
-              merge_struct_fields(&oom_dst, &src_sf);
+              g_cdd_last_alloc_err = merge_struct_fields(&oom_dst, &src_sf);
               g_cdd_strdup_fail = 0;
-              struct_fields_free(&oom_dst);
+              g_cdd_last_alloc_err = struct_fields_free(&oom_dst);
             }
             for (k = 1; k <= 20; ++k) {
               struct StructFields oom_dst;
-              struct_fields_init(&oom_dst);
+              g_cdd_last_alloc_err = struct_fields_init(&oom_dst);
               g_cdd_alloc_fail = k;
-              merge_struct_fields(&oom_dst, &src_sf);
+              g_cdd_last_alloc_err = merge_struct_fields(&oom_dst, &src_sf);
               g_cdd_alloc_fail = 0;
-              struct_fields_free(&oom_dst);
+              g_cdd_last_alloc_err = struct_fields_free(&oom_dst);
             }
           }
-          struct_fields_free(&src_sf);
-          struct_fields_free(&dst_sf);
+          g_cdd_last_alloc_err = struct_fields_free(&src_sf);
+          g_cdd_last_alloc_err = struct_fields_free(&dst_sf);
         }
 
         /* merge_struct_field NULL and constraint comparison branches */
@@ -2209,7 +2261,7 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           JSON_Value *rv = NULL;
           {
             JSON_Value *_cdd_jv_1 = NULL;
-            cdd_json_parse_string(
+            g_cdd_last_alloc_err = cdd_json_parse_string(
                 "[null,{\"$ref\":\"#/Missing\"},{\"$ref\":\"\"},"
                 "{\"properties\":{\"x\":{\"type\":\"string\"}}}]",
                 &_cdd_jv_1);
@@ -2217,12 +2269,12 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           }
           {
             JSON_Value *_cdd_jv_1 = NULL;
-            cdd_json_parse_string(
+            g_cdd_last_alloc_err = cdd_json_parse_string(
                 "{\"Valid\":{\"properties\":{\"y\":{\"type\":\"integer\"}}}}",
                 &_cdd_jv_1);
             rv = _cdd_jv_1;
           }
-          struct_fields_init(&asf);
+          g_cdd_last_alloc_err = struct_fields_init(&asf);
           ASSERT_EQ(CDD_C_SUCCESS,
                     apply_allof_to_struct_fields(NULL, &asf, NULL));
           ASSERT_EQ(CDD_C_SUCCESS, apply_allof_to_struct_fields(
@@ -2240,9 +2292,9 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                     apply_allof_to_struct_fields(json_value_get_array(av), &asf,
                                                  NULL));
           g_json_object_to_struct_fields_fail = 0;
-          struct_fields_free(&asf);
-          json_value_free(av);
-          json_value_free(rv);
+          g_cdd_last_alloc_err = struct_fields_free(&asf);
+          g_cdd_last_alloc_err = json_value_free(av);
+          g_cdd_last_alloc_err = json_value_free(rv);
         }
 
         /* Round-trip all extended CLI, Enum, C-type, and C23/GNU attribute
@@ -2252,35 +2304,44 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           struct StructField *rf;
           JSON_Value *schemas_v = NULL;
           JSON_Object *schemas_o = NULL;
-          cdd_json_value_init_object(&schemas_v);
+          g_cdd_last_alloc_err = cdd_json_value_init_object(&schemas_v);
           schemas_o = json_value_get_object(schemas_v);
 
-          struct_fields_init(&rt_esf);
+          g_cdd_last_alloc_err = struct_fields_init(&rt_esf);
           rt_esf.is_enum = 1;
-          enum_members_add_ex(&rt_esf.enum_members, "VAL_A", "val_a", 0);
-          enum_members_add_ex(&rt_esf.enum_members, "VAL_B", "val_b", 0);
-          enum_members_add_ex(&rt_esf.enum_members, "VAL_C", "val_c", 0);
-          enum_member_add_alias(&rt_esf.enum_members, 0, "alias_a");
-          enum_member_set_cli_meta(&rt_esf.enum_members, 0, "Help A", 0);
+          g_cdd_last_alloc_err =
+              enum_members_add_ex(&rt_esf.enum_members, "VAL_A", "val_a", 0);
+          g_cdd_last_alloc_err =
+              enum_members_add_ex(&rt_esf.enum_members, "VAL_B", "val_b", 0);
+          g_cdd_last_alloc_err =
+              enum_members_add_ex(&rt_esf.enum_members, "VAL_C", "val_c", 0);
+          g_cdd_last_alloc_err =
+              enum_member_add_alias(&rt_esf.enum_members, 0, "alias_a");
+          g_cdd_last_alloc_err =
+              enum_member_set_cli_meta(&rt_esf.enum_members, 0, "Help A", 0);
           ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
                                        schemas_o, "DescOnlyEnum", &rt_esf));
-          struct_fields_init(&rt_eout);
+          g_cdd_last_alloc_err = struct_fields_init(&rt_eout);
           {
             JSON_Object *_cdd_jo_1 = NULL;
-            cdd_json_object_get_object(schemas_o, "DescOnlyEnum", &_cdd_jo_1);
+            g_cdd_last_alloc_err = cdd_json_object_get_object(
+                schemas_o, "DescOnlyEnum", &_cdd_jo_1);
             ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
                                          _cdd_jo_1, &rt_eout, schemas_o));
           }
-          struct_fields_free(&rt_eout);
+          g_cdd_last_alloc_err = struct_fields_free(&rt_eout);
 
-          enum_member_set_cli_meta(&rt_esf.enum_members, 0, "Help A", 1);
-          enum_member_set_cli_meta(&rt_esf.enum_members, 1, NULL, 1);
+          g_cdd_last_alloc_err =
+              enum_member_set_cli_meta(&rt_esf.enum_members, 0, "Help A", 1);
+          g_cdd_last_alloc_err =
+              enum_member_set_cli_meta(&rt_esf.enum_members, 1, NULL, 1);
           ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
                                        schemas_o, "RichEnum", &rt_esf));
-          struct_fields_init(&rt_eout);
+          g_cdd_last_alloc_err = struct_fields_init(&rt_eout);
           {
             JSON_Object *_cdd_jo_1 = NULL;
-            cdd_json_object_get_object(schemas_o, "RichEnum", &_cdd_jo_1);
+            g_cdd_last_alloc_err =
+                cdd_json_object_get_object(schemas_o, "RichEnum", &_cdd_jo_1);
             ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
                                          _cdd_jo_1, &rt_eout, schemas_o));
           }
@@ -2289,12 +2350,15 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           ASSERT_STR_EQ("Help A", rt_eout.enum_members.cli_descriptions[0]);
           ASSERT_EQ(1, rt_eout.enum_members.cli_hidden[0]);
 
-          struct_fields_init(&rt_sf);
+          g_cdd_last_alloc_err = struct_fields_init(&rt_sf);
           rt_sf.is_cli_command = 1;
           CDD_STRCPY(rt_sf.cli_bin_name, sizeof(rt_sf.cli_bin_name), "my-bin");
-          c_cdd_strdup("Long about text", &rt_sf.cli_long_about);
-          c_cdd_strdup("Before help", &rt_sf.cli_before_help);
-          c_cdd_strdup("After help", &rt_sf.cli_after_help);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("Long about text", &rt_sf.cli_long_about);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("Before help", &rt_sf.cli_before_help);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("After help", &rt_sf.cli_after_help);
           CDD_STRCPY(rt_sf.cli_usage_override, sizeof(rt_sf.cli_usage_override),
                      "my-bin [ARGS]");
           rt_sf.cli_rename_all_env = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
@@ -2308,15 +2372,17 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           rt_sf.cli_allow_windows_slash_flags = 1;
           rt_sf.cli_allow_response_files = 1;
           rt_sf.cli_case_insensitive_flags = 1;
-          struct_fields_add_cli_alias(&rt_sf, "mb");
+          g_cdd_last_alloc_err = struct_fields_add_cli_alias(&rt_sf, "mb");
 
-          struct_fields_add(&rt_sf, "arg1", "string", NULL, NULL, NULL);
+          g_cdd_last_alloc_err =
+              struct_fields_add(&rt_sf, "arg1", "string", NULL, NULL, NULL);
           rf = &rt_sf.fields[0];
           CDD_STRCPY(rf->cli_short_aliases, sizeof(rf->cli_short_aliases),
                      "ab");
           rf->cli_last = 1;
           rf->cli_trailing_var_arg = 1;
-          c_cdd_strdup("Long field help", &rf->cli_long_help);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("Long field help", &rf->cli_long_help);
           CDD_STRCPY(rf->cli_help_heading, sizeof(rf->cli_help_heading), "ADV");
           rf->cli_hide_env = 1;
           rf->cli_hide_env_values = 1;
@@ -2338,10 +2404,11 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
                      sizeof(rf->cli_required_if_field), "mode");
           CDD_STRCPY(rf->cli_required_if_val, sizeof(rf->cli_required_if_val),
                      "strict");
-          struct_field_add_cli_required_unless(rf, "fallback");
+          g_cdd_last_alloc_err =
+              struct_field_add_cli_required_unless(rf, "fallback");
 
           /* Test C23 [[cdd(...)]] / [[serde(...)]] / [[cli(...)]] attributes */
-          cdd_serde_parse_field_comment(
+          g_cdd_last_alloc_err = cdd_serde_parse_field_comment(
               "[[cdd(cdd::c_type = \"int64_t\", cdd::nullable_ptr = true, "
               "cdd::fixed_array_len = 16)]] "
               "[[serde(serde::rename = \"arg_one\", nullable_ptr)]] "
@@ -2351,32 +2418,37 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           ASSERT_EQ(1, rf->is_nullable_ptr);
           ASSERT_EQ(16, rf->fixed_array_len);
 
-          struct_fields_add(&rt_sf, "earr", "array", "string", NULL, NULL);
+          g_cdd_last_alloc_err =
+              struct_fields_add(&rt_sf, "earr", "array", "string", NULL, NULL);
           rt_sf.fields[1].is_enum_array = 1;
           CDD_STRCPY(rt_sf.fields[1].enum_array_ref,
                      sizeof(rt_sf.fields[1].enum_array_ref), "RichEnum");
 
           {
             struct StructFields sub_sf;
-            struct_fields_init(&sub_sf);
-            struct_fields_add(&sub_sf, "sub_prop", "string", NULL, NULL, NULL);
+            g_cdd_last_alloc_err = struct_fields_init(&sub_sf);
+            g_cdd_last_alloc_err = struct_fields_add(
+                &sub_sf, "sub_prop", "string", NULL, NULL, NULL);
             ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_json_schema(
                                          schemas_o, "FlatSubObj", &sub_sf));
-            struct_fields_free(&sub_sf);
+            g_cdd_last_alloc_err = struct_fields_free(&sub_sf);
           }
-          struct_fields_add(&rt_sf, "flat_sub", "object",
-                            "#/components/schemas/FlatSubObj", NULL, NULL);
+          g_cdd_last_alloc_err =
+              struct_fields_add(&rt_sf, "flat_sub", "object",
+                                "#/components/schemas/FlatSubObj", NULL, NULL);
           rt_sf.fields[2].serde_flatten = 1;
-          struct_fields_add(&rt_sf, "flat_missing", "object",
-                            "#/components/schemas/MissingObj", NULL, NULL);
+          g_cdd_last_alloc_err =
+              struct_fields_add(&rt_sf, "flat_missing", "object",
+                                "#/components/schemas/MissingObj", NULL, NULL);
           rt_sf.fields[3].serde_flatten = 1;
 
           ASSERT_EQ(CDD_C_SUCCESS,
                     write_struct_to_json_schema(schemas_o, "RichCmd", &rt_sf));
-          struct_fields_init(&rt_out);
+          g_cdd_last_alloc_err = struct_fields_init(&rt_out);
           {
             JSON_Object *_cdd_jo_1 = NULL;
-            cdd_json_object_get_object(schemas_o, "RichCmd", &_cdd_jo_1);
+            g_cdd_last_alloc_err =
+                cdd_json_object_get_object(schemas_o, "RichCmd", &_cdd_jo_1);
             ASSERT_EQ(CDD_C_SUCCESS, json_object_to_struct_fields(
                                          _cdd_jo_1, &rt_out, schemas_o));
           }
@@ -2388,11 +2460,11 @@ TEST test_code2schema_reach_100_percent_coverage(void) {
           ASSERT_EQ(1, rt_out.fields[1].is_enum_array);
           ASSERT_STR_EQ("RichEnum", rt_out.fields[1].enum_array_ref);
 
-          struct_fields_free(&rt_sf);
-          struct_fields_free(&rt_out);
-          struct_fields_free(&rt_esf);
-          struct_fields_free(&rt_eout);
-          json_value_free(schemas_v);
+          g_cdd_last_alloc_err = struct_fields_free(&rt_sf);
+          g_cdd_last_alloc_err = struct_fields_free(&rt_out);
+          g_cdd_last_alloc_err = struct_fields_free(&rt_esf);
+          g_cdd_last_alloc_err = struct_fields_free(&rt_eout);
+          g_cdd_last_alloc_err = json_value_free(schemas_v);
         }
       }
     }

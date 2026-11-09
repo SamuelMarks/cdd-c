@@ -62,8 +62,8 @@ TEST test_scan_for_mixed_declarations_basic(void) {
   g_is_basic_type_keyword_fail = 0;
 #endif
 
-  hoist_site_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -77,7 +77,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
 TEST test_scan_for_mixed_declarations_errors(void) {
   struct TokenList *tl = NULL;
   struct HoistSiteList list;
-  tokenize(az_span_create_from_str("int a = 1;"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("int a = 1;"), &tl);
 
   ASSERT_EQ(CDD_C_SUCCESS, hoist_site_list_init(&list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -85,8 +85,8 @@ TEST test_scan_for_mixed_declarations_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_mixed_declarations(tl, NULL));
 
-  hoist_site_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -100,9 +100,9 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {
   struct TokenList *tl = NULL;
   int rc = 0;
-  tokenize(az_span_create_from_str(src), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str(src), &tl);
   rc = scan_for_mixed_declarations(tl, list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   return rc;
 }
 
@@ -123,32 +123,32 @@ TEST test_decl_hoist_branches(void) {
   /* Test basic type */
   ASSERT_EQ(0, check_hoist("{ f(); int a; }", &list));
   ASSERT_EQ(1, list.count);
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* Test struct */
   ASSERT_EQ(0, check_hoist("{ f(); struct A a; }", &list));
   ASSERT_EQ(1, list.count);
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* Test union */
   ASSERT_EQ(0, check_hoist("{ f(); union A a; }", &list));
   ASSERT_EQ(1, list.count);
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* Test enum */
   ASSERT_EQ(0, check_hoist("{ f(); enum A a; }", &list));
   ASSERT_EQ(1, list.count);
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* Test typedef (identifier followed by identifier) */
   ASSERT_EQ(0, check_hoist("{ f(); MyType a; }", &list));
   ASSERT_EQ(1, list.count);
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* Test typedef (identifier followed by star) */
   ASSERT_EQ(0, check_hoist("{ f(); MyType *a; }", &list));
   ASSERT_EQ(1, list.count);
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* Test typedef with EOF during lookahead */
   ASSERT_EQ(0, check_hoist("{ f(); MyType", &list));
@@ -165,14 +165,14 @@ TEST test_decl_hoist_branches(void) {
   ASSERT_EQ(0, check_hoist("{ *p = 1; return; }", &list));
   ASSERT_EQ(0, list.count);
 
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
 #ifdef CDD_BUILD_TESTS
   /* OOM test */
   g_cdd_fail_alloc_decl_hoist = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, check_hoist("{ f(); int a; }", &list));
   g_cdd_fail_alloc_decl_hoist = 0;
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   /* OOM test > 1 */
   g_cdd_fail_alloc_decl_hoist = 2;
@@ -181,7 +181,7 @@ TEST test_decl_hoist_branches(void) {
   g_cdd_fail_alloc_decl_hoist = 0;
 #endif
 
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
   PASS();
 }
 
@@ -193,23 +193,24 @@ TEST test_decl_hoist_edges(void) {
   struct HoistSiteList list = {0};
   struct TokenList *tl = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, hoist_site_list_init(NULL));
-  hoist_site_list_free(NULL);
+  g_cdd_last_alloc_err = hoist_site_list_free(NULL);
 
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_mixed_declarations(NULL, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_mixed_declarations(tl, NULL));
 
-  tokenize(az_span_create_from_str("int main() { int a; return 0; }"), &tl);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("int main() { int a; return 0; }"), &tl);
   list.capacity = 1;
   list.count = 1;
   list.sites = calloc(1, sizeof(struct HoistSite));
 
-  hoist_site_list_free(&list);
+  g_cdd_last_alloc_err = hoist_site_list_free(&list);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }

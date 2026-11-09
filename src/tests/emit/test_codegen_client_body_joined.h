@@ -41,7 +41,8 @@ TEST test_client_body_form_object_style_form_explode(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaFormObj", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaFormObj", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -99,7 +100,8 @@ TEST test_client_body_form_object_style_form_explode(void) {
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -145,7 +147,8 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   op.parameters[0].explode_set = 1;
   op.parameters[0].explode = 1;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.parameters);
   if (fp)
@@ -193,13 +196,15 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   /* parser logic, or maybe it's not even used? Let's just set it. */
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also hit schema_has_inline missing branches */
   resp.content_type = cdd_test_mut_str("text/plain");
   resp.schema.inline_type = cdd_test_mut_str("integer"); /* not string */
   resp.schema.is_array = 0;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -241,7 +246,8 @@ TEST test_client_body_response_is_textual_string_success(void) {
 
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -289,7 +295,8 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
 
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
   if (fp)
@@ -330,7 +337,8 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
 
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -377,7 +385,8 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
 
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -430,7 +439,8 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
 
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
   if (fp)
@@ -480,28 +490,34 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   /* array of string */
   resp.schema.inline_type = cdd_test_mut_str("string");
   resp.schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of integer */
   resp.schema.inline_type = cdd_test_mut_str("integer");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
   resp.schema.inline_type = cdd_test_mut_str("number");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
   resp.schema.inline_type = cdd_test_mut_str("boolean");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback */
   resp.schema.inline_type = cdd_test_mut_str("unknown_type");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* not an array boolean */
   resp.schema.inline_type = cdd_test_mut_str("boolean");
   resp.schema.is_array = 0;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
   if (fp)
@@ -529,7 +545,7 @@ TEST test_client_body_write_joined_form_array_direct(void) {
     struct StructFields sf = {0};
     struct StructField f = {0};
     struct OpenAPI_MediaType mt = {0};
-    openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
 #if defined(_MSC_VER)
     strcpy_s(f.name, sizeof(f.name), "arr");
 #else
@@ -696,7 +712,7 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
       struct StructFields sf = {0};
       struct StructField f = {0};
       struct OpenAPI_MediaType mt = {0};
-      openapi_spec_init(&spec);
+      g_cdd_last_alloc_err = openapi_spec_init(&spec);
 #if defined(_MSC_VER)
       strcpy_s(f.name, sizeof(f.name), "arr");
 #else
@@ -751,15 +767,18 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
       op.n_req_body_media_types = 1;
       g_io_calls = 0;
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
       op.req_body_media_types[0].encoding[0].style = OA_STYLE_SPACE_DELIMITED;
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
       op.req_body_media_types[0].encoding[0].style = OA_STYLE_PIPE_DELIMITED;
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
       op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
@@ -776,7 +795,8 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
 #endif
 #endif
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
 #if defined(_MSC_VER)
@@ -791,7 +811,8 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
 #endif
 #endif
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
 #if defined(_MSC_VER)
@@ -806,7 +827,8 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
 #endif
 #endif
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
 #if defined(_MSC_VER)
@@ -821,7 +843,8 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
 #endif
 #endif
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
 #if defined(_MSC_VER)
@@ -838,7 +861,8 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
 #endif
 #endif
       g_fail_io_after = i;
-      codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
       if (fp)
@@ -889,27 +913,34 @@ TEST test_client_body_write_joined_form_array(void) {
 
   /* Set array of strings basically via mock */
   op.parameters[0].items_type = cdd_test_mut_str("string");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.parameters[0].items_type = cdd_test_mut_str("integer");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.parameters[0].items_type = cdd_test_mut_str("number");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.parameters[0].items_type = cdd_test_mut_str("boolean");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.parameters[0].items_type = cdd_test_mut_str("unsupported");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also try different delim via pipedd */
   op.parameters[0].style = OA_STYLE_PIPE_DELIMITED;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* space delimited */
   op.parameters[0].style = OA_STYLE_SPACE_DELIMITED;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.parameters);
   if (fp)
@@ -961,7 +992,8 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   /* have any parameters! No wait. Let's ensure the full operation is populated
    */
   /* properly. */
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);

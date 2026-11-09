@@ -89,31 +89,36 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
     char esc2[256];
     CHECK_IO(fprintf(hfile, "/* @cdd "));
     if (sf->serde_rename[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_rename, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_rename, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "rename = \"%s\"", esc1));
       first_attr = 0;
     }
     if (eff_rename_all != CDD_SERDE_CASE_NONE) {
       const char *c_str = NULL;
-      cdd_serde_case_rule_to_str(eff_rename_all, &c_str);
+      g_cdd_last_alloc_err = cdd_serde_case_rule_to_str(eff_rename_all, &c_str);
       CHECK_IO(fprintf(hfile, "%srename_all = \"%s\"", first_attr ? "" : ", ",
                        c_str));
       first_attr = 0;
     }
     if (eff_rep_from[0] != '\0') {
-      cdd_escape_comment_str(eff_rep_from, esc1, sizeof(esc1));
-      cdd_escape_comment_str(eff_rep_to, esc2, sizeof(esc2));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(eff_rep_from, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(eff_rep_to, esc2, sizeof(esc2));
       CHECK_IO(fprintf(hfile, "%sreplace_all = (\"%s\" -> \"%s\")",
                        first_attr ? "" : ", ", esc1, esc2));
       first_attr = 0;
     }
     if (eff_tag[0] != '\0') {
-      cdd_escape_comment_str(eff_tag, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(eff_tag, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%stag = \"%s\"", first_attr ? "" : ", ", esc1));
       first_attr = 0;
     }
     if (eff_content[0] != '\0') {
-      cdd_escape_comment_str(eff_content, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(eff_content, esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%scontent = \"%s\"", first_attr ? "" : ", ", esc1));
       first_attr = 0;
@@ -144,12 +149,14 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
       char esc[256];
       CHECK_IO(fprintf(hfile, "  /* @cdd "));
       if (v_rename) {
-        cdd_escape_comment_str(v_rename, esc, sizeof(esc));
+        g_cdd_last_alloc_err =
+            cdd_escape_comment_str(v_rename, esc, sizeof(esc));
         CHECK_IO(fprintf(hfile, "rename = \"%s\"", esc));
         v_first = 0;
       }
       for (a_idx = 0; a_idx < v_n_al; ++a_idx) {
-        cdd_escape_comment_str(em->serde_aliases[i][a_idx], esc, sizeof(esc));
+        g_cdd_last_alloc_err = cdd_escape_comment_str(
+            em->serde_aliases[i][a_idx], esc, sizeof(esc));
         CHECK_IO(fprintf(hfile, "%salias = \"%s\"", v_first ? "" : ", ", esc));
         v_first = 0;
       }
@@ -225,17 +232,19 @@ cdd_c_error_t write_union_declaration_h(FILE *hfile, const char *union_name,
     char esc[256];
     CHECK_IO(fprintf(hfile, "/* @cdd "));
     if (sf->serde_rename[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_rename, esc, sizeof(esc));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_rename, esc, sizeof(esc));
       CHECK_IO(fprintf(hfile, "rename = \"%s\"", esc));
       first_attr = 0;
     }
     if (disc_tag != NULL) {
-      cdd_escape_comment_str(disc_tag, esc, sizeof(esc));
+      g_cdd_last_alloc_err = cdd_escape_comment_str(disc_tag, esc, sizeof(esc));
       CHECK_IO(fprintf(hfile, "%stag = \"%s\"", first_attr ? "" : ", ", esc));
       first_attr = 0;
     }
     if (sf->serde_content[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_content, esc, sizeof(esc));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_content, esc, sizeof(esc));
       CHECK_IO(
           fprintf(hfile, "%scontent = \"%s\"", first_attr ? "" : ", ", esc));
       first_attr = 0;
@@ -371,37 +380,44 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
 
   CHECK_IO(fprintf(hfile, "  /* @cdd "));
   if (field->serde_rename[0] != '\0') {
-    cdd_escape_comment_str(field->serde_rename, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_rename, esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "rename = \"%s\"", esc1));
     f_first = 0;
   }
   if (field->serde_rename_ser[0] != '\0') {
-    cdd_escape_comment_str(field->serde_rename_ser, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_rename_ser, esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "%srename_serialize = \"%s\"", f_first ? "" : ", ",
                      esc1));
     f_first = 0;
   }
   if (field->serde_rename_de[0] != '\0') {
-    cdd_escape_comment_str(field->serde_rename_de, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_rename_de, esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "%srename_deserialize = \"%s\"",
                      f_first ? "" : ", ", esc1));
     f_first = 0;
   }
   if (field->serde_case != CDD_SERDE_CASE_NONE) {
     const char *c_str = NULL;
-    cdd_serde_case_rule_to_str(field->serde_case, &c_str);
+    g_cdd_last_alloc_err =
+        cdd_serde_case_rule_to_str(field->serde_case, &c_str);
     CHECK_IO(fprintf(hfile, "%scase = \"%s\"", f_first ? "" : ", ", c_str));
     f_first = 0;
   }
   if (field->serde_replace_from[0] != '\0') {
-    cdd_escape_comment_str(field->serde_replace_from, esc1, sizeof(esc1));
-    cdd_escape_comment_str(field->serde_replace_to, esc2, sizeof(esc2));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_replace_from, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_replace_to, esc2, sizeof(esc2));
     CHECK_IO(fprintf(hfile, "%sreplace = (\"%s\" -> \"%s\")",
                      f_first ? "" : ", ", esc1, esc2));
     f_first = 0;
   }
   for (a_idx = 0; a_idx < field->n_serde_aliases; ++a_idx) {
-    cdd_escape_comment_str(field->serde_aliases[a_idx], esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_aliases[a_idx], esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "%salias = \"%s\"", f_first ? "" : ", ", esc1));
     f_first = 0;
   }
@@ -426,7 +442,7 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
       sk_val = "zero";
     else if (field->serde_skip_if_fn[0] != '\0')
       sk_val = field->serde_skip_if_fn;
-    cdd_escape_comment_str(sk_val, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err = cdd_escape_comment_str(sk_val, esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "%sskip_serializing_if = \"%s\"",
                      f_first ? "" : ", ", esc1));
     f_first = 0;
@@ -437,11 +453,13 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
   }
   if (field->serde_has_default) {
     if (field->serde_default_fn[0] != '\0') {
-      cdd_escape_comment_str(field->serde_default_fn, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(field->serde_default_fn, esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%sdefault_fn = \"%s\"", f_first ? "" : ", ", esc1));
     } else if (field->default_val[0] != '\0') {
-      cdd_escape_comment_str(field->default_val, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(field->default_val, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%sdefault = \"%s\"", f_first ? "" : ", ", esc1));
     } else {
       CHECK_IO(fprintf(hfile, "%sdefault", f_first ? "" : ", "));
@@ -449,18 +467,21 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
     f_first = 0;
   }
   if (field->serde_with[0] != '\0') {
-    cdd_escape_comment_str(field->serde_with, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_with, esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "%swith = \"%s\"", f_first ? "" : ", ", esc1));
     f_first = 0;
   }
   if (field->serde_serialize_with[0] != '\0') {
-    cdd_escape_comment_str(field->serde_serialize_with, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err =
+        cdd_escape_comment_str(field->serde_serialize_with, esc1, sizeof(esc1));
     CHECK_IO(
         fprintf(hfile, "%sserialize_with = \"%s\"", f_first ? "" : ", ", esc1));
     f_first = 0;
   }
   if (field->serde_deserialize_with[0] != '\0') {
-    cdd_escape_comment_str(field->serde_deserialize_with, esc1, sizeof(esc1));
+    g_cdd_last_alloc_err = cdd_escape_comment_str(field->serde_deserialize_with,
+                                                  esc1, sizeof(esc1));
     CHECK_IO(fprintf(hfile, "%sdeserialize_with = \"%s\"", f_first ? "" : ", ",
                      esc1));
     f_first = 0;
@@ -473,7 +494,8 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
       c_first = 0;
     }
     if (field->cli_long[0] != '\0') {
-      cdd_escape_comment_str(field->cli_long, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(field->cli_long, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%slong = \"%s\"", c_first ? "" : ", ", esc1));
       c_first = 0;
     }
@@ -491,24 +513,27 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
       c_first = 0;
     }
     if (field->cli_env[0] != '\0') {
-      cdd_escape_comment_str(field->cli_env, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(field->cli_env, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%senv = \"%s\"", c_first ? "" : ", ", esc1));
       c_first = 0;
     }
     if (field->cli_value_name[0] != '\0') {
-      cdd_escape_comment_str(field->cli_value_name, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(field->cli_value_name, esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%svalue_name = \"%s\"", c_first ? "" : ", ", esc1));
       c_first = 0;
     }
     if (field->cli_help[0] != '\0') {
-      cdd_escape_comment_str(field->cli_help, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(field->cli_help, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%shelp = \"%s\"", c_first ? "" : ", ", esc1));
       c_first = 0;
     }
     if (field->cli_action != CDD_CLI_ACTION_AUTO) {
       const char *act_str = NULL;
-      cdd_cli_action_to_str(field->cli_action, &act_str);
+      g_cdd_last_alloc_err = cdd_cli_action_to_str(field->cli_action, &act_str);
       CHECK_IO(
           fprintf(hfile, "%saction = \"%s\"", c_first ? "" : ", ", act_str));
       c_first = 0;
@@ -536,14 +561,15 @@ static cdd_c_error_t emit_field_serde_comment(FILE *hfile,
       }
     }
     for (a_idx = 0; a_idx < field->n_cli_conflicts_with; ++a_idx) {
-      cdd_escape_comment_str(field->cli_conflicts_with[a_idx], esc1,
-                             sizeof(esc1));
+      g_cdd_last_alloc_err = cdd_escape_comment_str(
+          field->cli_conflicts_with[a_idx], esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%sconflicts_with = \"%s\"", c_first ? "" : ", ",
                        esc1));
       c_first = 0;
     }
     for (a_idx = 0; a_idx < field->n_cli_requires; ++a_idx) {
-      cdd_escape_comment_str(field->cli_requires[a_idx], esc1, sizeof(esc1));
+      g_cdd_last_alloc_err = cdd_escape_comment_str(field->cli_requires[a_idx],
+                                                    esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%srequires = \"%s\"", c_first ? "" : ", ", esc1));
       c_first = 0;
@@ -589,46 +615,54 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
     char esc2[256];
     CHECK_IO(fprintf(hfile, "/* @cdd "));
     if (sf->serde_rename[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_rename, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_rename, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "rename = \"%s\"", esc1));
       first_attr = 0;
     }
     if (sf->serde_rename_all != CDD_SERDE_CASE_NONE) {
       const char *c_str = NULL;
-      cdd_serde_case_rule_to_str(sf->serde_rename_all, &c_str);
+      g_cdd_last_alloc_err =
+          cdd_serde_case_rule_to_str(sf->serde_rename_all, &c_str);
       CHECK_IO(fprintf(hfile, "%srename_all = \"%s\"", first_attr ? "" : ", ",
                        c_str));
       first_attr = 0;
     }
     if (sf->serde_rename_all_ser != CDD_SERDE_CASE_NONE) {
       const char *c_str = NULL;
-      cdd_serde_case_rule_to_str(sf->serde_rename_all_ser, &c_str);
+      g_cdd_last_alloc_err =
+          cdd_serde_case_rule_to_str(sf->serde_rename_all_ser, &c_str);
       CHECK_IO(fprintf(hfile, "%srename_all_serialize = \"%s\"",
                        first_attr ? "" : ", ", c_str));
       first_attr = 0;
     }
     if (sf->serde_rename_all_de != CDD_SERDE_CASE_NONE) {
       const char *c_str = NULL;
-      cdd_serde_case_rule_to_str(sf->serde_rename_all_de, &c_str);
+      g_cdd_last_alloc_err =
+          cdd_serde_case_rule_to_str(sf->serde_rename_all_de, &c_str);
       CHECK_IO(fprintf(hfile, "%srename_all_deserialize = \"%s\"",
                        first_attr ? "" : ", ", c_str));
       first_attr = 0;
     }
     if (sf->serde_replace_from[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_replace_from, esc1, sizeof(esc1));
-      cdd_escape_comment_str(sf->serde_replace_to, esc2, sizeof(esc2));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_replace_from, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_replace_to, esc2, sizeof(esc2));
       CHECK_IO(fprintf(hfile, "%sreplace_all = (\"%s\" -> \"%s\")",
                        first_attr ? "" : ", ", esc1, esc2));
       first_attr = 0;
     }
     if (sf->serde_prefix[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_prefix, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_prefix, esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%sprefix = \"%s\"", first_attr ? "" : ", ", esc1));
       first_attr = 0;
     }
     if (sf->serde_suffix[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_suffix, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_suffix, esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%ssuffix = \"%s\"", first_attr ? "" : ", ", esc1));
       first_attr = 0;
@@ -642,12 +676,14 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
       first_attr = 0;
     }
     if (sf->serde_tag[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_tag, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_tag, esc1, sizeof(esc1));
       CHECK_IO(fprintf(hfile, "%stag = \"%s\"", first_attr ? "" : ", ", esc1));
       first_attr = 0;
     }
     if (sf->serde_content[0] != '\0') {
-      cdd_escape_comment_str(sf->serde_content, esc1, sizeof(esc1));
+      g_cdd_last_alloc_err =
+          cdd_escape_comment_str(sf->serde_content, esc1, sizeof(esc1));
       CHECK_IO(
           fprintf(hfile, "%scontent = \"%s\"", first_attr ? "" : ", ", esc1));
       first_attr = 0;
@@ -664,36 +700,42 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
       int c_first = 1;
       CHECK_IO(fprintf(hfile, "%scli(", first_attr ? "" : ", "));
       if (sf->cli_name[0] != '\0') {
-        cdd_escape_comment_str(sf->cli_name, esc1, sizeof(esc1));
+        g_cdd_last_alloc_err =
+            cdd_escape_comment_str(sf->cli_name, esc1, sizeof(esc1));
         CHECK_IO(fprintf(hfile, "name = \"%s\"", esc1));
         c_first = 0;
       }
       if (sf->cli_version[0] != '\0') {
-        cdd_escape_comment_str(sf->cli_version, esc1, sizeof(esc1));
+        g_cdd_last_alloc_err =
+            cdd_escape_comment_str(sf->cli_version, esc1, sizeof(esc1));
         CHECK_IO(
             fprintf(hfile, "%sversion = \"%s\"", c_first ? "" : ", ", esc1));
         c_first = 0;
       }
       if (sf->cli_author[0] != '\0') {
-        cdd_escape_comment_str(sf->cli_author, esc1, sizeof(esc1));
+        g_cdd_last_alloc_err =
+            cdd_escape_comment_str(sf->cli_author, esc1, sizeof(esc1));
         CHECK_IO(
             fprintf(hfile, "%sauthor = \"%s\"", c_first ? "" : ", ", esc1));
         c_first = 0;
       }
       if (sf->cli_about[0] != '\0') {
-        cdd_escape_comment_str(sf->cli_about, esc1, sizeof(esc1));
+        g_cdd_last_alloc_err =
+            cdd_escape_comment_str(sf->cli_about, esc1, sizeof(esc1));
         CHECK_IO(fprintf(hfile, "%sabout = \"%s\"", c_first ? "" : ", ", esc1));
         c_first = 0;
       }
       if (sf->cli_rename_all != CDD_SERDE_CASE_NONE) {
         const char *c_str = NULL;
-        cdd_serde_case_rule_to_str(sf->cli_rename_all, &c_str);
+        g_cdd_last_alloc_err =
+            cdd_serde_case_rule_to_str(sf->cli_rename_all, &c_str);
         CHECK_IO(fprintf(hfile, "%srename_all = \"%s\"", c_first ? "" : ", ",
                          c_str));
         c_first = 0;
       }
       if (sf->cli_env_prefix[0] != '\0') {
-        cdd_escape_comment_str(sf->cli_env_prefix, esc1, sizeof(esc1));
+        g_cdd_last_alloc_err =
+            cdd_escape_comment_str(sf->cli_env_prefix, esc1, sizeof(esc1));
         CHECK_IO(
             fprintf(hfile, "%senv_prefix = \"%s\"", c_first ? "" : ", ", esc1));
         c_first = 0;
@@ -732,7 +774,7 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
         } else if (strcmp(r, "number") == 0) {
           CHECK_IO(fprintf(hfile, "  double %s[%lu];\n", n, flen));
         } else {
-          get_type_from_ref(r, &ref_type);
+          g_cdd_last_alloc_err = get_type_from_ref(r, &ref_type);
           CHECK_IO(
               fprintf(hfile, "  struct %s *%s[%lu];\n", ref_type, n, flen));
         }

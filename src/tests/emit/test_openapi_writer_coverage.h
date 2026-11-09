@@ -29,7 +29,7 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     parent_val = _cdd_jv_1;
   }
   parent = json_value_get_object(parent_val);
@@ -39,40 +39,40 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   any.type = OA_ANY_STRING;
   any.string = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   any.string = cdd_test_mut_str("hello");
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.type = OA_ANY_NUMBER;
   any.number = 42.0;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.type = OA_ANY_BOOL;
   any.boolean = 1;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   any.boolean = 0;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.type = OA_ANY_NULL;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.type = OA_ANY_JSON;
   any.json = cdd_test_mut_str("{\"k\": \"v\"}");
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.json = cdd_test_mut_str("{invalid");
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.json = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   any.type = (enum OpenAPI_AnyType)999;
   ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
@@ -81,7 +81,7 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   /* write_example_object */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
@@ -90,7 +90,7 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   ex.ref = cdd_test_mut_str("#/components/examples/ref1");
   ex.summary = cdd_test_mut_str("sum");
   ex.description = cdd_test_mut_str("desc");
-  write_example_object(obj, &ex);
+  g_cdd_last_alloc_err = write_example_object(obj, &ex);
 
   memset(&ex, 0, sizeof(ex));
   ex.summary = cdd_test_mut_str("sum");
@@ -101,15 +101,15 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
   ex.serialized_value = cdd_test_mut_str("ser");
   ex.external_value = cdd_test_mut_str("http://example.com");
   ex.extensions_json = cdd_test_mut_str("{\"x-ex\": 1}");
-  write_example_object(obj, &ex);
+  g_cdd_last_alloc_err = write_example_object(obj, &ex);
 
   memset(&ex, 0, sizeof(ex));
   ex.value_set = 1;
   ex.value.type = OA_ANY_NUMBER;
   ex.value.number = 123.0;
-  write_example_object(obj, &ex);
+  g_cdd_last_alloc_err = write_example_object(obj, &ex);
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
 
   /* write_examples_object */
   memset(examples, 0, sizeof(examples));
@@ -120,13 +120,13 @@ TEST test_openapi_writer_any_and_examples_coverage(void) {
             write_examples_object(parent, "examples", examples, 2));
 
   /* write_example_fields */
-  write_example_fields(parent, NULL, 0, examples, 2);
+  g_cdd_last_alloc_err = write_example_fields(parent, NULL, 0, examples, 2);
   memset(&any, 0, sizeof(any));
   any.type = OA_ANY_STRING;
   any.string = cdd_test_mut_str("single");
-  write_example_fields(parent, &any, 1, NULL, 0);
+  g_cdd_last_alloc_err = write_example_fields(parent, &any, 1, NULL, 0);
 
-  json_value_free(parent_val);
+  g_cdd_last_alloc_err = json_value_free(parent_val);
   PASS();
 }
 
@@ -160,29 +160,29 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     parent_val = _cdd_jv_1;
   }
   parent = json_value_get_object(parent_val);
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
 
   /* write_external_docs */
   memset(&docs, 0, sizeof(docs));
-  write_external_docs(parent, "ext", &docs);
+  g_cdd_last_alloc_err = write_external_docs(parent, "ext", &docs);
   docs.url = cdd_test_mut_str("https://docs.example.com");
   docs.description = cdd_test_mut_str("Documentation");
   docs.extensions_json = cdd_test_mut_str("{\"x-doc\": true}");
-  write_external_docs(parent, "ext", &docs);
+  g_cdd_last_alloc_err = write_external_docs(parent, "ext", &docs);
 
   /* write_discriminator_object */
   memset(&disc, 0, sizeof(disc));
-  write_discriminator_object(parent, &disc, 0);
-  write_discriminator_object(parent, &disc, 1);
+  g_cdd_last_alloc_err = write_discriminator_object(parent, &disc, 0);
+  g_cdd_last_alloc_err = write_discriminator_object(parent, &disc, 1);
   disc.property_name = cdd_test_mut_str("petType");
   disc.default_mapping = cdd_test_mut_str("#/components/schemas/Pet");
   memset(map, 0, sizeof(map));
@@ -193,20 +193,20 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   disc.mapping = map;
   disc.n_mapping = 2;
   disc.extensions_json = cdd_test_mut_str("{\"x-disc\": 1}");
-  write_discriminator_object(parent, &disc, 1);
+  g_cdd_last_alloc_err = write_discriminator_object(parent, &disc, 1);
 
   /* write_xml_object */
   memset(&xml, 0, sizeof(xml));
-  write_xml_object(parent, &xml, 0);
+  g_cdd_last_alloc_err = write_xml_object(parent, &xml, 0);
   xml.attribute_set = 1;
   xml.attribute = 1;
   xml.wrapped_set = 1;
   xml.wrapped = 1;
   xml.extensions_json = cdd_test_mut_str("{\"x-xml\": 1}");
-  write_xml_object(parent, &xml, 1);
+  g_cdd_last_alloc_err = write_xml_object(parent, &xml, 1);
   xml.attribute = 0;
   xml.wrapped = 0;
-  write_xml_object(parent, &xml, 1);
+  g_cdd_last_alloc_err = write_xml_object(parent, &xml, 1);
 
   /* write_server_object */
   memset(&srv, 0, sizeof(srv));
@@ -226,14 +226,14 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   srv.variables = vars;
   srv.n_variables = 2;
   srv.extensions_json = cdd_test_mut_str("{\"x-srv\": 1}");
-  write_server_object(obj, &srv);
+  g_cdd_last_alloc_err = write_server_object(obj, &srv);
 
   /* write_parameter_object */
   memset(&p, 0, sizeof(p));
   p.ref = cdd_test_mut_str("#/components/parameters/ParamRef");
   p.summary = cdd_test_mut_str("Param summary");
   p.description = cdd_test_mut_str("Param description");
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERY;
@@ -245,56 +245,56 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   p.allow_reserved = 1;
   p.content_ref = cdd_test_mut_str("#/components/media/Media1");
   p.content_type = NULL;
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
   p.content_ref = cdd_test_mut_str("#/components/media/Media2");
   p.content_type = NULL;
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.content_type = cdd_test_mut_str("application/custom");
   p.item_schema_set = 1;
   p.schema.ref_name = cdd_test_mut_str("ItemModel");
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.content_type = cdd_test_mut_str("application/custom");
   p.schema_set = 1;
   p.schema.ref_name = cdd_test_mut_str("Model");
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   memset(&p, 0, sizeof(p));
   p.content_type = cdd_test_mut_str("application/custom");
   p.type = cdd_test_mut_str("string");
   p.example_location = OA_EXAMPLE_LOC_MEDIA;
   p.extensions_json = cdd_test_mut_str("{\"x-p\": 1}");
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   /* write_header_object */
   memset(&h, 0, sizeof(h));
   h.ref = cdd_test_mut_str("#/components/headers/HRef");
   h.description = cdd_test_mut_str("H desc");
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
   h.content_ref = cdd_test_mut_str("#/components/media/HM1");
   h.content_type = NULL;
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
   h.content_type = cdd_test_mut_str("application/json");
   h.schema_set = 1;
   h.schema.ref_name = cdd_test_mut_str("HSchema");
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   memset(&h, 0, sizeof(h));
   h.content_type = cdd_test_mut_str("application/json");
   h.type = cdd_test_mut_str("string");
   h.example_location = OA_EXAMPLE_LOC_MEDIA;
   h.extensions_json = cdd_test_mut_str("{\"x-h\": 1}");
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   /* write_encoding_object and write_encoding_map */
   memset(&enc, 0, sizeof(enc));
@@ -316,7 +316,7 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   link.ref = cdd_test_mut_str("#/components/links/LRef");
   link.summary = cdd_test_mut_str("L summary");
   link.description = cdd_test_mut_str("L desc");
-  write_link_object(obj, &link);
+  g_cdd_last_alloc_err = write_link_object(obj, &link);
 
   memset(&link, 0, sizeof(link));
   link.operation_ref = cdd_test_mut_str("/paths/~1users/get");
@@ -337,24 +337,24 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   link.server_set = 1;
   link.server = &srv;
   link.extensions_json = cdd_test_mut_str("{\"x-l\": 1}");
-  write_link_object(obj, &link);
+  g_cdd_last_alloc_err = write_link_object(obj, &link);
 
   /* write_response_object */
   memset(&resp, 0, sizeof(resp));
   resp.ref = cdd_test_mut_str("#/components/responses/RRef");
   resp.summary = cdd_test_mut_str("R summary");
   resp.description = cdd_test_mut_str("R desc");
-  write_response_object(obj, &resp);
+  g_cdd_last_alloc_err = write_response_object(obj, &resp);
 
   memset(&resp, 0, sizeof(resp));
   resp.content_ref = cdd_test_mut_str("#/components/media/RM1");
   resp.content_type = NULL;
-  write_response_object(obj, &resp);
+  g_cdd_last_alloc_err = write_response_object(obj, &resp);
 
   memset(&resp, 0, sizeof(resp));
   resp.content_type = cdd_test_mut_str("application/json");
   resp.extensions_json = cdd_test_mut_str("{\"x-resp\": 1}");
-  write_response_object(obj, &resp);
+  g_cdd_last_alloc_err = write_response_object(obj, &resp);
 
   /* write_request_body_object */
   memset(&rb, 0, sizeof(rb));
@@ -368,7 +368,7 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   cb.ref = cdd_test_mut_str("#/components/callbacks/CBRef");
   cb.summary = cdd_test_mut_str("CB summary");
   cb.description = cdd_test_mut_str("CB desc");
-  write_callback_object(obj, &cb);
+  g_cdd_last_alloc_err = write_callback_object(obj, &cb);
 
   memset(&cb, 0, sizeof(cb));
   memset(cb_paths, 0, sizeof(cb_paths));
@@ -377,7 +377,7 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   cb.paths = cb_paths;
   cb.n_paths = 2;
   cb.extensions_json = cdd_test_mut_str("{\"x-cb\": 1}");
-  write_callback_object(obj, &cb);
+  g_cdd_last_alloc_err = write_callback_object(obj, &cb);
 
   /* write_media_type_object */
   memset(&mt, 0, sizeof(mt));
@@ -394,8 +394,8 @@ TEST test_openapi_writer_objects_and_maps_coverage(void) {
   mt.extensions_json = cdd_test_mut_str("{\"x-mt\": 1}");
   ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt));
 
-  json_value_free(val);
-  json_value_free(parent_val);
+  g_cdd_last_alloc_err = json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(parent_val);
   PASS();
 }
 

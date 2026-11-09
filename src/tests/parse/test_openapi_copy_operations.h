@@ -90,7 +90,7 @@ TEST test_openapi_copy_operations_helpers(void) {
   ASSERT_STR_EQ("#/components/requestBodies/Body1", op_dst.req_body_ref);
   ASSERT_STR_EQ("{\"x-rb\":1}", op_dst.req_body_extensions_json);
 
-  free_operation(&op_dst);
+  g_cdd_last_alloc_err = free_operation(&op_dst);
 
   {
     int k;
@@ -101,7 +101,7 @@ TEST test_openapi_copy_operations_helpers(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_operation(&op_dst);
+      g_cdd_last_alloc_err = free_operation(&op_dst);
     }
     g_cdd_alloc_fail = 0;
   }
@@ -115,13 +115,13 @@ TEST test_openapi_copy_operations_helpers(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_operation(&op_dst);
+      g_cdd_last_alloc_err = free_operation(&op_dst);
     }
     g_cdd_strdup_fail = 0;
   }
 
-  free_operation(&op_src);
-  free_operation(NULL);
+  g_cdd_last_alloc_err = free_operation(&op_src);
+  g_cdd_last_alloc_err = free_operation(NULL);
 
   PASS();
 }
@@ -158,7 +158,7 @@ TEST test_openapi_copy_operations_oom(void) {
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    free_operation(&op_dst);
+    g_cdd_last_alloc_err = free_operation(&op_dst);
   }
 
   g_cdd_alloc_fail = 0;
@@ -222,7 +222,7 @@ TEST test_openapi_copy_operations_advanced(void) {
   ASSERT_STR_EQ("path summary", path_dst.summary);
   ASSERT_STR_EQ("path description", path_dst.description);
 
-  free_path_item(&path_dst);
+  g_cdd_last_alloc_err = free_path_item(&path_dst);
 
   {
     int k;
@@ -233,7 +233,7 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_path_item(&path_dst);
+      g_cdd_last_alloc_err = free_path_item(&path_dst);
     }
     g_cdd_alloc_fail = 0;
     for (k = 1; k <= 25; ++k) {
@@ -243,12 +243,12 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_path_item(&path_dst);
+      g_cdd_last_alloc_err = free_path_item(&path_dst);
     }
     g_cdd_strdup_fail = 0;
   }
 
-  free_path_item(&path_src);
+  g_cdd_last_alloc_err = free_path_item(&path_src);
 
   /* 2. Callback copy & free */
   memset(&cb_src, 0, sizeof(cb_src));
@@ -274,7 +274,7 @@ TEST test_openapi_copy_operations_advanced(void) {
   ASSERT_STR_EQ("#/components/callbacks/MyCb", cb_dst.ref);
   ASSERT_STR_EQ("cb summary", cb_dst.summary);
 
-  free_callback(&cb_dst);
+  g_cdd_last_alloc_err = free_callback(&cb_dst);
 
   {
     int k;
@@ -285,7 +285,7 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_callback(&cb_dst);
+      g_cdd_last_alloc_err = free_callback(&cb_dst);
     }
     g_cdd_alloc_fail = 0;
     for (k = 1; k <= 25; ++k) {
@@ -295,12 +295,12 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_callback(&cb_dst);
+      g_cdd_last_alloc_err = free_callback(&cb_dst);
     }
     g_cdd_strdup_fail = 0;
   }
 
-  free_callback(&cb_src);
+  g_cdd_last_alloc_err = free_callback(&cb_src);
 
   /* 3. RequestBody copy & free */
   memset(&rb_src, 0, sizeof(rb_src));
@@ -333,7 +333,7 @@ TEST test_openapi_copy_operations_advanced(void) {
   ASSERT_STR_EQ("#/components/requestBodies/MyRb", rb_dst.ref);
   ASSERT_STR_EQ("rb description", rb_dst.description);
 
-  free_request_body(&rb_dst);
+  g_cdd_last_alloc_err = free_request_body(&rb_dst);
 
   {
     int k;
@@ -344,7 +344,7 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_request_body(&rb_dst);
+      g_cdd_last_alloc_err = free_request_body(&rb_dst);
     }
     g_cdd_alloc_fail = 0;
     for (k = 1; k <= 25; ++k) {
@@ -354,12 +354,12 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_request_body(&rb_dst);
+      g_cdd_last_alloc_err = free_request_body(&rb_dst);
     }
     g_cdd_strdup_fail = 0;
   }
 
-  free_request_body(&rb_src);
+  g_cdd_last_alloc_err = free_request_body(&rb_src);
 
   /* 4. Server copy & free */
   srv_src = (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
@@ -393,11 +393,22 @@ TEST test_openapi_copy_operations_advanced(void) {
     ASSERT_STR_EQ("https://example.com", srv_dst->url);
     ASSERT_STR_EQ("prod server", srv_dst->description);
 
-    openapi_free_servers_array(srv_dst, 1);
+    g_cdd_last_alloc_err = openapi_free_servers_array(srv_dst, 1);
     srv_dst = NULL;
 
     {
       int k;
+      for (k = 1; k <= 15; ++k) {
+        struct OpenAPI_Server *tmp_srv =
+            (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
+        g_cdd_alloc_fail = k;
+        rc = copy_server_object(tmp_srv, srv_src);
+        g_cdd_alloc_fail = 0;
+        if (rc != CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+        }
+        g_cdd_last_alloc_err = openapi_free_servers_array(tmp_srv, 1);
+      }
       for (k = 1; k <= 15; ++k) {
         struct OpenAPI_Server *tmp_srv =
             (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
@@ -406,14 +417,14 @@ TEST test_openapi_copy_operations_advanced(void) {
         if (rc != CDD_C_SUCCESS) {
           ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
         }
-        openapi_free_servers_array(tmp_srv, 1);
+        g_cdd_last_alloc_err = openapi_free_servers_array(tmp_srv, 1);
       }
       g_cdd_strdup_fail = 0;
     }
   }
 
-  openapi_free_servers_array(srv_src, 1);
-  openapi_free_servers_array(NULL, 0);
+  g_cdd_last_alloc_err = openapi_free_servers_array(srv_src, 1);
+  g_cdd_last_alloc_err = openapi_free_servers_array(NULL, 0);
 
   /* 5. Link copy & free */
   memset(&lnk_src, 0, sizeof(lnk_src));
@@ -451,10 +462,20 @@ TEST test_openapi_copy_operations_advanced(void) {
   ASSERT_STR_EQ("link summary", lnk_dst.summary);
   ASSERT_STR_EQ("link description", lnk_dst.description);
 
-  free_link(&lnk_dst);
+  g_cdd_last_alloc_err = free_link(&lnk_dst);
 
   {
     int k;
+    for (k = 1; k <= 15; ++k) {
+      memset(&lnk_dst, 0, sizeof(lnk_dst));
+      g_cdd_alloc_fail = k;
+      rc = copy_link_fields(&lnk_dst, &lnk_src);
+      g_cdd_alloc_fail = 0;
+      if (rc != CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      }
+      g_cdd_last_alloc_err = free_link(&lnk_dst);
+    }
     for (k = 1; k <= 15; ++k) {
       memset(&lnk_dst, 0, sizeof(lnk_dst));
       g_cdd_strdup_fail = k;
@@ -462,12 +483,12 @@ TEST test_openapi_copy_operations_advanced(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_link(&lnk_dst);
+      g_cdd_last_alloc_err = free_link(&lnk_dst);
     }
     g_cdd_strdup_fail = 0;
   }
 
-  free_link(&lnk_src);
+  g_cdd_last_alloc_err = free_link(&lnk_src);
 
   PASS();
 }
@@ -521,7 +542,7 @@ TEST test_openapi_copy_operations_branches(void) {
     s_srv_src.variables = NULL;
     s_srv_src.n_variables = 1;
     ASSERT_EQ(CDD_C_SUCCESS, copy_server_object(p_srv, &s_srv_src));
-    openapi_free_servers_array(p_srv, 1);
+    g_cdd_last_alloc_err = openapi_free_servers_array(p_srv, 1);
 
     p_srv = (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
     memset(&s_srv_src, 0, sizeof(s_srv_src));
@@ -532,7 +553,7 @@ TEST test_openapi_copy_operations_branches(void) {
     svar_dummy.enum_values = NULL;
     svar_dummy.n_enum_values = 1;
     ASSERT_EQ(CDD_C_SUCCESS, copy_server_object(p_srv, &s_srv_src));
-    openapi_free_servers_array(p_srv, 1);
+    g_cdd_last_alloc_err = openapi_free_servers_array(p_srv, 1);
 
     p_srv = (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
     memset(&s_srv_src, 0, sizeof(s_srv_src));
@@ -543,7 +564,7 @@ TEST test_openapi_copy_operations_branches(void) {
     svar_dummy.enum_values = dummy_str_arr;
     svar_dummy.n_enum_values = 1;
     ASSERT_EQ(CDD_C_SUCCESS, copy_server_object(p_srv, &s_srv_src));
-    openapi_free_servers_array(p_srv, 1);
+    g_cdd_last_alloc_err = openapi_free_servers_array(p_srv, 1);
 
     p_srv = (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
     memset(&s_srv_src, 0, sizeof(s_srv_src));
@@ -554,7 +575,7 @@ TEST test_openapi_copy_operations_branches(void) {
     svar_dummy.enum_values = &dummy_str;
     svar_dummy.n_enum_values = 0;
     ASSERT_EQ(CDD_C_SUCCESS, copy_server_object(p_srv, &s_srv_src));
-    openapi_free_servers_array(p_srv, 1);
+    g_cdd_last_alloc_err = openapi_free_servers_array(p_srv, 1);
   }
 
   /* 2. copy_link_fields branches */
@@ -572,7 +593,7 @@ TEST test_openapi_copy_operations_branches(void) {
   s_lnk_src.n_parameters = 1;
   dummy_lp.name = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, copy_link_fields(&s_lnk_dst, &s_lnk_src));
-  free_link(&s_lnk_dst);
+  g_cdd_last_alloc_err = free_link(&s_lnk_dst);
 
   /* 3. copy_security_requirement_sets branches */
   memset(&sec_src, 0, sizeof(sec_src));
@@ -592,7 +613,7 @@ TEST test_openapi_copy_operations_branches(void) {
     size_t cnt_p = 0;
     ASSERT_EQ(CDD_C_SUCCESS,
               copy_security_requirement_sets(&dst_p, &cnt_p, &sec_src, 1));
-    free_security_requirement_set(dst_p);
+    g_cdd_last_alloc_err = free_security_requirement_set(dst_p);
     free(dst_p);
   }
   memset(&sec_src, 0, sizeof(sec_src));
@@ -606,7 +627,7 @@ TEST test_openapi_copy_operations_branches(void) {
     size_t cnt_p = 0;
     ASSERT_EQ(CDD_C_SUCCESS,
               copy_security_requirement_sets(&dst_p, &cnt_p, &sec_src, 1));
-    free_security_requirement_set(dst_p);
+    g_cdd_last_alloc_err = free_security_requirement_set(dst_p);
     free(dst_p);
   }
   sreq_dummy.scopes = dummy_str_arr;
@@ -616,7 +637,7 @@ TEST test_openapi_copy_operations_branches(void) {
     size_t cnt_p = 0;
     ASSERT_EQ(CDD_C_SUCCESS,
               copy_security_requirement_sets(&dst_p, &cnt_p, &sec_src, 1));
-    free_security_requirement_set(dst_p);
+    g_cdd_last_alloc_err = free_security_requirement_set(dst_p);
     free(dst_p);
   }
   memset(&sec_src, 0, sizeof(sec_src));
@@ -627,7 +648,7 @@ TEST test_openapi_copy_operations_branches(void) {
     size_t cnt_p = 0;
     ASSERT_EQ(CDD_C_SUCCESS,
               copy_security_requirement_sets(&dst_p, &cnt_p, &sec_src, 1));
-    free_security_requirement_set(dst_p);
+    g_cdd_last_alloc_err = free_security_requirement_set(dst_p);
     free(dst_p);
   }
 
@@ -645,7 +666,7 @@ TEST test_openapi_copy_operations_branches(void) {
   s_cb_src.extensions_json = dummy_str;
   s_cb_dst.extensions_json = strdup("e");
   ASSERT_EQ(CDD_C_SUCCESS, copy_callback_fields(&s_cb_dst, &s_cb_src));
-  free_callback(&s_cb_dst);
+  g_cdd_last_alloc_err = free_callback(&s_cb_dst);
 
   memset(&s_cb_src, 0, sizeof(s_cb_src));
   memset(&s_cb_dst, 0, sizeof(s_cb_dst));
@@ -689,7 +710,7 @@ TEST test_openapi_copy_operations_branches(void) {
   op_src.tags = dummy_str_arr;
   op_src.n_tags = 1;
   ASSERT_EQ(CDD_C_SUCCESS, copy_operation_fields(&op_dst, &op_src));
-  free_operation(&op_dst);
+  g_cdd_last_alloc_err = free_operation(&op_dst);
 
   /* 6. copy_path_fields branches */
   memset(&s_path_src, 0, sizeof(s_path_src));
@@ -711,7 +732,7 @@ TEST test_openapi_copy_operations_branches(void) {
   s_path_src.operations = NULL;
   s_path_src.n_operations = 1;
   ASSERT_EQ(CDD_C_SUCCESS, copy_path_fields(&s_path_dst, &s_path_src));
-  free_path_item(&s_path_dst);
+  g_cdd_last_alloc_err = free_path_item(&s_path_dst);
 
   memset(&s_path_src, 0, sizeof(s_path_src));
   memset(&s_path_dst, 0, sizeof(s_path_dst));
@@ -748,20 +769,20 @@ TEST test_openapi_copy_operations_branches(void) {
   s_rb_src.examples = &dummy_ex;
   s_rb_src.n_examples = 0;
   ASSERT_EQ(CDD_C_SUCCESS, copy_request_body_fields(&s_rb_dst, &s_rb_src));
-  free_request_body(&s_rb_dst);
+  g_cdd_last_alloc_err = free_request_body(&s_rb_dst);
 
   memset(&s_rb_src, 0, sizeof(s_rb_src));
   memset(&s_rb_dst, 0, sizeof(s_rb_dst));
   s_rb_src.description = dummy_str;
   s_rb_dst.description = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, copy_request_body_fields(&s_rb_dst, &s_rb_src));
-  free_request_body(&s_rb_dst);
+  g_cdd_last_alloc_err = free_request_body(&s_rb_dst);
 
   memset(&s_rb_src, 0, sizeof(s_rb_src));
   memset(&s_rb_dst, 0, sizeof(s_rb_dst));
   s_rb_src.description = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, copy_request_body_fields(&s_rb_dst, &s_rb_src));
-  free_request_body(&s_rb_dst);
+  g_cdd_last_alloc_err = free_request_body(&s_rb_dst);
 
   PASS();
 }

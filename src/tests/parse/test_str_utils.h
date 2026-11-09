@@ -33,7 +33,8 @@ extern C_CDD_EXPORT int g_str_unquote_malloc_fail;
 TEST test_c_cdd_strdup_basic(void) {
   char *_ast_strdup_0 = NULL;
   const char *input = cdd_test_mut_str("hello world");
-  char *dup = (c_cdd_strdup(input, &_ast_strdup_0), _ast_strdup_0);
+  char *dup = (g_cdd_last_alloc_err = c_cdd_strdup(input, &_ast_strdup_0),
+               _ast_strdup_0);
   ASSERT(dup != NULL);
   ASSERT(dup != input); /* Pointers must check distinct */
   ASSERT_STR_EQ(input, dup);
@@ -49,7 +50,8 @@ TEST test_c_cdd_strdup_basic(void) {
  */
 TEST test_c_cdd_strdup_null(void) {
   char *_ast_strdup_1 = NULL;
-  ASSERT((c_cdd_strdup(NULL, &_ast_strdup_1), _ast_strdup_1) == NULL);
+  ASSERT((g_cdd_last_alloc_err = c_cdd_strdup(NULL, &_ast_strdup_1),
+          _ast_strdup_1) == NULL);
   g_fail_io_after = -1;
 
   PASS();
@@ -61,7 +63,8 @@ TEST test_c_cdd_strdup_null(void) {
  */
 TEST test_c_cdd_strdup_empty(void) {
   char *_ast_strdup_2 = NULL;
-  char *dup = (c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
+  char *dup =
+      (g_cdd_last_alloc_err = c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
   ASSERT(dup != NULL);
   ASSERT_STR_EQ("", dup);
   free(dup);
@@ -82,18 +85,22 @@ TEST test_c_cdd_str_starts_with(void) {
   int _ast_starts_with_5 = false;
   int _ast_starts_with_6 = false;
   int _ast_starts_with_7 = false;
-  ASSERT((c_cdd_str_starts_with("prefix_string", "prefix", &_ast_starts_with_3),
+  ASSERT((g_cdd_last_alloc_err = c_cdd_str_starts_with(
+              "prefix_string", "prefix", &_ast_starts_with_3),
           _ast_starts_with_3));
-  ASSERT(
-      !(c_cdd_str_starts_with("string_prefix", "prefix", &_ast_starts_with_4),
-        _ast_starts_with_4));
-  ASSERT(!(c_cdd_str_starts_with("pre", "prefix", &_ast_starts_with_5),
+  ASSERT(!(g_cdd_last_alloc_err = c_cdd_str_starts_with(
+               "string_prefix", "prefix", &_ast_starts_with_4),
+           _ast_starts_with_4));
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_str_starts_with("pre", "prefix", &_ast_starts_with_5),
            _ast_starts_with_5));
   /* Exact */
-  ASSERT((c_cdd_str_starts_with("foo", "foo", &_ast_starts_with_6),
+  ASSERT((g_cdd_last_alloc_err =
+              c_cdd_str_starts_with("foo", "foo", &_ast_starts_with_6),
           _ast_starts_with_6));
   /* Empty prefix matches everything */
-  ASSERT((c_cdd_str_starts_with("anything", "", &_ast_starts_with_7),
+  ASSERT((g_cdd_last_alloc_err =
+              c_cdd_str_starts_with("anything", "", &_ast_starts_with_7),
           _ast_starts_with_7));
   g_fail_io_after = -1;
 
@@ -108,11 +115,14 @@ TEST test_c_cdd_str_starts_with_null(void) {
   int _ast_starts_with_8 = false;
   int _ast_starts_with_9 = false;
   int _ast_starts_with_10 = false;
-  ASSERT(!(c_cdd_str_starts_with(NULL, "param", &_ast_starts_with_8),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_str_starts_with(NULL, "param", &_ast_starts_with_8),
            _ast_starts_with_8));
-  ASSERT(!(c_cdd_str_starts_with("param", NULL, &_ast_starts_with_9),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_str_starts_with("param", NULL, &_ast_starts_with_9),
            _ast_starts_with_9));
-  ASSERT(!(c_cdd_str_starts_with(NULL, NULL, &_ast_starts_with_10),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_str_starts_with(NULL, NULL, &_ast_starts_with_10),
            _ast_starts_with_10));
   g_fail_io_after = -1;
 
@@ -129,9 +139,12 @@ TEST test_c_cdd_str_equal(void) {
   int _ast_equal_11 = false;
   int _ast_equal_12 = false;
   int _ast_equal_13 = false;
-  ASSERT((c_cdd_str_equal("foo", "foo", &_ast_equal_11), _ast_equal_11));
-  ASSERT(!(c_cdd_str_equal("foo", "bar", &_ast_equal_12), _ast_equal_12));
-  ASSERT(!(c_cdd_str_equal("foo", "fo", &_ast_equal_13), _ast_equal_13));
+  ASSERT((g_cdd_last_alloc_err = c_cdd_str_equal("foo", "foo", &_ast_equal_11),
+          _ast_equal_11));
+  ASSERT(!(g_cdd_last_alloc_err = c_cdd_str_equal("foo", "bar", &_ast_equal_12),
+           _ast_equal_12));
+  ASSERT(!(g_cdd_last_alloc_err = c_cdd_str_equal("foo", "fo", &_ast_equal_13),
+           _ast_equal_13));
   g_fail_io_after = -1;
 
   PASS();
@@ -145,9 +158,12 @@ TEST test_c_cdd_str_equal_nulls(void) {
   int _ast_equal_14 = false;
   int _ast_equal_15 = false;
   int _ast_equal_16 = false;
-  ASSERT((c_cdd_str_equal(NULL, NULL, &_ast_equal_14), _ast_equal_14));
-  ASSERT(!(c_cdd_str_equal("foo", NULL, &_ast_equal_15), _ast_equal_15));
-  ASSERT(!(c_cdd_str_equal(NULL, "foo", &_ast_equal_16), _ast_equal_16));
+  ASSERT((g_cdd_last_alloc_err = c_cdd_str_equal(NULL, NULL, &_ast_equal_14),
+          _ast_equal_14));
+  ASSERT(!(g_cdd_last_alloc_err = c_cdd_str_equal("foo", NULL, &_ast_equal_15),
+           _ast_equal_15));
+  ASSERT(!(g_cdd_last_alloc_err = c_cdd_str_equal(NULL, "foo", &_ast_equal_16),
+           _ast_equal_16));
   g_fail_io_after = -1;
 
   PASS();
@@ -164,11 +180,18 @@ TEST test_c_cdd_str_iequal(void) {
   int _ast_iequal_18 = false;
   int _ast_iequal_19 = false;
   int _ast_iequal_20 = false;
-  ASSERT((c_cdd_str_iequal("Foo", "foo", &_ast_iequal_17), _ast_iequal_17));
-  ASSERT((c_cdd_str_iequal("Content-Type", "content-type", &_ast_iequal_18),
+  ASSERT(
+      (g_cdd_last_alloc_err = c_cdd_str_iequal("Foo", "foo", &_ast_iequal_17),
+       _ast_iequal_17));
+  ASSERT((g_cdd_last_alloc_err =
+              c_cdd_str_iequal("Content-Type", "content-type", &_ast_iequal_18),
           _ast_iequal_18));
-  ASSERT(!(c_cdd_str_iequal("Foo", "bar", &_ast_iequal_19), _ast_iequal_19));
-  ASSERT(!(c_cdd_str_iequal("Foo", "fo", &_ast_iequal_20), _ast_iequal_20));
+  ASSERT(
+      !(g_cdd_last_alloc_err = c_cdd_str_iequal("Foo", "bar", &_ast_iequal_19),
+        _ast_iequal_19));
+  ASSERT(
+      !(g_cdd_last_alloc_err = c_cdd_str_iequal("Foo", "fo", &_ast_iequal_20),
+        _ast_iequal_20));
   g_fail_io_after = -1;
 
   PASS();
@@ -182,9 +205,14 @@ TEST test_c_cdd_str_iequal_nulls(void) {
   int _ast_iequal_21 = false;
   int _ast_iequal_22 = false;
   int _ast_iequal_23 = false;
-  ASSERT((c_cdd_str_iequal(NULL, NULL, &_ast_iequal_21), _ast_iequal_21));
-  ASSERT(!(c_cdd_str_iequal("foo", NULL, &_ast_iequal_22), _ast_iequal_22));
-  ASSERT(!(c_cdd_str_iequal(NULL, "foo", &_ast_iequal_23), _ast_iequal_23));
+  ASSERT((g_cdd_last_alloc_err = c_cdd_str_iequal(NULL, NULL, &_ast_iequal_21),
+          _ast_iequal_21));
+  ASSERT(
+      !(g_cdd_last_alloc_err = c_cdd_str_iequal("foo", NULL, &_ast_iequal_22),
+        _ast_iequal_22));
+  ASSERT(
+      !(g_cdd_last_alloc_err = c_cdd_str_iequal(NULL, "foo", &_ast_iequal_23),
+        _ast_iequal_23));
   g_fail_io_after = -1;
 
   PASS();
@@ -202,19 +230,20 @@ TEST test_c_cdd_str_after_last(void) {
   const char *_ast_after_last_26 = NULL;
   const char *_ast_after_last_27 = NULL;
   /* Common path case */
-  ASSERT_STR_EQ("Type", (c_cdd_str_after_last("#/definitions/Type", '/',
-                                              &_ast_after_last_24),
+  ASSERT_STR_EQ("Type", (g_cdd_last_alloc_err = c_cdd_str_after_last(
+                             "#/definitions/Type", '/', &_ast_after_last_24),
                          _ast_after_last_24));
   /* Trailing slash returns empty string */
-  ASSERT_STR_EQ("",
-                (c_cdd_str_after_last("/path/to/", '/', &_ast_after_last_25),
-                 _ast_after_last_25));
+  ASSERT_STR_EQ("", (g_cdd_last_alloc_err = c_cdd_str_after_last(
+                         "/path/to/", '/', &_ast_after_last_25),
+                     _ast_after_last_25));
   /* No delimiter returns original */
-  ASSERT_STR_EQ("NoSlash",
-                (c_cdd_str_after_last("NoSlash", '/', &_ast_after_last_26),
-                 _ast_after_last_26));
+  ASSERT_STR_EQ("NoSlash", (g_cdd_last_alloc_err = c_cdd_str_after_last(
+                                "NoSlash", '/', &_ast_after_last_26),
+                            _ast_after_last_26));
   /* Empty string */
-  ASSERT_STR_EQ("", (c_cdd_str_after_last("", '/', &_ast_after_last_27),
+  ASSERT_STR_EQ("", (g_cdd_last_alloc_err =
+                         c_cdd_str_after_last("", '/', &_ast_after_last_27),
                      _ast_after_last_27));
   g_fail_io_after = -1;
 
@@ -227,7 +256,8 @@ TEST test_c_cdd_str_after_last(void) {
  */
 TEST test_c_cdd_str_after_last_null(void) {
   const char *_ast_after_last_28 = NULL;
-  ASSERT_STR_EQ("", (c_cdd_str_after_last(NULL, '/', &_ast_after_last_28),
+  ASSERT_STR_EQ("", (g_cdd_last_alloc_err =
+                         c_cdd_str_after_last(NULL, '/', &_ast_after_last_28),
                      _ast_after_last_28));
   g_fail_io_after = -1;
 
@@ -245,15 +275,17 @@ TEST test_c_cdd_ref_is_type(void) {
   int _ast_ref_is_type_30 = false;
   int _ast_ref_is_type_31 = false;
   int _ast_ref_is_type_32 = false;
-  ASSERT((c_cdd_ref_is_type("#/components/schemas/Integer", "Integer",
-                            &_ast_ref_is_type_29),
+  ASSERT((g_cdd_last_alloc_err = c_cdd_ref_is_type(
+              "#/components/schemas/Integer", "Integer", &_ast_ref_is_type_29),
           _ast_ref_is_type_29));
-  ASSERT(!(c_cdd_ref_is_type("#/components/schemas/Integer", "String",
-                             &_ast_ref_is_type_30),
+  ASSERT(!(g_cdd_last_alloc_err = c_cdd_ref_is_type(
+               "#/components/schemas/Integer", "String", &_ast_ref_is_type_30),
            _ast_ref_is_type_30)); /* Diff */
-  ASSERT(!(c_cdd_ref_is_type("JustName", "Other", &_ast_ref_is_type_31),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_ref_is_type("JustName", "Other", &_ast_ref_is_type_31),
            _ast_ref_is_type_31)); /* No slash, direct compar */
-  ASSERT((c_cdd_ref_is_type("DirectMatch", "DirectMatch", &_ast_ref_is_type_32),
+  ASSERT((g_cdd_last_alloc_err = c_cdd_ref_is_type("DirectMatch", "DirectMatch",
+                                                   &_ast_ref_is_type_32),
           _ast_ref_is_type_32));
 
 #ifdef CDD_BUILD_TESTS
@@ -408,11 +440,14 @@ TEST test_c_cdd_ref_is_type_null(void) {
   int _ast_ref_is_type_33 = false;
   int _ast_ref_is_type_34 = false;
   int _ast_ref_is_type_35 = false;
-  ASSERT(!(c_cdd_ref_is_type(NULL, "Type", &_ast_ref_is_type_33),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_ref_is_type(NULL, "Type", &_ast_ref_is_type_33),
            _ast_ref_is_type_33));
-  ASSERT(!(c_cdd_ref_is_type("Ref", NULL, &_ast_ref_is_type_34),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_ref_is_type("Ref", NULL, &_ast_ref_is_type_34),
            _ast_ref_is_type_34));
-  ASSERT(!(c_cdd_ref_is_type(NULL, NULL, &_ast_ref_is_type_35),
+  ASSERT(!(g_cdd_last_alloc_err =
+               c_cdd_ref_is_type(NULL, NULL, &_ast_ref_is_type_35),
            _ast_ref_is_type_35));
   g_fail_io_after = -1;
 
@@ -449,49 +484,55 @@ TEST test_c_cdd_destringize(void) {
   char *res;
 
   /* Basic destringize */
-  res = (c_cdd_destringize("\"hello\"", &_ast_destringize_36),
+  res = (g_cdd_last_alloc_err =
+             c_cdd_destringize("\"hello\"", &_ast_destringize_36),
          _ast_destringize_36);
   ASSERT_STR_EQ("hello", res);
   free(res);
 
   /* Wide string destringize */
-  res = (c_cdd_destringize("L\"wide\"", &_ast_destringize_37),
+  res = (g_cdd_last_alloc_err =
+             c_cdd_destringize("L\"wide\"", &_ast_destringize_37),
          _ast_destringize_37);
   ASSERT_STR_EQ("wide", res);
   free(res);
 
   /* Escaped quotes and backslashes */
-  res = (c_cdd_destringize("\"a\\\"b\\\\c\"", &_ast_destringize_38),
+  res = (g_cdd_last_alloc_err =
+             c_cdd_destringize("\"a\\\"b\\\\c\"", &_ast_destringize_38),
          _ast_destringize_38);
   ASSERT_STR_EQ("a\"b\\c", res);
   free(res);
 
   /* Unhandled escapes, passed through literally */
-  res = (c_cdd_destringize("\"\\t\\n\"", &_ast_destringize_39),
+  res = (g_cdd_last_alloc_err =
+             c_cdd_destringize("\"\\t\\n\"", &_ast_destringize_39),
          _ast_destringize_39);
   ASSERT_STR_EQ("\\t\\n", res);
   free(res);
 
   /* Trailing backslash */
-  res = (c_cdd_destringize("\"a\\\\\"", &_ast_destringize_40),
+  res = (g_cdd_last_alloc_err =
+             c_cdd_destringize("\"a\\\\\"", &_ast_destringize_40),
          _ast_destringize_40);
   ASSERT_STR_EQ("a\\", res);
   free(res);
 
   /* Actual trailing backslash (missing quote) */
-  res =
-      (c_cdd_destringize("\"a\\\\", &_ast_destringize_41), _ast_destringize_41);
+  res = (g_cdd_last_alloc_err =
+             c_cdd_destringize("\"a\\\\", &_ast_destringize_41),
+         _ast_destringize_41);
   ASSERT_STR_EQ("a\\", res);
   free(res);
 
   /* Null and malformed */
-  ASSERT((c_cdd_destringize(NULL, &_ast_destringize_42), _ast_destringize_42) ==
-         NULL);
-  ASSERT((c_cdd_destringize("", &_ast_destringize_43), _ast_destringize_43) ==
-         NULL);
-  ASSERT((c_cdd_destringize("x", &_ast_destringize_44), _ast_destringize_44) ==
-         NULL);
-  ASSERT((c_cdd_destringize("bad", &_ast_destringize_45),
+  ASSERT((g_cdd_last_alloc_err = c_cdd_destringize(NULL, &_ast_destringize_42),
+          _ast_destringize_42) == NULL);
+  ASSERT((g_cdd_last_alloc_err = c_cdd_destringize("", &_ast_destringize_43),
+          _ast_destringize_43) == NULL);
+  ASSERT((g_cdd_last_alloc_err = c_cdd_destringize("x", &_ast_destringize_44),
+          _ast_destringize_44) == NULL);
+  ASSERT((g_cdd_last_alloc_err = c_cdd_destringize("bad", &_ast_destringize_45),
           _ast_destringize_45) == NULL);
   g_fail_io_after = -1;
 

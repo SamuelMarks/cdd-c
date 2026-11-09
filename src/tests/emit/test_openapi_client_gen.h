@@ -92,11 +92,11 @@ TEST test_gen_client_basic(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_test_op(") != NULL);
   free(content);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx") != NULL);
   free(content);
 
@@ -136,7 +136,7 @@ TEST test_gen_client_operation_server_override(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "\"https://op.example.com/api\"") != NULL);
   free(content);
 
@@ -175,7 +175,7 @@ TEST test_gen_client_text_plain_request_body(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "\"Content-Type\", \"text/plain\"") != NULL);
   ASSERT(strstr(content, "req.body_len = strlen(req_body)") != NULL);
   free(content);
@@ -212,7 +212,7 @@ TEST test_gen_client_octet_stream_request_body(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "\"Content-Type\", \"application/octet-stream\"") !=
          NULL);
   ASSERT(strstr(content, "req.body_len = body_len") != NULL);
@@ -249,7 +249,7 @@ TEST test_gen_client_octet_stream_response_body(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "unsigned char *tmp =") != NULL);
   ASSERT(strstr(content, "memcpy(tmp, res->body, res->body_len)") != NULL);
   free(content);
@@ -298,7 +298,7 @@ TEST test_gen_client_default_base_url_from_server(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content,
                 "const char *default_url = \"https://api.example.com/v1\";") !=
          NULL);
@@ -337,7 +337,7 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "const char *default_url = \"/\";") != NULL);
   ASSERT(strstr(content, "if (!base_url || base_url[0] == '\\0')") != NULL);
   free(content);
@@ -392,11 +392,11 @@ TEST test_gen_client_additional_operation(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_custom_connect(") != NULL);
   free(content);
 
-  read_to_file(c_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "req.method = HTTP_CONNECT;") != NULL);
   free(content);
 
@@ -437,7 +437,7 @@ TEST test_gen_client_op_params_only(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, int limit") !=
          NULL);
   free(content);
@@ -481,7 +481,7 @@ TEST test_gen_client_querystring_param(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "[in:querystring] Parameter.") != NULL);
   free(content);
 
@@ -525,7 +525,7 @@ TEST test_gen_client_path_level_params(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   ASSERT(
       strstr(content,
              "int api_test_op(struct HttpClient *ctx, const char *x_trace") !=
@@ -580,7 +580,7 @@ TEST test_gen_client_path_param_override(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "const char *id") != NULL);
   free(content);
 
@@ -623,7 +623,7 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   /* Should be Foo_Pet_api_test_op */
   /* Namespace "Foo", Tag "Pet" (capitalized), Prefix "api_" */
   ASSERT(strstr(content, "int Foo_Pet_api_test_op(") != NULL);
@@ -663,7 +663,7 @@ TEST test_gen_client_namespace_only(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file(h_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(h_file, "r", &content, &sz);
   /* Should be Bar_api_test_op */
   ASSERT(strstr(content, "int Bar_api_test_op(") != NULL);
   free(content);
@@ -739,24 +739,28 @@ TEST test_gen_client_defaults(void) {
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
   /* Check header for default guard and model include logic */
-  read_to_file("build/test_out/src/gen_def.h", "r", &content, &sz);
+  g_cdd_last_alloc_err =
+      read_to_file("build/test_out/src/gen_def.h", "r", &content, &sz);
   ASSERT(strstr(content, "GEN_DEF_H") != NULL);
   /* Derived model header name should be present in the header file */
   ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
   free(content);
 
   /* Check source for header inclusion */
-  read_to_file("build/test_out/src/gen_def.c", "r", &content, &sz);
+  g_cdd_last_alloc_err =
+      read_to_file("build/test_out/src/gen_def.c", "r", &content, &sz);
   ASSERT(strstr(content, "#include \"gen_def.h\"") != NULL);
   free(content);
 
   /* Check models header */
-  read_to_file("build/test_out/src/gen_def_models.h", "r", &content, &sz);
+  g_cdd_last_alloc_err =
+      read_to_file("build/test_out/src/gen_def_models.h", "r", &content, &sz);
   ASSERT(strstr(content, "GEN_DEF_H_MODELS") != NULL);
   free(content);
 
   /* Check models source */
-  read_to_file("build/test_out/src/gen_def_models.c", "r", &content, &sz);
+  g_cdd_last_alloc_err =
+      read_to_file("build/test_out/src/gen_def_models.c", "r", &content, &sz);
   ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
   free(content);
 
@@ -784,7 +788,8 @@ TEST test_gen_transport_selection(void) {
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
-  read_to_file("build/test_out/src/gen_transport.c", "r", &content, &sz);
+  g_cdd_last_alloc_err =
+      read_to_file("build/test_out/src/gen_transport.c", "r", &content, &sz);
 
   /* Verify macros are present in preamble */
   ASSERT(strstr(content, "#ifdef USE_WININET") != NULL);
@@ -845,7 +850,7 @@ TEST test_mcp_raw_schemas_io_fail(void) {
   for (i = 0; i < 30; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    openapi_client_generate(&spec, &config);
+    g_cdd_last_alloc_err = openapi_client_generate(&spec, &config);
   }
   g_fail_io_after = -1;
 

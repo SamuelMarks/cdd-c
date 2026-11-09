@@ -398,7 +398,7 @@ TEST test_c2openapi_helpers_tags_and_sources(void) {
   ASSERT_EQ(1, is_src);
 
   /* spec_has_tag, spec_add_tag, spec_find_tag */
-  openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
   rc = c2openapi_spec_has_tag(NULL, "tag", NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = c2openapi_spec_has_tag(NULL, "tag", &has_tag);
@@ -474,7 +474,7 @@ TEST test_c2openapi_helpers_tags_and_sources(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -598,7 +598,7 @@ TEST test_c2openapi_helpers_server_variables(void) {
 
   enums[0] = cdd_test_mut_str("8080");
   enums[1] = cdd_test_mut_str("8081");
-  c2openapi_free_openapi_server_variables(NULL);
+  g_cdd_last_alloc_err = c2openapi_free_openapi_server_variables(NULL);
 
   memset(&srv, 0, sizeof(srv));
   memset(&doc_srv, 0, sizeof(doc_srv));
@@ -634,7 +634,7 @@ TEST test_c2openapi_helpers_server_variables(void) {
   ASSERT_STR_EQ("8080", srv.variables[0].default_value);
   ASSERT_STR_EQ("The port", srv.variables[0].description);
   ASSERT_EQ(2, srv.variables[0].n_enum_values);
-  c2openapi_free_openapi_server_variables(&srv);
+  g_cdd_last_alloc_err = c2openapi_free_openapi_server_variables(&srv);
 
   PASS();
 }
@@ -648,8 +648,8 @@ TEST test_c2openapi_helpers_global_meta_conflicts(void) {
   struct DocMetadata meta;
   cdd_c_error_t rc = 0;
 
-  openapi_spec_init(&spec);
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
 
   /* NULL spec or meta */
   rc = c2openapi_apply_doc_global_meta(NULL, &meta);
@@ -670,7 +670,8 @@ TEST test_c2openapi_helpers_global_meta_conflicts(void) {
 
   /* License url with spec license identifier */
   meta.license_identifier = NULL;
-  c_cdd_strdup("Apache-2.0", &spec.info.license.identifier);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("Apache-2.0", &spec.info.license.identifier);
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   C_CDD_FREE(spec.info.license.identifier);
@@ -679,7 +680,8 @@ TEST test_c2openapi_helpers_global_meta_conflicts(void) {
   /* License identifier with spec license url */
   meta.license_url = NULL;
   meta.license_identifier = cdd_test_mut_str("MIT");
-  c_cdd_strdup("http://example.com/lic", &spec.info.license.url);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("http://example.com/lic", &spec.info.license.url);
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   C_CDD_FREE(spec.info.license.url);
@@ -756,7 +758,7 @@ TEST test_c2openapi_helpers_global_meta_conflicts(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -768,7 +770,7 @@ TEST test_c2openapi_helpers_signature_parsing(void) {
   struct C2OpenAPI_ParsedSig sig;
   cdd_c_error_t rc = 0;
 
-  c2openapi_free_parsed_sig(NULL);
+  g_cdd_last_alloc_err = c2openapi_free_parsed_sig(NULL);
 
   /* Invalid arguments */
   rc = c2openapi_parse_c_signature_string(NULL, &sig);
@@ -784,7 +786,7 @@ TEST test_c2openapi_helpers_signature_parsing(void) {
   rc = c2openapi_parse_c_signature_string("void my_empty_func(void)", &sig);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("my_empty_func", sig.name);
-  c2openapi_free_parsed_sig(&sig);
+  g_cdd_last_alloc_err = c2openapi_free_parsed_sig(&sig);
 
   rc = c2openapi_parse_c_signature_string(
       "int calculate(int a, const char *b, double arr[])", &sig);
@@ -797,7 +799,7 @@ TEST test_c2openapi_helpers_signature_parsing(void) {
   ASSERT_STR_EQ("const char *", sig.args[1].type);
   ASSERT_STR_EQ("arr", sig.args[2].name);
   ASSERT_STR_EQ("double []", sig.args[2].type);
-  c2openapi_free_parsed_sig(&sig);
+  g_cdd_last_alloc_err = c2openapi_free_parsed_sig(&sig);
 
   rc = c2openapi_parse_c_signature_string("int tabbed(\tint a)", &sig);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -805,7 +807,7 @@ TEST test_c2openapi_helpers_signature_parsing(void) {
   ASSERT_EQ(1, sig.n_args);
   ASSERT_STR_EQ("a", sig.args[0].name);
   ASSERT_STR_EQ("int", sig.args[0].type);
-  c2openapi_free_parsed_sig(&sig);
+  g_cdd_last_alloc_err = c2openapi_free_parsed_sig(&sig);
 
   PASS();
 }
@@ -819,7 +821,7 @@ TEST test_c2openapi_helpers_load_base_and_walker(void) {
   const char *test_c_file = "build/test_c2openapi_walker.c";
   cdd_c_error_t rc = 0;
 
-  openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
 
   /* load_base_spec errors */
   rc = c2openapi_load_base_spec(NULL, &spec);
@@ -838,31 +840,31 @@ TEST test_c2openapi_helpers_load_base_and_walker(void) {
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
 
   /* process_file on C file with documented route and webhook */
-  write_to_file(test_c_file,
-                "/**\n"
-                " * @summary Get User\n"
-                " * @route GET /api/users/{id}\n"
-                " * @param id [in:path] [type:integer] User identifier\n"
-                " * @response 200 OK\n"
-                " */\n"
-                "void get_user(int id) {}\n\n"
-                "/**\n"
-                " * @summary User Event\n"
-                " * @webhook POST /events/user\n"
-                " * @response 200 OK\n"
-                " */\n"
-                "void on_user_event(void) {}\n\n"
-                "/**\n"
-                " * @title Standalone Global Doc\n"
-                " * @version 2.0.0\n"
-                " */\n");
+  g_cdd_last_alloc_err = write_to_file(
+      test_c_file, "/**\n"
+                   " * @summary Get User\n"
+                   " * @route GET /api/users/{id}\n"
+                   " * @param id [in:path] [type:integer] User identifier\n"
+                   " * @response 200 OK\n"
+                   " */\n"
+                   "void get_user(int id) {}\n\n"
+                   "/**\n"
+                   " * @summary User Event\n"
+                   " * @webhook POST /events/user\n"
+                   " * @response 200 OK\n"
+                   " */\n"
+                   "void on_user_event(void) {}\n\n"
+                   "/**\n"
+                   " * @title Standalone Global Doc\n"
+                   " * @version 2.0.0\n"
+                   " */\n");
 
   rc = c2openapi_process_file(test_c_file, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(spec.n_paths >= 1);
   ASSERT(spec.n_webhooks >= 1);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   remove(test_c_file);
   PASS();
 }

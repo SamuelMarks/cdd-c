@@ -184,7 +184,7 @@ TEST test_client_gui_gen_errors(void) {
 
   /* Test fopen failures */
   /* Case 1: fp_h fails to open because it is a directory */
-  makedirs("test_build_dir/bad_gui1/src/bad_gui_gui.h");
+  g_cdd_last_alloc_err = makedirs("test_build_dir/bad_gui1/src/bad_gui_gui.h");
   config.filename_base = cdd_test_mut_str("test_build_dir/bad_gui1/bad_gui");
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
@@ -192,7 +192,7 @@ TEST test_client_gui_gen_errors(void) {
 
   /* Case 2: fp_c fails to open because it is a directory (while fp_h succeeds
    * and must be closed) */
-  makedirs("test_build_dir/bad_gui2/src/bad_gui_gui.c");
+  g_cdd_last_alloc_err = makedirs("test_build_dir/bad_gui2/src/bad_gui_gui.c");
   config.filename_base = cdd_test_mut_str("test_build_dir/bad_gui2/bad_gui");
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);

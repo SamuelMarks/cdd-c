@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "c_cdd/memory.h"
+#include "c_cdd/reflect.h"
 #include "classes/emit/cli_struct.h"
 #include "classes/emit/cli_struct_internal.h"
 #include "classes/parse/cdd_serde.h"
@@ -423,13 +424,13 @@ cdd_c_error_t cdd_cli_expand_response_files(int argc, char **argv,
     if (i > 0 && arg[0] == '@' && arg[1] != '\0') {
       rc = cli_expand_rsp_file(arg + 1, 1, &new_argc, &cap, &new_argv);
       if (rc != CDD_C_SUCCESS) {
-        cdd_cli_free_argv(new_argc, new_argv);
+        g_cdd_last_alloc_err = cdd_cli_free_argv(new_argc, new_argv);
         return rc;
       }
     } else {
       rc = cli_argv_push(&new_argc, &cap, &new_argv, arg);
       if (rc != CDD_C_SUCCESS) {
-        cdd_cli_free_argv(new_argc, new_argv);
+        g_cdd_last_alloc_err = cdd_cli_free_argv(new_argc, new_argv);
         return rc;
       }
     }
@@ -452,6 +453,98 @@ cdd_c_error_t cdd_cli_free_argv(int argc, char **argv) {
     C_CDD_FREE(argv[i]);
   }
   C_CDD_FREE(argv);
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Parses CLI flags from `(argc, argv)` starting at `start_idx` into a
+ * reflected struct `target` using `ti` field metadata.
+ */
+cdd_c_error_t cdd_cli_parse_reflected_argv(int argc, char **argv, int start_idx,
+                                           const struct cdd_type_info *ti,
+                                           void *target, int *out_help,
+                                           int *out_first_unknown) {
+  int i;
+  if (out_help)
+    *out_help = 0;
+  if (out_first_unknown)
+    *out_first_unknown = -1;
+  if (!ti || !target || start_idx < 0 || (argc > start_idx && !argv))
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  for (i = start_idx; i < argc; ++i) {
+    const char *arg = argv[i];
+    const struct cdd_field_info *f = NULL;
+    const char *flag;
+    char key_buf[64];
+    const char *eq_val = NULL;
+
+    if (!arg)
+      continue;
+    if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
+      if (out_help)
+        *out_help = 1;
+      return CDD_C_SUCCESS;
+    }
+    if (arg[0] != '-') {
+      if (out_first_unknown && *out_first_unknown < 0)
+        *out_first_unknown = i;
+      continue;
+    }
+
+    flag = arg + (arg[1] == '-' ? 2 : 1);
+    {
+      const char *eq = strchr(flag, '=');
+      if (eq) {
+        size_t klen = (size_t)(eq - flag);
+        if (klen >= sizeof(key_buf))
+          klen = sizeof(key_buf) - 1;
+        memcpy(key_buf, flag, klen);
+        key_buf[klen] = '\0';
+        flag = key_buf;
+        eq_val = eq + 1;
+      }
+    }
+
+    if (cdd_reflect_find_field(ti, flag, &f) == CDD_C_SUCCESS) {
+      if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
+        int bval = 1;
+        if (eq_val &&
+            (strcmp(eq_val, "0") == 0 || strcmp(eq_val, "false") == 0)) {
+          bval = 0;
+        }
+        memcpy((unsigned char *)target + f->offset, &bval, sizeof(bval));
+      } else if (f->kind == CDD_FIELD_KIND_INTEGER) {
+        const char *val_str = eq_val;
+        int parsed_int;
+        if (!val_str) {
+          if (i + 1 >= argc)
+            return CDD_C_ERROR_INVALID_ARGUMENT;
+          val_str = argv[++i];
+        }
+        parsed_int = atoi(val_str);
+        if (f->size == sizeof(size_t)) {
+          size_t sz_val = (size_t)parsed_int;
+          memcpy((unsigned char *)target + f->offset, &sz_val, sizeof(sz_val));
+        } else {
+          memcpy((unsigned char *)target + f->offset, &parsed_int,
+                 sizeof(parsed_int));
+        }
+      } else {
+        const char *val_str = eq_val;
+        if (!val_str) {
+          if (i + 1 >= argc)
+            return CDD_C_ERROR_INVALID_ARGUMENT;
+          val_str = argv[++i];
+        }
+        memcpy((unsigned char *)target + f->offset, &val_str, sizeof(val_str));
+      }
+    } else {
+      if (out_first_unknown && *out_first_unknown < 0)
+        *out_first_unknown = i;
+    }
+  }
+
   return CDD_C_SUCCESS;
 }
 

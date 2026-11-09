@@ -47,7 +47,8 @@ TEST test_openapi_null_and_invalid_args(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("\"string_not_obj\"", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("\"string_not_obj\"", &_cdd_jv_1);
     jv_str = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv_str);
@@ -57,34 +58,35 @@ TEST test_openapi_null_and_invalid_args(void) {
   /* Test root is not an object and not boolean */
   rc = openapi_load_from_json(jv_str, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  json_value_free(jv_str);
+  g_cdd_last_alloc_err = json_value_free(jv_str);
 
   /* Boolean schema document */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_boolean(1, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_boolean(1, &_cdd_jv_1);
     jv_bool = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv_bool);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv_bool, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
-  json_value_free(jv_bool);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = json_value_free(jv_bool);
 
   /* Test empty retrieval_uri string */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"openapi\": \"3.0.0\", \"info\": {\"title\": "
-                          "\"T\", \"version\": \"1\"}, \"paths\": {}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"openapi\": \"3.0.0\", \"info\": {\"title\": "
+                              "\"T\", \"version\": \"1\"}, \"paths\": {}}",
+                              &_cdd_jv_1);
     jv_str = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv_str);
   rc = openapi_load_from_json_with_context(jv_str, "", &spec, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
-  json_value_free(jv_str);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = json_value_free(jv_str);
 
   /* openapi_spec_find_schema checks */
   rc = openapi_spec_find_schema(NULL, "User", &sf);
@@ -358,10 +360,10 @@ TEST test_openapi_spec_find_schema_for_ref_branches(void) {
   memset(&ref, 0, sizeof(ref));
   memset(fields, 0, sizeof(fields));
 
-  openapi_doc_registry_init(&reg);
+  g_cdd_last_alloc_err = openapi_doc_registry_init(&reg);
   target_spec.retrieval_uri =
       cdd_test_mut_str("http://example.com/base/sub.json");
-  openapi_doc_registry_add(&reg, &target_spec);
+  g_cdd_last_alloc_err = openapi_doc_registry_add(&reg, &target_spec);
 
   anchors[0] = static_name;
   anchors[1] = NULL;
@@ -552,7 +554,7 @@ TEST test_openapi_spec_find_schema_for_ref_branches(void) {
     g_cdd_fail_find_schema_by_id = 0;
   }
 
-  openapi_doc_registry_free(&reg);
+  g_cdd_last_alloc_err = openapi_doc_registry_free(&reg);
   PASS();
 }
 
@@ -566,12 +568,13 @@ TEST test_openapi_schema_document_extra_branches(void) {
   JSON_Value *jv;
   cdd_c_error_t rc = 0;
 
-  openapi_doc_registry_init(&reg);
+  g_cdd_last_alloc_err = openapi_doc_registry_init(&reg);
 
   /* Schema doc with empty $id and non-empty retrieval_uri */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"$id\": \"\", \"type\": \"object\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"$id\": \"\", \"type\": \"object\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -579,7 +582,7 @@ TEST test_openapi_schema_document_extra_branches(void) {
   rc = openapi_load_from_json_with_context(jv, "http://example.com/schema.json",
                                            &spec, &reg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* Second load of identical document with same retrieval_uri triggers
    * duplicate in registry */
@@ -587,12 +590,12 @@ TEST test_openapi_schema_document_extra_branches(void) {
   rc = openapi_load_from_json_with_context(jv, "http://example.com/schema.json",
                                            &spec, &reg);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Schema doc compute_document_uri OOM failure */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"$id\": \"http://example.com/id.json\", \"type\": \"object\"}",
         &_cdd_jv_1);
     jv = _cdd_jv_1;
@@ -603,13 +606,14 @@ TEST test_openapi_schema_document_extra_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Schema doc store_schema_root_json OOM failure (no $id and no retrieval_uri)
    */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -618,9 +622,9 @@ TEST test_openapi_schema_document_extra_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
-  openapi_doc_registry_free(&reg);
+  g_cdd_last_alloc_err = openapi_doc_registry_free(&reg);
   PASS();
 }
 
@@ -645,7 +649,7 @@ TEST test_openapi_swagger_oom_and_specs(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(swag_json, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(swag_json, &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -654,7 +658,7 @@ TEST test_openapi_swagger_oom_and_specs(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* OOM on swagger_version */
   memset(&spec, 0, sizeof(spec));
@@ -719,7 +723,7 @@ TEST test_openapi_swagger_oom_and_specs(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
   PASS();
 }
 
@@ -747,14 +751,14 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "\"https://auth.com\", \"scopes\": {}}}}}}}";
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(oauth2_no_schemas, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(oauth2_no_schemas, &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* OOM on json_value_init_object inside OAuth2 schemas */
   memset(&spec, 0, sizeof(spec));
@@ -762,7 +766,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Spec with self_uri and jsonSchemaDialect */
   self_and_dialect =
@@ -772,7 +776,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "\"T\", \"version\": \"1.0\"}, \"paths\": {}}";
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(self_and_dialect, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(self_and_dialect, &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -791,12 +795,12 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
 
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Root extensions failure */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"T\", \"version\": "
         "\"1.0\"}, \"x-custom\": \"val\", \"paths\": {}}",
         &_cdd_jv_1);
@@ -808,7 +812,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_fail_extensions_init = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Paths extensions failure */
   paths_ext =
@@ -817,7 +821,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "{\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}";
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(paths_ext, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(paths_ext, &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -826,7 +830,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_fail_extensions_init = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Webhooks extensions failure */
   webhooks_ext =
@@ -835,7 +839,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "{\"post\": {\"responses\": {\"200\": {\"description\": \"ok\"}}}}}}";
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(webhooks_ext, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(webhooks_ext, &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -844,7 +848,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_fail_extensions_init = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Components extensions failure */
   comps_ext =
@@ -852,7 +856,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
       "\"1.0\"}, \"components\": {\"x-comp-custom\": \"val\"}}";
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(comps_ext, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(comps_ext, &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
@@ -861,7 +865,7 @@ TEST test_openapi_oauth2_and_extensions_branches(void) {
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_fail_extensions_init = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   PASS();
 }
@@ -879,21 +883,22 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   /* No paths, webhooks, or components */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"openapi\": \"3.1.0\", \"info\": {\"title\": "
-                          "\"NoPaths\", \"version\": \"1.0\"}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"openapi\": \"3.1.0\", \"info\": {\"title\": "
+                              "\"NoPaths\", \"version\": \"1.0\"}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv);
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Path template collision */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"T\", \"version\": "
         "\"1.0\"},"
         " \"paths\": {\"/users/{id}\": {\"get\": {\"responses\": {\"200\": "
@@ -907,12 +912,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string usage error in paths: multiple querystring params */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
         "\"1.0\"},"
         " \"paths\": {\"/users\": {\"parameters\": ["
@@ -930,12 +935,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string usage in webhooks: multiple querystring params */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
         "\"1.0\"},"
         " \"webhooks\": {\"webhook\": {\"parameters\": ["
@@ -954,12 +959,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string usage in component_path_items: multiple querystring params */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.2.0\", \"info\": {\"title\": \"T\", \"version\": "
         "\"1.0\"},"
         " \"paths\": {\"/ok\": {\"get\": {\"responses\": {\"200\": "
@@ -980,12 +985,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string violation in path callbacks */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"paths\":{\"/"
         "p\":{\"get\":{\"callbacks\":{\"myCb\":{\"{$url}\":{\"parameters\":["
@@ -1001,12 +1006,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string violation in webhook callbacks */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"webhooks\":{\"hook\":{\"post\":{\"callbacks\":{\"myCb\":{\"{$url}\":"
         "{"
@@ -1023,12 +1028,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string violation in component path item callbacks */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"paths\":{\"/ok\":{}},"
         "\"components\":{\"pathItems\":{\"item\":{\"get\":{\"callbacks\":{"
@@ -1045,12 +1050,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Query string violation in component callbacks */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"paths\":{\"/ok\":{}},"
         "\"components\":{\"callbacks\":{\"myCb\":{\"{$url}\":{\"parameters\":["
@@ -1066,12 +1071,12 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Duplicate operationId validation failure */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"T\", \"version\": "
         "\"1.0\"},"
         " \"paths\": {\"/a\": {\"get\": {\"operationId\": \"dupOp\", "
@@ -1085,13 +1090,13 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json(jv, &spec);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Registry add failure with OpenAPI spec (duplicate self_uri in registry) */
-  openapi_doc_registry_init(&reg);
+  g_cdd_last_alloc_err = openapi_doc_registry_init(&reg);
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\": \"3.0.0\", \"$self\": \"http://example.com/api.json\","
         " \"info\": {\"title\": \"RegTest\", \"version\": \"1.0\"},"
         " \"paths\": {}}",
@@ -1102,13 +1107,13 @@ TEST test_openapi_load_extensions_and_validation_errors(void) {
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json_with_context(jv, NULL, &spec, &reg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   memset(&spec, 0, sizeof(spec));
   rc = openapi_load_from_json_with_context(jv, NULL, &spec, &reg);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  json_value_free(jv);
-  openapi_doc_registry_free(&reg);
+  g_cdd_last_alloc_err = json_value_free(jv);
+  g_cdd_last_alloc_err = openapi_doc_registry_free(&reg);
 
   PASS();
 }

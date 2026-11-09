@@ -112,7 +112,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     }
 
     rc = openapi_load_from_json(root, &spec);
-    cdd_json_value_free(root);
+    g_cdd_last_alloc_err = cdd_json_value_free(root);
 
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to load openapi spec from %s\n", config->input);
@@ -122,7 +122,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     if (config->output) {
       rc = fs_path_join(config->output, "generated_client", &alloc_path);
       if (rc != CDD_C_SUCCESS) {
-        openapi_spec_free(&spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&spec);
         return rc;
       }
       client_cfg.filename_base = alloc_path;
@@ -146,7 +146,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     if (alloc_path) {
       C_CDD_FREE(alloc_path);
     }
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   return rc;
@@ -436,7 +436,7 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
     JSON_Value *workflows_val = NULL;
     JSON_Object *workflows_obj = NULL;
 
-    cdd_json_value_free(parsed_root);
+    g_cdd_last_alloc_err = cdd_json_value_free(parsed_root);
     rc = cdd_json_value_init_object(&workflows_val);
     rc = cdd_json_value_get_object(workflows_val, &workflows_obj);
     rc = cdd_json_value_init_object(&root_val);
@@ -479,11 +479,11 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
       rc = cdd_json_object_set_value(workflows_obj, wf_id, code_val);
     }
     rc = cdd_json_object_set_value(root_obj, "workflows", workflows_val);
-    arazzo_spec_free(&az_spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(&az_spec);
   } else {
-    arazzo_spec_free(&az_spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(&az_spec);
     rc = openapi_load_from_json(parsed_root, &spec);
-    cdd_json_value_free(parsed_root);
+    g_cdd_last_alloc_err = cdd_json_value_free(parsed_root);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
@@ -505,7 +505,7 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
                                       spec.n_webhooks, no_imports, no_wrapping);
       rc = cdd_json_object_set_value(root_obj, "webhooks", webhooks_val);
     }
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   rc = cdd_json_serialize_to_string_pretty(root_val, &serialized);
@@ -525,8 +525,8 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   } else {
     printf("%s\n", serialized);
   }
-  cdd_json_free_serialized_string(serialized);
-  cdd_json_value_free(root_val);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(serialized);
+  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
   return rc;
 }
 
@@ -643,7 +643,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     return rc;
 
   rc = cdd_dsl_parse(&tokens, &ir);
-  cdd_dsl_token_list_free(&tokens);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&tokens);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -652,7 +652,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     rc = cdd_ffi_emit_dsl(ir, config);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   C_CDD_FREE(ir);
   return rc;
 }
@@ -700,7 +700,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   /* Sort IR dependencies */
   rc = cdd_ffi_ir_topological_sort(ir);
   if (rc != CDD_C_SUCCESS) {
-    cdd_ffi_ir_free(ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     C_CDD_FREE(ir);
     C_CDD_FREE(file_content);
     return rc;
@@ -731,7 +731,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         rc = EMITTERS[i].emit(ir, config);
         if (rc != CDD_C_SUCCESS) {
           printf("Failed at %s, rc = %d\n", EMITTERS[i].name, rc);
-          cdd_ffi_ir_free(ir);
+          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
           C_CDD_FREE(ir);
           C_CDD_FREE(file_content);
           return rc;
@@ -741,7 +741,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   }
 
   /* Cleanup */
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   C_CDD_FREE(ir);
   C_CDD_FREE(file_content);
 
@@ -775,7 +775,7 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
     return CDD_C_ERROR_IO;
   }
   rc = arazzo_load_from_json_value(root, &arazzo_spec);
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
@@ -786,7 +786,7 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
       if (openapi_load_from_json(oa_root, &openapi_spec) == CDD_C_SUCCESS) {
         has_openapi = 1;
       }
-      cdd_json_value_free(oa_root);
+      g_cdd_last_alloc_err = cdd_json_value_free(oa_root);
     }
   }
 
@@ -808,9 +808,9 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
   }
 
   if (has_openapi) {
-    openapi_spec_free(&openapi_spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&openapi_spec);
   }
-  arazzo_spec_free(&arazzo_spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&arazzo_spec);
   return rc;
 }
 
@@ -838,7 +838,7 @@ cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {
   }
   rc = c2arazzo_parse_dir(config->input, &spec);
   if (rc != CDD_C_SUCCESS) {
-    arazzo_spec_free(&spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(&spec);
     return rc;
   }
   if (config->self_uri && *config->self_uri) {
@@ -846,12 +846,12 @@ cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {
     spec.self_uri = NULL;
     rc = c_cdd_strdup(config->self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {
-      arazzo_spec_free(&spec);
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec);
       return rc;
     }
   }
   rc = arazzo_write_spec_to_json(&spec, &json);
-  arazzo_spec_free(&spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }

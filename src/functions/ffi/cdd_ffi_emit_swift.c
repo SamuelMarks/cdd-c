@@ -144,7 +144,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "public class %sWrapper {\n", node->name);
@@ -158,7 +158,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *stype = NULL;
-        get_swift_type(node->fields[j].type, &stype);
+        g_cdd_last_alloc_err = get_swift_type(node->fields[j].type, &stype);
         fprintf(f, "    public var %s: %s {\n", fname, stype);
         fprintf(f, "        get { return inner.%s }\n", fname);
         fprintf(f, "        set { inner.%s = newValue }\n", fname);
@@ -173,7 +173,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    /// %s\n", node->doc);
       fprintf(f, "    public static func %s(", node->name);
@@ -186,7 +186,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
           arg_name = "clazz";
         if (strcmp(arg_name, "inout") == 0)
           arg_name = "inout_";
-        get_swift_type(node->fields[j].type, &st);
+        g_cdd_last_alloc_err = get_swift_type(node->fields[j].type, &st);
         fprintf(f, "_ %s: %s", arg_name, st);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -195,7 +195,8 @@ emit_swift_file(cdd_ffi_ir_t *ir,
 
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
         const char *ret_st = NULL;
-        get_swift_type(node->return_or_base_type, &ret_st);
+        g_cdd_last_alloc_err =
+            get_swift_type(node->return_or_base_type, &ret_st);
         fprintf(f, " -> %s", ret_st);
       }
       fprintf(f, " {\n");

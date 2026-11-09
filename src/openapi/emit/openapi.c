@@ -84,8 +84,13 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
     rc = c_cdd_strdup(spec->schema_root_json, json_out);
     return (rc == CDD_C_SUCCESS) ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
-  if (license_fields_invalid(&spec->info.license))
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  {
+    int lic_invalid = 0;
+    g_cdd_last_alloc_err =
+        license_fields_invalid(&spec->info.license, &lic_invalid);
+    if (lic_invalid)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
 
   rc = cdd_json_value_init_object(&root_val);
   if (rc != CDD_C_SUCCESS) {

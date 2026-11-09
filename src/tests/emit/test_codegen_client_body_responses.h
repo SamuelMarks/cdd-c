@@ -40,7 +40,9 @@ TEST test_body_response_range_success(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_36), _ast_gen_body_36);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_36),
+          _ast_gen_body_36);
   ASSERT(code);
   ASSERT(strstr(code, "status_code >= 200") != NULL);
   ASSERT(strstr(code, "Pet_from_json") != NULL);
@@ -75,7 +77,9 @@ TEST test_body_default_response_success(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_37), _ast_gen_body_37);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_37),
+          _ast_gen_body_37);
   ASSERT(code);
   ASSERT(strstr(code, "default response") != NULL);
   ASSERT(strstr(code, "Pet_from_json") != NULL);
@@ -111,7 +115,9 @@ TEST test_body_text_plain_response_string(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_38), _ast_gen_body_38);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_38),
+          _ast_gen_body_38);
   ASSERT(code);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
   ASSERT(strstr(code, "*out = tmp") != NULL);
@@ -147,7 +153,9 @@ TEST test_body_text_plain_response_range(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_39), _ast_gen_body_39);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_39),
+          _ast_gen_body_39);
   ASSERT(code);
   ASSERT(strstr(code, "status_code >= 200") != NULL);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
@@ -183,7 +191,9 @@ TEST test_body_text_plain_response_default(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_40), _ast_gen_body_40);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_40),
+          _ast_gen_body_40);
   ASSERT(code);
   ASSERT(strstr(code, "default response") != NULL);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
@@ -219,7 +229,9 @@ TEST test_body_textual_response_xml(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_41), _ast_gen_body_41);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_41),
+          _ast_gen_body_41);
   ASSERT(code);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
   ASSERT(strstr(code, "*out = tmp") != NULL);
@@ -254,7 +266,9 @@ TEST test_body_binary_response_pdf(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_42), _ast_gen_body_42);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_42),
+          _ast_gen_body_42);
   ASSERT(code);
   ASSERT(strstr(code, "unsigned char *tmp") != NULL);
   ASSERT(strstr(code, "*out_len = res->body_len") != NULL);
@@ -289,37 +303,48 @@ TEST test_client_body_verb_mapping(void) {
   op.is_additional = 1;
 
   op.method = NULL;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("get");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("post");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("put");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("delete");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("head");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("patch");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("options");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("trace");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("query");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.method = cdd_test_mut_str("unknown");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -355,7 +380,8 @@ TEST test_client_body_mapped_err_code(void) {
   op.responses[3].code = cdd_test_mut_str("404");
   op.responses[4].code = cdd_test_mut_str("500");
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.responses);
   if (fp)
@@ -389,16 +415,20 @@ TEST test_client_body_media_type_matching(void) {
   op.summary = cdd_test_mut_str("Test summary");
 
   op.req_body.content_type = cdd_test_mut_str("application/vnd.github+JSON");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type = cdd_test_mut_str("APPLICATION/XML");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type = cdd_test_mut_str("text/plain");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -436,13 +466,15 @@ TEST test_client_body_find_media_type_not_found(void) {
   op.req_body_media_types[0].name =
       cdd_test_mut_str("application/json"); /* Doesn't match */
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
   op.req_body_media_types[0].name =
       cdd_test_mut_str("application/xml"); /* Doesn't match */
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.req_body_media_types);
   if (fp)
@@ -493,7 +525,8 @@ TEST test_client_body_find_encoding_not_found(void) {
   /* Setup the global Spec schema definitions */
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchema", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchema", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -521,7 +554,8 @@ TEST test_client_body_find_encoding_not_found(void) {
 #endif
 #endif
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -567,7 +601,8 @@ TEST test_client_body_array_items_statics(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchema2", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchema2", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 5;
@@ -727,13 +762,15 @@ TEST test_client_body_array_items_statics(void) {
 #endif
   spec.defined_schemas[0].fields[4].ref[0] = '\0';
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type =
       cdd_test_mut_str("application/x-www-form-urlencoded");
   op.req_body_media_types[0].name =
       cdd_test_mut_str("application/x-www-form-urlencoded");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);

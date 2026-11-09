@@ -406,15 +406,18 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         rc = clone_trivia_list_mutate(orig_tok->trailing_trivia,
                                       &new_tok->trailing_trivia);
         if (rc != CDD_C_SUCCESS) {
-          free_trivia_list_mutate(new_tok->leading_trivia);
+          g_cdd_last_alloc_err =
+              free_trivia_list_mutate(new_tok->leading_trivia);
           C_CDD_FREE(new_tok);
           goto err;
         }
 
         rc = track_synthesized_token_mutate(tree, new_tok);
         if (rc != CDD_C_SUCCESS) {
-          free_trivia_list_mutate(new_tok->leading_trivia);
-          free_trivia_list_mutate(new_tok->trailing_trivia);
+          g_cdd_last_alloc_err =
+              free_trivia_list_mutate(new_tok->leading_trivia);
+          g_cdd_last_alloc_err =
+              free_trivia_list_mutate(new_tok->trailing_trivia);
           C_CDD_FREE(new_tok);
           goto err;
         }
@@ -440,7 +443,7 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   return CDD_C_SUCCESS;
 
 err:
-  cdd_cst_free_node(clone);
+  g_cdd_last_alloc_err = cdd_cst_free_node(clone);
   return rc;
 }
 

@@ -44,7 +44,9 @@ TEST test_body_basic_get(void) {
          CDD_C_ERROR_INVALID_ARGUMENT);
   g_client_body_fail_tmpfile = 0;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_0), _ast_gen_body_0);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_0),
+       _ast_gen_body_0);
   ASSERT(code);
 
   /* Check error init */
@@ -83,8 +85,9 @@ TEST test_body_base_url_override(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/pets", "\"https://override.example.com\"",
-                   &_ast_gen_body_1),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/pets", "\"https://override.example.com\"",
+                       &_ast_gen_body_1),
           _ast_gen_body_1);
   ASSERT(code);
   ASSERT(strstr(code, "\"https://override.example.com\"") != NULL);
@@ -118,7 +121,9 @@ TEST test_body_options_verb(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_2), _ast_gen_body_2);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_2),
+       _ast_gen_body_2);
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_OPTIONS;") != NULL);
 
@@ -151,7 +156,9 @@ TEST test_body_trace_verb(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_3), _ast_gen_body_3);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_3),
+       _ast_gen_body_3);
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_TRACE;") != NULL);
 
@@ -184,7 +191,9 @@ TEST test_body_query_verb(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_4), _ast_gen_body_4);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_4),
+       _ast_gen_body_4);
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_QUERY;") != NULL);
 
@@ -219,7 +228,9 @@ TEST test_body_additional_connect_method(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_5), _ast_gen_body_5);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_5),
+       _ast_gen_body_5);
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_CONNECT;") != NULL);
 
@@ -262,7 +273,8 @@ TEST test_body_querystring_param(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
@@ -272,31 +284,36 @@ TEST test_body_querystring_param(void) {
   /* Test primitive arrays */
   param.is_array = 1;
   param.items_type = cdd_test_mut_str("string");
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("integer");
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("number");
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("boolean");
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("unsupported");
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
   free(code);
@@ -330,7 +347,9 @@ TEST test_body_inline_response_string(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_7), _ast_gen_body_7);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_7),
+       _ast_gen_body_7);
   ASSERT(code);
   ASSERT(strstr(code, "json_value_get_string") != NULL);
   ASSERT(strstr(code, "strdup(") != NULL);
@@ -366,7 +385,9 @@ TEST test_body_inline_response_array_number(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_8), _ast_gen_body_8);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_8),
+       _ast_gen_body_8);
   ASSERT(code);
   ASSERT(strstr(code, "json_array_get_count") != NULL);
   ASSERT(strstr(code, "json_array_get_number") != NULL);
@@ -402,7 +423,9 @@ TEST test_body_inline_request_body_string(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_9), _ast_gen_body_9);
+  code =
+      (g_cdd_last_alloc_err = gen_body(&op, &spec, "/", NULL, &_ast_gen_body_9),
+       _ast_gen_body_9);
   ASSERT(code);
   ASSERT(strstr(code, "json_value_init_string") != NULL);
   ASSERT(strstr(code, "json_serialize_to_string") != NULL);
@@ -440,7 +463,9 @@ TEST test_body_inline_request_body_string_json_params(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_10), _ast_gen_body_10);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_10),
+          _ast_gen_body_10);
   ASSERT(code);
   ASSERT(strstr(code, "json_value_init_string") != NULL);
   ASSERT(strstr(code, "Content-Type\", \"application/json\"") != NULL);
@@ -477,7 +502,9 @@ TEST test_body_inline_request_body_array(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_11), _ast_gen_body_11);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_11),
+          _ast_gen_body_11);
   ASSERT(code);
   ASSERT(strstr(code, "json_value_init_array") != NULL);
   ASSERT(strstr(code, "json_array_append_number") != NULL);
@@ -506,7 +533,8 @@ TEST test_body_textual_request_body_xml(void) {
   op.req_body.content_type = cdd_test_mut_str("application/xml");
   op.req_body.ref_name = cdd_test_mut_str("Pet");
 
-  code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
           _ast_gen_body_12);
   ASSERT(code);
   ASSERT(strstr(code, "req.body = (void *)req_body") != NULL);
@@ -537,8 +565,9 @@ TEST test_body_binary_request_body_pdf(void) {
   op.req_body.content_type = cdd_test_mut_str("application/pdf");
   op.req_body.ref_name = cdd_test_mut_str("Pet");
 
-  code =
-      (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13),
+          _ast_gen_body_13);
   ASSERT(code);
   ASSERT(strstr(code, "req.body = (void *)body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/pdf\"") != NULL);

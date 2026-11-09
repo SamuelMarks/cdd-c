@@ -87,52 +87,52 @@ cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "get", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "get", &eq);
   if (eq) {
     *_out_val = "HTTP_GET";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "post", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "post", &eq);
   if (eq) {
     *_out_val = "HTTP_POST";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "put", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "put", &eq);
   if (eq) {
     *_out_val = "HTTP_PUT";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "delete", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "delete", &eq);
   if (eq) {
     *_out_val = "HTTP_DELETE";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "patch", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "patch", &eq);
   if (eq) {
     *_out_val = "HTTP_PATCH";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "head", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "head", &eq);
   if (eq) {
     *_out_val = "HTTP_HEAD";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "options", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "options", &eq);
   if (eq) {
     *_out_val = "HTTP_OPTIONS";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "trace", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "trace", &eq);
   if (eq) {
     *_out_val = "HTTP_TRACE";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "query", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "query", &eq);
   if (eq) {
     *_out_val = "HTTP_QUERY";
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_iequal(method, "connect", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "connect", &eq);
   if (eq) {
     *_out_val = "HTTP_CONNECT";
     return CDD_C_SUCCESS;
@@ -383,7 +383,7 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
   if (!media_type || !prefix)
     return CDD_C_SUCCESS;
 
-  media_type_base_len(media_type, &len);
+  g_cdd_last_alloc_err = media_type_base_len(media_type, &len);
 
   pre_len = strlen(prefix);
   if (len < pre_len)
@@ -425,7 +425,7 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
   if (!media_type || !suffix)
     return CDD_C_SUCCESS;
 
-  media_type_base_len(media_type, &len);
+  g_cdd_last_alloc_err = media_type_base_len(media_type, &len);
 
   suf_len = strlen(suffix);
   if (len < suf_len)
@@ -467,7 +467,7 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
   if (!media_type || !expected)
     return CDD_C_SUCCESS;
 
-  media_type_base_len(media_type, &len);
+  g_cdd_last_alloc_err = media_type_base_len(media_type, &len);
 
   exp_len = strlen(expected);
   if (len != exp_len)
@@ -504,13 +504,13 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   if (!media_type)
     return CDD_C_SUCCESS;
 
-  media_type_ieq(media_type, "application/json", &eq);
+  g_cdd_last_alloc_err = media_type_ieq(media_type, "application/json", &eq);
   if (eq) {
     *out = 1;
     return CDD_C_SUCCESS;
   }
 
-  media_type_has_suffix(media_type, "+json", &suf);
+  g_cdd_last_alloc_err = media_type_has_suffix(media_type, "+json", &suf);
   *out = suf;
   return CDD_C_SUCCESS;
 }
@@ -651,7 +651,8 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
   if (!out || outsz == 0 || !field || !header)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out[0] = '\0';
-  sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
+  g_cdd_last_alloc_err =
+      sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
   CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
   return CDD_C_SUCCESS;
 }
@@ -670,7 +671,7 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
   *out = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  c_cdd_str_iequal(name, "Content-Type", &eq);
+  g_cdd_last_alloc_err = c_cdd_str_iequal(name, "Content-Type", &eq);
   *out = eq;
   return CDD_C_SUCCESS;
 }
@@ -692,25 +693,25 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   if (!media_type)
     return CDD_C_SUCCESS;
 
-  media_type_is_text_plain(media_type, &res);
+  g_cdd_last_alloc_err = media_type_is_text_plain(media_type, &res);
   if (res) {
     *out = 1;
     return CDD_C_SUCCESS;
   }
 
-  media_type_has_prefix(media_type, "text/", &res);
+  g_cdd_last_alloc_err = media_type_has_prefix(media_type, "text/", &res);
   if (res) {
     *out = 1;
     return CDD_C_SUCCESS;
   }
 
-  media_type_ieq(media_type, "application/xml", &res);
+  g_cdd_last_alloc_err = media_type_ieq(media_type, "application/xml", &res);
   if (res) {
     *out = 1;
     return CDD_C_SUCCESS;
   }
 
-  media_type_has_suffix(media_type, "+xml", &res);
+  g_cdd_last_alloc_err = media_type_has_suffix(media_type, "+xml", &res);
   *out = res;
   return CDD_C_SUCCESS;
 }
@@ -731,19 +732,19 @@ cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
   if (!media_type)
     return CDD_C_SUCCESS;
 
-  media_type_is_json(media_type, &res);
+  g_cdd_last_alloc_err = media_type_is_json(media_type, &res);
   if (res)
     return CDD_C_SUCCESS;
 
-  media_type_is_form(media_type, &res);
+  g_cdd_last_alloc_err = media_type_is_form(media_type, &res);
   if (res)
     return CDD_C_SUCCESS;
 
-  media_type_is_multipart(media_type, &res);
+  g_cdd_last_alloc_err = media_type_is_multipart(media_type, &res);
   if (res)
     return CDD_C_SUCCESS;
 
-  media_type_is_textual(media_type, &res);
+  g_cdd_last_alloc_err = media_type_is_textual(media_type, &res);
   if (res)
     return CDD_C_SUCCESS;
 
@@ -789,7 +790,7 @@ cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
   if (!resp || !resp->content_type)
     return CDD_C_SUCCESS;
 
-  media_type_is_textual(resp->content_type, &is_textual);
+  g_cdd_last_alloc_err = media_type_is_textual(resp->content_type, &is_textual);
   if (!is_textual)
     return CDD_C_SUCCESS;
 
@@ -835,7 +836,7 @@ cdd_c_error_t schema_has_payload(const struct OpenAPI_SchemaRef *schema,
     *out_has_payload = 1;
     return CDD_C_SUCCESS;
   }
-  schema_has_inline(schema, &has_inline);
+  g_cdd_last_alloc_err = schema_has_inline(schema, &has_inline);
   if (has_inline) {
     *out_has_payload = 1;
     return CDD_C_SUCCESS;

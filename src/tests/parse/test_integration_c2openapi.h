@@ -38,16 +38,17 @@ TEST test_c2openapi_full_flow(void) {
 
   /* 0. Setup Directories */
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   /* Use %c for PATH_SEP_C */
   asprintf((char **)&src_dir, "%s%cc2o_test_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   /* 1. Write Data Models */
-  write_to_file(h_file, "struct User { int id; char *name; };\n");
+  g_cdd_last_alloc_err =
+      write_to_file(h_file, "struct User { int id; char *name; };\n");
 
   /* 2. Write Implementation with Annotations */
   {
@@ -122,7 +123,7 @@ TEST test_c2openapi_full_flow(void) {
         114, 117, 99,  116, 32,  85,  115, 101, 114, 32,  42,  117, 41,  32,
         123, 10,  32,  32,  114, 101, 116, 117, 114, 110, 32,  48,  59,  10,
         125, 10,  0};
-    write_to_file(c_file, _tmp);
+    g_cdd_last_alloc_err = write_to_file(c_file, _tmp);
   }
 
   /* 3. Run CLI */
@@ -147,7 +148,7 @@ TEST test_c2openapi_full_flow(void) {
     JSON_Object *obj;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_file(out_json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     ASSERT(root != NULL);
@@ -156,12 +157,14 @@ TEST test_c2openapi_full_flow(void) {
     /* Check Info */
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "openapi", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "openapi", &_cdd_js_1);
       ASSERT_STR_EQ("3.2.0", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "jsonSchemaDialect", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "jsonSchemaDialect", &_cdd_js_1);
       ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
                     _cdd_js_1);
     }
@@ -261,7 +264,8 @@ TEST test_c2openapi_full_flow(void) {
       JSON_Object *comps = NULL;
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(obj, "components", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(obj, "components", &_cdd_jo_1);
         comps = _cdd_jo_1;
       }
       ASSERT(comps != NULL);
@@ -269,7 +273,8 @@ TEST test_c2openapi_full_flow(void) {
         JSON_Object *schemas = NULL;
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(comps, "schemas", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(comps, "schemas", &_cdd_jo_1);
           schemas = _cdd_jo_1;
         }
         ASSERT(schemas != NULL);
@@ -277,7 +282,8 @@ TEST test_c2openapi_full_flow(void) {
           JSON_Object *user = NULL;
           {
             JSON_Object *_cdd_jo_1 = NULL;
-            cdd_json_object_get_object(schemas, "User", &_cdd_jo_1);
+            g_cdd_last_alloc_err =
+                cdd_json_object_get_object(schemas, "User", &_cdd_jo_1);
             user = _cdd_jo_1;
           }
           ASSERT(user != NULL);
@@ -285,7 +291,8 @@ TEST test_c2openapi_full_flow(void) {
             JSON_Object *props = NULL;
             {
               JSON_Object *_cdd_jo_1 = NULL;
-              cdd_json_object_get_object(user, "properties", &_cdd_jo_1);
+              g_cdd_last_alloc_err =
+                  cdd_json_object_get_object(user, "properties", &_cdd_jo_1);
               props = _cdd_jo_1;
             }
             ASSERT(props != NULL);
@@ -293,7 +300,8 @@ TEST test_c2openapi_full_flow(void) {
               JSON_Object *id = NULL;
               {
                 JSON_Object *_cdd_jo_1 = NULL;
-                cdd_json_object_get_object(props, "id", &_cdd_jo_1);
+                g_cdd_last_alloc_err =
+                    cdd_json_object_get_object(props, "id", &_cdd_jo_1);
                 id = _cdd_jo_1;
               }
               ASSERT(id != NULL);
@@ -301,7 +309,8 @@ TEST test_c2openapi_full_flow(void) {
                 const char *type = NULL;
                 {
                   const char *_cdd_js_1 = NULL;
-                  cdd_json_object_get_string(id, "type", &_cdd_js_1);
+                  g_cdd_last_alloc_err =
+                      cdd_json_object_get_string(id, "type", &_cdd_js_1);
                   type = _cdd_js_1;
                 }
 
@@ -328,7 +337,8 @@ TEST test_c2openapi_full_flow(void) {
       ASSERT(op != NULL);
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
         ASSERT_STR_EQ("api_get_user", _cdd_js_1);
       }
 
@@ -338,18 +348,21 @@ TEST test_c2openapi_full_flow(void) {
         JSON_Object *p0 = NULL;
         {
           JSON_Array *_cdd_ja_1 = NULL;
-          cdd_json_object_get_array(op, "parameters", &_cdd_ja_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_array(op, "parameters", &_cdd_ja_1);
           params = _cdd_ja_1;
         }
         p0 = json_array_get_object(params, 0);
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(p0, "name", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(p0, "name", &_cdd_js_1);
           ASSERT_STR_EQ("id", _cdd_js_1);
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(p0, "in", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(p0, "in", &_cdd_js_1);
           ASSERT_STR_EQ("path", _cdd_js_1);
         }
       }
@@ -364,32 +377,38 @@ TEST test_c2openapi_full_flow(void) {
         const char *ref = NULL;
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(op, "responses", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(op, "responses", &_cdd_jo_1);
           responses = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(responses, "200", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(responses, "200", &_cdd_jo_1);
           r200 = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(r200, "content", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(r200, "content", &_cdd_jo_1);
           content = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(content, "application/json", &_cdd_jo_1);
+          g_cdd_last_alloc_err = cdd_json_object_get_object(
+              content, "application/json", &_cdd_jo_1);
           app_json = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(app_json, "schema", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(app_json, "schema", &_cdd_jo_1);
           schema = _cdd_jo_1;
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
           ref = _cdd_js_1;
         }
         ASSERT_STR_EQ("#/components/schemas/User", (ref) ? (ref) : "NULL");
@@ -418,27 +437,32 @@ TEST test_c2openapi_full_flow(void) {
         const char *ref = NULL;
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(op, "requestBody", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(op, "requestBody", &_cdd_jo_1);
           req_body = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(req_body, "content", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(req_body, "content", &_cdd_jo_1);
           content = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(content, "application/json", &_cdd_jo_1);
+          g_cdd_last_alloc_err = cdd_json_object_get_object(
+              content, "application/json", &_cdd_jo_1);
           app_json = _cdd_jo_1;
         }
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(app_json, "schema", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(app_json, "schema", &_cdd_jo_1);
           schema = _cdd_jo_1;
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
           ref = _cdd_js_1;
         }
         ASSERT_STR_EQ("#/components/schemas/User", (ref) ? (ref) : "NULL");
@@ -452,7 +476,8 @@ TEST test_c2openapi_full_flow(void) {
         size_t t;
         {
           JSON_Array *_cdd_ja_1 = NULL;
-          cdd_json_object_get_array(obj, "tags", &_cdd_ja_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_array(obj, "tags", &_cdd_ja_1);
           tags = _cdd_ja_1;
         }
         ASSERT(tags != NULL);
@@ -462,7 +487,8 @@ TEST test_c2openapi_full_flow(void) {
           const char *name = NULL;
           {
             const char *_cdd_js_1 = NULL;
-            cdd_json_object_get_string(tag_obj, "name", &_cdd_js_1);
+            g_cdd_last_alloc_err =
+                cdd_json_object_get_string(tag_obj, "name", &_cdd_js_1);
             name = _cdd_js_1;
           }
           if (name && strcmp(name, "users") == 0) {
@@ -475,22 +501,26 @@ TEST test_c2openapi_full_flow(void) {
         ASSERT(tag_external != NULL);
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(tag_users, "summary", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(tag_users, "summary", &_cdd_js_1);
           ASSERT_STR_EQ("Users", _cdd_js_1);
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(tag_users, "description", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(tag_users, "description", &_cdd_js_1);
           ASSERT_STR_EQ("User operations", _cdd_js_1);
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(tag_users, "parent", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(tag_users, "parent", &_cdd_js_1);
           ASSERT_STR_EQ("external", _cdd_js_1);
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(tag_users, "kind", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(tag_users, "kind", &_cdd_js_1);
           ASSERT_STR_EQ("nav", _cdd_js_1);
         }
         {
@@ -514,12 +544,14 @@ TEST test_c2openapi_full_flow(void) {
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(tag_external, "summary", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(tag_external, "summary", &_cdd_js_1);
           ASSERT_STR_EQ("External", _cdd_js_1);
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(tag_external, "description", &_cdd_js_1);
+          g_cdd_last_alloc_err = cdd_json_object_get_string(
+              tag_external, "description", &_cdd_js_1);
           ASSERT_STR_EQ("External operations", _cdd_js_1);
         }
       }
@@ -538,13 +570,14 @@ TEST test_c2openapi_full_flow(void) {
         ASSERT(op != NULL);
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
           ASSERT_STR_EQ("api_user_event", _cdd_js_1);
         }
       }
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   /* Cleanup */
@@ -577,15 +610,16 @@ TEST test_c2openapi_with_base_spec(void) {
   char *base_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_base_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
   asprintf(&base_json, "%s%cbase.json", src_dir, PATH_SEP_C);
 
-  write_to_file(h_file, "struct User { int id; char *name; };\n");
+  g_cdd_last_alloc_err =
+      write_to_file(h_file, "struct User { int id; char *name; };\n");
 
   {
     const char _tmp[] = {
@@ -603,7 +637,7 @@ TEST test_c2openapi_with_base_spec(void) {
         100, 44,  32,  115, 116, 114, 117, 99,  116, 32,  85,  115, 101, 114,
         32,  42,  42,  111, 117, 116, 41,  32,  123, 10,  32,  32,  114, 101,
         116, 117, 114, 110, 32,  48,  59,  10,  125, 10,  0};
-    write_to_file(c_file, _tmp);
+    g_cdd_last_alloc_err = write_to_file(c_file, _tmp);
   }
 
   {
@@ -645,7 +679,7 @@ TEST test_c2openapi_with_base_spec(void) {
         110, 34,  58,  32,  34,  104, 101, 97,  100, 101, 114, 34,  125, 10,
         32,  32,  32,  32,  125, 10,  32,  32,  125, 44,  10,  32,  32,  34,
         112, 97,  116, 104, 115, 34,  58,  32,  123, 125, 10,  125, 10,  0};
-    write_to_file(base_json, _tmp);
+    g_cdd_last_alloc_err = write_to_file(base_json, _tmp);
   }
 
   {
@@ -665,7 +699,7 @@ TEST test_c2openapi_with_base_spec(void) {
     JSON_Object *obj;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_file(out_json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     ASSERT(root != NULL);
@@ -673,17 +707,20 @@ TEST test_c2openapi_with_base_spec(void) {
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "openapi", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "openapi", &_cdd_js_1);
       ASSERT_STR_EQ("3.2.0", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "$self", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "$self", &_cdd_js_1);
       ASSERT_STR_EQ("https://example.com/openapi.json", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "jsonSchemaDialect", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "jsonSchemaDialect", &_cdd_js_1);
       ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
                     _cdd_js_1);
     }
@@ -708,17 +745,18 @@ TEST test_c2openapi_with_base_spec(void) {
     {
       JSON_Array *_cdd_ja_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
-      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0), "url",
-                                 &_cdd_js_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(
+          json_array_get_object(_cdd_ja_1, 0), "url", &_cdd_js_2);
       ASSERT_STR_EQ("https://api.example.com/v1", _cdd_js_2);
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_array(obj, "tags", &_cdd_ja_1);
-      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0),
-                                 "description", &_cdd_js_2);
+      g_cdd_last_alloc_err = cdd_json_object_get_array(obj, "tags", &_cdd_ja_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(
+          json_array_get_object(_cdd_ja_1, 0), "description", &_cdd_js_2);
       ASSERT_STR_EQ("User operations", _cdd_js_2);
     }
     {
@@ -746,12 +784,13 @@ TEST test_c2openapi_with_base_spec(void) {
       ASSERT(op != NULL);
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(op, "operationId", &_cdd_js_1);
         ASSERT_STR_EQ("api_get_user", _cdd_js_1);
       }
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   remove(c_file);
@@ -784,22 +823,23 @@ TEST test_c2openapi_with_self_uri(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_self_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(h_file, "struct User { int id; char *name; };\n");
-  write_to_file(c_file,
-                "#include \"models.h\"\n"
-                "/**\n"
-                " * @route GET /users\n"
-                " * @summary List users\n"
-                " */\n"
-                ""
-                "int api_list_users(struct User **out) { return 0; }\n");
+  g_cdd_last_alloc_err =
+      write_to_file(h_file, "struct User { int id; char *name; };\n");
+  g_cdd_last_alloc_err = write_to_file(
+      c_file, "#include \"models.h\"\n"
+              "/**\n"
+              " * @route GET /users\n"
+              " * @summary List users\n"
+              " */\n"
+              ""
+              "int api_list_users(struct User **out) { return 0; }\n");
 
   {
     char *argv[5]; /* ... */
@@ -818,17 +858,18 @@ TEST test_c2openapi_with_self_uri(void) {
     JSON_Object *obj;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_file(out_json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "$self", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "$self", &_cdd_js_1);
       ASSERT_STR_EQ("https://example.com/override.json", _cdd_js_1);
     }
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   remove(c_file);
@@ -858,9 +899,9 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_global_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
@@ -888,7 +929,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
         103, 10,  32,  42,  47,  10,  105, 110, 116, 32,  97,  112, 105, 95,
         112, 105, 110, 103, 40,  118, 111, 105, 100, 41,  32,  123, 32,  114,
         101, 116, 117, 114, 110, 32,  48,  59,  32,  125, 10,  0};
-    write_to_file(c_file, _tmp);
+    g_cdd_last_alloc_err = write_to_file(c_file, _tmp);
   }
 
   {
@@ -910,7 +951,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     JSON_Array *scopes;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_file(out_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_file(out_json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     ASSERT(root != NULL);
@@ -929,23 +970,27 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     ASSERT(scheme != NULL);
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(scheme, "type", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(scheme, "type", &_cdd_js_1);
       ASSERT_STR_EQ("apiKey", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(scheme, "name", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(scheme, "name", &_cdd_js_1);
       ASSERT_STR_EQ("X-API-Key", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(scheme, "in", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(scheme, "in", &_cdd_js_1);
       ASSERT_STR_EQ("header", _cdd_js_1);
     }
 
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(obj, "security", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(obj, "security", &_cdd_ja_1);
       sec_arr = _cdd_ja_1;
     }
     ASSERT(sec_arr != NULL);
@@ -953,7 +998,8 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     ASSERT(sec_obj != NULL);
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(sec_obj, "api_key", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(sec_obj, "api_key", &_cdd_ja_1);
       scopes = _cdd_ja_1;
     }
     ASSERT(scopes != NULL);
@@ -962,17 +1008,19 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     {
       JSON_Array *_cdd_ja_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
-      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0), "url",
-                                 &_cdd_js_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(
+          json_array_get_object(_cdd_ja_1, 0), "url", &_cdd_js_2);
       ASSERT_STR_EQ("https://api.example.com", _cdd_js_2);
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
-      cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0),
-                                 "description", &_cdd_js_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(
+          json_array_get_object(_cdd_ja_1, 0), "description", &_cdd_js_2);
       ASSERT_STR_EQ("[name:prod]", _cdd_js_2);
     }
     {
@@ -985,7 +1033,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
       ASSERT_STR_EQ("https://docs.example.com", _cdd_js_1);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   remove(c_file);

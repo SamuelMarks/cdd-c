@@ -119,19 +119,20 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
         sf->fields[i].items_extra_json = NULL;
       }
       if (sf->fields[i].type_union) {
-        free_string_array(sf->fields[i].type_union, sf->fields[i].n_type_union);
+        g_cdd_last_alloc_err = free_string_array(sf->fields[i].type_union,
+                                                 sf->fields[i].n_type_union);
         sf->fields[i].type_union = NULL;
         sf->fields[i].n_type_union = 0;
       }
       if (sf->fields[i].items_type_union) {
-        free_string_array(sf->fields[i].items_type_union,
-                          sf->fields[i].n_items_type_union);
+        g_cdd_last_alloc_err = free_string_array(
+            sf->fields[i].items_type_union, sf->fields[i].n_items_type_union);
         sf->fields[i].items_type_union = NULL;
         sf->fields[i].n_items_type_union = 0;
       }
       if (sf->fields[i].serde_aliases) {
-        free_string_array(sf->fields[i].serde_aliases,
-                          sf->fields[i].n_serde_aliases);
+        g_cdd_last_alloc_err = free_string_array(sf->fields[i].serde_aliases,
+                                                 sf->fields[i].n_serde_aliases);
         sf->fields[i].serde_aliases = NULL;
         sf->fields[i].n_serde_aliases = 0;
       }
@@ -140,20 +141,22 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
         sf->fields[i].cli_long_help = NULL;
       }
       if (sf->fields[i].cli_conflicts_with) {
-        free_string_array(sf->fields[i].cli_conflicts_with,
-                          sf->fields[i].n_cli_conflicts_with);
+        g_cdd_last_alloc_err =
+            free_string_array(sf->fields[i].cli_conflicts_with,
+                              sf->fields[i].n_cli_conflicts_with);
         sf->fields[i].cli_conflicts_with = NULL;
         sf->fields[i].n_cli_conflicts_with = 0;
       }
       if (sf->fields[i].cli_requires) {
-        free_string_array(sf->fields[i].cli_requires,
-                          sf->fields[i].n_cli_requires);
+        g_cdd_last_alloc_err = free_string_array(sf->fields[i].cli_requires,
+                                                 sf->fields[i].n_cli_requires);
         sf->fields[i].cli_requires = NULL;
         sf->fields[i].n_cli_requires = 0;
       }
       if (sf->fields[i].cli_required_unless) {
-        free_string_array(sf->fields[i].cli_required_unless,
-                          sf->fields[i].n_cli_required_unless);
+        g_cdd_last_alloc_err =
+            free_string_array(sf->fields[i].cli_required_unless,
+                              sf->fields[i].n_cli_required_unless);
         sf->fields[i].cli_required_unless = NULL;
         sf->fields[i].n_cli_required_unless = 0;
       }
@@ -179,7 +182,8 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
       sf->cli_after_help = NULL;
     }
     if (sf->cli_aliases) {
-      free_string_array(sf->cli_aliases, sf->n_cli_aliases);
+      g_cdd_last_alloc_err =
+          free_string_array(sf->cli_aliases, sf->n_cli_aliases);
       sf->cli_aliases = NULL;
       sf->n_cli_aliases = 0;
     }
@@ -192,12 +196,14 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
       for (i = 0; i < sf->n_union_variants; ++i) {
         struct UnionVariantMeta *meta = &sf->union_variants[i];
         if (meta->required_props) {
-          free_string_array(meta->required_props, meta->n_required_props);
+          g_cdd_last_alloc_err =
+              free_string_array(meta->required_props, meta->n_required_props);
           meta->required_props = NULL;
           meta->n_required_props = 0;
         }
         if (meta->property_names) {
-          free_string_array(meta->property_names, meta->n_property_names);
+          g_cdd_last_alloc_err =
+              free_string_array(meta->property_names, meta->n_property_names);
           meta->property_names = NULL;
           meta->n_property_names = 0;
         }
@@ -210,7 +216,7 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
       sf->union_variants = NULL;
       sf->n_union_variants = 0;
     }
-    enum_members_free(&sf->enum_members);
+    g_cdd_last_alloc_err = enum_members_free(&sf->enum_members);
     sf->is_enum = 0;
     sf->is_union = 0;
     sf->union_is_anyof = 0;

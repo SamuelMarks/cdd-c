@@ -343,7 +343,7 @@ cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
     rc_map = map_doc_flow_type(doc->flows[i].type, &flow_type);
     if (rc_map != CDD_C_SUCCESS)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    find_oauth_flow(scheme, flow_type, &dst_flow);
+    g_cdd_last_alloc_err = find_oauth_flow(scheme, flow_type, &dst_flow);
     if (dst_flow) {
       rc = merge_oauth_flow(dst_flow, &doc->flows[i]);
       if (rc != CDD_C_SUCCESS)
@@ -498,7 +498,7 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
   if (!spec || !doc || !doc->name || !*doc->name)
     return CDD_C_SUCCESS;
 
-  c2openapi_map_doc_security_type(doc->type, &type);
+  g_cdd_last_alloc_err = c2openapi_map_doc_security_type(doc->type, &type);
   if (type == OA_SEC_UNKNOWN) {
     fprintf(stderr, "Warning: Unknown security scheme type ignored: %s\n",
             doc->name);
@@ -517,7 +517,7 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
   }
 
   scheme = NULL;
-  spec_find_security_scheme(spec, doc->name, &scheme);
+  g_cdd_last_alloc_err = spec_find_security_scheme(spec, doc->name, &scheme);
   if (!scheme) {
     struct OpenAPI_SecurityScheme *new_schemes =
         (struct OpenAPI_SecurityScheme *)C_CDD_REALLOC(
@@ -561,7 +561,7 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
 
   if (type == OA_SEC_APIKEY) {
     enum OpenAPI_SecurityIn in;
-    map_doc_security_in(doc->in, &in);
+    g_cdd_last_alloc_err = map_doc_security_in(doc->in, &in);
     if (!doc->param_name || !*doc->param_name || in == OA_SEC_IN_UNKNOWN)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     scheme->in = in;

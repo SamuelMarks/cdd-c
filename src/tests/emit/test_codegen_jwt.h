@@ -99,7 +99,7 @@ TEST test_jwt_generation(void) {
     ASSERT(strstr(content, " JwtPayload_from_json("));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;

@@ -73,7 +73,7 @@ TEST test_cli_parser_getopt(void) {
 
     /* Test invalid arguments */
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cli_command_init(NULL));
-    cli_command_free(NULL);
+    g_cdd_last_alloc_err = cli_command_free(NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cst_extract_cli_command(NULL, tokens, &cmd));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -106,11 +106,11 @@ TEST test_cli_parser_getopt(void) {
     free(cmd.options[2].description);
     cmd.options[2].description = NULL;
 
-    cli_command_free(&cmd);
+    g_cdd_last_alloc_err = cli_command_free(&cmd);
 
     /* Test free with cmd.name == NULL */
     ASSERT_EQ(CDD_C_SUCCESS, cli_command_init(&cmd));
-    cli_command_free(&cmd);
+    g_cdd_last_alloc_err = cli_command_free(&cmd);
 
 #ifdef CDD_BUILD_TESTS
     {
@@ -145,7 +145,7 @@ TEST test_cli_parser_getopt(void) {
           ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
         }
         g_cdd_alloc_fail = 0;
-        cli_command_free(&cmd_oom);
+        g_cdd_last_alloc_err = cli_command_free(&cmd_oom);
       }
     }
 #endif
@@ -161,10 +161,10 @@ TEST test_cli_parser_getopt(void) {
       ASSERT_EQ(0, tokenize(span2, &tok2));
       ASSERT_EQ(0, parse_tokens(tok2, nodes2));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes2, tok2, &cmd2));
-      cli_command_free(&cmd2);
-      free_cst_node_list(nodes2);
+      g_cdd_last_alloc_err = cli_command_free(&cmd2);
+      g_cdd_last_alloc_err = free_cst_node_list(nodes2);
       free(nodes2);
-      free_token_list(tok2);
+      g_cdd_last_alloc_err = free_token_list(tok2);
     }
 
     /* Test getopt without string literal and with tokens->size <= i + 10 */
@@ -178,10 +178,10 @@ TEST test_cli_parser_getopt(void) {
       ASSERT_EQ(0, tokenize(span3, &tok3));
       ASSERT_EQ(0, parse_tokens(tok3, nodes3));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes3, tok3, &cmd3));
-      cli_command_free(&cmd3);
-      free_cst_node_list(nodes3);
+      g_cdd_last_alloc_err = cli_command_free(&cmd3);
+      g_cdd_last_alloc_err = free_cst_node_list(nodes3);
       free(nodes3);
-      free_token_list(tok3);
+      g_cdd_last_alloc_err = free_token_list(tok3);
     }
 
     /* Test case at end of tokens without char literal */
@@ -194,15 +194,15 @@ TEST test_cli_parser_getopt(void) {
       az_span span4 = az_span_create_from_str(case_at_end);
       ASSERT_EQ(0, tokenize(span4, &tok4));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes4, tok4, &cmd4));
-      cli_command_free(&cmd4);
-      free_cst_node_list(nodes4);
+      g_cdd_last_alloc_err = cli_command_free(&cmd4);
+      g_cdd_last_alloc_err = free_cst_node_list(nodes4);
       free(nodes4);
-      free_token_list(tok4);
+      g_cdd_last_alloc_err = free_token_list(tok4);
     }
 
-    free_cst_node_list(nodes);
+    g_cdd_last_alloc_err = free_cst_node_list(nodes);
     free(nodes);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = free_token_list(tokens);
     g_fail_io_after = -1;
     PASS();
   }
@@ -265,17 +265,17 @@ TEST test_cli_parser_mappings(void) {
   ASSERT_STR_EQ("input", sf.fields[0].cli_long);
   ASSERT_STR_EQ("CDD_INPUT", sf.fields[0].cli_env);
 
-  struct_fields_free(&sf);
-  cli_command_free(&cmd);
-  free_cst_node_list(nodes);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  g_cdd_last_alloc_err = cli_command_free(&cmd);
+  g_cdd_last_alloc_err = free_cst_node_list(nodes);
   free(nodes);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   /* Exhaustive coverage of cli_parser.c branches */
   {
     struct CliCommand c;
     struct StructFields sf2;
-    cli_command_init(&c);
+    g_cdd_last_alloc_err = cli_command_init(&c);
     c.version = strdup("1.0.0");
     c.about = strdup("About CLI");
     c.author = strdup("Author");
@@ -305,32 +305,32 @@ TEST test_cli_parser_mappings(void) {
     c.options[4].mapped_struct_field = strdup("valid_field");
     c.options[4].value_name = strdup(" MY_VAL ");
 
-    struct_fields_init(&sf2);
+    g_cdd_last_alloc_err = struct_fields_init(&sf2);
     ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&c, &sf2));
-    struct_fields_free(&sf2);
+    g_cdd_last_alloc_err = struct_fields_free(&sf2);
 
 #ifdef CDD_BUILD_TESTS
     {
       int k;
       for (k = 1; k <= 10; ++k) {
         g_cdd_alloc_fail = k;
-        struct_fields_init(&sf2);
-        cli_command_to_struct_fields(&c, &sf2);
+        g_cdd_last_alloc_err = struct_fields_init(&sf2);
+        g_cdd_last_alloc_err = cli_command_to_struct_fields(&c, &sf2);
         g_cdd_alloc_fail = 0;
-        struct_fields_free(&sf2);
+        g_cdd_last_alloc_err = struct_fields_free(&sf2);
       }
       for (k = 1; k <= 10; ++k) {
         g_cdd_strdup_fail = k;
-        struct_fields_init(&sf2);
-        cli_command_to_struct_fields(&c, &sf2);
+        g_cdd_last_alloc_err = struct_fields_init(&sf2);
+        g_cdd_last_alloc_err = cli_command_to_struct_fields(&c, &sf2);
         g_cdd_strdup_fail = 0;
-        struct_fields_free(&sf2);
+        g_cdd_last_alloc_err = struct_fields_free(&sf2);
       }
     }
 #endif
-    cli_command_free(&c);
+    g_cdd_last_alloc_err = cli_command_free(&c);
 
-    cli_command_init(&c);
+    g_cdd_last_alloc_err = cli_command_init(&c);
     c.options = (struct CliOption *)calloc(2, sizeof(struct CliOption));
     c.n_options = 2;
     c.options[0].short_flag = 'x';
@@ -343,20 +343,20 @@ TEST test_cli_parser_mappings(void) {
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cli_command_to_struct_fields(&c, &sf2));
     g_cdd_alloc_fail = 0;
-    struct_fields_init(&sf2);
+    g_cdd_last_alloc_err = struct_fields_init(&sf2);
     ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&c, &sf2));
-    struct_fields_free(&sf2);
+    g_cdd_last_alloc_err = struct_fields_free(&sf2);
 #endif
-    cli_command_free(&c);
+    g_cdd_last_alloc_err = cli_command_free(&c);
 
-    cli_command_init(&c);
+    g_cdd_last_alloc_err = cli_command_init(&c);
     c.name = strdup("");
     c.version = strdup("");
     c.about = strdup("");
-    struct_fields_init(&sf2);
+    g_cdd_last_alloc_err = struct_fields_init(&sf2);
     ASSERT_EQ(CDD_C_SUCCESS, cli_command_to_struct_fields(&c, &sf2));
-    struct_fields_free(&sf2);
-    cli_command_free(&c);
+    g_cdd_last_alloc_err = struct_fields_free(&sf2);
+    g_cdd_last_alloc_err = cli_command_free(&c);
   }
 
   /* Complex C source with all getopt_long, struct option, strcmp, and getenv
@@ -438,27 +438,27 @@ TEST test_cli_parser_mappings(void) {
       ASSERT_EQ(0, tokenize(sp_c, &tok_c));
       ASSERT_EQ(0, parse_tokens(tok_c, nodes_c));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(nodes_c, tok_c, &cmd_c));
-      cli_command_free(&cmd_c);
+      g_cdd_last_alloc_err = cli_command_free(&cmd_c);
 
 #ifdef CDD_BUILD_TESTS
       for (k = 1; k <= 25; ++k) {
         g_cdd_alloc_fail = k;
         if (cst_extract_cli_command(nodes_c, tok_c, &cmd_c) == CDD_C_SUCCESS) {
-          cli_command_free(&cmd_c);
+          g_cdd_last_alloc_err = cli_command_free(&cmd_c);
         }
         g_cdd_alloc_fail = 0;
       }
       for (k = 1; k <= 25; ++k) {
         g_cdd_strdup_fail = k;
         if (cst_extract_cli_command(nodes_c, tok_c, &cmd_c) == CDD_C_SUCCESS) {
-          cli_command_free(&cmd_c);
+          g_cdd_last_alloc_err = cli_command_free(&cmd_c);
         }
         g_cdd_strdup_fail = 0;
       }
 #endif
-      free_cst_node_list(nodes_c);
+      g_cdd_last_alloc_err = free_cst_node_list(nodes_c);
       free(nodes_c);
-      free_token_list(tok_c);
+      g_cdd_last_alloc_err = free_token_list(tok_c);
     }
   }
 
@@ -485,8 +485,8 @@ TEST test_cli_parser_mappings(void) {
       az_span sp = az_span_create_from_str(eof_cases[idx]);
       ASSERT_EQ(0, tokenize(sp, &tl));
       ASSERT_EQ(CDD_C_SUCCESS, cst_extract_cli_command(&nl, tl, &cmd_e));
-      cli_command_free(&cmd_e);
-      free_token_list(tl);
+      g_cdd_last_alloc_err = cli_command_free(&cmd_e);
+      g_cdd_last_alloc_err = free_token_list(tl);
     }
   }
 

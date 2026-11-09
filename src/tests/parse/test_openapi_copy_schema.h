@@ -45,9 +45,9 @@ TEST test_openapi_copy_schema_helpers(void) {
   ASSERT_STR_EQ("sr desc", sr_dst.description);
   ASSERT_STR_EQ("#/components/schemas/MyString", sr_dst.ref);
 
-  free_schema_ref_content(&sr_src);
-  free_schema_ref_content(&sr_dst);
-  free_schema_ref_content(NULL);
+  g_cdd_last_alloc_err = free_schema_ref_content(&sr_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&sr_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(NULL);
 
   /* 2. Copy item schema as array */
   {
@@ -59,14 +59,14 @@ TEST test_openapi_copy_schema_helpers(void) {
     arr_src.inline_type = strdup("string");
     rc = copy_item_schema_as_array(&arr_dst, &arr_src);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_schema_ref_content(&arr_dst);
+    g_cdd_last_alloc_err = free_schema_ref_content(&arr_dst);
 
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               copy_item_schema_as_array(&arr_dst, &arr_src));
     g_cdd_strdup_fail = 0;
 
-    free_schema_ref_content(&arr_src);
+    g_cdd_last_alloc_err = free_schema_ref_content(&arr_src);
     ASSERT_EQ(CDD_C_SUCCESS, copy_item_schema_as_array(NULL, NULL));
   }
 
@@ -79,8 +79,8 @@ TEST test_openapi_copy_schema_helpers(void) {
     any_src_json.json = strdup("{\"key\":\"value\"}");
     rc = copy_any_value(&any_dst_json, &any_src_json);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_any_value(&any_src_json);
-    free_any_value(&any_dst_json);
+    g_cdd_last_alloc_err = free_any_value(&any_src_json);
+    g_cdd_last_alloc_err = free_any_value(&any_dst_json);
     ASSERT_EQ(CDD_C_SUCCESS, copy_any_value(NULL, NULL));
   }
 
@@ -98,7 +98,7 @@ TEST test_openapi_copy_schema_helpers(void) {
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    free_schema_ref_content(&sr_dst);
+    g_cdd_last_alloc_err = free_schema_ref_content(&sr_dst);
   }
 
   PASS();
@@ -281,7 +281,7 @@ TEST test_openapi_copy_schema_comprehensive(void) {
   ASSERT_STR_EQ("sr sum", sr_dst.summary);
   ASSERT_STR_EQ("#/components/schemas/MyString", sr_dst.ref);
 
-  free_schema_ref_content(&sr_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&sr_dst);
 
   {
     int k;
@@ -292,7 +292,7 @@ TEST test_openapi_copy_schema_comprehensive(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_schema_ref_content(&sr_dst);
+      g_cdd_last_alloc_err = free_schema_ref_content(&sr_dst);
     }
     g_cdd_alloc_fail = 0;
     for (k = 1; k <= 200; ++k) {
@@ -302,12 +302,12 @@ TEST test_openapi_copy_schema_comprehensive(void) {
       if (rc != CDD_C_SUCCESS) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      free_schema_ref_content(&sr_dst);
+      g_cdd_last_alloc_err = free_schema_ref_content(&sr_dst);
     }
     g_cdd_strdup_fail = 0;
   }
 
-  free_schema_ref_content(&sr_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&sr_src);
 
   /* Test schema boolean constraints parsing */
   {
@@ -321,15 +321,15 @@ TEST test_openapi_copy_schema_comprehensive(void) {
     JSON_Value *jv = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(excl_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(excl_json, &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      openapi_spec_free(&spec);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -354,8 +354,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 2. enum_values copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -368,8 +368,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 3. items_examples copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -382,8 +382,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 4. items_enum_values copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -396,8 +396,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 5. discriminator copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -411,8 +411,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 6. not_schema copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -423,8 +423,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 7. if_schema copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -435,8 +435,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 8. then_schema copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -447,8 +447,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 9. else_schema copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -459,8 +459,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 10. content_schema copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -471,8 +471,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 11. items_content_schema copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -483,8 +483,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 12. all_of copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -496,8 +496,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 13. any_of copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -509,8 +509,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 14. one_of copy failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -522,8 +522,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   /* 15. multipart_fields calloc failure */
   memset(&t_src, 0, sizeof(t_src));
@@ -534,8 +534,8 @@ TEST test_openapi_copy_schema_subobject_failures(void) {
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_schema_ref(&t_dst, &t_src));
   g_cdd_alloc_fail = 0;
-  free_schema_ref_content(&t_src);
-  free_schema_ref_content(&t_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_src);
+  g_cdd_last_alloc_err = free_schema_ref_content(&t_dst);
 
   PASS();
 }
@@ -603,7 +603,7 @@ TEST test_openapi_copy_schema_branches(void) {
   dummy_field.name = NULL;
   dummy_field.type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, copy_schema_ref(&s_dst, &s_src));
-  free_schema_ref_content(&s_dst);
+  g_cdd_last_alloc_err = free_schema_ref_content(&s_dst);
 
   /* C. copy_item_schema_as_array with non-boolean schema and NULL
    * checks */

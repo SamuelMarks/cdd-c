@@ -97,7 +97,7 @@ cdd_c_error_t cli_command_free(struct CliCommand *cmd) {
   }
   if (cmd->subcommands) {
     for (i = 0; i < cmd->n_subcommands; ++i) {
-      cli_command_free(&cmd->subcommands[i]);
+      g_cdd_last_alloc_err = cli_command_free(&cmd->subcommands[i]);
     }
     C_CDD_FREE(cmd->subcommands);
   }
@@ -207,7 +207,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
     return rc;
   rc = c_cdd_strdup("cli_app", &cmd->name);
   if (rc != CDD_C_SUCCESS) {
-    cli_command_free(cmd);
+    g_cdd_last_alloc_err = cli_command_free(cmd);
     return rc;
   }
 
@@ -233,7 +233,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                 struct CliOption *opt = NULL;
                 rc = add_option(cmd, &opt);
                 if (rc != CDD_C_SUCCESS) {
-                  cli_command_free(cmd);
+                  g_cdd_last_alloc_err = cli_command_free(cmd);
                   return rc;
                 }
                 opt->short_flag = flags[k];
@@ -250,7 +250,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                 }
                 rc = c_cdd_strdup("Auto-extracted option", &opt->description);
                 if (rc != CDD_C_SUCCESS) {
-                  cli_command_free(cmd);
+                  g_cdd_last_alloc_err = cli_command_free(cmd);
                   return rc;
                 }
               }
@@ -323,13 +323,13 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                   if (!opt) {
                     rc = add_option(cmd, &opt);
                     if (rc != CDD_C_SUCCESS) {
-                      cli_command_free(cmd);
+                      g_cdd_last_alloc_err = cli_command_free(cmd);
                       return rc;
                     }
                     rc = c_cdd_strdup("Auto-extracted option",
                                       &opt->description);
                     if (rc != CDD_C_SUCCESS) {
-                      cli_command_free(cmd);
+                      g_cdd_last_alloc_err = cli_command_free(cmd);
                       return rc;
                     }
                   }
@@ -339,7 +339,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                   if (!opt->long_flag) {
                     rc = c_cdd_strdup(lflag, &opt->long_flag);
                     if (rc != CDD_C_SUCCESS) {
-                      cli_command_free(cmd);
+                      g_cdd_last_alloc_err = cli_command_free(cmd);
                       return rc;
                     }
                   }
@@ -384,7 +384,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                           tokens->tokens[prev_idx].length,
                           &cmd->options[opt_idx].mapped_struct_field);
                       if (rc != CDD_C_SUCCESS) {
-                        cli_command_free(cmd);
+                        g_cdd_last_alloc_err = cli_command_free(cmd);
                         return rc;
                       }
                       break;
@@ -479,12 +479,12 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
           if (!opt) {
             rc = add_option(cmd, &opt);
             if (rc != CDD_C_SUCCESS) {
-              cli_command_free(cmd);
+              g_cdd_last_alloc_err = cli_command_free(cmd);
               return rc;
             }
             rc = c_cdd_strdup("Auto-extracted option", &opt->description);
             if (rc != CDD_C_SUCCESS) {
-              cli_command_free(cmd);
+              g_cdd_last_alloc_err = cli_command_free(cmd);
               return rc;
             }
           }
@@ -493,7 +493,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
           if (lflag[0] != '\0' && !opt->long_flag) {
             rc = c_cdd_strdup(lflag, &opt->long_flag);
             if (rc != CDD_C_SUCCESS) {
-              cli_command_free(cmd);
+              g_cdd_last_alloc_err = cli_command_free(cmd);
               return rc;
             }
           }
@@ -502,7 +502,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
           if (field_nm[0] != '\0' && !opt->mapped_struct_field) {
             rc = c_cdd_strdup(field_nm, &opt->mapped_struct_field);
             if (rc != CDD_C_SUCCESS) {
-              cli_command_free(cmd);
+              g_cdd_last_alloc_err = cli_command_free(cmd);
               return rc;
             }
           }
@@ -511,7 +511,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                 is_int_type ? "integer" : (opt->has_arg ? "string" : "boolean"),
                 &opt->type_str);
             if (rc != CDD_C_SUCCESS) {
-              cli_command_free(cmd);
+              g_cdd_last_alloc_err = cli_command_free(cmd);
               return rc;
             }
           }
@@ -562,7 +562,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
               if (opt && !opt->env_var) {
                 rc = c_cdd_strdup(env_nm, &opt->env_var);
                 if (rc != CDD_C_SUCCESS) {
-                  cli_command_free(cmd);
+                  g_cdd_last_alloc_err = cli_command_free(cmd);
                   return rc;
                 }
               }

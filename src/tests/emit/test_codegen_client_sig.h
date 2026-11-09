@@ -33,7 +33,8 @@ TEST test_sig_simple_get(void) {
 
   op.req_body.ref_name = cdd_test_mut_str("Pet");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_0), _ast_gen_sig_0);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_0),
+          _ast_gen_sig_0);
   ASSERT(code);
   {
     int io_i;
@@ -88,7 +89,8 @@ TEST test_sig_verify_apierror(void) {
   char *code;
   op.operation_id = cdd_test_mut_str("do");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_1), _ast_gen_sig_1);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_1),
+          _ast_gen_sig_1);
   ASSERT(code);
   {
     int io_i;
@@ -144,7 +146,8 @@ TEST test_sig_grouped(void) {
   cfg.prefix = cdd_test_mut_str("api_");
   cfg.group_name = cdd_test_mut_str("Pet");
 
-  code = (gen_sig(&op, &cfg, &_ast_gen_sig_2), _ast_gen_sig_2);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, &cfg, &_ast_gen_sig_2),
+          _ast_gen_sig_2);
   ASSERT(code);
   {
     int io_i;
@@ -203,7 +206,8 @@ TEST test_sig_success_range_response(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_3), _ast_gen_sig_3);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_3),
+          _ast_gen_sig_3);
   ASSERT(code);
   {
     int io_i;
@@ -261,7 +265,8 @@ TEST test_sig_default_response_success(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_4), _ast_gen_sig_4);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_4),
+          _ast_gen_sig_4);
   ASSERT(code);
   {
     int io_i;
@@ -319,7 +324,8 @@ TEST test_sig_inline_response_string(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_5), _ast_gen_sig_5);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_5),
+          _ast_gen_sig_5);
   ASSERT(code);
   {
     int io_i;
@@ -378,7 +384,8 @@ TEST test_sig_inline_response_array(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_6), _ast_gen_sig_6);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_6),
+          _ast_gen_sig_6);
   ASSERT(code);
   {
     int io_i;
@@ -432,7 +439,8 @@ TEST test_sig_inline_request_body_string(void) {
   op.req_body.content_type = cdd_test_mut_str("application/json");
   op.req_body.inline_type = cdd_test_mut_str("string");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_7), _ast_gen_sig_7);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_7),
+          _ast_gen_sig_7);
   ASSERT(code);
   {
     int io_i;
@@ -487,7 +495,8 @@ TEST test_sig_inline_request_body_array(void) {
   op.req_body.is_array = 1;
   op.req_body.inline_type = cdd_test_mut_str("number");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_8), _ast_gen_sig_8);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_8),
+          _ast_gen_sig_8);
   ASSERT(code);
   {
     int io_i;

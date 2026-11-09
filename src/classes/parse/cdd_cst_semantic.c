@@ -159,7 +159,7 @@ cdd_c_error_t cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
 
   rc = analyze_node(env, tree->root);
   if (rc != CDD_C_SUCCESS) {
-    cdd_cst_scope_env_free(env);
+    g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
     return rc;
   }
 

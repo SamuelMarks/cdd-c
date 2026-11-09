@@ -210,7 +210,7 @@ TEST test_sync_code_too_many_defs(void) {
     fprintf(f, "struct S%d { int i; };\n", i);
   if (f)
     fclose(f);
-  sync_code_main(2, argv);
+  g_cdd_last_alloc_err = sync_code_main(2, argv);
   remove(filename);
   remove("too_many.c");
   g_fail_io_after = -1;
@@ -257,8 +257,8 @@ TEST test_patch_header_basic(void) {
   size_t sz;
   int rc = 0;
 
-  write_to_file(h_path, ""
-                        "void foo();\n");
+  g_cdd_last_alloc_err = write_to_file(h_path, ""
+                                               "void foo();\n");
 
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
@@ -291,7 +291,7 @@ TEST test_patch_header_ptr_arg(void) {
   size_t sz;
   int rc = 0;
 
-  write_to_file(h_path, "char* bar(int x);\n");
+  g_cdd_last_alloc_err = write_to_file(h_path, "char* bar(int x);\n");
 
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
@@ -328,8 +328,8 @@ TEST test_patch_header_ignore_others(void) {
   size_t sz;
   int rc = 0;
 
-  write_to_file(h_path, ""
-                        "void other();\nvoid foo();\n");
+  g_cdd_last_alloc_err = write_to_file(h_path, ""
+                                               "void other();\nvoid foo();\n");
 
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
@@ -356,29 +356,29 @@ TEST test_patch_header_bounds(void) {
   int rc = 0;
 
   /* End of file while looking for semicolon */
-  write_to_file(h_path, "void foo()");
+  g_cdd_last_alloc_err = write_to_file(h_path, "void foo()");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
 
   /* End of file while looking for paren */
-  write_to_file(h_path, "void foo");
+  g_cdd_last_alloc_err = write_to_file(h_path, "void foo");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
 
-  write_to_file(h_path, "void foo ");
+  g_cdd_last_alloc_err = write_to_file(h_path, "void foo ");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
 
-  write_to_file(h_path, "void foo bar");
+  g_cdd_last_alloc_err = write_to_file(h_path, "void foo bar");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
 
   /* Semicolon bounds looking backward */
-  write_to_file(h_path, "{ void foo();");
+  g_cdd_last_alloc_err = write_to_file(h_path, "{ void foo();");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
 
-  write_to_file(h_path, "} void foo();");
+  g_cdd_last_alloc_err = write_to_file(h_path, "} void foo();");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
 
@@ -405,7 +405,7 @@ TEST test_patch_header_failures(void) {
    */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write; (moved to global) */
 
-  write_to_file(h_path, "void foo();\n");
+  g_cdd_last_alloc_err = write_to_file(h_path, "void foo();\n");
 
   /* Test func_sig_list_init failure */
   g_cdd_sync_fail_func_sig_init = 1;
@@ -452,7 +452,7 @@ TEST test_patch_header_failures(void) {
 
   {
     extern C_CDD_EXPORT int g_cdd_fail_sync_matches;
-    write_to_file(h_path, "void foo();\n");
+    g_cdd_last_alloc_err = write_to_file(h_path, "void foo();\n");
     g_cdd_fail_sync_matches = 1;
     rc = patch_header_from_source(h_path, src);
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);

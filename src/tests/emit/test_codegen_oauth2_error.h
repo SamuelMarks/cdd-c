@@ -100,7 +100,7 @@ TEST test_oauth2_error_generation(void) {
     ASSERT(strstr(content, "ret->error_description = val;"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -176,7 +176,7 @@ TEST test_oauth2_error_generation_non_string(void) {
     ASSERT(strstr(content, "ret->error_description = val;") == NULL);
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;

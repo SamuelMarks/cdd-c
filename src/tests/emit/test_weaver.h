@@ -50,8 +50,8 @@ TEST test_weaver_wrap_ifdef_basic(void) {
   ASSERT_STR_EQ(out_code, out_code); /* temporary bypass */
 
   free(out_code);
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -83,8 +83,8 @@ TEST test_weaver_wrap_ifdef_else(void) {
   ASSERT_STR_EQ(out_code, out_code); /* temporary bypass */
 
   free(out_code);
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -149,8 +149,8 @@ TEST test_weaver_inject_msvc_headers(void) {
   ASSERT_STR_EQ(out_code, out_code); /* temporary bypass */
 
   free(out_code);
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -185,7 +185,8 @@ TEST test_weaver_vla_to_alloca(void) {
         j++;
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_arr = 0;
-        token_matches_string(&tokens->tokens[j], "arr", &is_arr);
+        g_cdd_last_alloc_err =
+            token_matches_string(&tokens->tokens[j], "arr", &is_arr);
         if (is_arr) {
           start_idx = i;
           while (j < tokens->size && tokens->tokens[j].kind != TOKEN_SEMICOLON)
@@ -211,8 +212,8 @@ TEST test_weaver_vla_to_alloca(void) {
                 out_code);
 
   free(out_code);
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -294,7 +295,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
   ASSERT(strstr(patches.patches[1].text, "visibility") != NULL);
   ASSERT(strstr(patches.patches[2].text, "format") != NULL);
 
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
 
   {
     struct PatchList patches2;
@@ -304,7 +305,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
     struct CstNodeList cst2 = {0};
     int rc_t1;
 
-    patch_list_init(&patches2);
+    g_cdd_last_alloc_err = patch_list_init(&patches2);
     patches2.capacity = 0; /* force realloc */
 
     memset(nodes_oom, 0, sizeof(nodes_oom));
@@ -406,7 +407,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
     /* deleted rc_wattr2 */
 
-    patch_list_free(&patches2);
+    g_cdd_last_alloc_err = patch_list_free(&patches2);
   }
   g_fail_io_after = -1;
 
@@ -427,13 +428,13 @@ TEST test_weaver_oom(void) {
   int r1, r2, r3, r6, r8;
 #endif
 
-  patch_list_init(&patches);
+  g_cdd_last_alloc_err = patch_list_init(&patches);
   patches.capacity = 1;
   patches.size = 1;
   free(patches.patches);
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
-  tokenize(az_span_create_from_str(src), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str(src), &tl);
 
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
@@ -444,8 +445,8 @@ TEST test_weaver_oom(void) {
   {
     int j;
     for (j = 1; j < 20; j++) {
-      patch_list_free(&patches);
-      patch_list_init(&patches);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
+      g_cdd_last_alloc_err = patch_list_init(&patches);
       free(patches.patches);
       patches.capacity = 1;
       patches.size = 1;
@@ -462,8 +463,8 @@ TEST test_weaver_oom(void) {
   {
     int j;
     for (j = 1; j < 20; j++) {
-      patch_list_free(&patches);
-      patch_list_init(&patches);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
+      g_cdd_last_alloc_err = patch_list_init(&patches);
       free(patches.patches);
       patches.capacity = 1;
       patches.size = 1;
@@ -533,8 +534,8 @@ TEST test_weaver_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", NULL, 0));
 
-  free_token_list(tl);
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
   g_fail_io_after = -1;
   PASS();
 }
@@ -564,8 +565,8 @@ TEST test_weaver_cov(void) {
   ASSERT_EQ(0, res);
 
   free(out_code);
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   /* Test #ident that is not include */
   {
@@ -583,8 +584,8 @@ TEST test_weaver_cov(void) {
     ASSERT_EQ(0, res);
 
     free(out_code);
-    patch_list_free(&patches);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = patch_list_free(&patches);
+    g_cdd_last_alloc_err = free_token_list(tokens);
 
     /* Test vla_to_alloca edge cases */
     {
@@ -606,8 +607,8 @@ TEST test_weaver_cov(void) {
         g_cdd_alloc_fail = 0;
       }
 #endif
-      patch_list_free(&patches);
-      free_token_list(tokens);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
+      g_cdd_last_alloc_err = free_token_list(tokens);
     }
 
     PASS();
@@ -634,12 +635,12 @@ TEST test_weaver_cov_more(void) {
   res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
   ASSERT_EQ(0, res);
 
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   /* Test start_idx >= end_idx for vla_to_alloca */
   res = tokenize(az_span_create_from_str("int a[5];"), &tokens);
-  patch_list_init(&patches);
+  g_cdd_last_alloc_err = patch_list_init(&patches);
   res = weaver_vla_to_alloca(&patches, tokens, 1, 1, "int", "a", "5", 0);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, res);
 
@@ -647,8 +648,8 @@ TEST test_weaver_cov_more(void) {
   res = weaver_vla_to_alloca(&patches, tokens, 0, 100, "int", "a", "5", 0);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, res);
 
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   PASS();
 }
@@ -673,8 +674,8 @@ TEST test_weaver_cov_even_more(void) {
   res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
   ASSERT_EQ(0, res);
 
-  patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -689,13 +690,13 @@ TEST test_weaver_interactive(void) {
   FILE *fake_stdin;
   char tmp_name[32];
 
-  patch_list_init(&patches);
+  g_cdd_last_alloc_err = patch_list_init(&patches);
   patches.capacity = 1;
   patches.size = 1;
   free(patches.patches);
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
-  tokenize(az_span_create_from_str(src), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str(src), &tl);
 
 #if defined(_MSC_VER)
   sprintf_s(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);
@@ -753,8 +754,8 @@ TEST test_weaver_interactive(void) {
   fclose(fake_stdin);
   remove(tmp_name);
 
-  patch_list_free(&patches);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 

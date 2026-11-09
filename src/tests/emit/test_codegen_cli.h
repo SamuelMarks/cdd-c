@@ -264,7 +264,7 @@ TEST test_cli_action_and_hint_parsers(void) {
   ASSERT_EQ(CDD_C_SUCCESS, struct_field_add_cli_required_unless(f, "alt_f"));
   ASSERT_EQ(1u, f->n_cli_required_unless);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Enum CLI metadata */
   ASSERT_EQ(CDD_C_SUCCESS, enum_members_init(&em));
@@ -276,7 +276,7 @@ TEST test_cli_action_and_hint_parsers(void) {
             enum_member_set_cli_meta(&em, 1, "Hidden format", 1));
   ASSERT_STR_EQ("JSON output format", em.cli_descriptions[0]);
   ASSERT_EQ(1, em.cli_hidden[1]);
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   PASS();
 }
@@ -369,7 +369,7 @@ TEST test_cli_comment_directive_parsing(void) {
   ASSERT_STR_EQ("tls", f->cli_required_if_val);
   ASSERT_STR_EQ("out_grp", f->cli_group);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 
@@ -450,7 +450,7 @@ TEST test_cli_response_file_expansion(void) {
     ASSERT_STR_EQ("9090", out_argv[4]);
     ASSERT_STR_EQ("quoted value", out_argv[5]);
     ASSERT_STR_EQ("--verbose", out_argv[6]);
-    cdd_cli_free_argv(out_argc, out_argv);
+    g_cdd_last_alloc_err = cdd_cli_free_argv(out_argc, out_argv);
   }
 
   /* Test self-referencing cycle rejection */
@@ -489,7 +489,7 @@ TEST test_cli_codegen_and_schema_roundtrip(void) {
   char *code = NULL;
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     root_val = _cdd_jv_1;
   }
   schemas_obj = json_value_get_object(root_val);
@@ -575,7 +575,8 @@ TEST test_cli_codegen_and_schema_roundtrip(void) {
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_loaded));
   {
     JSON_Object *_cdd_jo_1 = NULL;
-    cdd_json_object_get_object(schemas_obj, "DemoCli", &_cdd_jo_1);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(schemas_obj, "DemoCli", &_cdd_jo_1);
     ASSERT_EQ(CDD_C_SUCCESS,
               json_object_to_struct_fields_ex(_cdd_jo_1, &sf_loaded,
                                               schemas_obj, "DemoCli"));
@@ -594,9 +595,9 @@ TEST test_cli_codegen_and_schema_roundtrip(void) {
   ASSERT_EQ(1, sf_loaded.fields[4].cli_positional);
   ASSERT_EQ(0, sf_loaded.fields[4].cli_index);
 
-  struct_fields_free(&sf_loaded);
-  struct_fields_free(&sf);
-  json_value_free(root_val);
+  g_cdd_last_alloc_err = struct_fields_free(&sf_loaded);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  g_cdd_last_alloc_err = json_value_free(root_val);
   PASS();
 }
 
@@ -743,7 +744,7 @@ TEST test_cli_io_and_invalid_arg_branches(void) {
       break;
     g_fail_io_after = k;
     g_io_calls = 0;
-    write_struct_cli_all_funcs(fp, "S", &sf, &cfg);
+    g_cdd_last_alloc_err = write_struct_cli_all_funcs(fp, "S", &sf, &cfg);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -758,7 +759,7 @@ TEST test_cli_io_and_invalid_arg_branches(void) {
     RuntimeCliApp_cleanup(app);
   }
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 
@@ -781,8 +782,9 @@ TEST test_cli_struct_exhaustive(void) {
   int k;
 
   /* 1. Resolve helpers edge cases */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "my_field", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "my_field", "string", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cli_resolve_field_long(&sf, NULL, buf, sizeof(buf)));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -854,7 +856,7 @@ TEST test_cli_struct_exhaustive(void) {
             cdd_cli_resolve_value_name(&sf.fields[0], NULL, sizeof(buf)));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cli_resolve_value_name(&sf.fields[0], buf, 0));
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 2. Suggest closest edge cases (>64 char strings, <=3 char, >=10 char,
    * NULL/empty) */
@@ -892,7 +894,7 @@ TEST test_cli_struct_exhaustive(void) {
     char **out_argv = NULL;
     char *in_argv[5];
 
-    cdd_cli_free_argv(0, NULL);
+    g_cdd_last_alloc_err = cdd_cli_free_argv(0, NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cli_expand_response_files(-1, in_argv, &out_argc, &out_argv));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -922,26 +924,26 @@ TEST test_cli_struct_exhaustive(void) {
     in_argv[3] = cdd_test_mut_str("@test_many.rsp");
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv));
-    cdd_cli_free_argv(out_argc, out_argv);
+    g_cdd_last_alloc_err = cdd_cli_free_argv(out_argc, out_argv);
 
 #ifdef CDD_BUILD_TESTS
     for (k = 1; k <= 6; ++k) {
       g_cdd_alloc_fail = k;
       if (cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv) ==
           CDD_C_SUCCESS) {
-        cdd_cli_free_argv(out_argc, out_argv);
+        g_cdd_last_alloc_err = cdd_cli_free_argv(out_argc, out_argv);
       }
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = k;
       if (cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv) ==
           CDD_C_SUCCESS) {
-        cdd_cli_free_argv(out_argc, out_argv);
+        g_cdd_last_alloc_err = cdd_cli_free_argv(out_argc, out_argv);
       }
       g_cdd_strdup_fail = 0;
       g_cdd_cst_realloc_fail = k;
       if (cdd_cli_expand_response_files(4, in_argv, &out_argc, &out_argv) ==
           CDD_C_SUCCESS) {
-        cdd_cli_free_argv(out_argc, out_argv);
+        g_cdd_last_alloc_err = cdd_cli_free_argv(out_argc, out_argv);
       }
       g_cdd_cst_realloc_fail = 0;
     }
@@ -952,38 +954,43 @@ TEST test_cli_struct_exhaustive(void) {
 
   /* 4. Rich StructFields + TypeDefList registry covering all codegen branches
    */
-  struct_fields_init(&sf);
-  struct_fields_init(&csf);
-  struct_fields_init(&usf);
-  struct_fields_init(&v1sf);
-  enum_members_init(&em);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&csf);
+  g_cdd_last_alloc_err = struct_fields_init(&usf);
+  g_cdd_last_alloc_err = struct_fields_init(&v1sf);
+  g_cdd_last_alloc_err = enum_members_init(&em);
   memset(&reg, 0, sizeof(reg));
   memset(&cfg, 0, sizeof(cfg));
 
   /* Populate EnumMembers */
-  enum_members_add(&em, "UNKNOWN");
-  enum_members_add(&em, "FAST");
-  enum_members_add(&em, "SLOW");
-  enum_members_add(&em, "SKIP_ME");
-  enum_members_add(&em, "HIDE_ME");
+  g_cdd_last_alloc_err = enum_members_add(&em, "UNKNOWN");
+  g_cdd_last_alloc_err = enum_members_add(&em, "FAST");
+  g_cdd_last_alloc_err = enum_members_add(&em, "SLOW");
+  g_cdd_last_alloc_err = enum_members_add(&em, "SKIP_ME");
+  g_cdd_last_alloc_err = enum_members_add(&em, "HIDE_ME");
   em.serde_skip[3] = 1;
-  enum_member_set_cli_meta(&em, 4, NULL, 1);
+  g_cdd_last_alloc_err = enum_member_set_cli_meta(&em, 4, NULL, 1);
   em.cli_rename_all = CDD_SERDE_CASE_LOWERCASE;
   em.serde_names[2] = strdup("slow_custom");
 
   /* Populate flattened child struct `ChildCfg` */
-  struct_fields_add(&csf, "c_skip", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&csf, "c_skip", "string", NULL, NULL, NULL);
   csf.fields[0].serde_skip = 1;
-  struct_fields_add(&csf, "c_hid", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&csf, "c_hid", "string", NULL, NULL, NULL);
   csf.fields[1].cli_hidden = 1;
-  struct_fields_add(&csf, "c_pos", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&csf, "c_pos", "string", NULL, NULL, NULL);
   csf.fields[2].cli_positional = 1;
-  struct_fields_add(&csf, "c_short", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&csf, "c_short", "string", NULL, NULL, NULL);
   csf.fields[3].cli_short = 's';
   csf.fields[3].cli_has_long = -1;
   CDD_STRCPY(csf.fields[3].cli_help, sizeof(csf.fields[3].cli_help),
              "Child short help");
-  struct_fields_add(&csf, "c_opt", "string", NULL, NULL, "Child opt");
+  g_cdd_last_alloc_err =
+      struct_fields_add(&csf, "c_opt", "string", NULL, NULL, "Child opt");
   CDD_STRCPY(csf.fields[4].cli_long, sizeof(csf.fields[4].cli_long),
              "very-long-child-option-name-for-width");
 
@@ -991,36 +998,39 @@ TEST test_cli_struct_exhaustive(void) {
   CDD_STRCPY(v1sf.cli_about, sizeof(v1sf.cli_about), "Run command about");
 
   /* Populate subcommand union `SubCmd` */
-  struct_fields_add(&usf, "run_cmd", "object", "#/definitions/RunCmd", NULL,
-                    NULL);
-  struct_field_add_alias(&usf.fields[0], "r");
-  struct_fields_add(&usf, "build_cmd", "object", "#/definitions/BuildCmd", NULL,
-                    "Build help");
+  g_cdd_last_alloc_err = struct_fields_add(&usf, "run_cmd", "object",
+                                           "#/definitions/RunCmd", NULL, NULL);
+  g_cdd_last_alloc_err = struct_field_add_alias(&usf.fields[0], "r");
+  g_cdd_last_alloc_err =
+      struct_fields_add(&usf, "build_cmd", "object", "#/definitions/BuildCmd",
+                        NULL, "Build help");
   CDD_STRCPY(usf.fields[1].serde_rename, sizeof(usf.fields[1].serde_rename),
              "build-it");
   CDD_STRCPY(usf.fields[1].cli_help, sizeof(usf.fields[1].cli_help),
              "Explicit build help");
-  struct_fields_add(&usf, "skip_cmd", "object", "#/definitions/SkipCmd", NULL,
-                    NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&usf, "skip_cmd", "object",
+                                           "#/definitions/SkipCmd", NULL, NULL);
   usf.fields[2].serde_skip = 1;
-  struct_fields_add(&usf, "hid_cmd", "object", "#/definitions/HidCmd", NULL,
-                    NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&usf, "hid_cmd", "object",
+                                           "#/definitions/HidCmd", NULL, NULL);
   usf.fields[3].cli_hidden = 1;
-  struct_fields_add(&usf, "empty_about_cmd", "object",
-                    "#/definitions/EmptyAboutCmd", NULL, NULL);
-  struct_fields_add(&usf, "unreg_cmd", "object", "#/definitions/UnregCmd", NULL,
-                    NULL);
-  struct_fields_add(&usf, "cli_skip_cmd", "object", "#/definitions/CliSkipCmd",
-                    NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&usf, "empty_about_cmd", "object",
+                        "#/definitions/EmptyAboutCmd", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &usf, "unreg_cmd", "object", "#/definitions/UnregCmd", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &usf, "cli_skip_cmd", "object", "#/definitions/CliSkipCmd", NULL, NULL);
   usf.fields[usf.size - 1].cli_skip = 1;
-  struct_fields_add(&usf, "cli_skip_from_cmd", "object",
-                    "#/definitions/CliSkipFromCmd", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&usf, "cli_skip_from_cmd", "object",
+                        "#/definitions/CliSkipFromCmd", NULL, NULL);
   usf.fields[usf.size - 1].cli_skip_from_cli = 1;
 
   /* Build TypeDefList registry */
   {
     struct StructFields empty_sf;
-    struct_fields_init(&empty_sf);
+    g_cdd_last_alloc_err = struct_fields_init(&empty_sf);
     reg.capacity = 5;
     reg.size = 5;
     reg.items =
@@ -1059,28 +1069,31 @@ TEST test_cli_struct_exhaustive(void) {
     sf.cli_case_insensitive_flags = 1;
 
     /* 0: skipped field & hidden field */
-    struct_fields_add(&sf, "f_skip", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f_skip", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].serde_skip = 1;
-    struct_fields_add(&sf, "f_hid", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "f_hid", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_hidden = 1;
 
     /* 1: flattened object field */
-    struct_fields_add(&sf, "flat_child", "object", "#/definitions/ChildCfg",
-                      NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "flat_child", "object", "#/definitions/ChildCfg", NULL, NULL);
     sf.fields[sf.size - 1].serde_flatten = 1;
     /* 1b: flattened unresolvable struct */
-    struct_fields_add(&sf, "flat_missing", "object", "#/definitions/MissingCfg",
-                      NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "flat_missing", "object", "#/definitions/MissingCfg", NULL, NULL);
     sf.fields[sf.size - 1].serde_flatten = 1;
 
     /* 2: subcommand field */
-    struct_fields_add(&sf, "subcmd", "object", "#/definitions/SubCmd", NULL,
-                      NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "subcmd", "object", "#/definitions/SubCmd", NULL, NULL);
     sf.fields[sf.size - 1].cli_subcommand = 1;
 
     /* 3: short-only option with SET_FALSE action, custom heading,
      * require_equals + default_missing_val */
-    struct_fields_add(&sf, "no_cache", "boolean", NULL, "1", "No cache");
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "no_cache", "boolean", NULL, "1", "No cache");
     sf.fields[sf.size - 1].cli_short = 'C';
     sf.fields[sf.size - 1].cli_has_long = -1;
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_SET_FALSE;
@@ -1093,25 +1106,30 @@ TEST test_cli_struct_exhaustive(void) {
 
     /* 3b: long-named option with SET_FALSE action and aliases, plus short +
      * long negatable */
-    struct_fields_add(&sf, "no_verify", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "no_verify", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_SET_FALSE;
-    struct_field_add_alias(&sf.fields[sf.size - 1], "nv1");
-    struct_field_add_alias(&sf.fields[sf.size - 1], "nv2");
+    g_cdd_last_alloc_err =
+        struct_field_add_alias(&sf.fields[sf.size - 1], "nv1");
+    g_cdd_last_alloc_err =
+        struct_field_add_alias(&sf.fields[sf.size - 1], "nv2");
 
-    struct_fields_add(&sf, "both_neg", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "both_neg", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_short = 'b';
     sf.fields[sf.size - 1].cli_negatable = 1;
 
     /* 3c: option with neither long nor short, required (lname[0] == '\0') */
-    struct_fields_add(&sf, "no_flag", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "no_flag", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_has_long = -1;
     sf.fields[sf.size - 1].cli_short = '\0';
     sf.fields[sf.size - 1].required = 1;
 
     /* 4: duplicate custom heading + enum type + required + required_unless +
      * exclusive + conflicts + requires + required_if_eq + group */
-    struct_fields_add(&sf, "mode", "enum", "#/definitions/ModeEnum", NULL,
-                      "Mode desc");
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "mode", "enum", "#/definitions/ModeEnum", NULL, "Mode desc");
     CDD_STRCPY(sf.fields[sf.size - 1].cli_env,
                sizeof(sf.fields[sf.size - 1].cli_env), "MODE_ENV");
     sf.fields[sf.size - 1].cli_short = 'm';
@@ -1122,9 +1140,12 @@ TEST test_cli_struct_exhaustive(void) {
     CDD_STRCPY(sf.fields[sf.size - 1].cli_default_missing_val,
                sizeof(sf.fields[sf.size - 1].cli_default_missing_val), "fast");
     sf.fields[sf.size - 1].cli_exclusive = 1;
-    struct_field_add_cli_required_unless(&sf.fields[sf.size - 1], "no_cache");
-    struct_field_add_cli_conflict(&sf.fields[sf.size - 1], "no_cache");
-    struct_field_add_cli_requires(&sf.fields[sf.size - 1], "str_req_target");
+    g_cdd_last_alloc_err = struct_field_add_cli_required_unless(
+        &sf.fields[sf.size - 1], "no_cache");
+    g_cdd_last_alloc_err =
+        struct_field_add_cli_conflict(&sf.fields[sf.size - 1], "no_cache");
+    g_cdd_last_alloc_err = struct_field_add_cli_requires(
+        &sf.fields[sf.size - 1], "str_req_target");
     CDD_STRCPY(sf.fields[sf.size - 1].cli_required_if_field,
                sizeof(sf.fields[sf.size - 1].cli_required_if_field),
                "str_req_target");
@@ -1135,18 +1156,21 @@ TEST test_cli_struct_exhaustive(void) {
 
     /* 4b: required_if_eq referencing non-existent field, and required with
      * serde_has_default, and required with default_val */
-    struct_fields_add(&sf, "req_with_def", "string", NULL, "dv", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "req_with_def", "string", NULL, "dv", NULL);
     sf.fields[sf.size - 1].required = 1;
     CDD_STRCPY(sf.fields[sf.size - 1].cli_required_if_field,
                sizeof(sf.fields[sf.size - 1].cli_required_if_field),
                "nonexistent_field");
-    struct_fields_add(&sf, "req_with_hasdef", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "req_with_hasdef", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].required = 1;
     sf.fields[sf.size - 1].serde_has_default = 1;
 
     /* 5: string field with min_len/max_len, require_equals without
      * default_missing_val, group "grp1" */
-    struct_fields_add(&sf, "str_req_target", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "str_req_target", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_require_equals = 1;
     sf.fields[sf.size - 1].has_min_len = 1;
     sf.fields[sf.size - 1].min_len = 2;
@@ -1157,7 +1181,8 @@ TEST test_cli_struct_exhaustive(void) {
 
     /* 6: number field with default_missing_val (no require_equals), min/max
      * (exclusive), short_aliases only */
-    struct_fields_add(&sf, "rate", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "rate", "number", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_short_aliases[0] = 'r';
     sf.fields[sf.size - 1].cli_short_aliases[1] = '\0';
     CDD_STRCPY(sf.fields[sf.size - 1].cli_default_missing_val,
@@ -1171,7 +1196,8 @@ TEST test_cli_struct_exhaustive(void) {
     sf.fields[sf.size - 1].max_val = 100.0;
 
     /* 7: integer field with inclusive min/max and custom value_parser */
-    struct_fields_add(&sf, "custom_int", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "custom_int", "integer", NULL, NULL, NULL);
     CDD_STRCPY(sf.fields[sf.size - 1].cli_value_parser,
                sizeof(sf.fields[sf.size - 1].cli_value_parser), "parse_my_int");
     sf.fields[sf.size - 1].has_min = 1;
@@ -1180,53 +1206,68 @@ TEST test_cli_struct_exhaustive(void) {
     sf.fields[sf.size - 1].max_val = 10.0;
 
     /* 8: boolean non-positional with explicit action SET */
-    struct_fields_add(&sf, "explicit_bool", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "explicit_bool", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_SET;
 
     /* 9: action HELP, action VERSION, and action COUNT with short flag */
-    struct_fields_add(&sf, "custom_help", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "custom_help", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_HELP;
-    struct_fields_add(&sf, "custom_ver", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "custom_ver", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_VERSION;
-    struct_fields_add(&sf, "verb_cnt", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "verb_cnt", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_COUNT;
     sf.fields[sf.size - 1].cli_short = 'v';
 
     /* 10: arrays of string, integer, boolean, number, and enum, with delimiter
      * and min_items/max_items */
-    struct_fields_add(&sf, "arr_str", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "arr_str", "array", "string", NULL, NULL);
     sf.fields[sf.size - 1].cli_value_delimiter = ',';
-    struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
     sf.fields[sf.size - 1].has_min_items = 1;
     sf.fields[sf.size - 1].min_items = 1;
     sf.fields[sf.size - 1].has_max_items = 1;
     sf.fields[sf.size - 1].max_items = 5;
-    struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
-    struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
-    struct_fields_add(&sf, "arr_enum", "array", "#/definitions/ModeEnum", NULL,
-                      NULL);
-    struct_fields_add(&sf, "arr_unres_enum", "array",
-                      "#/definitions/MissingEnum", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "arr_enum", "array", "#/definitions/ModeEnum", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "arr_unres_enum", "array",
+                          "#/definitions/MissingEnum", NULL, NULL);
 
     /* 11: positional boolean, positional integer, positional array, positional
      * trailing_var_arg, positional last */
-    struct_fields_add(&sf, "pos_bool", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pos_bool", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].cli_index = 0;
     CDD_STRCPY(sf.fields[sf.size - 1].cli_help,
                sizeof(sf.fields[sf.size - 1].cli_help), "Pos bool help");
-    struct_field_add_alias(&sf.fields[sf.size - 1], "pb_al");
-    struct_fields_add(&sf, "pos_int", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_field_add_alias(&sf.fields[sf.size - 1], "pb_al");
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pos_int", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].cli_index = -1;
-    struct_fields_add(&sf, "pos_arr", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pos_arr", "array", "string", NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].cli_index = -1;
-    struct_fields_add(&sf, "pos_trail", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pos_trail", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].cli_trailing_var_arg = 1;
     sf.fields[sf.size - 1].cli_index = -1;
-    struct_fields_add(&sf, "pos_last", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pos_last", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].cli_last = 1;
     sf.fields[sf.size - 1].cli_index = -1;
@@ -1234,39 +1275,50 @@ TEST test_cli_struct_exhaustive(void) {
     /* 11b: bitfield custom parser, bitfield int, bitfield bool, bitfield enum,
      * fixed string option & positional, fixed arrays of string, int, bool,
      * number, other, and positional fixed array */
-    struct_fields_add(&sf, "bf_cust", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "bf_cust", "integer", NULL, NULL, NULL);
     CDD_STRCPY(sf.fields[sf.size - 1].cli_value_parser,
                sizeof(sf.fields[sf.size - 1].cli_value_parser), "parse_my_int");
     CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
                sizeof(sf.fields[sf.size - 1].bit_width), "4");
-    struct_fields_add(&sf, "bf_int", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "bf_int", "integer", NULL, NULL, NULL);
     CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
                sizeof(sf.fields[sf.size - 1].bit_width), "4");
-    struct_fields_add(&sf, "bf_bool", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "bf_bool", "boolean", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_action = CDD_CLI_ACTION_SET;
     CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
                sizeof(sf.fields[sf.size - 1].bit_width), "1");
-    struct_fields_add(&sf, "bf_enum", "enum", "#/definitions/ModeEnum", NULL,
-                      NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &sf, "bf_enum", "enum", "#/definitions/ModeEnum", NULL, NULL);
     CDD_STRCPY(sf.fields[sf.size - 1].bit_width,
                sizeof(sf.fields[sf.size - 1].bit_width), "3");
-    struct_fields_add(&sf, "fix_str_opt", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_str_opt", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].fixed_array_len = 16;
-    struct_fields_add(&sf, "fix_arr_str", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_arr_str", "array", "string", NULL, NULL);
     sf.fields[sf.size - 1].fixed_array_len = 2;
-    struct_fields_add(&sf, "fix_arr_int", "array", "integer", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_arr_int", "array", "integer", NULL, NULL);
     sf.fields[sf.size - 1].fixed_array_len = 2;
-    struct_fields_add(&sf, "fix_arr_bool", "array", "boolean", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_arr_bool", "array", "boolean", NULL, NULL);
     sf.fields[sf.size - 1].fixed_array_len = 2;
-    struct_fields_add(&sf, "fix_arr_num", "array", "number", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_arr_num", "array", "number", NULL, NULL);
     sf.fields[sf.size - 1].fixed_array_len = 2;
-    struct_fields_add(&sf, "fix_arr_other", "array", "object", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_arr_other", "array", "object", NULL, NULL);
     sf.fields[sf.size - 1].fixed_array_len = 2;
-    struct_fields_add(&sf, "fix_str_pos", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_str_pos", "string", NULL, NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].fixed_array_len = 16;
     sf.fields[sf.size - 1].cli_index = -1;
-    struct_fields_add(&sf, "fix_arr_pos", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "fix_arr_pos", "array", "string", NULL, NULL);
     sf.fields[sf.size - 1].cli_positional = 1;
     sf.fields[sf.size - 1].fixed_array_len = 2;
     sf.fields[sf.size - 1].cli_index = -1;
@@ -1423,14 +1475,14 @@ TEST test_cli_struct_exhaustive(void) {
      * --version) */
     {
       struct StructFields sf_empty;
-      struct_fields_init(&sf_empty);
+      g_cdd_last_alloc_err = struct_fields_init(&sf_empty);
       ASSERT_EQ(CDD_C_SUCCESS, write_struct_print_completions_func(
                                    fp, "EmptyCli", &sf_empty, NULL));
       sf_empty.cli_disable_help_flag = 1;
       ASSERT_EQ(CDD_C_SUCCESS, write_struct_print_completions_func(
                                    fp, "EmptyCli2", &sf_empty, NULL));
-      struct_fields_add(&sf_empty, "plain_enum", "enum", "#/definitions/E",
-                        NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf_empty, "plain_enum", "enum",
+                                               "#/definitions/E", NULL, NULL);
       for (k = 0; k < 40; ++k) {
         cdd_c_error_t rc_io;
         g_fail_io_after = k;
@@ -1441,11 +1493,11 @@ TEST test_cli_struct_exhaustive(void) {
         if (rc_io == CDD_C_SUCCESS)
           break;
       }
-      struct_fields_free(&sf_empty);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_empty);
     }
 
     free(reg.items[4].name);
-    struct_fields_free(&empty_sf);
+    g_cdd_last_alloc_err = struct_fields_free(&empty_sf);
   }
 
 #ifdef CDD_BUILD_TESTS
@@ -1454,9 +1506,9 @@ TEST test_cli_struct_exhaustive(void) {
   {
     extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
     struct StructFields sf_enum_fail;
-    struct_fields_init(&sf_enum_fail);
-    struct_fields_add(&sf_enum_fail, "e", "enum", "#/definitions/E", NULL,
-                      NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf_enum_fail);
+    g_cdd_last_alloc_err = struct_fields_add(&sf_enum_fail, "e", "enum",
+                                             "#/definitions/E", NULL, NULL);
     CDD_STRCPY(sf_enum_fail.fields[0].cli_env,
                sizeof(sf_enum_fail.fields[0].cli_env), "E_ENV");
     sf_enum_fail.cli_allow_windows_slash_flags = 1;
@@ -1492,7 +1544,7 @@ TEST test_cli_struct_exhaustive(void) {
     ASSERT_NEQ(CDD_C_SUCCESS,
                write_struct_to_cli_argv_func(fp, "EFail", &sf_enum_fail, NULL));
     g_cdd_fail_str_after_last = 0;
-    struct_fields_free(&sf_enum_fail);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_enum_fail);
   }
 #endif
 
@@ -1502,11 +1554,11 @@ TEST test_cli_struct_exhaustive(void) {
   free(reg.items[2].name);
   free(reg.items[3].name);
   free(reg.items);
-  enum_members_free(&em);
-  struct_fields_free(&v1sf);
-  struct_fields_free(&usf);
-  struct_fields_free(&csf);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = enum_members_free(&em);
+  g_cdd_last_alloc_err = struct_fields_free(&v1sf);
+  g_cdd_last_alloc_err = struct_fields_free(&usf);
+  g_cdd_last_alloc_err = struct_fields_free(&csf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 
@@ -1633,7 +1685,7 @@ TEST test_directional_scope_directives_and_cli_skip(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     root_val = _cdd_jv_1;
   }
   schemas_obj = json_value_get_object(root_val);
@@ -1641,7 +1693,8 @@ TEST test_directional_scope_directives_and_cli_skip(void) {
             write_struct_to_json_schema(schemas_obj, "ScopedCli", &sf));
   {
     JSON_Object *_cdd_jo_1 = NULL;
-    cdd_json_object_get_object(schemas_obj, "ScopedCli", &_cdd_jo_1);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(schemas_obj, "ScopedCli", &_cdd_jo_1);
     schema_obj = _cdd_jo_1;
   }
   ASSERT(schema_obj != NULL);
@@ -1656,9 +1709,144 @@ TEST test_directional_scope_directives_and_cli_skip(void) {
   ASSERT_EQ(1, sf_roundtrip.fields[2].cli_skip_to_cli);
   ASSERT_EQ(0, sf_roundtrip.fields[2].cli_skip_from_cli);
 
-  struct_fields_free(&sf_roundtrip);
-  json_value_free(root_val);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf_roundtrip);
+  g_cdd_last_alloc_err = json_value_free(root_val);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  PASS();
+}
+
+/**
+ * @brief Tests `cdd_cli_parse_reflected_argv` across all branches.
+ *
+ * @return Greatest test result.
+ */
+TEST test_cli_parse_reflected_argv(void) {
+  struct TestRefCli {
+    const char *input;
+    int port;
+    size_t max_req;
+    int flag;
+  } cfg;
+  struct cdd_field_info fields[4];
+  struct cdd_type_info ti;
+  int is_help = 0;
+  int first_unk = -1;
+  char *argv_test[12];
+
+  memset(fields, 0, sizeof(fields));
+  fields[0].name = "input";
+  fields[0].wire_name = "input";
+  fields[0].kind = CDD_FIELD_KIND_STRING;
+  fields[0].offset = offsetof(struct TestRefCli, input);
+  fields[0].size = sizeof(const char *);
+  fields[0].de_wire_name = "i";
+
+  fields[1].name = "port";
+  fields[1].wire_name = "port";
+  fields[1].kind = CDD_FIELD_KIND_INTEGER;
+  fields[1].offset = offsetof(struct TestRefCli, port);
+  fields[1].size = sizeof(int);
+  fields[1].de_wire_name = "p";
+
+  fields[2].name = "max_req";
+  fields[2].wire_name = "max-req";
+  fields[2].kind = CDD_FIELD_KIND_INTEGER;
+  fields[2].offset = offsetof(struct TestRefCli, max_req);
+  fields[2].size = sizeof(size_t);
+
+  fields[3].name = "flag";
+  fields[3].wire_name = "flag";
+  fields[3].kind = CDD_FIELD_KIND_BOOLEAN;
+  fields[3].offset = offsetof(struct TestRefCli, flag);
+  fields[3].size = sizeof(int);
+
+  memset(&ti, 0, sizeof(ti));
+  ti.name = "TestRefCli";
+  ti.size = sizeof(struct TestRefCli);
+  ti.fields = fields;
+  ti.n_fields = 4;
+
+  /* Invalid arguments */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_reflected_argv(1, NULL, 0, &ti, &cfg, &is_help,
+                                         &first_unk));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_reflected_argv(0, NULL, -1, &ti, &cfg, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_reflected_argv(0, NULL, 0, NULL, &cfg, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cli_parse_reflected_argv(0, NULL, 0, &ti, NULL, NULL, NULL));
+
+  /* Valid flags with =, space-separated, boolean false, unknown, positional,
+   * NULL arg */
+  memset(&cfg, 0, sizeof(cfg));
+  argv_test[0] = NULL;
+  argv_test[1] = cdd_test_mut_str("--input=spec.json");
+  argv_test[2] = cdd_test_mut_str("-p");
+  argv_test[3] = cdd_test_mut_str("9090");
+  argv_test[4] = cdd_test_mut_str("--max-req=42");
+  argv_test[5] = cdd_test_mut_str("--flag");
+  argv_test[6] = cdd_test_mut_str("positional_arg");
+  argv_test[7] = cdd_test_mut_str("--unknown-flag");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cli_parse_reflected_argv(8, argv_test, 0, &ti, &cfg, &is_help,
+                                         &first_unk));
+  ASSERT_EQ(0, is_help);
+  ASSERT_EQ(6, first_unk);
+  ASSERT_STR_EQ("spec.json", cfg.input);
+  ASSERT_EQ(9090, cfg.port);
+  ASSERT_EQ(42u, cfg.max_req);
+  ASSERT_EQ(1, cfg.flag);
+
+  /* Boolean =false and =0, long key >= 64 chars, unknown flag first */
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.flag = 1;
+  argv_test[0] = cdd_test_mut_str("--flag=false");
+  argv_test[1] = cdd_test_mut_str(
+      "--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=1");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_reflected_argv(
+                               2, argv_test, 0, &ti, &cfg, NULL, &first_unk));
+  ASSERT_EQ(0, cfg.flag);
+  ASSERT_EQ(1, first_unk);
+
+  cfg.flag = 1;
+  argv_test[0] = cdd_test_mut_str("--flag=0");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_reflected_argv(1, argv_test, 0, &ti,
+                                                        &cfg, NULL, NULL));
+  ASSERT_EQ(0, cfg.flag);
+
+  cfg.flag = 0;
+  argv_test[0] = cdd_test_mut_str("--flag=true");
+  argv_test[1] = cdd_test_mut_str("pos1");
+  argv_test[2] = cdd_test_mut_str("pos2");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_reflected_argv(3, argv_test, 0, &ti,
+                                                        &cfg, NULL, NULL));
+  ASSERT_EQ(1, cfg.flag);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_reflected_argv(
+                               3, argv_test, 0, &ti, &cfg, NULL, &first_unk));
+  ASSERT_EQ(1, first_unk);
+
+  /* Help flag */
+  argv_test[0] = cdd_test_mut_str("--help");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_reflected_argv(1, argv_test, 0, &ti,
+                                                        &cfg, &is_help, NULL));
+  ASSERT_EQ(1, is_help);
+
+  argv_test[0] = cdd_test_mut_str("-h");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cli_parse_reflected_argv(1, argv_test, 0, &ti,
+                                                        &cfg, NULL, NULL));
+
+  /* Missing value for string and integer flags */
+  argv_test[0] = cdd_test_mut_str("-i");
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cli_parse_reflected_argv(1, argv_test, 0, &ti, &cfg, NULL, NULL));
+
+  argv_test[0] = cdd_test_mut_str("-p");
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cli_parse_reflected_argv(1, argv_test, 0, &ti, &cfg, NULL, NULL));
+
   PASS();
 }
 
@@ -1675,6 +1863,7 @@ SUITE(codegen_cli_suite) {
   RUN_TEST(test_cli_io_and_invalid_arg_branches);
   RUN_TEST(test_cli_struct_exhaustive);
   RUN_TEST(test_directional_scope_directives_and_cli_skip);
+  RUN_TEST(test_cli_parse_reflected_argv);
 }
 
 #ifdef __cplusplus

@@ -47,7 +47,7 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
       CHECK_IO(fprintf(fp, "  /* Header Parameter: %s */\n", p->name));
       is_json = 0;
       if (p->content_type) {
-        media_type_is_json(p->content_type, &is_json);
+        g_cdd_last_alloc_err = media_type_is_json(p->content_type, &is_json);
       }
       if (p->content_type && is_json) {
         if (p->is_array) {

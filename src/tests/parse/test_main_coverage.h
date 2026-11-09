@@ -118,7 +118,7 @@ TEST test_main_coverage_handle_audit_valid(void) {
   char *argv[1];
 
   argv[0] = cdd_test_mut_str("my_empty_dir");
-  handle_audit(1, argv);
+  g_cdd_last_alloc_err = handle_audit(1, argv);
   PASS();
 }
 
@@ -410,8 +410,8 @@ TEST test_main_coverage_to_openapi(void) {
             to_openapi_cli_main(2, argv_trailing_i));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             to_openapi_cli_main(2, argv_trailing_o));
-  to_openapi_cli_main(5, argv_args);
-  to_openapi_cli_main(5, argv_args_long);
+  g_cdd_last_alloc_err = to_openapi_cli_main(5, argv_args);
+  g_cdd_last_alloc_err = to_openapi_cli_main(5, argv_args_long);
   PASS();
 }
 
@@ -483,17 +483,17 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
     argv_to_openapi[1] = cdd_test_mut_str("to_openapi");
     argv_to_openapi[2] = cdd_test_mut_str("a");
 
-    cdd_main(2, argv_audit);
-    cdd_main(2, argv_c2openapi);
-    cdd_main(3, argv_transformer);
-    cdd_main(2, argv_standardize);
-    cdd_main(3, argv_code2schema);
-    cdd_main(3, argv_gen_build);
-    cdd_main(3, argv_schema2code);
-    cdd_main(3, argv_to_docs);
-    cdd_main(3, argv_bind);
-    cdd_main(3, argv_from_openapi);
-    cdd_main(3, argv_to_openapi);
+    g_cdd_last_alloc_err = cdd_main(2, argv_audit);
+    g_cdd_last_alloc_err = cdd_main(2, argv_c2openapi);
+    g_cdd_last_alloc_err = cdd_main(3, argv_transformer);
+    g_cdd_last_alloc_err = cdd_main(2, argv_standardize);
+    g_cdd_last_alloc_err = cdd_main(3, argv_code2schema);
+    g_cdd_last_alloc_err = cdd_main(3, argv_gen_build);
+    g_cdd_last_alloc_err = cdd_main(3, argv_schema2code);
+    g_cdd_last_alloc_err = cdd_main(3, argv_to_docs);
+    g_cdd_last_alloc_err = cdd_main(3, argv_bind);
+    g_cdd_last_alloc_err = cdd_main(3, argv_from_openapi);
+    g_cdd_last_alloc_err = cdd_main(3, argv_to_openapi);
 
     PASS();
   }
@@ -594,15 +594,15 @@ TEST test_main_coverage_cdd_main_success(void) {
     fclose(f);
   }
 
-  cdd_main(6, argv_to_openapi);
-  cdd_main(7, argv_from_openapi);
-  cdd_main(4, argv_c2openapi);
-  cdd_main(4, argv_code2schema);
-  cdd_main(4, argv_transformer);
-  cdd_main(3, argv_standardize);
-  cdd_main(3, argv_audit);
-  cdd_main(5, argv_gen_build);
-  cdd_main(4, argv_schema2code);
+  g_cdd_last_alloc_err = cdd_main(6, argv_to_openapi);
+  g_cdd_last_alloc_err = cdd_main(7, argv_from_openapi);
+  g_cdd_last_alloc_err = cdd_main(4, argv_c2openapi);
+  g_cdd_last_alloc_err = cdd_main(4, argv_code2schema);
+  g_cdd_last_alloc_err = cdd_main(4, argv_transformer);
+  g_cdd_last_alloc_err = cdd_main(3, argv_standardize);
+  g_cdd_last_alloc_err = cdd_main(3, argv_audit);
+  g_cdd_last_alloc_err = cdd_main(5, argv_gen_build);
+  g_cdd_last_alloc_err = cdd_main(4, argv_schema2code);
 
   PASS();
 }
@@ -932,7 +932,7 @@ TEST test_main_coverage_all_routes(void) {
       argv_snap[2] = cdd_test_mut_str("my_empty_dir");
       argv_snap[3] = cdd_test_mut_str("-o");
       argv_snap[4] = cdd_test_mut_str("out_snap.json");
-      to_openapi_cli_main(5, argv_snap);
+      g_cdd_last_alloc_err = to_openapi_cli_main(5, argv_snap);
     }
     remove("my_empty_dir/openapi.snapshot.json");
     remove("my_empty_dir/empty.h");

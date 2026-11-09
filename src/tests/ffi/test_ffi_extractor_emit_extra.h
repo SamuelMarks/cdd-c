@@ -42,7 +42,7 @@ TEST test_ffi_ir_emit_ruby(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -78,7 +78,7 @@ TEST test_ffi_ir_emit_ruby(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -99,7 +99,7 @@ TEST test_ffi_ir_emit_kotlin(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -135,7 +135,7 @@ TEST test_ffi_ir_emit_kotlin(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -156,7 +156,7 @@ TEST test_ffi_ir_emit_php(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -192,7 +192,7 @@ TEST test_ffi_ir_emit_php(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -213,7 +213,7 @@ TEST test_ffi_ir_emit_lua(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -249,7 +249,7 @@ TEST test_ffi_ir_emit_lua(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -270,7 +270,7 @@ TEST test_ffi_ir_emit_zig(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -306,7 +306,7 @@ TEST test_ffi_ir_emit_zig(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -327,7 +327,7 @@ TEST test_ffi_ir_emit_odin(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -367,7 +367,7 @@ TEST test_ffi_ir_emit_odin(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -388,7 +388,7 @@ TEST test_ffi_ir_emit_julia(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -424,7 +424,7 @@ TEST test_ffi_ir_emit_julia(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -445,7 +445,7 @@ TEST test_ffi_ir_emit_r(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -481,7 +481,7 @@ TEST test_ffi_ir_emit_r(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -502,7 +502,7 @@ TEST test_ffi_ir_emit_matlab(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -538,7 +538,7 @@ TEST test_ffi_ir_emit_matlab(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -559,7 +559,7 @@ TEST test_ffi_ir_emit_haskell(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -595,7 +595,7 @@ TEST test_ffi_ir_emit_haskell(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -616,7 +616,7 @@ TEST test_ffi_ir_emit_ocaml(void) {
   config.library_name = "test_lib";
   config.generate_tests = 1;
 
-  makedir(output_dir);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
@@ -652,7 +652,7 @@ TEST test_ffi_ir_emit_ocaml(void) {
     if (f)
       fclose(f);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }

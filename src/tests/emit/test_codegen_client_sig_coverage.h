@@ -366,7 +366,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -378,7 +378,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -406,7 +406,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 10; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -422,7 +422,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -432,7 +432,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
       /* hitting semicolon config IO error */
@@ -443,7 +443,8 @@ TEST test_sig_complete_branches_coverage(void) {
         for (io_i = 0; io_i < 6; ++io_i) {
           g_io_calls = 0;
           g_fail_io_after = io_i;
-          codegen_client_write_signature(fp, &op, &cfg_semi);
+          g_cdd_last_alloc_err =
+              codegen_client_write_signature(fp, &op, &cfg_semi);
         }
         g_fail_io_after = -1;
       }
@@ -457,7 +458,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -465,7 +466,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -473,7 +474,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -494,7 +495,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -506,7 +507,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -518,7 +519,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -530,7 +531,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -542,7 +543,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -552,7 +553,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 
@@ -563,7 +564,7 @@ TEST test_sig_complete_branches_coverage(void) {
       for (io_i = 0; io_i < 8; ++io_i) {
         g_io_calls = 0;
         g_fail_io_after = io_i;
-        codegen_client_write_signature(fp, &op, NULL);
+        g_cdd_last_alloc_err = codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
 

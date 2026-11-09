@@ -136,7 +136,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "type %s int32\n", node->name);
@@ -160,7 +160,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "type %s struct {\n", node->name);
@@ -172,7 +172,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *gtype = NULL;
-        get_go_type(node->fields[j].type, &gtype);
+        g_cdd_last_alloc_err = get_go_type(node->fields[j].type, &gtype);
         fprintf(f, "func (s *%s) Get%s() %s {\n", node->name, fname, gtype);
         fprintf(f, "    return (%s)(s.inner.%s)\n", gtype, fname);
         fprintf(f, "}\n\n");
@@ -185,7 +185,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_gtype = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "func %s(", node->name);
@@ -197,12 +197,12 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
           arg_name = "func_";
-        get_go_type(node->fields[j].type, &gt);
+        g_cdd_last_alloc_err = get_go_type(node->fields[j].type, &gt);
         fprintf(f, "%s %s", arg_name, gt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
-      get_go_type(node->return_or_base_type, &ret_gtype);
+      g_cdd_last_alloc_err = get_go_type(node->return_or_base_type, &ret_gtype);
       fprintf(f, ") %s {\n", ret_gtype);
 
       fprintf(f, "    ");
@@ -218,7 +218,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
           arg_name = "func_";
-        get_go_c_type(node->fields[j].type, &gct);
+        g_cdd_last_alloc_err = get_go_c_type(node->fields[j].type, &gct);
         fprintf(f, "(%s)(%s)", gct, arg_name);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");

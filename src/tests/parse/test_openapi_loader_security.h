@@ -28,7 +28,7 @@ TEST test_load_server_url_query_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -82,7 +82,7 @@ TEST test_load_security_requirements(void) {
     ASSERT_EQ(0, op->security[0].n_requirements); /* empty object */
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -111,27 +111,30 @@ TEST test_load_security_schemes(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(3, spec.n_security_schemes);
 
-  bearer = (find_scheme(&spec, "bearerAuth", &_ast_find_scheme_0),
+  bearer = (g_cdd_last_alloc_err =
+                find_scheme(&spec, "bearerAuth", &_ast_find_scheme_0),
             _ast_find_scheme_0);
   ASSERT(bearer != NULL);
   ASSERT_EQ(OA_SEC_HTTP, bearer->type);
   ASSERT_STR_EQ("bearer", bearer->scheme);
   ASSERT_STR_EQ("JWT", bearer->bearer_format);
 
-  apikey = (find_scheme(&spec, "apiKeyAuth", &_ast_find_scheme_1),
+  apikey = (g_cdd_last_alloc_err =
+                find_scheme(&spec, "apiKeyAuth", &_ast_find_scheme_1),
             _ast_find_scheme_1);
   ASSERT(apikey != NULL);
   ASSERT_EQ(OA_SEC_APIKEY, apikey->type);
   ASSERT_EQ(OA_SEC_IN_HEADER, apikey->in);
   ASSERT_STR_EQ("X-Api-Key", apikey->key_name);
 
-  mtls =
-      (find_scheme(&spec, "mtlsAuth", &_ast_find_scheme_2), _ast_find_scheme_2);
+  mtls = (g_cdd_last_alloc_err =
+              find_scheme(&spec, "mtlsAuth", &_ast_find_scheme_2),
+          _ast_find_scheme_2);
   ASSERT(mtls != NULL);
   ASSERT_EQ(OA_SEC_MUTUALTLS, mtls->type);
   ASSERT_STR_EQ("mTLS only", mtls->description);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -155,12 +158,13 @@ TEST test_load_security_scheme_deprecated(void) {
   ASSERT_EQ(0, rc);
 
   old_key =
-      (find_scheme(&spec, "oldKey", &_ast_find_scheme_3), _ast_find_scheme_3);
+      (g_cdd_last_alloc_err = find_scheme(&spec, "oldKey", &_ast_find_scheme_3),
+       _ast_find_scheme_3);
   ASSERT(old_key != NULL);
   ASSERT_EQ(1, old_key->deprecated_set);
   ASSERT_EQ(1, old_key->deprecated);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -201,7 +205,8 @@ TEST test_load_oauth2_flows(void) {
   ASSERT_EQ(0, rc);
 
   oauth =
-      (find_scheme(&spec, "oauth", &_ast_find_scheme_4), _ast_find_scheme_4);
+      (g_cdd_last_alloc_err = find_scheme(&spec, "oauth", &_ast_find_scheme_4),
+       _ast_find_scheme_4);
   ASSERT(oauth != NULL);
   ASSERT_EQ(OA_SEC_OAUTH2, oauth->type);
   ASSERT_EQ(1, oauth->n_flows);
@@ -213,7 +218,7 @@ TEST test_load_oauth2_flows(void) {
   ASSERT_STR_EQ("read", oauth->flows[0].scopes[0].name);
   ASSERT_STR_EQ("Read access", oauth->flows[0].scopes[0].description);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -233,7 +238,7 @@ TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -252,7 +257,7 @@ TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -271,7 +276,7 @@ TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -290,7 +295,7 @@ TEST test_load_security_scheme_openid_missing_url_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -309,7 +314,7 @@ TEST test_load_oauth2_missing_flows_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -341,7 +346,7 @@ TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -363,7 +368,7 @@ TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -395,7 +400,7 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -427,7 +432,7 @@ TEST test_load_parameter_examples_object(void) {
     ASSERT_STR_EQ("hello", p->examples[0].data_value.string);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -470,7 +475,7 @@ TEST test_load_parameter_examples_media(void) {
     ASSERT_STR_EQ("\"hi\"", p->examples[0].serialized_value);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -494,7 +499,7 @@ TEST test_load_parameter_example_and_examples_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -518,7 +523,7 @@ TEST test_load_header_example_and_examples_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -542,7 +547,7 @@ TEST test_load_media_example_and_examples_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -574,7 +579,7 @@ TEST test_load_example_data_value_and_value_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -596,7 +601,7 @@ TEST test_load_example_serialized_and_external_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -627,7 +632,7 @@ TEST test_load_response_examples_media(void) {
     ASSERT(strstr(resp->example.json, "\"id\"") != NULL);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -654,7 +659,7 @@ TEST test_load_component_examples(void) {
   ASSERT_EQ(OA_ANY_STRING, spec.component_examples[0].value.type);
   ASSERT_STR_EQ("v", spec.component_examples[0].value.string);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -712,7 +717,7 @@ TEST test_load_example_component_ref_strict(void) {
     ASSERT_EQ(NULL, p->examples[1].summary);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -745,7 +750,7 @@ TEST test_load_request_body_metadata_and_response_description(void) {
     ASSERT_STR_EQ("OK", op->responses[0].description);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -808,7 +813,7 @@ TEST test_load_request_body_component_ref(void) {
     ASSERT_STR_EQ("Pet", op->req_body.ref_name);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -834,7 +839,7 @@ TEST test_openapi_loader_security_branches(void) {
     ASSERT_EQ(1, spec.n_security_schemes);
     ASSERT_EQ(OA_SEC_HTTP, spec.security_schemes[0].type);
     ASSERT_STR_EQ("basic", spec.security_schemes[0].scheme);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 2. Invalid component key in securitySchemes */
@@ -845,7 +850,7 @@ TEST test_openapi_loader_security_branches(void) {
         "key!\":{\"type\":\"http\",\"scheme\":\"bearer\"}}},\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_str(bad_key, &spec));
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 3. Unknown security type */
@@ -856,7 +861,7 @@ TEST test_openapi_loader_security_branches(void) {
         "type\"}}},\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_str(bad_type, &spec));
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 4. apiKey with invalid in or missing name */
@@ -867,7 +872,7 @@ TEST test_openapi_loader_security_branches(void) {
         "\"apiKey\",\"in\":\"invalid_in\",\"name\":\"k\"}}},\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_str(bad_apikey, &spec));
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 5. http without scheme */
@@ -878,7 +883,7 @@ TEST test_openapi_loader_security_branches(void) {
         ",\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_str(bad_http, &spec));
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 6. openIdConnect without openIdConnectUrl */
@@ -889,7 +894,7 @@ TEST test_openapi_loader_security_branches(void) {
         "\"openIdConnect\"}}},\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_str(bad_oidc, &spec));
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 7. oauth2 without flows */
@@ -900,7 +905,7 @@ TEST test_openapi_loader_security_branches(void) {
         "\"oauth2\"}}},\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_str(bad_oauth, &spec));
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 8. OOM loops on parse_security_requirements */
@@ -911,15 +916,15 @@ TEST test_openapi_loader_security_branches(void) {
         "\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     g_cdd_alloc_fail = k;
-    load_spec_str(sec_req_json, &spec);
+    g_cdd_last_alloc_err = load_spec_str(sec_req_json, &spec);
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     memset(&spec, 0, sizeof(spec));
     g_cdd_strdup_fail = k;
-    load_spec_str(sec_req_json, &spec);
+    g_cdd_last_alloc_err = load_spec_str(sec_req_json, &spec);
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 9. OOM loops on securitySchemes */
@@ -937,15 +942,15 @@ TEST test_openapi_loader_security_branches(void) {
         "auth\",\"scopes\":{\"read\":\"read\"}}}}}},\"paths\":{}}";
     memset(&spec, 0, sizeof(spec));
     g_cdd_alloc_fail = k;
-    load_spec_str(sec_sch_json, &spec);
+    g_cdd_last_alloc_err = load_spec_str(sec_sch_json, &spec);
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     memset(&spec, 0, sizeof(spec));
     g_cdd_strdup_fail = k;
-    load_spec_str(sec_sch_json, &spec);
+    g_cdd_last_alloc_err = load_spec_str(sec_sch_json, &spec);
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 10. parse_security_field with non-array */
@@ -956,8 +961,8 @@ TEST test_openapi_loader_security_branches(void) {
         "p\":{\"get\":{\"security\":\"not_array\",\"responses\":{\"200\":{"
         "\"description\":\"ok\"}}}}}}";
     memset(&spec, 0, sizeof(spec));
-    load_spec_str(bad_op_sec, &spec);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = load_spec_str(bad_op_sec, &spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 11. NULL checks on test helpers */
@@ -968,24 +973,25 @@ TEST test_openapi_loader_security_branches(void) {
   /* 11b. Empty securitySchemes, null scheme, and empty security array */
   {
     memset(&spec, 0, sizeof(spec));
-    load_spec_str(
+    g_cdd_last_alloc_err = load_spec_str(
         "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"components\":{\"securitySchemes\":{}},\"paths\":{}}",
         &spec);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     memset(&spec, 0, sizeof(spec));
-    load_spec_str(
+    g_cdd_last_alloc_err = load_spec_str(
         "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
         "\"components\":{\"securitySchemes\":{\"nullSec\":null}},\"paths\":{}}",
         &spec);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     memset(&spec, 0, sizeof(spec));
-    load_spec_str("{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\","
-                  "\"version\":\"1\"},\"security\":[],\"paths\":{}}",
-                  &spec);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err =
+        load_spec_str("{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"T\","
+                      "\"version\":\"1\"},\"security\":[],\"paths\":{}}",
+                      &spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 12. Direct parse_security_schemes failure tests */
@@ -994,14 +1000,15 @@ TEST test_openapi_loader_security_branches(void) {
     JSON_Value *jv_sw2 = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"securitySchemes\":{\"apiAuth\":{\"type\":"
-                            "\"apiKey\",\"name\":\"k\",\"in\":\"header\"}}}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "{\"securitySchemes\":{\"apiAuth\":{\"type\":"
+          "\"apiKey\",\"name\":\"k\",\"in\":\"header\"}}}",
+          &_cdd_jv_1);
       jv_api = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"securityDefinitions\":{\"basicAuth\":{\"type\":\"basic\"}}}",
           &_cdd_jv_1);
       jv_sw2 = _cdd_jv_1;
@@ -1028,14 +1035,14 @@ TEST test_openapi_loader_security_branches(void) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_security_schemes(jo, &spec));
       g_cdd_strdup_fail = 0;
 
-      json_value_free(jv_api);
+      g_cdd_last_alloc_err = json_value_free(jv_api);
     }
 
     {
       JSON_Value *jv_ext = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"securitySchemes\":{\"s1\":{\"type\":\"apiKey\","
             "\"name\":\"k\",\"in\":\"header\",\"x-s\":1}}}",
             &_cdd_jv_1);
@@ -1048,7 +1055,7 @@ TEST test_openapi_loader_security_branches(void) {
         rc_ext = parse_security_schemes(json_value_get_object(jv_ext), &spec);
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_ext);
         g_cdd_strdup_fail = 0;
-        json_value_free(jv_ext);
+        g_cdd_last_alloc_err = json_value_free(jv_ext);
       }
     }
 
@@ -1063,7 +1070,7 @@ TEST test_openapi_loader_security_branches(void) {
       g_cdd_strdup_fail = 0;
       free(spec.swagger_version);
 
-      json_value_free(jv_sw2);
+      g_cdd_last_alloc_err = json_value_free(jv_sw2);
     }
   }
 
@@ -1072,7 +1079,7 @@ TEST test_openapi_loader_security_branches(void) {
     JSON_Value *jv_sec = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"security\":[{\"sec1\":[\"read\"],\"x-sec\":\"val\"}]}",
           &_cdd_jv_1);
       jv_sec = _cdd_jv_1;
@@ -1097,7 +1104,7 @@ TEST test_openapi_loader_security_branches(void) {
           parse_security_field(jo, "security", &out_reqs, &out_cnt, &set_flg));
       g_cdd_alloc_fail = 0;
 
-      json_value_free(jv_sec);
+      g_cdd_last_alloc_err = json_value_free(jv_sec);
     }
   }
 
@@ -1109,26 +1116,26 @@ TEST test_openapi_loader_security_branches(void) {
     JSON_Value *jv_obj = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"securityDefinitions\":{\"oauth\":{\"type\":\"oauth2\"}}}",
           &_cdd_jv_1);
       jv_sw2_noflow = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"securitySchemes\":{\"noType\":{}}}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "{\"securitySchemes\":{\"noType\":{}}}", &_cdd_jv_1);
       jv_notype = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "[{\"x-only\":\"val\"},{\"sec\":null},{\"sec\":[123]}]", &_cdd_jv_1);
       jv_reqs = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"sec\":[]}", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("{\"sec\":[]}", &_cdd_jv_1);
       jv_obj = _cdd_jv_1;
     }
 
@@ -1139,8 +1146,8 @@ TEST test_openapi_loader_security_branches(void) {
       ASSERT_EQ(CDD_C_SUCCESS,
                 parse_security_schemes(json_value_get_object(jv_sw2_noflow),
                                        &spec_sw2));
-      openapi_spec_free(&spec_sw2);
-      json_value_free(jv_sw2_noflow);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec_sw2);
+      g_cdd_last_alloc_err = json_value_free(jv_sw2_noflow);
     }
 
     if (jv_notype) {
@@ -1151,8 +1158,8 @@ TEST test_openapi_loader_security_branches(void) {
       ASSERT_EQ(
           CDD_C_ERROR_INVALID_ARGUMENT,
           parse_security_schemes(json_value_get_object(jv_notype), &spec_nt));
-      openapi_spec_free(&spec_nt);
-      json_value_free(jv_notype);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec_nt);
+      g_cdd_last_alloc_err = json_value_free(jv_notype);
     }
 
     if (jv_reqs) {
@@ -1165,10 +1172,10 @@ TEST test_openapi_loader_security_branches(void) {
       if (out_s) {
         size_t idx;
         for (idx = 0; idx < out_c; ++idx)
-          free_security_requirement_set(&out_s[idx]);
+          g_cdd_last_alloc_err = free_security_requirement_set(&out_s[idx]);
         free(out_s);
       }
-      json_value_free(jv_reqs);
+      g_cdd_last_alloc_err = json_value_free(jv_reqs);
     }
 
     {
@@ -1179,15 +1186,16 @@ TEST test_openapi_loader_security_branches(void) {
       struct OpenAPI_Spec s_dummy;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("{\"securitySchemes\":{\"api\":{\"type\":"
-                              "\"apiKey\",\"in\":\"header\","
-                              "\"name\":\"\"}}}",
-                              &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string("{\"securitySchemes\":{\"api\":{\"type\":"
+                                  "\"apiKey\",\"in\":\"header\","
+                                  "\"name\":\"\"}}}",
+                                  &_cdd_jv_1);
         jv_empty_key = _cdd_jv_1;
       }
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"securitySchemes\":{\"http\":{\"type\":\"http\","
             "\"scheme\":\"\"}}}",
             &_cdd_jv_1);
@@ -1195,7 +1203,7 @@ TEST test_openapi_loader_security_branches(void) {
       }
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"securitySchemes\":{\"oid\":{\"type\":\"openIdConnect\","
             "\"openIdConnectUrl\":\"\"}}}",
             &_cdd_jv_1);
@@ -1203,7 +1211,7 @@ TEST test_openapi_loader_security_branches(void) {
       }
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("[123]", &_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_parse_string("[123]", &_cdd_jv_1);
         jv_non_obj = _cdd_jv_1;
       }
 
@@ -1212,8 +1220,8 @@ TEST test_openapi_loader_security_branches(void) {
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   parse_security_schemes(json_value_get_object(jv_empty_key),
                                          &s_dummy));
-        openapi_spec_free(&s_dummy);
-        json_value_free(jv_empty_key);
+        g_cdd_last_alloc_err = openapi_spec_free(&s_dummy);
+        g_cdd_last_alloc_err = json_value_free(jv_empty_key);
       }
 
       if (jv_empty_sch) {
@@ -1221,8 +1229,8 @@ TEST test_openapi_loader_security_branches(void) {
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   parse_security_schemes(json_value_get_object(jv_empty_sch),
                                          &s_dummy));
-        openapi_spec_free(&s_dummy);
-        json_value_free(jv_empty_sch);
+        g_cdd_last_alloc_err = openapi_spec_free(&s_dummy);
+        g_cdd_last_alloc_err = json_value_free(jv_empty_sch);
       }
 
       if (jv_empty_oid) {
@@ -1230,8 +1238,8 @@ TEST test_openapi_loader_security_branches(void) {
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   parse_security_schemes(json_value_get_object(jv_empty_oid),
                                          &s_dummy));
-        openapi_spec_free(&s_dummy);
-        json_value_free(jv_empty_oid);
+        g_cdd_last_alloc_err = openapi_spec_free(&s_dummy);
+        g_cdd_last_alloc_err = json_value_free(jv_empty_oid);
       }
 
       if (jv_non_obj) {
@@ -1243,10 +1251,10 @@ TEST test_openapi_loader_security_branches(void) {
         if (out_s) {
           size_t idx;
           for (idx = 0; idx < out_c; ++idx)
-            free_security_requirement_set(&out_s[idx]);
+            g_cdd_last_alloc_err = free_security_requirement_set(&out_s[idx]);
           free(out_s);
         }
-        json_value_free(jv_non_obj);
+        g_cdd_last_alloc_err = json_value_free(jv_non_obj);
       }
     }
 
@@ -1265,7 +1273,7 @@ TEST test_openapi_loader_security_branches(void) {
                 parse_security_field(jo, "sec", &out_s, NULL, &set_f));
       ASSERT_EQ(CDD_C_SUCCESS,
                 parse_security_field(jo, "sec", &out_s, &out_c, NULL));
-      json_value_free(jv_obj);
+      g_cdd_last_alloc_err = json_value_free(jv_obj);
     }
   }
 

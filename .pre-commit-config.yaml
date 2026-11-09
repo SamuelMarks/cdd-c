@@ -109,6 +109,13 @@ repos:
     types_or:
     - c
     - c++
+  - id: check-dogfooding
+    name: Enforce Dogfooding of CLI, JSON, and Reflection
+    entry: python scripts/check_dogfooding.py
+    language: python
+    types_or:
+    - c
+    - c++
   - id: update-shields
     name: Update README Shields
     entry: python scripts/precommit_matrix.py shields

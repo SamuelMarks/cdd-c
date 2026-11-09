@@ -87,7 +87,7 @@ static cdd_c_error_t free_tok(macro_tok_t *tok) {
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t next_tok(macro_lexer_t *lex) {
-  free_tok(&lex->cur);
+  g_cdd_last_alloc_err = free_tok(&lex->cur);
 
   while (lex->pos < lex->len && isspace((unsigned char)lex->str[lex->pos])) {
     lex->pos++;
@@ -458,7 +458,7 @@ static cdd_c_error_t make_err(cdd_macro_eval_result_t *r) {
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t make_int(int64_t v, cdd_macro_eval_result_t *r) {
-  make_err(r);
+  g_cdd_last_alloc_err = make_err(r);
   r->type = MACRO_EVAL_TYPE_INT;
   r->int_val = v;
   return CDD_C_SUCCESS;
@@ -472,7 +472,7 @@ static cdd_c_error_t make_int(int64_t v, cdd_macro_eval_result_t *r) {
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t make_float(double v, cdd_macro_eval_result_t *r) {
-  make_err(r);
+  g_cdd_last_alloc_err = make_err(r);
   r->type = MACRO_EVAL_TYPE_FLOAT;
   r->float_val = v;
   return CDD_C_SUCCESS;
@@ -505,18 +505,19 @@ static cdd_c_error_t parse_expr(parser_t *p, cdd_macro_eval_result_t *out) {
 static cdd_c_error_t parse_logical_or(parser_t *p,
                                       cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_logical_and(p, &left);
+  g_cdd_last_alloc_err = parse_logical_and(p, &left);
   while (p->lex.cur.kind == TOK_PIPEPIPE) {
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_logical_and(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_logical_and(p, &right);
     if (p->err)
       return make_err(out);
-    make_int((left.type == MACRO_EVAL_TYPE_INT ? (left.int_val != 0)
-                                               : (left.float_val != 0.0)) ||
-                 (right.type == MACRO_EVAL_TYPE_INT ? (right.int_val != 0)
-                                                    : (right.float_val != 0.0)),
-             &left);
+    g_cdd_last_alloc_err = make_int(
+        (left.type == MACRO_EVAL_TYPE_INT ? (left.int_val != 0)
+                                          : (left.float_val != 0.0)) ||
+            (right.type == MACRO_EVAL_TYPE_INT ? (right.int_val != 0)
+                                               : (right.float_val != 0.0)),
+        &left);
   }
   *out = left;
   return CDD_C_SUCCESS;
@@ -525,18 +526,19 @@ static cdd_c_error_t parse_logical_or(parser_t *p,
 static cdd_c_error_t parse_logical_and(parser_t *p,
                                        cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_bitwise_or(p, &left);
+  g_cdd_last_alloc_err = parse_bitwise_or(p, &left);
   while (p->lex.cur.kind == TOK_AMPAMP) {
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_bitwise_or(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_bitwise_or(p, &right);
     if (p->err)
       return make_err(out);
-    make_int((left.type == MACRO_EVAL_TYPE_INT ? (left.int_val != 0)
-                                               : (left.float_val != 0.0)) &&
-                 (right.type == MACRO_EVAL_TYPE_INT ? (right.int_val != 0)
-                                                    : (right.float_val != 0.0)),
-             &left);
+    g_cdd_last_alloc_err = make_int(
+        (left.type == MACRO_EVAL_TYPE_INT ? (left.int_val != 0)
+                                          : (left.float_val != 0.0)) &&
+            (right.type == MACRO_EVAL_TYPE_INT ? (right.int_val != 0)
+                                               : (right.float_val != 0.0)),
+        &left);
   }
   *out = left;
   return CDD_C_SUCCESS;
@@ -545,18 +547,18 @@ static cdd_c_error_t parse_logical_and(parser_t *p,
 static cdd_c_error_t parse_bitwise_or(parser_t *p,
                                       cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_bitwise_xor(p, &left);
+  g_cdd_last_alloc_err = parse_bitwise_xor(p, &left);
   while (p->lex.cur.kind == TOK_PIPE) {
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_bitwise_xor(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_bitwise_xor(p, &right);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err(out);
     }
-    make_int(left.int_val | right.int_val, &left);
+    g_cdd_last_alloc_err = make_int(left.int_val | right.int_val, &left);
   }
   *out = left;
   return CDD_C_SUCCESS;
@@ -565,18 +567,18 @@ static cdd_c_error_t parse_bitwise_or(parser_t *p,
 static cdd_c_error_t parse_bitwise_xor(parser_t *p,
                                        cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_bitwise_and(p, &left);
+  g_cdd_last_alloc_err = parse_bitwise_and(p, &left);
   while (p->lex.cur.kind == TOK_CARET) {
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_bitwise_and(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_bitwise_and(p, &right);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err(out);
     }
-    make_int(left.int_val ^ right.int_val, &left);
+    g_cdd_last_alloc_err = make_int(left.int_val ^ right.int_val, &left);
   }
   *out = left;
   return CDD_C_SUCCESS;
@@ -585,18 +587,18 @@ static cdd_c_error_t parse_bitwise_xor(parser_t *p,
 static cdd_c_error_t parse_bitwise_and(parser_t *p,
                                        cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_equality(p, &left);
+  g_cdd_last_alloc_err = parse_equality(p, &left);
   while (p->lex.cur.kind == TOK_AMP) {
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_equality(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_equality(p, &right);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err(out);
     }
-    make_int(left.int_val & right.int_val, &left);
+    g_cdd_last_alloc_err = make_int(left.int_val & right.int_val, &left);
   }
   *out = left;
   return CDD_C_SUCCESS;
@@ -604,23 +606,25 @@ static cdd_c_error_t parse_bitwise_and(parser_t *p,
 
 static cdd_c_error_t parse_equality(parser_t *p, cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_relational(p, &left);
+  g_cdd_last_alloc_err = parse_relational(p, &left);
   while (p->lex.cur.kind == TOK_EQEQ || p->lex.cur.kind == TOK_NEQ) {
     macro_tok_kind_t op = p->lex.cur.kind;
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_relational(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_relational(p, &right);
     if (p->err)
       return make_err(out);
-    promote(&left, &right);
+    g_cdd_last_alloc_err = promote(&left, &right);
     if (left.type == MACRO_EVAL_TYPE_INT) {
-      make_int(op == TOK_EQEQ ? (left.int_val == right.int_val)
-                              : (left.int_val != right.int_val),
-               &left);
+      g_cdd_last_alloc_err =
+          make_int(op == TOK_EQEQ ? (left.int_val == right.int_val)
+                                  : (left.int_val != right.int_val),
+                   &left);
     } else {
-      make_int(op == TOK_EQEQ ? (left.float_val == right.float_val)
-                              : (left.float_val != right.float_val),
-               &left);
+      g_cdd_last_alloc_err =
+          make_int(op == TOK_EQEQ ? (left.float_val == right.float_val)
+                                  : (left.float_val != right.float_val),
+                   &left);
     }
   }
   *out = left;
@@ -630,34 +634,38 @@ static cdd_c_error_t parse_equality(parser_t *p, cdd_macro_eval_result_t *out) {
 static cdd_c_error_t parse_relational(parser_t *p,
                                       cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_shift(p, &left);
+  g_cdd_last_alloc_err = parse_shift(p, &left);
   while (p->lex.cur.kind == TOK_LT || p->lex.cur.kind == TOK_LTE ||
          p->lex.cur.kind == TOK_GT || p->lex.cur.kind == TOK_GTE) {
     macro_tok_kind_t op = p->lex.cur.kind;
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_shift(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_shift(p, &right);
     if (p->err)
       return make_err(out);
-    promote(&left, &right);
+    g_cdd_last_alloc_err = promote(&left, &right);
     if (left.type == MACRO_EVAL_TYPE_INT) {
       if (op == TOK_LT)
-        make_int(left.int_val < right.int_val, &left);
+        g_cdd_last_alloc_err = make_int(left.int_val < right.int_val, &left);
       else if (op == TOK_LTE)
-        make_int(left.int_val <= right.int_val, &left);
+        g_cdd_last_alloc_err = make_int(left.int_val <= right.int_val, &left);
       else if (op == TOK_GT)
-        make_int(left.int_val > right.int_val, &left);
+        g_cdd_last_alloc_err = make_int(left.int_val > right.int_val, &left);
       else
-        make_int(left.int_val >= right.int_val, &left);
+        g_cdd_last_alloc_err = make_int(left.int_val >= right.int_val, &left);
     } else {
       if (op == TOK_LT)
-        make_int(left.float_val < right.float_val, &left);
+        g_cdd_last_alloc_err =
+            make_int(left.float_val < right.float_val, &left);
       else if (op == TOK_LTE)
-        make_int(left.float_val <= right.float_val, &left);
+        g_cdd_last_alloc_err =
+            make_int(left.float_val <= right.float_val, &left);
       else if (op == TOK_GT)
-        make_int(left.float_val > right.float_val, &left);
+        g_cdd_last_alloc_err =
+            make_int(left.float_val > right.float_val, &left);
       else
-        make_int(left.float_val >= right.float_val, &left);
+        g_cdd_last_alloc_err =
+            make_int(left.float_val >= right.float_val, &left);
     }
   }
   *out = left;
@@ -666,22 +674,22 @@ static cdd_c_error_t parse_relational(parser_t *p,
 
 static cdd_c_error_t parse_shift(parser_t *p, cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_additive(p, &left);
+  g_cdd_last_alloc_err = parse_additive(p, &left);
   while (p->lex.cur.kind == TOK_LSHIFT || p->lex.cur.kind == TOK_RSHIFT) {
     macro_tok_kind_t op = p->lex.cur.kind;
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_additive(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_additive(p, &right);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err(out);
     }
     if (op == TOK_LSHIFT)
-      make_int(left.int_val << right.int_val, &left);
+      g_cdd_last_alloc_err = make_int(left.int_val << right.int_val, &left);
     else
-      make_int(left.int_val >> right.int_val, &left);
+      g_cdd_last_alloc_err = make_int(left.int_val >> right.int_val, &left);
   }
   *out = left;
   return CDD_C_SUCCESS;
@@ -689,35 +697,37 @@ static cdd_c_error_t parse_shift(parser_t *p, cdd_macro_eval_result_t *out) {
 
 static cdd_c_error_t parse_additive(parser_t *p, cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_multiplicative(p, &left);
+  g_cdd_last_alloc_err = parse_multiplicative(p, &left);
   while (p->lex.cur.kind == TOK_PLUS || p->lex.cur.kind == TOK_MINUS) {
     macro_tok_kind_t op = p->lex.cur.kind;
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_multiplicative(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_multiplicative(p, &right);
     if (p->err) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       return make_err(out);
     }
     if (left.type == MACRO_EVAL_TYPE_STRING ||
         right.type == MACRO_EVAL_TYPE_STRING) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err(out);
     }
-    promote(&left, &right);
+    g_cdd_last_alloc_err = promote(&left, &right);
     if (left.type == MACRO_EVAL_TYPE_INT) {
       if (op == TOK_PLUS)
-        make_int(left.int_val + right.int_val, &left);
+        g_cdd_last_alloc_err = make_int(left.int_val + right.int_val, &left);
       else
-        make_int(left.int_val - right.int_val, &left);
+        g_cdd_last_alloc_err = make_int(left.int_val - right.int_val, &left);
     } else {
       if (op == TOK_PLUS)
-        make_float(left.float_val + right.float_val, &left);
+        g_cdd_last_alloc_err =
+            make_float(left.float_val + right.float_val, &left);
       else
-        make_float(left.float_val - right.float_val, &left);
+        g_cdd_last_alloc_err =
+            make_float(left.float_val - right.float_val, &left);
     }
   }
   *out = left;
@@ -727,51 +737,53 @@ static cdd_c_error_t parse_additive(parser_t *p, cdd_macro_eval_result_t *out) {
 static cdd_c_error_t parse_multiplicative(parser_t *p,
                                           cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t left;
-  parse_unary(p, &left);
+  g_cdd_last_alloc_err = parse_unary(p, &left);
   while (p->lex.cur.kind == TOK_STAR || p->lex.cur.kind == TOK_SLASH ||
          p->lex.cur.kind == TOK_PERCENT) {
     macro_tok_kind_t op = p->lex.cur.kind;
     cdd_macro_eval_result_t right;
-    next_tok(&p->lex);
-    parse_unary(p, &right);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_unary(p, &right);
     if (p->err) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       return make_err(out);
     }
     if (left.type == MACRO_EVAL_TYPE_STRING ||
         right.type == MACRO_EVAL_TYPE_STRING) {
-      cdd_macro_eval_result_free(&left);
-      cdd_macro_eval_result_free(&right);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+      g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err(out);
     }
     if (op == TOK_PERCENT) {
       if (left.type != MACRO_EVAL_TYPE_INT || right.int_val == 0) {
-        cdd_macro_eval_result_free(&left);
-        cdd_macro_eval_result_free(&right);
+        g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+        g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
         p->err = 1;
         return make_err(out);
       }
-      make_int(left.int_val % right.int_val, &left);
+      g_cdd_last_alloc_err = make_int(left.int_val % right.int_val, &left);
     } else {
-      promote(&left, &right);
+      g_cdd_last_alloc_err = promote(&left, &right);
       if (left.type == MACRO_EVAL_TYPE_INT) {
         if (op == TOK_SLASH && right.int_val == 0) {
-          cdd_macro_eval_result_free(&left);
-          cdd_macro_eval_result_free(&right);
+          g_cdd_last_alloc_err = cdd_macro_eval_result_free(&left);
+          g_cdd_last_alloc_err = cdd_macro_eval_result_free(&right);
           p->err = 1;
           return make_err(out);
         }
         if (op == TOK_STAR)
-          make_int(left.int_val * right.int_val, &left);
+          g_cdd_last_alloc_err = make_int(left.int_val * right.int_val, &left);
         else
-          make_int(left.int_val / right.int_val, &left);
+          g_cdd_last_alloc_err = make_int(left.int_val / right.int_val, &left);
       } else {
         if (op == TOK_STAR)
-          make_float(left.float_val * right.float_val, &left);
+          g_cdd_last_alloc_err =
+              make_float(left.float_val * right.float_val, &left);
         else
-          make_float(left.float_val / right.float_val, &left);
+          g_cdd_last_alloc_err =
+              make_float(left.float_val / right.float_val, &left);
       }
     }
   }
@@ -781,13 +793,13 @@ static cdd_c_error_t parse_multiplicative(parser_t *p,
 
 static cdd_c_error_t parse_unary(parser_t *p, cdd_macro_eval_result_t *out) {
   if (p->lex.cur.kind == TOK_PLUS) {
-    next_tok(&p->lex);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
     return parse_unary(p, out);
   }
   if (p->lex.cur.kind == TOK_MINUS) {
     cdd_macro_eval_result_t r;
-    next_tok(&p->lex);
-    parse_unary(p, &r);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_unary(p, &r);
     if (r.type == MACRO_EVAL_TYPE_INT)
       r.int_val = -r.int_val;
     else
@@ -797,8 +809,8 @@ static cdd_c_error_t parse_unary(parser_t *p, cdd_macro_eval_result_t *out) {
   }
   if (p->lex.cur.kind == TOK_TILDE) {
     cdd_macro_eval_result_t r;
-    next_tok(&p->lex);
-    parse_unary(p, &r);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_unary(p, &r);
     if (r.type != MACRO_EVAL_TYPE_INT) {
       p->err = 1;
       return make_err(out);
@@ -809,8 +821,8 @@ static cdd_c_error_t parse_unary(parser_t *p, cdd_macro_eval_result_t *out) {
   }
   if (p->lex.cur.kind == TOK_BANG) {
     cdd_macro_eval_result_t r;
-    next_tok(&p->lex);
-    parse_unary(p, &r);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_unary(p, &r);
     if (r.type == MACRO_EVAL_TYPE_INT)
       r.int_val = !r.int_val;
     else
@@ -824,17 +836,17 @@ static cdd_c_error_t parse_unary(parser_t *p, cdd_macro_eval_result_t *out) {
 
 static cdd_c_error_t parse_primary(parser_t *p, cdd_macro_eval_result_t *out) {
   cdd_macro_eval_result_t r;
-  make_err(&r);
+  g_cdd_last_alloc_err = make_err(&r);
   if (p->lex.cur.kind == TOK_INT) {
-    make_int(p->lex.cur.int_val, &r);
-    next_tok(&p->lex);
+    g_cdd_last_alloc_err = make_int(p->lex.cur.int_val, &r);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_FLOAT) {
-    make_float(p->lex.cur.float_val, &r);
-    next_tok(&p->lex);
+    g_cdd_last_alloc_err = make_float(p->lex.cur.float_val, &r);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_STR) {
     r.type = MACRO_EVAL_TYPE_STRING;
     r.str_val = C_CDD_STRDUP(p->lex.cur.str_val);
-    next_tok(&p->lex);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_IDENT) {
     /* macro reference */
     struct MacroDef *def = NULL;
@@ -856,14 +868,14 @@ static cdd_c_error_t parse_primary(parser_t *p, cdd_macro_eval_result_t *out) {
       }
     } else {
       /* Unknown identifier, typical C preprocessor treats it as 0 */
-      make_int(0, &r);
+      g_cdd_last_alloc_err = make_int(0, &r);
     }
-    next_tok(&p->lex);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_LPAREN) {
-    next_tok(&p->lex);
-    parse_expr(p, &r);
+    g_cdd_last_alloc_err = next_tok(&p->lex);
+    g_cdd_last_alloc_err = parse_expr(p, &r);
     if (p->lex.cur.kind == TOK_RPAREN) {
-      next_tok(&p->lex);
+      g_cdd_last_alloc_err = next_tok(&p->lex);
     } else {
       p->err = 1;
     }
@@ -902,18 +914,18 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
   p.lex.cur.kind = TOK_EOF;
   p.lex.cur.str_val = NULL;
 
-  next_tok(&p.lex);
+  g_cdd_last_alloc_err = next_tok(&p.lex);
 
   if (p.lex.cur.kind == TOK_EOF) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  parse_expr(&p, &r);
+  g_cdd_last_alloc_err = parse_expr(&p, &r);
 
-  free_tok(&p.lex.cur);
+  g_cdd_last_alloc_err = free_tok(&p.lex.cur);
 
   if (p.err || p.lex.cur.kind != TOK_EOF) {
-    cdd_macro_eval_result_free(&r);
+    g_cdd_last_alloc_err = cdd_macro_eval_result_free(&r);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 

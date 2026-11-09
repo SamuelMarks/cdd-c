@@ -426,47 +426,62 @@ TEST test_client_body_exhaustive_100_percent_coverage(void) {
     fclose(fp);
 
     /* Defined schema: ObjPrim with boolean, integer, number, string */
-    struct_fields_init(&spec.defined_schemas[0]);
-    struct_fields_add(&spec.defined_schemas[0], "f_bool", "boolean", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_int", "integer", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_num", "number", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_str", "string", NULL, NULL,
-                      NULL);
-    c_cdd_strdup("ObjPrim", &spec.defined_schema_names[0]);
+    g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_bool",
+                                             "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_int",
+                                             "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_num",
+                                             "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_str",
+                                             "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("ObjPrim", &spec.defined_schema_names[0]);
 
     /* Defined schema: MainReq with object and array fields */
-    struct_fields_init(&spec.defined_schemas[1]);
-    struct_fields_add(&spec.defined_schemas[1], "field_form_no_exp", "object",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_deep_obj", "object",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_deep_res", "object",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_deep_no_exp", "object",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_arr_res_exp", "array",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_arr_res_no_exp", "array",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_arr_prim_exp", "array",
-                      "string", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_arr_unsupp", "array",
-                      "enum", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_res_no_style", "object",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_exp_no_style", "object",
-                      "ObjPrim", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_bad_schema", "object",
-                      "NonExistentSchema", NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[1], "field_empty_model", "object",
-                      "EmptyModel", NULL, NULL);
-    c_cdd_strdup("MainReq", &spec.defined_schema_names[1]);
+    g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_form_no_exp",
+                          "object", "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_deep_obj", "object",
+                          "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_deep_res", "object",
+                          "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_deep_no_exp",
+                          "object", "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_arr_res_exp",
+                          "array", "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_arr_res_no_exp",
+                          "array", "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_arr_prim_exp",
+                          "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_arr_unsupp", "array",
+                          "enum", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_res_no_style",
+                          "object", "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_exp_no_style",
+                          "object", "ObjPrim", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_bad_schema",
+                          "object", "NonExistentSchema", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&spec.defined_schemas[1], "field_empty_model",
+                          "object", "EmptyModel", NULL, NULL);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("MainReq", &spec.defined_schema_names[1]);
 
-    struct_fields_init(&spec.defined_schemas[2]);
-    c_cdd_strdup("EmptyModel", &spec.defined_schema_names[2]);
+    g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[2]);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("EmptyModel", &spec.defined_schema_names[2]);
     spec.n_defined_schemas = 3;
 
     /* Encodings */
@@ -552,7 +567,7 @@ TEST test_client_body_exhaustive_100_percent_coverage(void) {
     op.n_req_body_media_types = 1;
 
     test_helper_run_io_form(&op, &spec);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* Section 4: client_body_write_cookie_param_logic full branches */

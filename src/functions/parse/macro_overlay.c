@@ -54,7 +54,7 @@ cdd_c_error_t macro_overlay_list_free(struct MacroOverlayList *list) {
   if (list->nodes) {
     for (i = 0; i < list->size; ++i) {
       if (list->nodes[i].expanded_ast) {
-        free_cst_node_list(list->nodes[i].expanded_ast);
+        g_cdd_last_alloc_err = free_cst_node_list(list->nodes[i].expanded_ast);
         C_CDD_FREE(list->nodes[i].expanded_ast);
       }
     }
@@ -194,7 +194,7 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
                 expanded->nodes, new_cap * sizeof(struct CstNode));
 #endif
             if (!new_arr) {
-              free_cst_node_list(expanded);
+              g_cdd_last_alloc_err = free_cst_node_list(expanded);
               C_CDD_FREE(expanded);
               return CDD_C_ERROR_MEMORY;
             }
@@ -208,7 +208,7 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
       rc = list_add(overlays, n, expanded);
       printf("list_add returned %d\n", rc);
       if (rc != CDD_C_SUCCESS) {
-        free_cst_node_list(expanded);
+        g_cdd_last_alloc_err = free_cst_node_list(expanded);
         C_CDD_FREE(expanded);
         return rc;
       }

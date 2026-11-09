@@ -64,21 +64,23 @@ TEST test_strategy_errors(void) {
 
   {
     struct TokenList *tl_dummy = NULL;
-    tokenize(az_span_create_from_str("p = realloc(p, 10);"), &tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc(p, 10);"), &tl_dummy);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               strategy_inject_safety_checks(tl_dummy, NULL, &patches));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               strategy_inject_safety_checks(tl_dummy, &allocs, NULL));
 
-    free_token_list(tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
   }
 
   /* Test strategy_rewrite_realloc errors */
   {
     struct AllocationSite site = {0};
     struct TokenList *tl_dummy = NULL;
-    tokenize(az_span_create_from_str("p = realloc(p, 10);"), &tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc(p, 10);"), &tl_dummy);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               strategy_rewrite_realloc(NULL, &site, 0, &patches));
@@ -99,57 +101,65 @@ TEST test_strategy_errors(void) {
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* missing semicolon */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("p = realloc(p, 10)"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc(p, 10)"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* missing lparen */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("p = realloc"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* missing args */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("p = realloc( "), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc( "), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* non-identifier arg */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("p = realloc(10);"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc(10);"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* missing equal sign */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("realloc(p, 10);"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("realloc(p, 10);"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* non-matching var_name */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("p = realloc(q, 10);"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = realloc(q, 10);"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* only whitespace before assignment */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str(" = realloc(p, 10);"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str(" = realloc(p, 10);"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* missing semicolon in inject_safety_checks */
-    free_token_list(tl_dummy);
-    tokenize(az_span_create_from_str("p = malloc(10)"), &tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("p = malloc(10)"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "malloc");
     site.spec = &MALLOC_SPEC;
     site.var_name = cdd_test_mut_str("p");
@@ -162,7 +172,7 @@ TEST test_strategy_errors(void) {
                                    tl_dummy, &single_alloc, &patches));
     }
 
-    free_token_list(tl_dummy);
+    g_cdd_last_alloc_err = free_token_list(tl_dummy);
 
 #ifdef CDD_BUILD_TESTS
     {
@@ -173,7 +183,8 @@ TEST test_strategy_errors(void) {
       struct AllocatorSpec spec_realloc = {"realloc", ALLOC_STYLE_RETURN_PTR,
                                            CHECK_PTR_NULL, 0};
 
-      tokenize(az_span_create_from_str("p = realloc(p, 10);"), &tl_test);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("p = realloc(p, 10);"), &tl_test);
       memset(&alloc_list, 0, sizeof(alloc_list));
       memset(&s, 0, sizeof(s));
       s.spec = &spec_realloc;
@@ -192,14 +203,14 @@ TEST test_strategy_errors(void) {
                  strategy_inject_safety_checks(tl_test, &alloc_list, &patches));
       g_cdd_fail_find_next_token_idx = 0;
 
-      free_token_list(tl_test);
+      g_cdd_last_alloc_err = free_token_list(tl_test);
     }
 #endif
   }
 
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
   g_fail_io_after = -1;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -234,13 +245,14 @@ TEST test_strategy_injection(void) {
   memset(&patches, 0, sizeof(patches));
   memset(&allocs, 0, sizeof(allocs));
 
-  patch_list_init(&patches);
-  tokenize(az_span_create_from_str(
-               "p = malloc(10); p = realloc(p, 20); asprintf(&p, "
-               "\"\"); "
-               "_mkdir(\"dir\"); p = unknown(1); p = realloc(q, "
-               "10);"),
-           &tl);
+  g_cdd_last_alloc_err = patch_list_init(&patches);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str(
+                   "p = malloc(10); p = realloc(p, 20); asprintf(&p, "
+                   "\"\"); "
+                   "_mkdir(\"dir\"); p = unknown(1); p = realloc(q, "
+                   "10);"),
+               &tl);
 
   ASSERT_EQ(0, find_token_index(tl, "non_existent_token"));
 
@@ -291,9 +303,9 @@ TEST test_strategy_injection(void) {
             strategy_inject_safety_checks(tl, &allocs, &patches));
   ASSERT_EQ(5, patches.size);
 
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
   free(allocs.sites);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -311,10 +323,11 @@ TEST test_strategy_injection_ooms(void) {
   memset(&patches, 0, sizeof(patches));
   memset(&allocs, 0, sizeof(allocs));
 
-  patch_list_init(&patches);
-  tokenize(az_span_create_from_str("p = malloc(10); p = realloc(p, 20); "
-                                   "asprintf(&p, \"\"); _mkdir(\"dir\");"),
-           &tl);
+  g_cdd_last_alloc_err = patch_list_init(&patches);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("p = malloc(10); p = realloc(p, 20); "
+                                       "asprintf(&p, \"\"); _mkdir(\"dir\");"),
+               &tl);
 
   allocs.sites = calloc(4, sizeof(struct AllocationSite));
   allocs.capacity = 4;
@@ -366,7 +379,7 @@ TEST test_strategy_injection_ooms(void) {
     single_alloc.sites = &allocs.sites[2]; /* asprintf */
 
     for (i = 1; i <= 2; i++) {
-      patch_list_free(&patches);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
       memset(&patches, 0, sizeof(patches));
       g_cdd_alloc_fail = i;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -376,7 +389,7 @@ TEST test_strategy_injection_ooms(void) {
 
     single_alloc.sites = &allocs.sites[3]; /* _mkdir */
     for (i = 1; i <= 2; i++) {
-      patch_list_free(&patches);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
       memset(&patches, 0, sizeof(patches));
       g_cdd_alloc_fail = i;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -393,9 +406,9 @@ TEST test_strategy_injection_ooms(void) {
                                     allocs.sites[1].token_index + 7, &patches));
   g_cdd_fail_asprintf = 0;
 
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
   free(allocs.sites);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 #endif
   PASS();
 }
@@ -412,10 +425,11 @@ TEST test_strategy_edge_cases(void) {
   memset(&patches, 0, sizeof(patches));
   memset(&allocs, 0, sizeof(allocs));
 
-  patch_list_init(&patches);
-  tokenize(az_span_create_from_str("p = malloc(10) \n p = realloc(p, 20) \n = "
-                                   "realloc(p, 20);"),
-           &tl);
+  g_cdd_last_alloc_err = patch_list_init(&patches);
+  g_cdd_last_alloc_err = tokenize(
+      az_span_create_from_str("p = malloc(10) \n p = realloc(p, 20) \n = "
+                              "realloc(p, 20);"),
+      &tl);
 
   allocs.sites = calloc(3, sizeof(struct AllocationSite));
   allocs.capacity = 3;
@@ -461,44 +475,49 @@ TEST test_strategy_edge_cases(void) {
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(tl, &site, 0, &patches));
 
     /* Hit SEMICOLON */
-    free_token_list(tl);
-    tokenize(az_span_create_from_str("; realloc(p, 10);"), &tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("; realloc(p, 10);"), &tl);
     site.token_index = find_token_index(tl, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(
                                  tl, &site, site.token_index + 5, &patches));
 
     /* Hit LBRACE */
-    free_token_list(tl);
-    tokenize(az_span_create_from_str("{ realloc(p, 10);"), &tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("{ realloc(p, 10);"), &tl);
     site.token_index = find_token_index(tl, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(
                                  tl, &site, site.token_index + 5, &patches));
 
     /* Hit RBRACE */
-    free_token_list(tl);
-    tokenize(az_span_create_from_str("} realloc(p, 10);"), &tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("} realloc(p, 10);"), &tl);
     site.token_index = find_token_index(tl, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(
                                  tl, &site, site.token_index + 5, &patches));
 
     /* LBRACE backward scan 2 */
-    free_token_list(tl);
-    tokenize(az_span_create_from_str("{ p = realloc(p, 10);"), &tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("{ p = realloc(p, 10);"), &tl);
     site.token_index = find_token_index(tl, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(
                                  tl, &site, site.token_index + 7, &patches));
 
     /* RBRACE backward scan 2 */
-    free_token_list(tl);
-    tokenize(az_span_create_from_str("} p = realloc(p, 10);"), &tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("} p = realloc(p, 10);"), &tl);
     site.token_index = find_token_index(tl, "realloc");
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(
                                  tl, &site, site.token_index + 7, &patches));
   }
 
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
   free(allocs.sites);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 

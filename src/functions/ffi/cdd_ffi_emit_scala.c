@@ -99,7 +99,7 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  type %s = CInt\n", node->name);
       fprintf(f, "  object %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
@@ -120,14 +120,14 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       /* Scala Native supports up to CStruct22 */
       if (node->fields_count > 0 && node->fields_count <= 22) {
         fprintf(f, "  type %s = CStruct%lu[", node->name,
                 (unsigned long)node->fields_count);
         for (j = 0; j < node->fields_count; j++) {
           const char *st = NULL;
-          map_scala_type(&node->fields[j].type, &st);
+          g_cdd_last_alloc_err = map_scala_type(&node->fields[j].type, &st);
           fprintf(f, "%s%s", j > 0 ? ", " : "", st);
         }
         fprintf(f, "]\n");
@@ -156,14 +156,15 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_st = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  def %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *st = NULL;
-        map_scala_type(&node->fields[j].type, &st);
+        g_cdd_last_alloc_err = map_scala_type(&node->fields[j].type, &st);
         fprintf(f, "%s%s: %s", j > 0 ? ", " : "", node->fields[j].name, st);
       }
-      map_scala_type(&node->return_or_base_type, &ret_st);
+      g_cdd_last_alloc_err =
+          map_scala_type(&node->return_or_base_type, &ret_st);
       fprintf(f, "): %s = extern\n", ret_st);
     }
   }

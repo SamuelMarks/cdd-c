@@ -46,14 +46,21 @@ TEST test_struct_io_errors(void) {
     struct StructFields sf;
     struct CodegenStructConfig config = {0};
 
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
-    struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
-    struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
-    struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
-    struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
-    struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
-    struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
 
     if (readonly_f) {
       g_fail_io_after = 0;
@@ -84,8 +91,8 @@ TEST test_struct_io_errors(void) {
                 write_struct_debug_func(readonly_f, "Test", &sf, &config));
       fclose(readonly_f);
     }
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     g_fail_io_after = -1;
 
     PASS();
@@ -102,35 +109,60 @@ TEST test_struct_exhaustive_io(void) {
   struct StructFields sf;
   struct CodegenStructConfig config = {0};
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
-  struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
-  struct_fields_add(&sf, "arr_obj", "array", "Obj", NULL, NULL);
-  struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
-  struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
-  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
-  struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
-  struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
-  struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
-  struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
-  struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "unk", "unknown", NULL, NULL, NULL);
-  struct_fields_add(&sf, "arr_unk", "array", "unknown", NULL, NULL);
-  struct_fields_add(&sf, "arr_obj2", "array", "object", NULL, NULL);
-  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
-  struct_fields_add(&sf, "def_str", "string", NULL, "\"test\"", NULL);
-  struct_fields_add(&sf, "def_str_null", "string", NULL, "nullptr", NULL);
-  struct_fields_add(&sf, "def_prim_null", "integer", NULL, "nullptr", NULL);
-  struct_fields_add(&sf, "def_bin", "integer", NULL, "0b10", NULL);
-  struct_fields_add(&sf, "def_bin_B", "integer", NULL, "0B10", NULL);
-  struct_fields_add(&sf, "def_bin_bad", "integer", NULL, "0bXX", NULL);
-  struct_fields_add(&sf, "def_prim", "integer", NULL, "42", NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_obj", "array", "Obj", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "unk", "unknown", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_unk", "array", "unknown", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_obj2", "array", "object", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_str", "string", NULL, "\"test\"", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_str_null", "string", NULL, "nullptr", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_prim_null", "integer", NULL, "nullptr", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_bin", "integer", NULL, "0b10", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_bin_B", "integer", NULL, "0B10", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_bin_bad", "integer", NULL, "0bXX", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "def_prim", "integer", NULL, "42", NULL);
 
   /* Optional fields */
-  struct_fields_add(&sf, "opt_str", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "opt_str", "string", NULL, NULL, NULL);
   sf.fields[sf.size - 1].required = 0;
 
   sf.is_union = 1;
@@ -308,8 +340,8 @@ TEST test_struct_exhaustive_io(void) {
   }
 
   g_fail_io_after = -1;
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(NULL);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 #endif
   g_fail_io_after = -1;
   PASS();

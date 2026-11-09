@@ -1162,7 +1162,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
   }
 
   if (rc != CDD_C_SUCCESS) {
-    cdd_ffi_ir_free(*out_ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(*out_ir);
     C_CDD_FREE(*out_ir);
     *out_ir = NULL;
   }

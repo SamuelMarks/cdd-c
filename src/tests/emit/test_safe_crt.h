@@ -69,13 +69,13 @@ static void helper_cleanup(struct SafeCrtPatchList *patches,
                            struct CstNodeList *nodes,
                            struct TokenList *tokens) {
   if (patches)
-    safe_crt_patch_list_free(patches);
+    g_cdd_last_alloc_err = safe_crt_patch_list_free(patches);
   if (nodes) {
-    free_cst_node_list(nodes);
+    g_cdd_last_alloc_err = free_cst_node_list(nodes);
     free(nodes);
   }
   if (tokens)
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = free_token_list(tokens);
 }
 
 /**
@@ -117,7 +117,7 @@ TEST test_safe_crt_add_patch_unit(void) {
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, safe_crt_add_patch(NULL, 0, 1, "a"));
   memset(&list, 0, sizeof(list));
-  safe_crt_patch_list_init(&list);
+  g_cdd_last_alloc_err = safe_crt_patch_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             safe_crt_add_patch(&list, 0, 1, NULL));
 
@@ -133,7 +133,7 @@ TEST test_safe_crt_add_patch_unit(void) {
   ASSERT_EQ(10, list.size);
   ASSERT(list.capacity >= 16);
 
-  safe_crt_patch_list_free(&list);
+  g_cdd_last_alloc_err = safe_crt_patch_list_free(&list);
   PASS();
 }
 
@@ -161,7 +161,7 @@ TEST test_safe_crt_extract_token_text_unit(void) {
   ASSERT_STR_EQ("int", out);
   C_CDD_FREE(out);
 
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -199,12 +199,12 @@ TEST test_safe_crt_direct_patch_generators_invalid(void) {
     const char *empty_src = "void f() {}";
     struct TokenList *tl = NULL;
     az_span sp = az_span_create_from_str(empty_src);
-    safe_crt_patch_list_init(&patches);
+    g_cdd_last_alloc_err = safe_crt_patch_list_init(&patches);
     ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
     ASSERT_EQ(CDD_C_SUCCESS,
               safe_crt_generate_fopen_patch(tl, 0, tl->size, &patches));
-    safe_crt_patch_list_free(&patches);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = safe_crt_patch_list_free(&patches);
+    g_cdd_last_alloc_err = free_token_list(tl);
   }
   PASS();
 }
@@ -503,7 +503,7 @@ TEST test_safe_crt_short_nodes(void) {
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(span, &tokens));
   memset(&nodes, 0, sizeof(nodes));
   memset(&patches, 0, sizeof(patches));
-  safe_crt_patch_list_init(&patches);
+  g_cdd_last_alloc_err = safe_crt_patch_list_init(&patches);
 
   nodes.size = 1;
   nodes.capacity = 1;
@@ -521,8 +521,8 @@ TEST test_safe_crt_short_nodes(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cst_generate_safe_crt_patches(&nodes, tokens, &patches));
 
-  safe_crt_patch_list_free(&patches);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = safe_crt_patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -535,90 +535,90 @@ TEST test_safe_crt_direct_branches(void) {
   struct SafeCrtPatchList patches;
   az_span sp;
 
-  safe_crt_patch_list_init(&patches);
+  g_cdd_last_alloc_err = safe_crt_patch_list_init(&patches);
 
   /* strcpy direct */
   sp = az_span_create_from_str("strcpy, (a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strcpy_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   sp = az_span_create_from_str("strcpy(a, b;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strcpy_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* fopen: comma before lparen */
   sp = az_span_create_from_str("fopen, (a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* fopen: missing rparen */
   sp = az_span_create_from_str("f = fopen(a, b;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* fopen: backward search stops at rbrace before finding = */
   sp = az_span_create_from_str("; } fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* fopen: no id before assign, stops at lbrace */
   sp = az_span_create_from_str("{ = fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* fopen: no id before assign, stops at rbrace */
   sp = az_span_create_from_str("} = fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* fopen: id_idx loop terminates on 0 with literal int */
   sp = az_span_create_from_str("1 = fopen(a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_fopen_patch(tl, 4, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* strncpy direct */
   sp = az_span_create_from_str("strncpy, (a, b, c);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strncpy_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   sp = az_span_create_from_str("strncpy(a, b, c;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_strncpy_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* sprintf direct */
   sp = az_span_create_from_str("sprintf, (a, b);");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   sp = az_span_create_from_str("CDD_SNPRINTF(a, b;");
   ASSERT_EQ(CDD_C_SUCCESS, tokenize(sp, &tl));
   ASSERT_EQ(CDD_C_SUCCESS,
             safe_crt_generate_sprintf_patch(tl, 0, tl->size, &patches));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  safe_crt_patch_list_free(&patches);
+  g_cdd_last_alloc_err = safe_crt_patch_list_free(&patches);
   PASS();
 }
 
@@ -674,7 +674,7 @@ TEST test_safe_crt_oom(void) {
   for (fail_count = 1; fail_count <= 60; ++fail_count) {
     struct SafeCrtPatchList patches;
     memset(&patches, 0, sizeof(patches));
-    safe_crt_patch_list_init(&patches);
+    g_cdd_last_alloc_err = safe_crt_patch_list_init(&patches);
 
     g_cdd_alloc_fail = fail_count;
     g_cdd_strdup_fail = fail_count;
@@ -682,12 +682,12 @@ TEST test_safe_crt_oom(void) {
 
     g_cdd_alloc_fail = 0;
     g_cdd_strdup_fail = 0;
-    safe_crt_patch_list_free(&patches);
+    g_cdd_last_alloc_err = safe_crt_patch_list_free(&patches);
   }
 
-  free_cst_node_list(nodes);
+  g_cdd_last_alloc_err = free_cst_node_list(nodes);
   free(nodes);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 

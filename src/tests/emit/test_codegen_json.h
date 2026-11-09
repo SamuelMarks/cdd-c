@@ -42,9 +42,11 @@ extern "C" {
  * @param[in,out] sf Parameter sf.
  */
 static void setup_json_fields(struct StructFields *sf) {
-  struct_fields_init(sf);
-  struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
-  struct_fields_add(sf, "data", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(sf, "data", "string", NULL, NULL, NULL);
 }
 
 /**
@@ -90,7 +92,7 @@ TEST test_json_to_plain(void) {
     ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"}\");"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -138,7 +140,7 @@ TEST test_json_from_plain(void) {
     ASSERT(strstr(content, "strdup(s)"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -164,8 +166,9 @@ TEST test_json_recursive_obj(void) {
     long sz;
 
     ASSERT(tmp != NULL);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "child", "object", "ChildType", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "child", "object", "ChildType", NULL, NULL);
 
     ASSERT_EQ(0, write_struct_to_json_func(tmp, "Parent", &sf, NULL));
 
@@ -182,7 +185,7 @@ TEST test_json_recursive_obj(void) {
                   "c89stringutils_jasprintf(json, \"\\\"child\\\": %s\", s);"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -208,9 +211,10 @@ TEST test_json_array_logic(void) {
     long sz;
 
     ASSERT(tmp != NULL);
-    struct_fields_init(&sf);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
     /* Array of strings */
-    struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
 
     ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Post", &sf, NULL));
 
@@ -228,7 +232,7 @@ TEST test_json_array_logic(void) {
     ASSERT(strstr(content, "calloc(ret->n_tags, sizeof(char *))"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -260,7 +264,8 @@ TEST test_json_guards(void) {
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
            sf.fields[0].exclusive_max);
     /* Number with min/max */
-    struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 1;
     sf.fields[sf.size - 1].min_val = 0.0;
     sf.fields[sf.size - 1].has_max = 1;
@@ -269,7 +274,8 @@ TEST test_json_guards(void) {
     sf.fields[sf.size - 1].exclusive_max = 1;
 
     /* Integer with min/max exclusive */
-    struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 1;
     sf.fields[sf.size - 1].min_val = 0.0;
     sf.fields[sf.size - 1].has_max = 1;
@@ -278,7 +284,8 @@ TEST test_json_guards(void) {
     sf.fields[sf.size - 1].exclusive_max = 1;
 
     /* Number with inclusive min/max */
-    struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 1;
     sf.fields[sf.size - 1].min_val = 0.0;
     sf.fields[sf.size - 1].has_max = 1;
@@ -287,28 +294,32 @@ TEST test_json_guards(void) {
     sf.fields[sf.size - 1].exclusive_max = 0;
 
     /* String with regex patterns */
-    struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
     strcpy_s(sf.fields[sf.size - 1].pattern,
              sizeof(sf.fields[sf.size - 1].pattern), "^exact$");
 #else
     strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
 #endif
-    struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
     strcpy_s(sf.fields[sf.size - 1].pattern,
              sizeof(sf.fields[sf.size - 1].pattern), "^prefix");
 #else
     strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
 #endif
-    struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
     strcpy_s(sf.fields[sf.size - 1].pattern,
              sizeof(sf.fields[sf.size - 1].pattern), "suffix$");
 #else
     strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
 #endif
-    struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
     strcpy_s(sf.fields[sf.size - 1].pattern,
              sizeof(sf.fields[sf.size - 1].pattern), "contains");
@@ -317,7 +328,8 @@ TEST test_json_guards(void) {
 #endif
 
     /* Integer with inclusive min/max */
-    struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 1;
     sf.fields[sf.size - 1].min_val = 0.0;
     sf.fields[sf.size - 1].has_max = 1;
@@ -326,40 +338,46 @@ TEST test_json_guards(void) {
     sf.fields[sf.size - 1].exclusive_max = 0;
 
     /* Number with only max */
-    struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 0;
     sf.fields[sf.size - 1].has_max = 1;
     sf.fields[sf.size - 1].max_val = 10.0;
     sf.fields[sf.size - 1].exclusive_max = 1;
 
     /* Number with only exclusive min (bizarre but technically possible) */
-    struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 0;
     sf.fields[sf.size - 1].has_max = 0;
     sf.fields[sf.size - 1].exclusive_min = 1;
 
     /* Number with only exclusive max */
-    struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 0;
     sf.fields[sf.size - 1].has_max = 0;
     sf.fields[sf.size - 1].exclusive_min = 0;
     sf.fields[sf.size - 1].exclusive_max = 1;
 
     /* Integer with only max */
-    struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 0;
     sf.fields[sf.size - 1].has_max = 1;
     sf.fields[sf.size - 1].max_val = 10.0;
     sf.fields[sf.size - 1].exclusive_max = 0;
 
     /* Integer with only exclusive min */
-    struct_fields_add(&sf, "int_ex_min_only", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "int_ex_min_only", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 0;
     sf.fields[sf.size - 1].has_max = 0;
     sf.fields[sf.size - 1].exclusive_min = 1;
 
     /* Integer with only exclusive max */
-    struct_fields_add(&sf, "int_ex_max_only", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "int_ex_max_only", "integer", NULL, NULL, NULL);
     sf.fields[sf.size - 1].has_min = 0;
     sf.fields[sf.size - 1].has_max = 0;
     sf.fields[sf.size - 1].exclusive_min = 0;
@@ -381,7 +399,7 @@ TEST test_json_guards(void) {
     ASSERT(strstr(content, "#endif /* JSON_ENABLED */"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -472,7 +490,8 @@ TEST test_json_null_args(void) {
              sf.fields[0].exclusive_max);
 
       /* Number with min/max */
-      struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 1;
       sf.fields[sf.size - 1].min_val = 0.0;
       sf.fields[sf.size - 1].has_max = 1;
@@ -481,7 +500,8 @@ TEST test_json_null_args(void) {
       sf.fields[sf.size - 1].exclusive_max = 1;
 
       /* Integer with min/max exclusive */
-      struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 1;
       sf.fields[sf.size - 1].min_val = 0.0;
       sf.fields[sf.size - 1].has_max = 1;
@@ -490,7 +510,8 @@ TEST test_json_null_args(void) {
       sf.fields[sf.size - 1].exclusive_max = 1;
 
       /* Number with inclusive min/max */
-      struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 1;
       sf.fields[sf.size - 1].min_val = 0.0;
       sf.fields[sf.size - 1].has_max = 1;
@@ -499,28 +520,32 @@ TEST test_json_null_args(void) {
       sf.fields[sf.size - 1].exclusive_max = 0;
 
       /* String with regex patterns */
-      struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
       strcpy_s(sf.fields[sf.size - 1].pattern,
                sizeof(sf.fields[sf.size - 1].pattern), "^exact$");
 #else
       strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
 #endif
-      struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
       strcpy_s(sf.fields[sf.size - 1].pattern,
                sizeof(sf.fields[sf.size - 1].pattern), "^prefix");
 #else
       strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
 #endif
-      struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
       strcpy_s(sf.fields[sf.size - 1].pattern,
                sizeof(sf.fields[sf.size - 1].pattern), "suffix$");
 #else
       strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
 #endif
-      struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
 #if defined(_MSC_VER)
       strcpy_s(sf.fields[sf.size - 1].pattern,
                sizeof(sf.fields[sf.size - 1].pattern), "contains");
@@ -529,7 +554,8 @@ TEST test_json_null_args(void) {
 #endif
 
       /* Integer with inclusive min/max */
-      struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf, "int_bounded_inc",
+                                               "integer", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 1;
       sf.fields[sf.size - 1].min_val = 0.0;
       sf.fields[sf.size - 1].has_max = 1;
@@ -538,40 +564,46 @@ TEST test_json_null_args(void) {
       sf.fields[sf.size - 1].exclusive_max = 0;
 
       /* Number with only max */
-      struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 0;
       sf.fields[sf.size - 1].has_max = 1;
       sf.fields[sf.size - 1].max_val = 10.0;
       sf.fields[sf.size - 1].exclusive_max = 1;
 
       /* Number with only exclusive min (bizarre but technically possible) */
-      struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 0;
       sf.fields[sf.size - 1].has_max = 0;
       sf.fields[sf.size - 1].exclusive_min = 1;
 
       /* Number with only exclusive max */
-      struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 0;
       sf.fields[sf.size - 1].has_max = 0;
       sf.fields[sf.size - 1].exclusive_min = 0;
       sf.fields[sf.size - 1].exclusive_max = 1;
 
       /* Integer with only max */
-      struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 0;
       sf.fields[sf.size - 1].has_max = 1;
       sf.fields[sf.size - 1].max_val = 10.0;
       sf.fields[sf.size - 1].exclusive_max = 0;
 
       /* Integer with only exclusive min */
-      struct_fields_add(&sf, "int_ex_min_only", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf, "int_ex_min_only",
+                                               "integer", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 0;
       sf.fields[sf.size - 1].has_max = 0;
       sf.fields[sf.size - 1].exclusive_min = 1;
 
       /* Integer with only exclusive max */
-      struct_fields_add(&sf, "int_ex_max_only", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf, "int_ex_max_only",
+                                               "integer", NULL, NULL, NULL);
       sf.fields[sf.size - 1].has_min = 0;
       sf.fields[sf.size - 1].has_max = 0;
       sf.fields[sf.size - 1].exclusive_min = 0;
@@ -606,7 +638,7 @@ TEST test_json_null_args(void) {
                                       readonly_f, "S", &sf, &config));
         fclose(readonly_f);
       }
-      struct_fields_free(&sf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
     }
   }
 
@@ -654,7 +686,7 @@ TEST test_standalone_json_func(void) {
     ASSERT(strstr(content, "(strcmp(key, \"id\") == 0)"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -785,7 +817,7 @@ TEST test_serde_comment_parsing_and_codegen(void) {
   char *content = NULL;
   long sz;
 
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   /* Container comment: camelCase + deny_unknown_fields */
   ASSERT_EQ(
       CDD_C_SUCCESS,
@@ -795,7 +827,8 @@ TEST test_serde_comment_parsing_and_codegen(void) {
   ASSERT_EQ(1, sf.serde_deny_unknown_fields);
 
   /* 0: user_name -> camelCase "userName" with alias "username" */
-  struct_fields_add(&sf, "user_name", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "user_name", "string", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_field_comment(
                 "/* @cdd alias = \"username\", alias = \"u_name\" */",
@@ -803,26 +836,30 @@ TEST test_serde_comment_parsing_and_codegen(void) {
 
   /* 1: auth_token -> field override replace "_" -> "-" and UPPERCASE ->
    * "AUTH-TOKEN" */
-  struct_fields_add(&sf, "auth_token", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "auth_token", "string", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
                                "/* @cdd uppercase, replace = (\"_\" -> \"-\"), "
                                "skip_serializing_if = \"null\" */",
                                &sf.fields[1]));
 
   /* 2: internal_ptr -> @cdd skip */
-  struct_fields_add(&sf, "internal_ptr", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "internal_ptr", "string", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_field_comment("/* @cdd skip */", &sf.fields[2]));
 
   /* 3: secret_pin -> @cdd skip_serializing, default = "999" */
-  struct_fields_add(&sf, "secret_pin", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "secret_pin", "integer", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
                                "/* @cdd skip_serializing, default = \"999\" */",
                                &sf.fields[3]));
 
   /* 4: computed_tag -> @cdd skip_deserializing, default = "auto", rename =
    * "tag-val" */
-  struct_fields_add(&sf, "computed_tag", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "computed_tag", "string", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_field_comment(
                 "/* @cdd skip_deserializing, default = \"auto\", rename = "
@@ -830,12 +867,14 @@ TEST test_serde_comment_parsing_and_codegen(void) {
                 &sf.fields[4]));
 
   /* 5: meta -> @cdd flatten */
-  struct_fields_add(&sf, "meta", "object", "MetaInfo", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "meta", "object", "MetaInfo", NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_field_comment("/* @cdd flatten */", &sf.fields[5]));
 
   /* 6: custom_ts -> @cdd with = "timestamp_codec" */
-  struct_fields_add(&sf, "custom_ts", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "custom_ts", "integer", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_field_comment("/* @cdd with = \"ts_codec\" */",
                                           &sf.fields[6]));
@@ -880,7 +919,8 @@ TEST test_serde_comment_parsing_and_codegen(void) {
   ASSERT(strstr(content, "strcmp(_jn, \"username\") != 0"));
   ASSERT(strstr(
       content,
-      "if (!s) cdd_json_object_get_string(jsonObject, \"username\", &s);"));
+      "if (!s) _rc = cdd_json_object_get_string(jsonObject, \"username\", "
+      "&s);"));
   ASSERT(strstr(content, "ret->computed_tag = strdup(\"auto\");"));
   /* Flattened MetaInfo in from_jsonObject passes parent jsonObject directly! */
   ASSERT(strstr(content,
@@ -890,15 +930,15 @@ TEST test_serde_comment_parsing_and_codegen(void) {
 
   free(content);
   fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Test Enum reflection */
-  enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_init(&em);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_enum_comment("/* @cdd kebabcase */", &em));
-  enum_members_add_ex(&em, " IN_PROGRESS ", NULL, 0);
-  enum_members_add_ex(&em, "COMPLETED_OK", "done_ok", 0);
-  enum_members_add_ex(&em, "INTERNAL_ONLY", NULL, 1);
+  g_cdd_last_alloc_err = enum_members_add_ex(&em, " IN_PROGRESS ", NULL, 0);
+  g_cdd_last_alloc_err = enum_members_add_ex(&em, "COMPLETED_OK", "done_ok", 0);
+  g_cdd_last_alloc_err = enum_members_add_ex(&em, "INTERNAL_ONLY", NULL, 1);
 
   tmp = cdd_test_tmpfile_global();
   ASSERT(tmp != NULL);
@@ -918,7 +958,7 @@ TEST test_serde_comment_parsing_and_codegen(void) {
 
   free(content);
   fclose(tmp);
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
   g_fail_io_after = -1;
   PASS();
 }
@@ -978,7 +1018,7 @@ TEST test_serde_inspector_and_schema_roundtrip(void) {
       "-", types.items[0].details.struct_fields->fields[1].serde_replace_to);
   ASSERT_EQ(1, types.items[0].details.struct_fields->fields[2].serde_skip);
   ASSERT_EQ(1, types.items[0].details.struct_fields->fields[3].serde_flatten);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   /* 2. Run code2schema_main on hdr_file and verify schema extensions */
   c2s_argv[0] = hdr_file;
@@ -987,30 +1027,34 @@ TEST test_serde_inspector_and_schema_roundtrip(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_file(schema_file, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_file(schema_file, &_cdd_jv_1);
     root_val = _cdd_jv_1;
   }
   ASSERT(root_val != NULL);
   root_obj = json_value_get_object(root_val);
   {
     JSON_Object *_cdd_jo_1 = NULL;
-    cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
     comps_obj = _cdd_jo_1;
   }
   {
     JSON_Object *_cdd_jo_1 = NULL;
-    cdd_json_object_get_object(comps_obj, "schemas", &_cdd_jo_1);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(comps_obj, "schemas", &_cdd_jo_1);
     schemas_obj = _cdd_jo_1;
   }
   {
     JSON_Object *_cdd_jo_1 = NULL;
-    cdd_json_object_get_object(schemas_obj, "Payload", &_cdd_jo_1);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(schemas_obj, "Payload", &_cdd_jo_1);
     payload_schema = _cdd_jo_1;
   }
   ASSERT(payload_schema != NULL);
   {
     const char *_cdd_js_1 = NULL;
-    cdd_json_object_get_string(payload_schema, "x-cdd-rename-all", &_cdd_js_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(
+        payload_schema, "x-cdd-rename-all", &_cdd_js_1);
     ASSERT_STR_EQ("kebab-case", _cdd_js_1);
   }
   {
@@ -1049,8 +1093,8 @@ TEST test_serde_inspector_and_schema_roundtrip(void) {
 
   free(emitted_h);
   fclose(h_tmp);
-  struct_fields_free(&roundtrip_sf);
-  json_value_free(root_val);
+  g_cdd_last_alloc_err = struct_fields_free(&roundtrip_sf);
+  g_cdd_last_alloc_err = json_value_free(root_val);
   remove(hdr_file);
   remove(schema_file);
   g_fail_io_after = -1;
@@ -1107,7 +1151,7 @@ TEST test_serde_sum_types_enum_other_and_deepcopy(void) {
   ASSERT(strstr(content, "else *val = State_FALLBACK;"));
   free(content);
   fclose(tmp);
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   /* 3. Adjacent tagging union (tag = "t", content = "c") */
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&usf));
@@ -1160,7 +1204,7 @@ TEST test_serde_sum_types_enum_other_and_deepcopy(void) {
                 "CDD_C_SUCCESS)"));
   free(content);
   fclose(tmp);
-  struct_fields_free(&usf);
+  g_cdd_last_alloc_err = struct_fields_free(&usf);
 
   /* 5. Complete deepcopy generation */
   ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&dsf));
@@ -1190,7 +1234,7 @@ TEST test_serde_sum_types_enum_other_and_deepcopy(void) {
                 "ChildNode_deepcopy(src->nodes[_i], &(*dest)->nodes[_i])"));
   free(content);
   fclose(tmp);
-  struct_fields_free(&dsf);
+  g_cdd_last_alloc_err = struct_fields_free(&dsf);
 
   g_fail_io_after = -1;
   PASS();
@@ -1436,12 +1480,13 @@ TEST test_cdd_serde_exhaustive(void) {
             cdd_serde_replace_str("prefix_match_suffix", "match", "x", buf, 5));
 
   /* 5. cdd_serde_resolve_field_names & cdd_serde_resolve_enum_member_name */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_resolve_field_names(NULL, 0, buf, sizeof(buf), NULL, 0));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_resolve_field_names(&sf, 0, buf, sizeof(buf), NULL, 0));
-  struct_fields_add(&sf, "my_field", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "my_field", "string", NULL, NULL, NULL);
   CDD_STRCPY(sf.serde_prefix, sizeof(sf.serde_prefix), "pre_");
   CDD_STRCPY(sf.serde_suffix, sizeof(sf.serde_suffix), "_suf");
   sf.serde_rename_all_ser = CDD_SERDE_CASE_UPPERCASE;
@@ -1471,14 +1516,14 @@ TEST test_cdd_serde_exhaustive(void) {
     ASSERT_STR_EQ("explicit_ser", s_buf);
     ASSERT_STR_EQ("explicit_de", d_buf);
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
-  enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_init(&em);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_resolve_enum_member_name(NULL, 0, buf, sizeof(buf)));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_resolve_enum_member_name(&em, 0, buf, sizeof(buf)));
-  enum_members_add(&em, "MY_VAR");
+  g_cdd_last_alloc_err = enum_members_add(&em, "MY_VAR");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_resolve_enum_member_name(&em, 0, NULL, 10));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -1491,10 +1536,10 @@ TEST test_cdd_serde_exhaustive(void) {
   em.members[0][0] = '\0';
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_resolve_enum_member_name(&em, 0, buf, sizeof(buf)));
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   /* 6. Container, enum, field, and variant comment parsers */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_parse_container_comment("/* @cdd default */", NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_container_comment(NULL, &sf));
@@ -1550,11 +1595,11 @@ TEST test_cdd_serde_exhaustive(void) {
                 "allow_response_files, ignore_case, kebab-case, +)]\n"
                 " * #[structopt(cli(name = \"so\"))]\n */",
                 &sf));
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Plain docstring fallback, long_about when NULL, and ':' delimiter in
    * container comment */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_container_comment(
                 "/*!<\n * @cli(version, long_about: \"LA_init\", "
@@ -1562,10 +1607,10 @@ TEST test_cdd_serde_exhaustive(void) {
                 &sf));
   ASSERT_STR_EQ("Plain brief line", sf.cli_about);
   ASSERT_STR_EQ("0.1.0", sf.cli_version);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Enum comment parser */
-  enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_init(&em);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_parse_enum_comment("/* @cdd untagged */", NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_enum_comment(NULL, &em));
@@ -1583,12 +1628,13 @@ TEST test_cdd_serde_exhaustive(void) {
   ASSERT_STR_EQ("t", em.serde_tag);
   ASSERT_STR_EQ("c", em.serde_content);
   ASSERT_EQ(1, em.serde_untagged);
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   /* Field comment parser */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "__my_opt", "string", NULL, NULL, "existing_desc");
-  struct_fields_add(&sf, "", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "__my_opt", "string", NULL, NULL, "existing_desc");
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "", "string", NULL, NULL, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_serde_parse_field_comment("/* @cdd skip */", NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(NULL, &sf.fields[0]));
@@ -1710,11 +1756,11 @@ TEST test_cdd_serde_exhaustive(void) {
   /* Test @brief when description and cli_help are already populated */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_parse_field_comment(
                                "/* @brief Ignored brief */", &sf.fields[1]));
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Additional container comment branches (synonyms, invalid rules, unclosed
    * quotes/directives, plain docstrings) */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_container_comment(
                 "/** @briefFirstNoSpace\n"
@@ -1768,14 +1814,14 @@ TEST test_cdd_serde_exhaustive(void) {
             cdd_serde_parse_container_comment("/** @brief:Brief", &sf));
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_serde_parse_container_comment("/** @brief\tBrief", &sf));
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Suffix-only and long prefix/suffix truncation in serde_resolve_single_name
    */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf,
-                    "very_long_field_name_012345678901234567890123456789012345",
-                    "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &sf, "very_long_field_name_012345678901234567890123456789012345",
+      "string", NULL, NULL, NULL);
   CDD_STRCPY(sf.serde_suffix, sizeof(sf.serde_suffix),
              "_very_long_suffix_01234567890123456789012345678901234567890123");
   {
@@ -1788,7 +1834,7 @@ TEST test_cdd_serde_exhaustive(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_serde_resolve_field_names(
                                  &sf, 0, s_buf, sizeof(s_buf), NULL, 0));
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* serde_split_words with '-', '.', '\t', and UPPER->UPPER non-boundary */
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -1796,8 +1842,8 @@ TEST test_cdd_serde_exhaustive(void) {
                                      buf, sizeof(buf)));
 
   /* Enum variant comment parser */
-  enum_members_init(&em);
-  enum_members_add(&em, "V1");
+  g_cdd_last_alloc_err = enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_add(&em, "V1");
   {
     char ren[64], rf[64], rt[64];
     int sk = 0, oth = 0;
@@ -1880,7 +1926,7 @@ TEST test_cdd_serde_exhaustive(void) {
                 cdd_serde_parse_field_comment(long_doc, &empty_f));
     }
   }
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   /* Escape helpers edge cases */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_escape_json_c_str("a", NULL, 10));
@@ -1907,33 +1953,35 @@ TEST test_cdd_serde_exhaustive(void) {
       int sk = 0, oth = 0;
       enum CddSerdeCaseRule vcase = CDD_SERDE_CASE_NONE;
 
-      struct_fields_init(&sf_oom);
-      struct_fields_add(&sf_oom, "f", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_init(&sf_oom);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_oom, "f", "string", NULL, NULL, NULL);
       g_cdd_strdup_fail = k;
-      cdd_serde_parse_container_comment(
+      g_cdd_last_alloc_err = cdd_serde_parse_container_comment(
           "/* @details D\n * @cdd long_about = \"L\", before_help = \"B\", "
           "after_help = \"A\", alias = \"al\" */",
           &sf_oom);
       g_cdd_strdup_fail = k;
-      cdd_serde_parse_field_comment(
+      g_cdd_last_alloc_err = cdd_serde_parse_field_comment(
           "/* @cdd long_help = \"LH\", alias = \"a\", conflicts_with = \"c\", "
           "requires = \"r\", required_unless = \"u\" */",
           &sf_oom.fields[0]);
       g_cdd_strdup_fail = 0;
-      struct_fields_free(&sf_oom);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_oom);
 
-      enum_members_init(&em_oom);
-      enum_members_add(&em_oom, "V1");
+      g_cdd_last_alloc_err = enum_members_init(&em_oom);
+      g_cdd_last_alloc_err = enum_members_add(&em_oom, "V1");
       g_cdd_strdup_fail = k;
-      cdd_serde_parse_enum_comment("/* @details D */", &em_oom);
+      g_cdd_last_alloc_err =
+          cdd_serde_parse_enum_comment("/* @details D */", &em_oom);
       g_cdd_strdup_fail = k;
-      cdd_serde_parse_enum_variant_comment_ex(
+      g_cdd_last_alloc_err = cdd_serde_parse_enum_variant_comment_ex(
           "/* @details D\n * @cdd alias = \"a\", conflicts_with = \"c\", "
           "requires = \"r\", required_unless = \"u\", help = \"h\" */",
           ren, sizeof(ren), &sk, &vcase, rf, sizeof(rf), rt, sizeof(rt), &oth,
           &em_oom, 0);
       g_cdd_strdup_fail = 0;
-      enum_members_free(&em_oom);
+      g_cdd_last_alloc_err = enum_members_free(&em_oom);
     }
     /* Test enum_member_set_cli_meta failure when member_idx is out of bounds */
     {
@@ -1941,12 +1989,12 @@ TEST test_cdd_serde_exhaustive(void) {
       char ren[64], rf[64], rt[64];
       int sk = 0;
       enum CddSerdeCaseRule vcase = CDD_SERDE_CASE_NONE;
-      enum_members_init(&em_oob);
+      g_cdd_last_alloc_err = enum_members_init(&em_oob);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                 cdd_serde_parse_enum_variant_comment_ex(
                     "/* @cdd help = \"h\" */", ren, sizeof(ren), &sk, &vcase,
                     rf, sizeof(rf), rt, sizeof(rt), NULL, &em_oob, 99));
-      enum_members_free(&em_oob);
+      g_cdd_last_alloc_err = enum_members_free(&em_oob);
     }
   }
 #endif
@@ -2016,7 +2064,7 @@ TEST test_json_string_escaping_and_oom(void) {
 
   free(content);
   fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 
@@ -2171,7 +2219,7 @@ TEST test_json_int64_and_int128_codegen(void) {
 
   free(content);
   fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 

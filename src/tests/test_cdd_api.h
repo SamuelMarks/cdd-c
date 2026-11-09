@@ -54,7 +54,7 @@ TEST test_cdd_generate_from_openapi(void) {
     int step;
     for (step = 1; step <= 25; ++step) {
       g_cdd_alloc_fail = step;
-      cdd_generate_from_openapi(&config);
+      g_cdd_last_alloc_err = cdd_generate_from_openapi(&config);
       g_cdd_alloc_fail = 0;
     }
   }
@@ -343,30 +343,30 @@ TEST test_code_writer_and_ffi_common(void) {
     int step;
     for (step = 0; step < 6; ++step) {
       ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_init_buffer(&w));
-      cdd_code_writer_indent(&w);
+      g_cdd_last_alloc_err = cdd_code_writer_indent(&w);
       g_fail_io_after = step;
-      cdd_code_writer_writeln(&w, "seg1\nseg2");
+      g_cdd_last_alloc_err = cdd_code_writer_writeln(&w, "seg1\nseg2");
       g_fail_io_after = -1;
-      cdd_code_writer_free(&w);
+      g_cdd_last_alloc_err = cdd_code_writer_free(&w);
     }
     ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_init_buffer(&w));
     g_cdd_fprintf_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_IO, cdd_code_writer_write(&w, "abc"));
     g_cdd_fprintf_fail = 0;
-    cdd_code_writer_free(&w);
+    g_cdd_last_alloc_err = cdd_code_writer_free(&w);
 
     ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_init_buffer(&w));
     g_cdd_fprintf_fail = 2;
     ASSERT_EQ(CDD_C_ERROR_IO, cdd_code_writer_writeln(&w, "abc"));
     g_cdd_fprintf_fail = 0;
-    cdd_code_writer_free(&w);
+    g_cdd_last_alloc_err = cdd_code_writer_free(&w);
 
     ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_init_buffer(&w));
-    cdd_code_writer_indent(&w);
+    g_cdd_last_alloc_err = cdd_code_writer_indent(&w);
     g_cdd_fprintf_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_IO, cdd_code_writer_write(&w, "a\nb"));
     g_cdd_fprintf_fail = 0;
-    cdd_code_writer_free(&w);
+    g_cdd_last_alloc_err = cdd_code_writer_free(&w);
   }
 #endif
 
@@ -486,18 +486,18 @@ TEST test_code_writer_and_ffi_common(void) {
       JSON_Value *jv = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(pi_json, &_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_parse_string(pi_json, &_cdd_jv_1);
         jv = _cdd_jv_1;
       }
       for (k = 1; k < 40; ++k) {
         struct OpenAPI_Spec sp = {0};
         g_cdd_strdup_fail = k;
         if (openapi_load_from_json(jv, &sp) == CDD_C_SUCCESS) {
-          openapi_spec_free(&sp);
+          g_cdd_last_alloc_err = openapi_spec_free(&sp);
         }
         g_cdd_strdup_fail = 0;
       }
-      json_value_free(jv);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -744,7 +744,7 @@ TEST test_cdd_generate_bindings_json(void) {
     free(json_str);
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_from_json("{}", &parsed_ir));
     if (parsed_ir) {
-      cdd_ffi_ir_free(parsed_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(parsed_ir);
       free(parsed_ir);
       parsed_ir = NULL;
     }
@@ -754,7 +754,7 @@ TEST test_cdd_generate_bindings_json(void) {
             "{\"nodes\":[{\"fields\":[{\"type\":{}}],\"base_classes\":[{}]}]}",
             &parsed_ir));
     if (parsed_ir) {
-      cdd_ffi_ir_free(parsed_ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(parsed_ir);
       free(parsed_ir);
       parsed_ir = NULL;
     }

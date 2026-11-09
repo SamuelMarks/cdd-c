@@ -310,90 +310,115 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   cdd_c_error_t rc = 0;
 
   /* 1. root_has_openapi_fields */
-  rc = root_has_openapi_fields(NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-
   {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"servers\": []}", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+    int bval = 0;
+    rc = uri_has_scheme_prefix("http:x", 6, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = root_has_openapi_fields(NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = root_has_openapi_fields(NULL, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, bval);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"webhooks\": {}}", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"servers\": []}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    jo = json_value_get_object(jv);
+    rc = root_has_openapi_fields(jo, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"tags\": []}", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"webhooks\": {}}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    jo = json_value_get_object(jv);
+    rc = root_has_openapi_fields(jo, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"security\": []}", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"tags\": []}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    jo = json_value_get_object(jv);
+    rc = root_has_openapi_fields(jo, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"externalDocs\": {}}", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"security\": []}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    jo = json_value_get_object(jv);
+    rc = root_has_openapi_fields(jo, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"$self\": \"uri\"}", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"externalDocs\": {}}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    jo = json_value_get_object(jv);
+    rc = root_has_openapi_fields(jo, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
-  /* 2. root_is_schema_document */
-  rc = root_is_schema_document(NULL, NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"$self\": \"uri\"}", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    jo = json_value_get_object(jv);
+    rc = root_has_openapi_fields(jo, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("true", &_cdd_jv_1);
-    jv = _cdd_jv_1;
-  }
-  rc = root_is_schema_document(jv, json_value_get_object(jv));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+    /* 2. root_is_schema_document */
+    rc = root_is_schema_document(NULL, NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = root_is_schema_document(NULL, NULL, &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, bval);
 
-  {
-    JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("123", &_cdd_jv_1);
-    jv = _cdd_jv_1;
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err = cdd_json_parse_string("true", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    rc = root_is_schema_document(jv, json_value_get_object(jv), &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
+
+    {
+      JSON_Value *_cdd_jv_1 = NULL;
+      g_cdd_last_alloc_err = cdd_json_parse_string("123", &_cdd_jv_1);
+      jv = _cdd_jv_1;
+    }
+    rc = root_is_schema_document(jv, json_value_get_object(jv), &bval);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, bval);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
-  rc = root_is_schema_document(jv, json_value_get_object(jv));
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
 
   /* 3. store_schema_root_json */
   memset(&spec, 0, sizeof(spec));
@@ -402,7 +427,8 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   rc = store_schema_root_json(&spec, jv);
@@ -410,8 +436,8 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   /* second call when already stored */
   rc = store_schema_root_json(&spec, jv);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  openapi_spec_free(&spec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 4. resolve_ref_target */
   memset(&spec, 0, sizeof(spec));
@@ -445,36 +471,47 @@ TEST test_openapi_uri_schema_and_ref_branches(void) {
   }
 
   /* 5. ref_base_matches_self */
-  rc = ref_base_matches_self(NULL, NULL, NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-
   {
-    const char ex_frag[] = "https://example.com#frag";
-    rc = ref_base_matches_self(&spec, ex_frag, ex_frag);
-  }
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    int matches = 0;
+    rc = ref_base_matches_self(NULL, NULL, NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = ref_base_matches_self(NULL, NULL, NULL, &matches);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
 
-  rc = ref_base_matches_self(NULL, "https://example.com/api#frag", "#frag");
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+    {
+      const char ex_frag[] = "https://example.com#frag";
+      rc = ref_base_matches_self(&spec, ex_frag, ex_frag, &matches);
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
 
-  /* Relative document_uri match */
-  {
-    char doc_rel[] = "./models.json";
-    spec.document_uri = doc_rel;
-    rc = ref_base_matches_self(&spec, "dir/models.json#frag",
-                               strchr("dir/models.json#frag", '#'));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-    spec.document_uri = NULL;
-  }
+    rc = ref_base_matches_self(NULL, "https://example.com/api#frag", "#frag",
+                               &matches);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
 
-  /* Relative self_uri match */
-  {
-    char self_rel[] = "./common.json";
-    spec.self_uri = self_rel;
-    rc = ref_base_matches_self(&spec, "sub/common.json#frag",
-                               strchr("sub/common.json#frag", '#'));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-    spec.self_uri = NULL;
+    /* Relative document_uri match */
+    {
+      char doc_rel[] = "./models.json";
+      spec.document_uri = doc_rel;
+      rc = ref_base_matches_self(&spec, "dir/models.json#frag",
+                                 strchr("dir/models.json#frag", '#'), &matches);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(1, matches);
+      spec.document_uri = NULL;
+    }
+
+    /* Relative self_uri match */
+    {
+      char self_rel[] = "./common.json";
+      spec.self_uri = self_rel;
+      rc = ref_base_matches_self(&spec, "sub/common.json#frag",
+                                 strchr("sub/common.json#frag", '#'), &matches);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(1, matches);
+      spec.self_uri = NULL;
+    }
   }
 
   /* 6. ref_name_from_prefix */
@@ -616,7 +653,8 @@ TEST test_openapi_uri_advanced_branches(void) {
     JSON_Value *jv = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     memset(&spec, 0, sizeof(spec));
@@ -624,7 +662,7 @@ TEST test_openapi_uri_advanced_branches(void) {
     rc = store_schema_root_json(&spec, jv);
     g_cdd_fail_json_serialize = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* 5. ref_base_matches_self combinations:
@@ -643,6 +681,7 @@ TEST test_openapi_uri_advanced_branches(void) {
     char self_exact[] = "common.json";
     char self_slash[] = "/common.json";
     char self_dots[] = "././";
+    int matches = 0;
 
     memset(&spec, 0, sizeof(spec));
 
@@ -650,36 +689,41 @@ TEST test_openapi_uri_advanced_branches(void) {
     spec.document_uri = doc_exact;
     {
       const char mf[] = "models.json#frag";
-      rc = ref_base_matches_self(&spec, mf, strchr(mf, '#'));
+      rc = ref_base_matches_self(&spec, mf, strchr(mf, '#'), &matches);
     }
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
 
     /* rel[0] == '/' */
     spec.document_uri = doc_slash;
     rc = ref_base_matches_self(&spec, "dir/models.json#frag",
-                               strchr("dir/models.json#frag", '#'));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+                               strchr("dir/models.json#frag", '#'), &matches);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
     spec.document_uri = NULL;
 
     /* self_base[0] == '/' */
     spec.self_uri = self_slash;
     rc = ref_base_matches_self(&spec, "dir/common.json#frag",
-                               strchr("dir/common.json#frag", '#'));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+                               strchr("dir/common.json#frag", '#'), &matches);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
 
     /* base_len == self_len */
     spec.self_uri = self_exact;
     {
       const char cf[] = "common.json#frag";
-      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'), &matches);
     }
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
 
     /* self_len == 0 after stripping ./ */
     spec.self_uri = self_dots;
     rc = ref_base_matches_self(&spec, "something#frag",
-                               strchr("something#frag", '#'));
+                               strchr("something#frag", '#'), &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.self_uri = NULL;
   }
 
@@ -712,18 +756,23 @@ TEST test_openapi_uri_final_edges(void) {
   {
     char doc[] = "models.json";
     char self_doc[] = "common.json";
+    int matches = 0;
     memset(&spec, 0, sizeof(spec));
 
     spec.document_uri = doc;
-    rc = ref_base_matches_self(&spec, "prefix/models.json#frag",
-                               strchr("prefix/models.json#frag", '#'));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    rc =
+        ref_base_matches_self(&spec, "prefix/models.json#frag",
+                              strchr("prefix/models.json#frag", '#'), &matches);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
     spec.document_uri = NULL;
 
     spec.self_uri = self_doc;
-    rc = ref_base_matches_self(&spec, "prefix/common.json#frag",
-                               strchr("prefix/common.json#frag", '#'));
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    rc =
+        ref_base_matches_self(&spec, "prefix/common.json#frag",
+                              strchr("prefix/common.json#frag", '#'), &matches);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
     spec.self_uri = NULL;
   }
 
@@ -802,34 +851,44 @@ TEST test_openapi_uri_exhaust_branches(void) {
     JSON_Value *jv_oa = NULL;
     JSON_Value *jv_sw = NULL;
     JSON_Value *jv_info = NULL;
+    int is_schema = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"openapi\": \"3.0.0\"}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"openapi\": \"3.0.0\"}", &_cdd_jv_1);
       jv_oa = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"swagger\": \"2.0\"}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"swagger\": \"2.0\"}", &_cdd_jv_1);
       jv_sw = _cdd_jv_1;
     }
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"info\": {}}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"info\": {}}", &_cdd_jv_1);
       jv_info = _cdd_jv_1;
     }
 
-    rc = root_is_schema_document(jv_oa, json_value_get_object(jv_oa));
+    rc = root_is_schema_document(jv_oa, json_value_get_object(jv_oa),
+                                 &is_schema);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_schema);
 
-    rc = root_is_schema_document(jv_sw, json_value_get_object(jv_sw));
+    rc = root_is_schema_document(jv_sw, json_value_get_object(jv_sw),
+                                 &is_schema);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_schema);
 
-    rc = root_is_schema_document(jv_info, json_value_get_object(jv_info));
+    rc = root_is_schema_document(jv_info, json_value_get_object(jv_info),
+                                 &is_schema);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, is_schema);
 
-    json_value_free(jv_oa);
-    json_value_free(jv_sw);
-    json_value_free(jv_info);
+    g_cdd_last_alloc_err = json_value_free(jv_oa);
+    g_cdd_last_alloc_err = json_value_free(jv_sw);
+    g_cdd_last_alloc_err = json_value_free(jv_info);
   }
 
   /* 4. ref_name_from_prefix NULL arguments */
@@ -861,18 +920,23 @@ TEST test_openapi_uri_non_matching_relative(void) {
   {
     char doc[] = "models.json";
     char self_doc[] = "common.json";
+    int matches = 0;
     memset(&spec, 0, sizeof(spec));
 
     spec.document_uri = doc;
     rc = ref_base_matches_self(&spec, "prefix/different.json#frag",
-                               strchr("prefix/different.json#frag", '#'));
+                               strchr("prefix/different.json#frag", '#'),
+                               &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.document_uri = NULL;
 
     spec.self_uri = self_doc;
     rc = ref_base_matches_self(&spec, "prefix/different.json#frag",
-                               strchr("prefix/different.json#frag", '#'));
+                               strchr("prefix/different.json#frag", '#'),
+                               &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.self_uri = NULL;
   }
 
@@ -890,17 +954,20 @@ TEST test_openapi_uri_final_unhit_branches(void) {
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
   cdd_c_error_t rc = 0;
+  int bval = 0;
 
   /* 1. root_has_openapi_fields with "components" */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"components\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"components\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = root_has_openapi_fields(jo);
-  ASSERT_NEQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  rc = root_has_openapi_fields(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 2. ref_base_matches_self with spec->self_uri containing '#' */
   {
@@ -909,9 +976,10 @@ TEST test_openapi_uri_final_unhit_branches(void) {
     spec.self_uri = self_with_hash;
     {
       const char mf[] = "models.json#frag";
-      rc = ref_base_matches_self(&spec, mf, strchr(mf, '#'));
+      rc = ref_base_matches_self(&spec, mf, strchr(mf, '#'), &bval);
     }
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, bval);
     spec.self_uri = NULL;
   }
 
@@ -964,7 +1032,7 @@ TEST test_openapi_uri_100_percent_final(void) {
     JSON_Value *jv = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("123", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("123", &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     memset(&spec, 0, sizeof(spec));
@@ -972,7 +1040,7 @@ TEST test_openapi_uri_100_percent_final(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     rc = store_schema_root_json(&spec, NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* 5. resolve_ref_target:
@@ -1018,17 +1086,20 @@ TEST test_openapi_uri_100_percent_final(void) {
   */
   {
     char empty_str[] = "";
+    int matches = 0;
     memset(&spec, 0, sizeof(spec));
     spec.document_uri = empty_str;
     rc = ref_base_matches_self(&spec, "something#frag",
-                               strchr("something#frag", '#'));
+                               strchr("something#frag", '#'), &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
 
     spec.document_uri = NULL;
     spec.self_uri = empty_str;
     rc = ref_base_matches_self(&spec, "something#frag",
-                               strchr("something#frag", '#'));
+                               strchr("something#frag", '#'), &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.self_uri = NULL;
   }
 
@@ -1046,6 +1117,7 @@ TEST test_openapi_uri_branch_finishing(void) {
   struct ResolvedRefTarget tgt;
   char *str = NULL;
   cdd_c_error_t rc = 0;
+  int matches = 0;
 
   /* 1. base_uri with scheme where scheme_len + 2 >= base_len (e.g. "http:" or
    * "http:/") */
@@ -1083,8 +1155,9 @@ TEST test_openapi_uri_branch_finishing(void) {
   }
 
   /* 3. ref_base_matches_self with ref != NULL and hash == NULL */
-  rc = ref_base_matches_self(&spec, "no_hash_ref", NULL);
+  rc = ref_base_matches_self(&spec, "no_hash_ref", NULL, &matches);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, matches);
 
   /* 4. ref_base_matches_self where uri_len == base_len but strncmp != 0 */
   {
@@ -1094,9 +1167,10 @@ TEST test_openapi_uri_branch_finishing(void) {
     /* "common.json" has same len (11) as "models.json" */
     {
       const char cf[] = "common.json#frag";
-      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'), &matches);
     }
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.document_uri = NULL;
   }
 
@@ -1106,16 +1180,18 @@ TEST test_openapi_uri_branch_finishing(void) {
     memset(&spec, 0, sizeof(spec));
     spec.document_uri = doc;
     /* base_len ("m.json", 6) < rel_len (18) */
-    rc =
-        ref_base_matches_self(&spec, "m.json#frag", strchr("m.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "m.json#frag", strchr("m.json#frag", '#'),
+                               &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.document_uri = NULL;
 
     /* And for self_uri with base_len < self_len */
     spec.self_uri = doc;
-    rc =
-        ref_base_matches_self(&spec, "m.json#frag", strchr("m.json#frag", '#'));
+    rc = ref_base_matches_self(&spec, "m.json#frag", strchr("m.json#frag", '#'),
+                               &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.self_uri = NULL;
   }
 
@@ -1129,14 +1205,16 @@ TEST test_openapi_uri_branch_finishing(void) {
     spec.document_uri = doc;
     /* 'badmodels.json' ends with 'models.json' but char before is 'd' != '/' */
     rc = ref_base_matches_self(&spec, "badmodels.json#frag",
-                               strchr("badmodels.json#frag", '#'));
+                               strchr("badmodels.json#frag", '#'), &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.document_uri = NULL;
 
     spec.self_uri = self_dot_doc;
     rc = ref_base_matches_self(&spec, "badcommon.json#frag",
-                               strchr("badcommon.json#frag", '#'));
+                               strchr("badcommon.json#frag", '#'), &matches);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.self_uri = NULL;
   }
 
@@ -1147,9 +1225,10 @@ TEST test_openapi_uri_branch_finishing(void) {
     spec.self_uri = self_dot;
     {
       const char cf[] = "common.json#frag";
-      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'), &matches);
     }
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, matches);
     spec.self_uri = NULL;
   }
 
@@ -1160,9 +1239,10 @@ TEST test_openapi_uri_branch_finishing(void) {
     spec.self_uri = self_doc;
     {
       const char cf[] = "common.json#frag";
-      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'));
+      rc = ref_base_matches_self(&spec, cf, strchr(cf, '#'), &matches);
     }
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, matches);
     spec.self_uri = NULL;
   }
 

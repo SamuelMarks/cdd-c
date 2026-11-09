@@ -240,7 +240,7 @@ TEST test_arazzo_client_gen_and_roundtrip(void) {
   ASSERT_EQ(4, roundtrip.n_workflows);
   ASSERT_STR_EQ("checkout", roundtrip.workflows[3].workflow_id);
   ASSERT_EQ(4, roundtrip.workflows[3].n_steps);
-  arazzo_spec_free(&roundtrip);
+  g_cdd_last_alloc_err = arazzo_spec_free(&roundtrip);
 
   CDD_STRCPY(base_path, sizeof(base_path), "test_build_dir/arazzo_shop/shop");
   memset(&cfg, 0, sizeof(cfg));
@@ -252,23 +252,24 @@ TEST test_arazzo_client_gen_and_roundtrip(void) {
     int f;
     for (f = 1; f <= 40; ++f) {
       g_cdd_alloc_fail = f;
-      arazzo_client_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_client_generate(&spec, NULL, &cfg);
       g_cdd_alloc_fail = 0;
     }
     for (f = 1; f <= 10; ++f) {
       g_cdd_strdup_fail = f;
-      arazzo_client_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_client_generate(&spec, NULL, &cfg);
       g_cdd_strdup_fail = 0;
     }
     for (f = 0; f <= 3; ++f) {
       g_fail_io_after = f;
-      arazzo_client_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_client_generate(&spec, NULL, &cfg);
       g_fail_io_after = -1;
     }
     g_fail_io_after = 88;
-    arazzo_client_generate(&spec, NULL, &cfg);
+    g_cdd_last_alloc_err = arazzo_client_generate(&spec, NULL, &cfg);
     g_fail_io_after = -1;
-    makedirs("test_build_dir/arazzo_shop_hfail/src/shop_workflows.h");
+    g_cdd_last_alloc_err =
+        makedirs("test_build_dir/arazzo_shop_hfail/src/shop_workflows.h");
     cfg.filename_base = "test_build_dir/arazzo_shop_hfail/shop";
     ASSERT_NEQ(CDD_C_SUCCESS, arazzo_client_generate(&spec, NULL, &cfg));
     cfg.filename_base = base_path;
@@ -279,7 +280,7 @@ TEST test_arazzo_client_gen_and_roundtrip(void) {
 
   C_CDD_FREE(hdr);
   C_CDD_FREE(src);
-  arazzo_spec_free(&spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
   PASS();
 }
 

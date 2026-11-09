@@ -71,7 +71,7 @@ TEST test_pp_join_path_and_file_exists(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* Test pp_file_exists on existing and nonexistent file */
-  write_to_file("test_pp_exists.tmp", "content\n");
+  g_cdd_last_alloc_err = write_to_file("test_pp_exists.tmp", "content\n");
   rc = pp_file_exists("test_pp_exists.tmp", &exists);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, exists);
@@ -144,7 +144,7 @@ TEST test_pp_token_and_reconstruct_path(void) {
   ASSERT_EQ(NULL, out);
   g_cdd_alloc_fail = 0;
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -157,7 +157,7 @@ TEST test_pp_resolve_path_cases(void) {
   char *resolved = NULL;
   cdd_c_error_t rc = 0;
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
 
   /* NULL argument checks */
   rc = pp_resolve_path(NULL, NULL, NULL, 0, &resolved);
@@ -170,7 +170,7 @@ TEST test_pp_resolve_path_cases(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, resolved);
 
-  write_to_file("test_pp_exists.tmp", "content\n");
+  g_cdd_last_alloc_err = write_to_file("test_pp_exists.tmp", "content\n");
 
   /* Found in current_dir (quoted include) */
   rc = pp_resolve_path(&ctx, ".", "test_pp_exists.tmp", 0, &resolved);
@@ -185,7 +185,7 @@ TEST test_pp_resolve_path_cases(void) {
   ASSERT_EQ(NULL, resolved);
 
   /* Found in search_paths */
-  pp_add_search_path(&ctx, ".");
+  g_cdd_last_alloc_err = pp_add_search_path(&ctx, ".");
   rc = pp_resolve_path(&ctx, NULL, "test_pp_exists.tmp", 1, &resolved);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(resolved != NULL);
@@ -199,7 +199,7 @@ TEST test_pp_resolve_path_cases(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(NULL, resolved);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 
@@ -219,7 +219,7 @@ TEST test_pp_context_and_macro_operations(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* Safe NULL context free */
-  pp_context_free(NULL);
+  g_cdd_last_alloc_err = pp_context_free(NULL);
 
   rc = pp_context_init(&ctx);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -288,15 +288,15 @@ TEST test_pp_context_and_macro_operations(void) {
   ASSERT(ctx.macro_count >= 20);
   ASSERT(ctx.macro_capacity >= 20);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
 
   /* Test pp_embed_params_free NULL and populated */
-  pp_embed_params_free(NULL);
+  g_cdd_last_alloc_err = pp_embed_params_free(NULL);
   memset(&params, 0, sizeof(params));
-  c_cdd_strdup("prefix", &params.prefix);
-  c_cdd_strdup("suffix", &params.suffix);
-  c_cdd_strdup("if_empty", &params.if_empty);
-  pp_embed_params_free(&params);
+  g_cdd_last_alloc_err = c_cdd_strdup("prefix", &params.prefix);
+  g_cdd_last_alloc_err = c_cdd_strdup("suffix", &params.suffix);
+  g_cdd_last_alloc_err = c_cdd_strdup("if_empty", &params.if_empty);
+  g_cdd_last_alloc_err = pp_embed_params_free(&params);
   ASSERT_EQ(NULL, params.prefix);
   ASSERT_EQ(NULL, params.suffix);
   ASSERT_EQ(NULL, params.if_empty);
@@ -391,8 +391,8 @@ TEST test_pp_is_defined_macro_operations(void) {
   int is_def = 0;
   cdd_c_error_t rc = 0;
 
-  pp_context_init(&ctx);
-  pp_add_macro(&ctx, "DEFINED_MACRO", "1");
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "DEFINED_MACRO", "1");
 
   memset(&tok, 0, sizeof(tok));
   tok.kind = TOKEN_IDENTIFIER;
@@ -424,7 +424,7 @@ TEST test_pp_is_defined_macro_operations(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, is_def);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 
@@ -438,7 +438,7 @@ TEST test_pp_parse_embed_params_cases(void) {
   struct EmbedParams params;
   cdd_c_error_t rc = 0;
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   memset(&params, 0, sizeof(params));
 
   /* NULL arguments */
@@ -448,7 +448,7 @@ TEST test_pp_parse_embed_params_cases(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Valid standard params: limit, prefix, suffix, if_empty */
   rc = tokenize(
@@ -462,38 +462,38 @@ TEST test_pp_parse_embed_params_cases(void) {
   ASSERT(params.prefix != NULL);
   ASSERT(params.suffix != NULL);
   ASSERT(params.if_empty != NULL);
-  pp_embed_params_free(&params);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = pp_embed_params_free(&params);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Scoped attribute: vendor::custom_param(10) */
   rc = tokenize(az_span_create_from_str("vendor :: custom_param (10)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Scoped attribute missing identifier after :: */
   rc = tokenize(az_span_create_from_str("vendor :: (10)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Missing LPAREN */
   rc = tokenize(az_span_create_from_str("limit 10"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Unbalanced parens */
   rc = tokenize(az_span_create_from_str("limit((10)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 
@@ -507,10 +507,10 @@ TEST test_pp_eval_all_branches(void) {
   long val = 0;
   cdd_c_error_t rc = 0;
 
-  pp_context_init(&ctx);
-  pp_add_search_path(&ctx, ".");
-  pp_add_macro(&ctx, "TEST_VAL_10", "10");
-  pp_add_macro(&ctx, "EMPTY_MACRO", NULL);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_search_path(&ctx, ".");
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "TEST_VAL_10", "10");
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "EMPTY_MACRO", NULL);
 
   /* NULL argument checks */
   rc = pp_eval_expression(NULL, 0, 0, &ctx, &val);
@@ -524,7 +524,7 @@ TEST test_pp_eval_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = pp_eval_expression(tl, 0, tl->size + 5, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Binary literals 0b... and 0B... */
   rc = tokenize(az_span_create_from_str("0b101 + 0B010"), &tl);
@@ -532,7 +532,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(7, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Division and modulo by zero */
   rc = tokenize(az_span_create_from_str("(10 / 0) + (10 % 0)"), &tl);
@@ -540,7 +540,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Shifts: << and >> */
   rc = tokenize(az_span_create_from_str("(1 << 4) >> 2"), &tl);
@@ -548,7 +548,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(4, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Relational operators <=, >=, <, > */
   rc = tokenize(
@@ -558,7 +558,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(
       az_span_create_from_str("(2 <= 1) || (1 >= 2) || (2 < 1) || (1 > 2)"),
@@ -567,7 +567,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Equality == and != */
   rc = tokenize(az_span_create_from_str("(1 == 1) && (1 != 2)"), &tl);
@@ -575,7 +575,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Unary operators +, -, !, ~ */
   rc = tokenize(az_span_create_from_str("+5 - (-3) + !0 + (~0 == -1)"), &tl);
@@ -583,7 +583,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(10, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Defined without parentheses and with parentheses */
   rc = tokenize(
@@ -594,21 +594,21 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Defined missing identifier */
   rc = tokenize(az_span_create_from_str("defined"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Defined missing RPAREN */
   rc = tokenize(az_span_create_from_str("defined(TEST_VAL_10"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Macro evaluation lookup and undefined identifier resolving to 0 */
   rc = tokenize(az_span_create_from_str("TEST_VAL_10 + UNDEFINED_ID"), &tl);
@@ -616,16 +616,16 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(10, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Unclosed paren in expression */
   rc = tokenize(az_span_create_from_str("(1 + 2"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  write_to_file("test_pp_exists.tmp", "content\n");
+  g_cdd_last_alloc_err = write_to_file("test_pp_exists.tmp", "content\n");
 
   /* __has_include cases */
   rc = tokenize(
@@ -634,7 +634,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("__has_include(\"nonexistent.h\")"),
                 &tl);
@@ -642,7 +642,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* __has_include angle bracket */
   rc = tokenize(az_span_create_from_str("__has_include(<nonexistent.h>)"), &tl);
@@ -650,39 +650,39 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* __has_include errors */
   rc = tokenize(az_span_create_from_str("__has_include"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("__has_include()"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("__has_include(123)"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("__has_include(<unclosed"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("__has_include(\"test_pp_exists.tmp\""),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* __has_embed cases */
   rc = tokenize(az_span_create_from_str("__has_embed(\"test_pp_exists.tmp\")"),
@@ -691,7 +691,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   remove("test_pp_exists.tmp");
 
@@ -708,7 +708,7 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* __has_c_attribute scoped and keyword */
   rc = tokenize(
@@ -719,22 +719,22 @@ TEST test_pp_eval_all_branches(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* __has_c_attribute error cases: missing LPAREN, missing RPAREN */
   rc = tokenize(az_span_create_from_str("__has_c_attribute"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("__has_c_attribute(nodiscard"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 

@@ -33,7 +33,7 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
@@ -49,12 +49,12 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
                                obj, "{\"k1\": \"override\", \"k2\": 42}"));
   {
     const char *_cdd_js_1 = NULL;
-    cdd_json_object_get_string(obj, "k1", &_cdd_js_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(obj, "k1", &_cdd_js_1);
     ASSERT_STR_EQ("orig", _cdd_js_1);
   }
   {
     double _cdd_jn_1 = 0.0;
-    cdd_json_object_get_number(obj, "k2", &_cdd_jn_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_number(obj, "k2", &_cdd_jn_1);
     ASSERT_EQ(42, (int)_cdd_jn_1);
   }
 
@@ -66,18 +66,18 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   mp_fields[0].is_binary = 0;
   ref.multipart_fields = mp_fields;
   ref.n_multipart_fields = 1;
-  write_schema_ref(obj, "mp_untyped", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "mp_untyped", &ref);
 
   /* 3. write_schema_ref array with primitive ref_name and custom ref_name */
   memset(&ref, 0, sizeof(ref));
   ref.is_array = 1;
   ref.ref_name = cdd_test_mut_str("integer");
-  write_schema_ref(obj, "arr_prim", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "arr_prim", &ref);
 
   memset(&ref, 0, sizeof(ref));
   ref.is_array = 1;
   ref.ref_name = cdd_test_mut_str("CustomEntity");
-  write_schema_ref(obj, "arr_custom", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "arr_custom", &ref);
 
   /* 4. write_schema_ref minProperties and maxProperties */
   memset(&ref, 0, sizeof(ref));
@@ -85,27 +85,27 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   ref.min_properties = 3;
   ref.has_max_properties = 1;
   ref.max_properties = 9;
-  write_schema_ref(obj, "props_constraints", &ref);
+  g_cdd_last_alloc_err = write_schema_ref(obj, "props_constraints", &ref);
 
   /* 5. write_parameter_object with in=QUERYSTRING and custom content_type */
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERYSTRING;
   p.content_type = cdd_test_mut_str("application/x-custom-qs");
-  write_parameter_object(obj, &p);
+  g_cdd_last_alloc_err = write_parameter_object(obj, &p);
 
   /* 6. write_header_object with content_type == NULL and schema_set = 1 */
   memset(&h, 0, sizeof(h));
   h.content_type = NULL;
   h.schema_set = 1;
   h.schema.ref_name = cdd_test_mut_str("HeaderType");
-  write_header_object(obj, &h);
+  g_cdd_last_alloc_err = write_header_object(obj, &h);
 
   /* 7. write_response_object with summary and no ref */
   memset(&resp, 0, sizeof(resp));
   resp.ref = NULL;
   resp.summary = cdd_test_mut_str("Summary for response");
   resp.description = cdd_test_mut_str("Description");
-  write_response_object(obj, &resp);
+  g_cdd_last_alloc_err = write_response_object(obj, &resp);
 
   /* 8. write_component_path_items with component_path_item_names == NULL */
   memset(&spec, 0, sizeof(spec));
@@ -123,7 +123,7 @@ TEST test_openapi_writer_extras_and_edge_branches(void) {
   free(json);
   json = NULL;
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 
@@ -146,7 +146,7 @@ TEST test_openapi_writer_direct_oom(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
@@ -154,21 +154,22 @@ TEST test_openapi_writer_direct_oom(void) {
   /* 1. clone_json_value OOM */
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  clone_json_value(val, &out_val);
+  g_cdd_last_alloc_err = clone_json_value(val, &out_val);
   json_set_allocation_functions(malloc, free);
 
   /* 2. merge_schema_extras_object_openapi OOM */
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   for (k = 0; k < 10; ++k) {
     g_parson_oom_fail_at = k;
-    merge_schema_extras_object_openapi(obj, "{\"foo\": 123, \"bar\": 456}");
+    g_cdd_last_alloc_err =
+        merge_schema_extras_object_openapi(obj, "{\"foo\": 123, \"bar\": 456}");
   }
   json_set_allocation_functions(malloc, free);
 
   /* 3. write_schema_type OOM */
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_schema_type(obj, "string", 1);
+  g_cdd_last_alloc_err = write_schema_type(obj, "string", 1);
   json_set_allocation_functions(malloc, free);
 
   /* 4. write_schema_type_union OOM */
@@ -176,7 +177,7 @@ TEST test_openapi_writer_direct_oom(void) {
   types[1] = cdd_test_mut_str("integer");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_schema_type_union(obj, "string", 1, types, 2);
+  g_cdd_last_alloc_err = write_schema_type_union(obj, "string", 1, types, 2);
   json_set_allocation_functions(malloc, free);
 
   /* 5. write_enum_any_values OOM */
@@ -185,7 +186,7 @@ TEST test_openapi_writer_direct_oom(void) {
   any_vals[0].number = 1.0;
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_enum_any_values(obj, "enum", any_vals, 1);
+  g_cdd_last_alloc_err = write_enum_any_values(obj, "enum", any_vals, 1);
   json_set_allocation_functions(malloc, free);
 
   /* 6. write_examples_object OOM */
@@ -193,7 +194,7 @@ TEST test_openapi_writer_direct_oom(void) {
   exs[0].name = cdd_test_mut_str("ex1");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_examples_object(obj, "examples", exs, 1);
+  g_cdd_last_alloc_err = write_examples_object(obj, "examples", exs, 1);
   json_set_allocation_functions(malloc, free);
 
   /* 7. write_encoding_object OOM branches */
@@ -209,19 +210,19 @@ TEST test_openapi_writer_direct_oom(void) {
 
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_encoding_object(obj, &enc_item);
+  g_cdd_last_alloc_err = write_encoding_object(obj, &enc_item);
   g_parson_oom_fail_at = 1;
-  write_encoding_object(obj, &enc_item);
+  g_cdd_last_alloc_err = write_encoding_object(obj, &enc_item);
   g_parson_oom_fail_at = 2;
-  write_encoding_object(obj, &enc_item);
+  g_cdd_last_alloc_err = write_encoding_object(obj, &enc_item);
   json_set_allocation_functions(malloc, free);
 
   /* 8. write_encoding_map OOM branches */
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_encoding_map(obj, enc_arr, 1);
+  g_cdd_last_alloc_err = write_encoding_map(obj, enc_arr, 1);
   g_parson_oom_fail_at = 1;
-  write_encoding_map(obj, enc_arr, 1);
+  g_cdd_last_alloc_err = write_encoding_map(obj, enc_arr, 1);
   json_set_allocation_functions(malloc, free);
 
   /* 9. write_media_type_object OOM branches */
@@ -235,9 +236,9 @@ TEST test_openapi_writer_direct_oom(void) {
 
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_media_type_object(obj, &mt);
+  g_cdd_last_alloc_err = write_media_type_object(obj, &mt);
   g_parson_oom_fail_at = 1;
-  write_media_type_object(obj, &mt);
+  g_cdd_last_alloc_err = write_media_type_object(obj, &mt);
   json_set_allocation_functions(malloc, free);
 
   /* 10. write_request_body_object OOM branches */
@@ -245,20 +246,20 @@ TEST test_openapi_writer_direct_oom(void) {
   rb.content_ref = cdd_test_mut_str("#/components/media/Ref");
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_request_body_object(obj, &rb);
+  g_cdd_last_alloc_err = write_request_body_object(obj, &rb);
   g_parson_oom_fail_at = 1;
-  write_request_body_object(obj, &rb);
+  g_cdd_last_alloc_err = write_request_body_object(obj, &rb);
   json_set_allocation_functions(malloc, free);
 
   memset(&rb, 0, sizeof(rb));
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   g_parson_oom_fail_at = 0;
-  write_request_body_object(obj, &rb);
+  g_cdd_last_alloc_err = write_request_body_object(obj, &rb);
   g_parson_oom_fail_at = 1;
-  write_request_body_object(obj, &rb);
+  g_cdd_last_alloc_err = write_request_body_object(obj, &rb);
   json_set_allocation_functions(malloc, free);
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 
@@ -289,13 +290,13 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
 
   /* 1. Direct null spec calls */
-  write_paths(obj, NULL);
+  g_cdd_last_alloc_err = write_paths(obj, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, write_servers(obj, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, write_webhooks(obj, NULL));
   {
@@ -321,7 +322,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     exs[0].name = cdd_test_mut_str("ex");
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 0;
-    write_example_fields(obj, NULL, 0, exs, 1);
+    g_cdd_last_alloc_err = write_example_fields(obj, NULL, 0, exs, 1);
     json_set_allocation_functions(malloc, free);
   }
 
@@ -331,7 +332,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     memset(&xml, 0, sizeof(xml));
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 0;
-    write_xml_object(obj, &xml, 1);
+    g_cdd_last_alloc_err = write_xml_object(obj, &xml, 1);
     json_set_allocation_functions(malloc, free);
   }
 
@@ -347,7 +348,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     ref_ex.n_examples = 1;
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 1;
-    write_schema_ref(obj, "ex_ref", &ref_ex);
+    g_cdd_last_alloc_err = write_schema_ref(obj, "ex_ref", &ref_ex);
     json_set_allocation_functions(malloc, free);
   }
 
@@ -366,9 +367,9 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     for (k = 0; k < 6; ++k) {
       g_parson_oom_fail_at = k;
-      write_encoding_object(obj, &enc_item);
-      write_encoding_map(obj, &enc_item, 1);
-      write_encoding_array(obj, "enc_arr", &enc_item, 1);
+      g_cdd_last_alloc_err = write_encoding_object(obj, &enc_item);
+      g_cdd_last_alloc_err = write_encoding_map(obj, &enc_item, 1);
+      g_cdd_last_alloc_err = write_encoding_array(obj, "enc_arr", &enc_item, 1);
     }
     json_set_allocation_functions(malloc, free);
   }
@@ -388,8 +389,8 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     for (k = 0; k < 6; ++k) {
       g_parson_oom_fail_at = k;
-      write_media_type_object(obj, &mt_item);
-      write_media_type_map(obj, "content", &mt_item, 1);
+      g_cdd_last_alloc_err = write_media_type_object(obj, &mt_item);
+      g_cdd_last_alloc_err = write_media_type_map(obj, "content", &mt_item, 1);
     }
     {
       struct OpenAPI_Parameter p_fail;
@@ -415,19 +416,19 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
 
       for (k = 0; k < 10; ++k) {
         g_parson_oom_fail_at = k;
-        write_parameter_object(obj, &p_fail);
+        g_cdd_last_alloc_err = write_parameter_object(obj, &p_fail);
       }
       for (k = 0; k < 10; ++k) {
         g_parson_oom_fail_at = k;
-        write_header_object(obj, &h_fail);
+        g_cdd_last_alloc_err = write_header_object(obj, &h_fail);
       }
       for (k = 0; k < 10; ++k) {
         g_parson_oom_fail_at = k;
-        write_encoding_object(obj, &enc_fail);
+        g_cdd_last_alloc_err = write_encoding_object(obj, &enc_fail);
       }
       for (k = 0; k < 10; ++k) {
         g_parson_oom_fail_at = k;
-        write_response_object(obj, &resp_fail);
+        g_cdd_last_alloc_err = write_response_object(obj, &resp_fail);
       }
     }
     json_set_allocation_functions(malloc, free);
@@ -440,7 +441,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     rb_fail.content_ref = cdd_test_mut_str("#/components/media/Ref");
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     g_parson_oom_fail_at = 1;
-    write_request_body_object(obj, &rb_fail);
+    g_cdd_last_alloc_err = write_request_body_object(obj, &rb_fail);
     json_set_allocation_functions(malloc, free);
   }
 
@@ -467,7 +468,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
     json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
     for (k = 0; k < 8; ++k) {
       g_parson_oom_fail_at = k;
-      write_callback_object(obj, &cb_fail);
+      g_cdd_last_alloc_err = write_callback_object(obj, &cb_fail);
     }
     json_set_allocation_functions(malloc, free);
   }
@@ -556,14 +557,14 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
   for (k = 0; k < 25; ++k) {
     g_parson_oom_fail_at = k;
-    write_operation_object(obj, &op);
-    write_path_item_object(obj, &path);
-    write_component_media_types(obj, &spec);
-    write_component_links(obj, &spec);
-    write_component_callbacks(obj, &spec);
-    write_component_path_items(obj, &spec);
-    write_components(obj, &spec);
-    openapi_write_spec_to_json(&spec, &json);
+    g_cdd_last_alloc_err = write_operation_object(obj, &op);
+    g_cdd_last_alloc_err = write_path_item_object(obj, &path);
+    g_cdd_last_alloc_err = write_component_media_types(obj, &spec);
+    g_cdd_last_alloc_err = write_component_links(obj, &spec);
+    g_cdd_last_alloc_err = write_component_callbacks(obj, &spec);
+    g_cdd_last_alloc_err = write_component_path_items(obj, &spec);
+    g_cdd_last_alloc_err = write_components(obj, &spec);
+    g_cdd_last_alloc_err = openapi_write_spec_to_json(&spec, &json);
     if (json) {
       free(json);
       json = NULL;
@@ -571,7 +572,7 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   }
   json_set_allocation_functions(malloc, free);
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 

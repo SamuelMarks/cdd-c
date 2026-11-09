@@ -161,7 +161,7 @@ TEST test_load_comprehensive_path_item_and_schema_copying(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.n_paths);
   ASSERT_EQ(1, spec.paths[0].n_operations);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   {
     int k;
@@ -171,9 +171,9 @@ TEST test_load_comprehensive_path_item_and_schema_copying(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_strdup_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -183,9 +183,9 @@ TEST test_load_comprehensive_path_item_and_schema_copying(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_alloc_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_alloc_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -274,7 +274,7 @@ TEST test_load_components_ref_overrides_and_deep_copying(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.n_paths);
   ASSERT_EQ(1, spec.paths[0].n_operations);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   {
     int k;
@@ -284,9 +284,9 @@ TEST test_load_components_ref_overrides_and_deep_copying(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_strdup_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -296,9 +296,9 @@ TEST test_load_components_ref_overrides_and_deep_copying(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_alloc_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_alloc_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -366,7 +366,7 @@ TEST test_load_all_security_scheme_types_and_flows(void) {
   free(json);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(9, spec.n_security_schemes);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   {
     int k;
@@ -376,9 +376,9 @@ TEST test_load_all_security_scheme_types_and_flows(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_strdup_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -388,9 +388,9 @@ TEST test_load_all_security_scheme_types_and_flows(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_alloc_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_alloc_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -449,7 +449,7 @@ TEST test_security_scheme_validation_errors(void) {
     struct OpenAPI_Spec spec = {0};
     int rc = load_spec_str(bad_specs[i], &spec);
     ASSERT(rc != 0);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
   g_fail_io_after = -1;
   PASS();
@@ -505,7 +505,7 @@ TEST test_load_header_schema_array_and_ref_propagation(void) {
   ASSERT_STR_EQ("integer",
                 spec.paths[0].operations[0].responses[0].headers[3].type);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -545,7 +545,7 @@ TEST test_load_uri_resolution_and_self_matching(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.n_paths);
   ASSERT_EQ(3, spec.paths[0].operations[0].n_parameters);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   {
     int k;
@@ -555,11 +555,11 @@ TEST test_load_uri_resolution_and_self_matching(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_strdup_fail = k;
-        load_spec_str_with_context(oom_json,
-                                   "https://example.com/api/v1/openapi.json",
-                                   NULL, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str_with_context(
+            oom_json, "https://example.com/api/v1/openapi.json", NULL,
+            &oom_spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -569,11 +569,11 @@ TEST test_load_uri_resolution_and_self_matching(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_alloc_fail = k;
-        load_spec_str_with_context(oom_json,
-                                   "https://example.com/api/v1/openapi.json",
-                                   NULL, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str_with_context(
+            oom_json, "https://example.com/api/v1/openapi.json", NULL,
+            &oom_spec);
         g_cdd_alloc_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -601,7 +601,7 @@ TEST test_load_uri_resolution_and_self_matching(void) {
     free(self_json);
     ASSERT_EQ(0, rc);
     ASSERT_EQ(1, self_spec.n_paths);
-    openapi_spec_free(&self_spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&self_spec);
   }
 
   g_fail_io_after = -1;
@@ -691,7 +691,7 @@ TEST test_header_and_parameter_style_and_content_variations(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.n_paths);
   ASSERT_EQ(1, spec.paths[0].n_operations);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   {
     int k;
@@ -701,9 +701,9 @@ TEST test_header_and_parameter_style_and_content_variations(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_strdup_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -754,7 +754,7 @@ TEST test_header_and_parameter_validation_errors(void) {
     struct OpenAPI_Spec spec = {0};
     int rc = load_spec_str(bad_specs[i], &spec);
     ASSERT(rc != 0);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
   g_fail_io_after = -1;
   PASS();
@@ -798,7 +798,7 @@ TEST test_swagger2_parameter_and_response_type_fallbacks(void) {
   ASSERT_EQ(1, spec.paths[0].n_operations);
   ASSERT_EQ(1, spec.paths[0].operations[0].n_parameters);
   ASSERT_EQ(1, spec.paths[0].operations[0].n_responses);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -844,7 +844,7 @@ TEST test_load_webhooks_and_component_callbacks(void) {
   ASSERT_STR_EQ("newPet", spec.webhooks[0].route);
   ASSERT_EQ(1, spec.webhooks[0].n_operations);
   ASSERT_STR_EQ("opWebhookPet", spec.webhooks[0].operations[0].operation_id);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   {
     int k;
@@ -854,9 +854,9 @@ TEST test_load_webhooks_and_component_callbacks(void) {
       if (concat_chunks(chunks, sizeof(chunks) / sizeof(chunks[0]),
                         &oom_json) == CDD_C_SUCCESS) {
         g_cdd_strdup_fail = k;
-        load_spec_str(oom_json, &oom_spec);
+        g_cdd_last_alloc_err = load_spec_str(oom_json, &oom_spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&oom_spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&oom_spec);
         free(oom_json);
       }
     }
@@ -914,7 +914,7 @@ TEST test_path_template_validation_and_collision_errors(void) {
     struct OpenAPI_Spec spec = {0};
     int rc = load_spec_str(bad_paths[i], &spec);
     ASSERT(rc != 0);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
   g_fail_io_after = -1;
   PASS();

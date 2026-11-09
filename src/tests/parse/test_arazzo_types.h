@@ -36,9 +36,9 @@ TEST test_arazzo_spec_init_and_free(void) {
   cdd_c_error_t rc;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, arazzo_spec_init(NULL));
-  arazzo_spec_free(NULL);
-  arazzo_runtime_expr_free(NULL);
-  arazzo_extension_list_free(NULL);
+  g_cdd_last_alloc_err = arazzo_spec_free(NULL);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(NULL);
+  g_cdd_last_alloc_err = arazzo_extension_list_free(NULL);
 
   g_cdd_alloc_fail = 1;
   rc = arazzo_spec_init(&spec);
@@ -50,7 +50,7 @@ TEST test_arazzo_spec_init_and_free(void) {
   ASSERT_STR_EQ("1.1.0", spec.arazzo);
   ASSERT_EQ(ARAZZO_VER_1_1_0, spec.version);
 
-  arazzo_spec_free(&spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
   ASSERT_EQ(NULL, spec.arazzo);
   PASS();
 }
@@ -192,7 +192,7 @@ TEST test_arazzo_spec_free_populated(void) {
       (char **)C_CDD_CALLOC(1, sizeof(char *));
   spec.components.failure_action_keys[0] = C_CDD_STRDUP("RetryAction");
 
-  arazzo_spec_free(&spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
   ASSERT_EQ(0, spec.n_workflows);
   PASS();
 }
@@ -247,8 +247,8 @@ TEST test_arazzo_extension_list(void) {
   ASSERT_STR_EQ("x-test", list.items[0].key);
   ASSERT_STR_EQ("custom_value", list.items[0].val.string);
 
-  arazzo_extension_list_free(&list);
-  free_any_value(&val);
+  g_cdd_last_alloc_err = arazzo_extension_list_free(&list);
+  g_cdd_last_alloc_err = free_any_value(&val);
   ASSERT_EQ(0, list.count);
   PASS();
 }
@@ -378,7 +378,7 @@ TEST test_arazzo_runtime_expr_copy(void) {
   /* Copy empty struct (all pointers NULL) */
   rc = arazzo_runtime_expr_copy(&dst, &src);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  arazzo_runtime_expr_free(&dst);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&dst);
 
   src.kind = ARAZZO_EXPR_STEPS;
   src.is_embedded_template = 1;
@@ -405,8 +405,8 @@ TEST test_arazzo_runtime_expr_copy(void) {
   ASSERT_STR_EQ("val", dst.property_name);
   ASSERT_STR_EQ("/ptr", dst.json_pointer);
 
-  arazzo_runtime_expr_free(&src);
-  arazzo_runtime_expr_free(&dst);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&src);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&dst);
   PASS();
 }
 

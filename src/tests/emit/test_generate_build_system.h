@@ -247,7 +247,7 @@ TEST test_gen_cmake_bad_makedirs(void) {
   if (f) {
     if (f)
       fclose(f);
-    makedirs("test_dummy_dir_for_makedirs");
+    g_cdd_last_alloc_err = makedirs("test_dummy_dir_for_makedirs");
     {
       FILE *f2;
 #if defined(_MSC_VER)
@@ -363,7 +363,7 @@ TEST test_gen_cmake_oom(void) {
   /*  (moved to global) */
   /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
   int i;
-  makedirs("test_build_dir_oom");
+  g_cdd_last_alloc_err = makedirs("test_build_dir_oom");
   for (i = 1; i <= 100; i++) {
     g_cdd_alloc_fail = i;
     {
@@ -421,7 +421,7 @@ TEST test_gen_cmake_oom(void) {
 TEST test_gen_cmake_readonly2(void) {
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   int rc = 0;
-  makedirs("test_build_dir_readonly2");
+  g_cdd_last_alloc_err = makedirs("test_build_dir_readonly2");
   chmod("test_build_dir_readonly2", 0444);
   rc = generate_cmake_project("test_build_dir_readonly2", "Proj", 0);
   chmod("test_build_dir_readonly2", 0755);
@@ -437,7 +437,7 @@ TEST test_gen_cmake_readonly2(void) {
 TEST test_gen_cmake_readonly(void) {
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   int rc = 0;
-  makedirs("test_build_dir_readonly/src");
+  g_cdd_last_alloc_err = makedirs("test_build_dir_readonly/src");
   chmod("test_build_dir_readonly/src", 0444);
   rc = generate_cmake_project("test_build_dir_readonly", "Proj", 1);
   chmod("test_build_dir_readonly/src", 0755);
@@ -457,7 +457,7 @@ TEST test_gen_cmake_readonly(void) {
  */
 TEST test_gen_cmake_io_fail(void) {
   int i;
-  makedirs("test_build_dir_io");
+  g_cdd_last_alloc_err = makedirs("test_build_dir_io");
   i = 0;
   do {
     g_fail_io_after = i;

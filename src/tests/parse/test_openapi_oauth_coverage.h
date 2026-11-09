@@ -99,20 +99,21 @@ TEST test_openapi_oauth_scopes_and_flows_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_oauth_scopes(jo, &scopes, &n_scopes));
   ASSERT_EQ(NULL, scopes);
   ASSERT_EQ(0, n_scopes);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"read:pets\": \"read pets\", \"write:pets\": "
-                          "\"write pets\"}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"read:pets\": \"read pets\", \"write:pets\": "
+                              "\"write pets\"}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -133,12 +134,13 @@ TEST test_openapi_oauth_scopes_and_flows_branches(void) {
   ASSERT_EQ(2, n_scopes);
   free_test_oauth_scopes(scopes, n_scopes);
   scopes = NULL;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* scope with non-string description */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"read:pets\": 123}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"read:pets\": 123}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -147,7 +149,7 @@ TEST test_openapi_oauth_scopes_and_flows_branches(void) {
   ASSERT_EQ(NULL, scopes[0].description);
   free_test_oauth_scopes(scopes, n_scopes);
   scopes = NULL;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 7. parse_oauth_flows */
   ASSERT_EQ(CDD_C_SUCCESS, parse_oauth_flows(NULL, &sec));
@@ -155,183 +157,195 @@ TEST test_openapi_oauth_scopes_and_flows_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* flows_obj != NULL, out == NULL */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"implicit\": {\"authorizationUrl\": "
-                          "\"http://auth\", \"scopes\": {}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"implicit\": {\"authorizationUrl\": "
+                              "\"http://auth\", \"scopes\": {}}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_oauth_flows(jo, NULL));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* flow_obj is not an object */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"implicit\": \"not_an_obj\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"implicit\": \"not_an_obj\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Invalid flow name without scopes */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"invalidFlow\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"invalidFlow\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Invalid flow name with scopes (reaches switch default /
    * OA_OAUTH_FLOW_UNKNOWN) */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"invalidFlow\": {\"scopes\": {}}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"invalidFlow\": {\"scopes\": {}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Implicit flow without scopes */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"implicit\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"implicit\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Implicit flow with non-object scopes */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"implicit\": {\"scopes\": 123}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"implicit\": {\"scopes\": 123}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Implicit flow without authorizationUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"implicit\": {\"scopes\": {}}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"implicit\": {\"scopes\": {}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Password flow without tokenUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"password\": {\"scopes\": {}}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"password\": {\"scopes\": {}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Client credentials flow without tokenUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"clientCredentials\": {\"scopes\": {}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"clientCredentials\": {\"scopes\": {}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Client credentials flow without tokenUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"clientCredentials\": {\"scopes\": {}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"clientCredentials\": {\"scopes\": {}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Authorization code flow without tokenUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"authorizationCode\": {\"scopes\": {}, "
-                          "\"authorizationUrl\": \"http://auth\"}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"authorizationCode\": {\"scopes\": {}, "
+                              "\"authorizationUrl\": \"http://auth\"}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Authorization code flow without authorizationUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"authorizationCode\": {\"scopes\": {}, "
-                          "\"tokenUrl\": \"http://tok\"}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"authorizationCode\": {\"scopes\": {}, "
+                              "\"tokenUrl\": \"http://tok\"}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Device authorization flow without tokenUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"deviceAuthorization\": {\"scopes\": {}, "
-                          "\"deviceAuthorizationUrl\": \"http://dev\"}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"deviceAuthorization\": {\"scopes\": {}, "
+                              "\"deviceAuthorizationUrl\": \"http://dev\"}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Device authorization flow without deviceAuthorizationUrl */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"deviceAuthorization\": {\"scopes\": {}, "
-                          "\"tokenUrl\": \"http://tok\"}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"deviceAuthorization\": {\"scopes\": {}, "
+                              "\"tokenUrl\": \"http://tok\"}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_oauth_flows(jo, &sec));
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Valid flows for all types */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{"
         "\"implicit\": {\"authorizationUrl\": \"http://auth\", "
         "\"refreshUrl\": \"http://ref\", \"scopes\": {\"s\": "
@@ -370,14 +384,15 @@ TEST test_openapi_oauth_scopes_and_flows_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_oauth_flows(jo, &sec));
   ASSERT_EQ(5, sec.n_flows);
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Flow extension failure */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"implicit\": {\"authorizationUrl\": "
-                          "\"http://auth\", \"scopes\": {}, \"x-f\": 1}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"implicit\": {\"authorizationUrl\": "
+                              "\"http://auth\", \"scopes\": {}, \"x-f\": 1}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -385,7 +400,7 @@ TEST test_openapi_oauth_scopes_and_flows_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_oauth_flows(jo, &sec));
   g_cdd_strdup_fail = 0;
   free_test_security_scheme_flows(&sec);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   PASS();
 }

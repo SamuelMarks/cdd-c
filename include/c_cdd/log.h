@@ -14,6 +14,8 @@
 extern "C" {
 #endif /* __cplusplus */
 #ifndef C_CDD_LOG_DEBUG
+/** @brief Scratch error code storing the status of the most recent operation */
+extern C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err;
 /**
  * @brief Logs debug messages.
  *
@@ -22,7 +24,7 @@ extern "C" {
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
 /** @brief Convenience macro alias for c_cdd_log_debug */
-#define C_CDD_LOG_DEBUG c_cdd_log_debug
+#define C_CDD_LOG_DEBUG g_cdd_last_alloc_err = c_cdd_log_debug
 #endif /* !C_CDD_LOG_DEBUG */
 
 #ifdef __cplusplus

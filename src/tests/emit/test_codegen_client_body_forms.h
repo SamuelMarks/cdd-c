@@ -40,12 +40,13 @@ TEST test_body_form_urlencoded(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "name", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "age", "integer", NULL, NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "name",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "age",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -57,7 +58,8 @@ TEST test_body_form_urlencoded(void) {
   op.req_body.content_type =
       cdd_test_mut_str("application/x-www-form-urlencoded");
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25),
           _ast_gen_body_25);
   ASSERT(code);
   ASSERT(strstr(code, "Form URL-Encoded Body Construction") != NULL);
@@ -68,7 +70,7 @@ TEST test_body_form_urlencoded(void) {
                       "intf(num_buf, \"%d\", req_body->age)") != NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -98,10 +100,11 @@ TEST test_body_form_urlencoded_with_params(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "name", "string", NULL, NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "name",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -114,7 +117,8 @@ TEST test_body_form_urlencoded_with_params(void) {
       cdd_test_mut_str("application/x-www-form-urlencoded; "
                        "charset=utf-8");
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26),
           _ast_gen_body_26);
   ASSERT(code);
   ASSERT(strstr(code, "Form URL-Encoded Body Construction") != NULL);
@@ -123,7 +127,7 @@ TEST test_body_form_urlencoded_with_params(void) {
   ASSERT(strstr(code, "url_query_add(&form_qp, \"name\"") != NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -153,12 +157,13 @@ TEST test_body_form_urlencoded_object_fields(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "pet", "object", "Pet", NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "pets", "array", "Pet", NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "pet",
+                                           "object", "Pet", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "pets",
+                                           "array", "Pet", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -170,7 +175,8 @@ TEST test_body_form_urlencoded_object_fields(void) {
   op.req_body.content_type =
       cdd_test_mut_str("application/x-www-form-urlencoded");
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27),
           _ast_gen_body_27);
   ASSERT(code);
   ASSERT(strstr(code, "Pet_to_json(req_body->pet") != NULL);
@@ -178,7 +184,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"pet\"") != NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -212,17 +218,18 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "filter", "object", "Filter",
-                    NULL, NULL);
-  c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "filter",
+                                           "object", "Filter", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
 
-  struct_fields_init(&spec.defined_schemas[1]);
-  struct_fields_add(&spec.defined_schemas[1], "color", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[1], "limit", "integer", NULL, NULL,
-                    NULL);
-  c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "color",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "limit",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
 
   spec.n_defined_schemas = 2;
 
@@ -247,14 +254,15 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_28),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_28),
           _ast_gen_body_28);
   ASSERT(code);
   ASSERT(strstr(code, "url_query_add(&form_qp, \"color\"") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -288,17 +296,18 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "filter", "object", "Filter",
-                    NULL, NULL);
-  c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "filter",
+                                           "object", "Filter", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
 
-  struct_fields_init(&spec.defined_schemas[1]);
-  struct_fields_add(&spec.defined_schemas[1], "color", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[1], "limit", "integer", NULL, NULL,
-                    NULL);
-  c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "color",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "limit",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
 
   spec.n_defined_schemas = 2;
 
@@ -323,7 +332,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_29),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_29),
           _ast_gen_body_29);
   ASSERT(code);
   ASSERT(strstr(code, "openapi_kv_join_form") != NULL);
@@ -331,7 +341,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -365,17 +375,18 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "filter", "object", "Filter",
-                    NULL, NULL);
-  c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "filter",
+                                           "object", "Filter", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
 
-  struct_fields_init(&spec.defined_schemas[1]);
-  struct_fields_add(&spec.defined_schemas[1], "color", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[1], "limit", "integer", NULL, NULL,
-                    NULL);
-  c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "color",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "limit",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
 
   spec.n_defined_schemas = 2;
 
@@ -400,14 +411,15 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_30),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_30),
           _ast_gen_body_30);
   ASSERT(code);
   ASSERT(strstr(code, "filter[color]") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -437,20 +449,21 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "count", "integer", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "ratio", "number", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "flag", "boolean", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "tags", "array", "string", NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "nums", "array", "integer", NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "title",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "count",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "ratio",
+                                           "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "flag",
+                                           "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "tags",
+                                           "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "nums",
+                                           "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -461,7 +474,8 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   op.req_body.ref_name = cdd_test_mut_str("Upload");
   op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31),
           _ast_gen_body_31);
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
@@ -474,7 +488,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   ASSERT(strstr(code, "for (i = 0; i < req_body->n_nums; ++i)") != NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -504,12 +518,13 @@ TEST test_body_multipart_object_fields(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "pet", "object", "Pet", NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "pets", "array", "Pet", NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "pet",
+                                           "object", "Pet", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "pets",
+                                           "array", "Pet", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -520,7 +535,8 @@ TEST test_body_multipart_object_fields(void) {
   op.req_body.ref_name = cdd_test_mut_str("FormData");
   op.req_body.content_type = cdd_test_mut_str("multipart/form-data");
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32),
           _ast_gen_body_32);
   ASSERT(code);
   ASSERT(strstr(code, "Pet_to_json(req_body->pet") != NULL);
@@ -531,7 +547,7 @@ TEST test_body_multipart_object_fields(void) {
                       "\"application/json\"") != NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -565,10 +581,11 @@ TEST test_body_multipart_encoding_content_type(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "title",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -587,7 +604,8 @@ TEST test_body_multipart_encoding_content_type(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_33),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_33),
           _ast_gen_body_33);
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
@@ -595,7 +613,7 @@ TEST test_body_multipart_encoding_content_type(void) {
                       "\"text/plain; charset=utf-8\"") != NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -629,10 +647,11 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "file", "string", NULL, NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "file",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -651,7 +670,8 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_34),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_34),
           _ast_gen_body_34);
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
@@ -659,7 +679,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   ASSERT(strstr(code, "image/jpeg") == NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -695,10 +715,11 @@ TEST test_body_multipart_encoding_headers(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
-                    NULL);
-  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "title",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -727,7 +748,8 @@ TEST test_body_multipart_encoding_headers(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_35),
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_35),
           _ast_gen_body_35);
   ASSERT(code);
   ASSERT(strstr(code, "http_request_add_part_header_last(&req, \"X-Trace\", "
@@ -736,7 +758,7 @@ TEST test_body_multipart_encoding_headers(void) {
   ASSERT(strstr(code, "title_hdr_Content_Type") == NULL);
 
   free(code);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

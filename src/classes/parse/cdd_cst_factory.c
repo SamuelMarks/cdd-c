@@ -205,7 +205,7 @@ cdd_c_error_t cdd_cst_free_node(cdd_cst_node_t *node) {
     return CDD_C_SUCCESS;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_cst_free_node(node->children[i].val.node);
+      g_cdd_last_alloc_err = cdd_cst_free_node(node->children[i].val.node);
     }
   }
   return cdd_cst_free_node_only(node);

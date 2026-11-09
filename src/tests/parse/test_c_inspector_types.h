@@ -55,7 +55,7 @@ TEST test_scan_c23_enum_fixed_type(void) {
   ASSERT_EQ(KIND_ENUM, types.items[0].kind);
   ASSERT_STR_EQ("E", types.items[0].name);
 
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(filename);
   g_fail_io_after = -1;
   PASS();
@@ -79,7 +79,7 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
 
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
   rc = c_inspector_scan_file_types(filename, &types);
   ASSERT_EQ(0, rc);
@@ -87,7 +87,7 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   ASSERT_EQ(1, types.size);
   ASSERT_STR_EQ("MyEnum", types.items[0].name);
 
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(filename);
   g_fail_io_after = -1;
   PASS();
@@ -109,13 +109,13 @@ TEST test_scan_classic_enum(void) {
   rc = write_to_file(filename, "enum Classic { ONE };");
   ASSERT_EQ(0, rc);
 
-  type_def_list_init(&types);
-  c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
 
   ASSERT_EQ(1, types.size);
   ASSERT_STR_EQ("Classic", types.items[0].name);
 
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(filename);
   g_fail_io_after = -1;
   PASS();
@@ -129,10 +129,10 @@ TEST test_scan_classic_enum(void) {
 TEST test_inspector_nulls(void) {
   struct TypeDefList list = {0};
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, type_def_list_init(NULL));
-  type_def_list_free(NULL);
+  g_cdd_last_alloc_err = type_def_list_free(NULL);
 
   /* Create an empty struct/enum with NULL details to test free bounds */
-  type_def_list_init(&list);
+  g_cdd_last_alloc_err = type_def_list_init(&list);
 
   list.items = calloc(2, sizeof(struct TypeDefinition));
   list.size = 2;
@@ -144,10 +144,10 @@ TEST test_inspector_nulls(void) {
   list.items[1].kind = KIND_STRUCT;
   list.items[1].details.struct_fields = NULL;
 
-  type_def_list_free(&list);
+  g_cdd_last_alloc_err = type_def_list_free(&list);
 
   /* Create a struct with fields, one of which has NULL name */
-  type_def_list_init(&list);
+  g_cdd_last_alloc_err = type_def_list_init(&list);
   list.items = calloc(1, sizeof(struct TypeDefinition));
   list.size = 1;
   list.capacity = 1;
@@ -157,33 +157,33 @@ TEST test_inspector_nulls(void) {
       calloc(1, sizeof(struct StructField));
   list.items[0].details.struct_fields->size = 1;
   list.items[0].details.struct_fields->capacity = 1;
-  type_def_list_free(&list);
+  g_cdd_last_alloc_err = type_def_list_free(&list);
   /* 3. Hit capacity logic and k < end_idx without LBRACE */
   {
     struct FuncSigList sig_list;
-    func_sig_list_init(&sig_list);
-    c_inspector_extract_signatures(
+    g_cdd_last_alloc_err = func_sig_list_init(&sig_list);
+    g_cdd_last_alloc_err = c_inspector_extract_signatures(
         "void f1() {} void f2() {} void f3() {} void f4() {} void f5() {} "
         "void f6() {} void f7() {} void f8() {} void f9() {} void f10() {}"
         "void proto(int a);",
         &sig_list);
-    func_sig_list_free(&sig_list);
+    g_cdd_last_alloc_err = func_sig_list_free(&sig_list);
   }
 
   /* 4. Hit n > start_idx false condition */
   {
     struct FuncSigList sig_list;
-    func_sig_list_init(&sig_list);
-    c_inspector_extract_signatures("(){}", &sig_list);
-    func_sig_list_free(&sig_list);
+    g_cdd_last_alloc_err = func_sig_list_init(&sig_list);
+    g_cdd_last_alloc_err = c_inspector_extract_signatures("(){}", &sig_list);
+    g_cdd_last_alloc_err = func_sig_list_free(&sig_list);
   }
 
   /* 5. Another attempt for n > start_idx */
   {
     struct FuncSigList sig_list;
-    func_sig_list_init(&sig_list);
-    c_inspector_extract_signatures(" ( ) {}", &sig_list);
-    func_sig_list_free(&sig_list);
+    g_cdd_last_alloc_err = func_sig_list_init(&sig_list);
+    g_cdd_last_alloc_err = c_inspector_extract_signatures(" ( ) {}", &sig_list);
+    g_cdd_last_alloc_err = func_sig_list_free(&sig_list);
   }
 
   g_fail_io_after = -1;
@@ -213,13 +213,13 @@ TEST test_inspector_oom(void) {
 
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     /* remove early break to force all limits */ /* Success means we passed the
                                                     allocations */
   }
@@ -246,13 +246,13 @@ TEST test_inspector_extract_sig_oom(void) {
 
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
-    func_sig_list_init(&out);
+    g_cdd_last_alloc_err = func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(code, &out);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    func_sig_list_free(&out);
+    g_cdd_last_alloc_err = func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
 
@@ -272,25 +272,25 @@ TEST test_inspector_extract_sig_nulls(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             c_inspector_extract_signatures("void foo(void){}", NULL));
 
-  func_sig_list_init(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
 
   /* Missing name logic */
   ASSERT_EQ(CDD_C_SUCCESS,
             c_inspector_extract_signatures("void (void){}", &out));
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
 
   /* Variadic coverage */
-  func_sig_list_init(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
   ASSERT_EQ(CDD_C_SUCCESS,
             c_inspector_extract_signatures("void bar(int a, ...) {}", &out));
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
 
-  func_sig_list_free(NULL);
+  g_cdd_last_alloc_err = func_sig_list_free(NULL);
 
   /* File IO branch coverage */
   {
     struct TypeDefList types;
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               c_inspector_scan_file_types(NULL, &types));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -300,7 +300,7 @@ TEST test_inspector_extract_sig_nulls(void) {
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
               c_inspector_scan_file_types("does_not_exist_999.h", &types));
 
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
   }
 
   g_fail_io_after = -1;
@@ -324,10 +324,10 @@ TEST test_inspector_struct_empty_fields(void) {
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
 
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   rc = c_inspector_scan_file_types(filename, &types);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   remove(filename);
   g_fail_io_after = -1;
@@ -350,14 +350,14 @@ TEST test_inspector_extract_sig_oom_2(void) {
 
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
-    func_sig_list_init(&out);
+    g_cdd_last_alloc_err = func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(
         "void my_func() { /* body */ } void /* doc */ other(int a) {}", &out);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    func_sig_list_free(&out);
+    g_cdd_last_alloc_err = func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
 
@@ -381,14 +381,14 @@ TEST test_inspector_extract_sig_oom_3(void) {
 
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
-    func_sig_list_init(&out);
+    g_cdd_last_alloc_err = func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(
         "void my_func() { /* body */ } void other(int a) {}", &out);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    func_sig_list_free(&out);
+    g_cdd_last_alloc_err = func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
 
@@ -403,9 +403,9 @@ TEST test_inspector_extract_sig_oom_3(void) {
 TEST test_inspector_list_frees_with_partial_alloc(void) {
   /* Provide empty spans for func sigs */
   struct FuncSigList out;
-  func_sig_list_init(&out);
-  c_inspector_extract_signatures("void() {}", &out);
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
+  g_cdd_last_alloc_err = c_inspector_extract_signatures("void() {}", &out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
   PASS();
 }
 
@@ -425,14 +425,14 @@ TEST test_inspector_extract_sig_oom_4(void) {
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
-    func_sig_list_init(&out);
+    g_cdd_last_alloc_err = func_sig_list_init(&out);
     rc = c_inspector_extract_signatures(
         "/* doc1 */ void my_func() {} /* doc2 */ void other(int a) {}", &out);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    func_sig_list_free(&out);
+    g_cdd_last_alloc_err = func_sig_list_free(&out);
     /* remove early break to force all limits */
   }
 
@@ -462,13 +462,13 @@ TEST test_inspector_struct_fields_oom_2(void) {
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     /* remove early break to force all limits */
   }
 
@@ -498,13 +498,13 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     /* remove early break to force all limits */
   }
 
@@ -535,13 +535,13 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     /* remove early break to force all limits */
   }
 
@@ -566,13 +566,13 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
 
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
-    func_sig_list_init(&out);
+    g_cdd_last_alloc_err = func_sig_list_init(&out);
     rc = c_inspector_extract_signatures("void foo(int a, ...) {}", &out);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    func_sig_list_free(&out);
+    g_cdd_last_alloc_err = func_sig_list_free(&out);
   }
 
   PASS();
@@ -594,13 +594,13 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
 
   for (i = 40; i < 80; ++i) {
     g_cdd_alloc_fail = i;
-    func_sig_list_init(&out);
+    g_cdd_last_alloc_err = func_sig_list_init(&out);
     rc = c_inspector_extract_signatures("void foo(int a, ...) {}", &out);
     g_cdd_alloc_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    func_sig_list_free(&out);
+    g_cdd_last_alloc_err = func_sig_list_free(&out);
   }
 
   PASS();
@@ -617,11 +617,11 @@ TEST test_inspector_extract_sig_fail_tokenizer(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  func_sig_list_init(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int a = \xff\xff;", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, out.size);
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
   PASS();
 }
 
@@ -636,11 +636,11 @@ TEST test_inspector_extract_sig_fail_parser(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  func_sig_list_init(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, out.size);
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
   PASS();
 }
 
@@ -655,18 +655,18 @@ TEST test_inspector_extract_sig_fail_parser_err(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  func_sig_list_init(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, out.size);
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
 
-  func_sig_list_init(&out);
+  g_cdd_last_alloc_err = func_sig_list_init(&out);
   /* Covers: while (n > start_idx) exit */
   rc = c_inspector_extract_signatures("int () { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, out.size);
-  func_sig_list_free(&out);
+  g_cdd_last_alloc_err = func_sig_list_free(&out);
 
   PASS();
 }
@@ -692,13 +692,13 @@ TEST test_inspector_strdup_oom(void) {
 
   for (i = 1; i < 10; ++i) {
     g_cdd_strdup_fail = i;
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     rc = c_inspector_scan_file_types(filename, &types);
     g_cdd_strdup_fail = 0;
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     /* break removed to force all strdup fails */
   }
 
@@ -727,19 +727,19 @@ TEST test_inspector_io_error_perms(void) {
 #endif
   const char *filename = cdd_test_mut_str("test_no_read.h");
 
-  write_to_file(filename, "");
+  g_cdd_last_alloc_err = write_to_file(filename, "");
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   chmod(filename, 0200);
 #endif
 
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   rc = c_inspector_scan_file_types(filename, &types);
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
 #else
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 #endif
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
 #if !defined(_WIN32) && !defined(__CYGWIN__)
   chmod(filename, 0644);
@@ -757,74 +757,75 @@ TEST test_inspector_branch_coverage(void) {
   struct TypeDefList types;
 
   /* 1. All-whitespace name: "struct    {" */
-  write_to_file(filename, "struct    { int a; };");
-  type_def_list_init(&types);
-  c_inspector_scan_file_types(filename, &types);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = write_to_file(filename, "struct    { int a; };");
+  g_cdd_last_alloc_err = type_def_list_init(&types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   /* 2. enum_members_init failure */
-  write_to_file(filename, "enum X { A };");
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = write_to_file(filename, "enum X { A };");
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   g_cdd_alloc_fail = 5;
-  c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
   g_cdd_alloc_fail = 0;
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   /* 3. struct_fields_init failure */
-  write_to_file(filename, "struct Y { int a; };");
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = write_to_file(filename, "struct Y { int a; };");
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   g_cdd_alloc_fail = 5;
-  c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
   g_cdd_alloc_fail = 0;
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   /* 4. strdup failure inside struct field processing (line 277) */
-  write_to_file(filename, "struct Z { int a; };");
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = write_to_file(filename, "struct Z { int a; };");
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   g_cdd_strdup_fail = 1;
-  c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
   g_cdd_strdup_fail = 0;
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   /* 5. strdup failure inside enum field processing */
-  write_to_file(filename, "enum W { A, B };");
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = write_to_file(filename, "enum W { A, B };");
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   g_cdd_strdup_fail = 1;
-  c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
   g_cdd_strdup_fail = 0;
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   /* 5b. Struct member parsing failure via g_cdd_strdup_fail = 2 */
-  write_to_file(filename, "struct BadMember {\n  int a; };\n");
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err =
+      write_to_file(filename, "struct BadMember {\n  int a; };\n");
+  g_cdd_last_alloc_err = type_def_list_init(&types);
   g_cdd_strdup_fail = 2;
-  c_inspector_scan_file_types(filename, &types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
   g_cdd_strdup_fail = 0;
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
-    write_to_file(filename, "enum X { A };");
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = write_to_file(filename, "enum X { A };");
+    g_cdd_last_alloc_err = type_def_list_init(&types);
 
     g_cdd_fail_str_starts_with = 1;
-    c_inspector_scan_file_types(filename, &types);
+    g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
     g_cdd_fail_str_starts_with = 0;
 
     g_cdd_fail_str_starts_with = 2;
-    c_inspector_scan_file_types(filename, &types);
+    g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
     g_cdd_fail_str_starts_with = 0;
 
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
   }
 #endif
 
   /* 6. Zero capacity list */
   {
     struct FuncSigList zout = {0};
-    c_inspector_extract_signatures("int f() {}", &zout);
-    func_sig_list_free(&zout);
+    g_cdd_last_alloc_err = c_inspector_extract_signatures("int f() {}", &zout);
+    g_cdd_last_alloc_err = func_sig_list_free(&zout);
   }
 
   /* 7. Comprehensive comment, union, enum, and OOM coverage in inspector.c */
@@ -891,23 +892,23 @@ TEST test_inspector_branch_coverage(void) {
           fp);
     fclose(fp);
 
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(filename, &types));
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
 
     for (k = 1; k <= 60; ++k) {
       g_cdd_strdup_fail = k;
-      type_def_list_init(&types);
-      c_inspector_scan_file_types(filename, &types);
+      g_cdd_last_alloc_err = type_def_list_init(&types);
+      g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
       g_cdd_strdup_fail = 0;
-      type_def_list_free(&types);
+      g_cdd_last_alloc_err = type_def_list_free(&types);
     }
     for (k = 1; k <= 60; ++k) {
       g_cdd_alloc_fail = k;
-      type_def_list_init(&types);
-      c_inspector_scan_file_types(filename, &types);
+      g_cdd_last_alloc_err = type_def_list_init(&types);
+      g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
       g_cdd_alloc_fail = 0;
-      type_def_list_free(&types);
+      g_cdd_last_alloc_err = type_def_list_free(&types);
     }
 
     /* Function with callback parameter (multiple parens) */
@@ -926,7 +927,7 @@ TEST test_inspector_branch_coverage(void) {
       ASSERT_STR_EQ("name", sigs.items[0].params[0].name);
       ASSERT_STR_EQ("int", sigs.items[0].params[2].type);
       ASSERT_STR_EQ("x", sigs.items[0].params[2].name);
-      func_sig_list_free(&sigs);
+      g_cdd_last_alloc_err = func_sig_list_free(&sigs);
 
       /* Test >16 parameters dynamic reallocation, OOM, and >63 char span */
       {
@@ -940,30 +941,31 @@ TEST test_inspector_branch_coverage(void) {
             "unsigned long long int const volatile * const "
             "very_long_parameter_identifier_name_that_exceeds_sixty_four_bytes"
             ") {}";
-        func_sig_list_init(&sigs);
+        g_cdd_last_alloc_err = func_sig_list_init(&sigs);
         ASSERT_EQ(CDD_C_SUCCESS,
                   c_inspector_extract_signatures(many_params_src, &sigs));
         ASSERT_EQ(1, sigs.size);
         ASSERT_EQ(20, sigs.items[0].n_params);
-        func_sig_list_free(&sigs);
+        g_cdd_last_alloc_err = func_sig_list_free(&sigs);
 
         for (k = 1; k <= 25; ++k) {
           g_cdd_alloc_fail = k;
-          func_sig_list_init(&sigs);
-          c_inspector_extract_signatures(many_params_src, &sigs);
+          g_cdd_last_alloc_err = func_sig_list_init(&sigs);
+          g_cdd_last_alloc_err =
+              c_inspector_extract_signatures(many_params_src, &sigs);
           g_cdd_alloc_fail = 0;
-          func_sig_list_free(&sigs);
+          g_cdd_last_alloc_err = func_sig_list_free(&sigs);
         }
         /* Also test without docstring when param realloc fails */
         for (k = 1; k <= 25; ++k) {
           g_cdd_alloc_fail = k;
-          func_sig_list_init(&sigs);
-          c_inspector_extract_signatures(
+          g_cdd_last_alloc_err = func_sig_list_init(&sigs);
+          g_cdd_last_alloc_err = c_inspector_extract_signatures(
               "void f(int a0, int a1, int a2, int a3, int a4, int a5, int a6, "
               "int a7, int a8) {}",
               &sigs);
           g_cdd_alloc_fail = 0;
-          func_sig_list_free(&sigs);
+          g_cdd_last_alloc_err = func_sig_list_free(&sigs);
         }
       }
     }
@@ -993,7 +995,7 @@ TEST test_inspector_branch_coverage(void) {
           "struct{int x;};\n",
           fp);
     fclose(fp);
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(filename, &types));
     ASSERT_EQ(4, types.size);
     ASSERT_STR_EQ("AnonTypedefStruct", types.items[0].name);
@@ -1006,13 +1008,13 @@ TEST test_inspector_branch_coverage(void) {
     ASSERT_STR_EQ("MultiLineEnum", types.items[3].name);
     ASSERT_EQ(CDD_SERDE_CASE_UPPERCASE,
               types.items[3].details.enum_members->serde_rename_all);
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     for (k = 1; k <= 30; ++k) {
       g_cdd_alloc_fail = k;
-      type_def_list_init(&types);
-      c_inspector_scan_file_types(filename, &types);
+      g_cdd_last_alloc_err = type_def_list_init(&types);
+      g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
       g_cdd_alloc_fail = 0;
-      type_def_list_free(&types);
+      g_cdd_last_alloc_err = type_def_list_free(&types);
     }
 
     /* Long comments inside enum and struct (>2048 chars and >512 chars) */
@@ -1034,9 +1036,9 @@ TEST test_inspector_branch_coverage(void) {
       fputc('t', fp);
     fprintf(fp, " */\n  int x;\n};\n");
     fclose(fp);
-    type_def_list_init(&types);
+    g_cdd_last_alloc_err = type_def_list_init(&types);
     ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(filename, &types));
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
   }
 
   remove(filename);

@@ -83,58 +83,58 @@ TEST test_c2openapi_helpers_global_meta_conflicts_full(void) {
   struct DocMetadata meta;
   cdd_c_error_t rc = 0;
 
-  openapi_spec_init(&spec);
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
 
-  c_cdd_strdup("OrigTitle", &spec.info.title);
+  g_cdd_last_alloc_err = c_cdd_strdup("OrigTitle", &spec.info.title);
   meta.info_title = cdd_test_mut_str("NewTitle");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.info_title = NULL;
 
-  c_cdd_strdup("1.0", &spec.info.version);
+  g_cdd_last_alloc_err = c_cdd_strdup("1.0", &spec.info.version);
   meta.info_version = cdd_test_mut_str("2.0");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.info_version = NULL;
 
-  c_cdd_strdup("Summary1", &spec.info.summary);
+  g_cdd_last_alloc_err = c_cdd_strdup("Summary1", &spec.info.summary);
   meta.info_summary = cdd_test_mut_str("Summary2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.info_summary = NULL;
 
-  c_cdd_strdup("Desc1", &spec.info.description);
+  g_cdd_last_alloc_err = c_cdd_strdup("Desc1", &spec.info.description);
   meta.info_description = cdd_test_mut_str("Desc2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.info_description = NULL;
 
-  c_cdd_strdup("Terms1", &spec.info.terms_of_service);
+  g_cdd_last_alloc_err = c_cdd_strdup("Terms1", &spec.info.terms_of_service);
   meta.terms_of_service = cdd_test_mut_str("Terms2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.terms_of_service = NULL;
 
-  c_cdd_strdup("Name1", &spec.info.contact.name);
+  g_cdd_last_alloc_err = c_cdd_strdup("Name1", &spec.info.contact.name);
   meta.contact_name = cdd_test_mut_str("Name2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.contact_name = NULL;
 
-  c_cdd_strdup("Url1", &spec.info.contact.url);
+  g_cdd_last_alloc_err = c_cdd_strdup("Url1", &spec.info.contact.url);
   meta.contact_url = cdd_test_mut_str("Url2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.contact_url = NULL;
 
-  c_cdd_strdup("Email1", &spec.info.contact.email);
+  g_cdd_last_alloc_err = c_cdd_strdup("Email1", &spec.info.contact.email);
   meta.contact_email = cdd_test_mut_str("Email2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   meta.contact_email = NULL;
 
-  c_cdd_strdup("Dialect1", &spec.json_schema_dialect);
+  g_cdd_last_alloc_err = c_cdd_strdup("Dialect1", &spec.json_schema_dialect);
   meta.json_schema_dialect = cdd_test_mut_str("Dialect2");
   rc = c2openapi_apply_doc_global_meta(&spec, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -183,7 +183,7 @@ TEST test_c2openapi_helpers_global_meta_conflicts_full(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -200,20 +200,20 @@ TEST test_c2openapi_oom_helpers_tag_and_global_meta(void) {
   /* spec_add_tag OOM */
   for (k = 1; k <= 3; ++k) {
     cdd_c_error_t rc_oom;
-    openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
     g_cdd_alloc_fail = k;
     g_cdd_strdup_fail = k;
     rc_oom = c2openapi_spec_add_tag(&spec, "tag_oom");
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY);
     g_cdd_alloc_fail = 0;
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* spec_apply_tag_meta OOM */
   for (k = 1; k <= 8; ++k) {
     cdd_c_error_t rc_oom;
-    openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
     memset(&tag_meta, 0, sizeof(tag_meta));
     tag_meta.name = cdd_test_mut_str("tag_oom");
     tag_meta.summary = cdd_test_mut_str("summary");
@@ -229,14 +229,14 @@ TEST test_c2openapi_oom_helpers_tag_and_global_meta(void) {
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY);
     g_cdd_alloc_fail = 0;
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* apply_doc_global_meta OOM */
   for (k = 1; k <= 5; ++k) {
     cdd_c_error_t rc_oom;
-    openapi_spec_init(&spec);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     meta.external_docs_url = cdd_test_mut_str("http://url");
     meta.external_docs_description = cdd_test_mut_str("desc");
 
@@ -244,7 +244,7 @@ TEST test_c2openapi_oom_helpers_tag_and_global_meta(void) {
     rc_oom = c2openapi_apply_doc_global_meta(&spec, &meta);
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY);
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   PASS();
@@ -285,7 +285,7 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY);
     g_cdd_alloc_fail = 0;
     g_cdd_strdup_fail = 0;
-    c2openapi_free_openapi_server_variables(&srv);
+    g_cdd_last_alloc_err = c2openapi_free_openapi_server_variables(&srv);
   }
 
   /* merge_scopes OOM */
@@ -376,7 +376,7 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
   for (k = 1; k <= 5; ++k) {
     cdd_c_error_t rc_oom;
     struct DocSecurityScheme doc;
-    openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
     memset(&doc, 0, sizeof(doc));
     doc.name = cdd_test_mut_str("SecOOM");
     doc.type = DOC_SEC_APIKEY;
@@ -389,7 +389,7 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY);
     g_cdd_alloc_fail = 0;
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* append_root_security OOM */
@@ -399,8 +399,8 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
     char *sec_scopes[1];
 
     sec_scopes[0] = cdd_test_mut_str("read");
-    openapi_spec_init(&spec);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     memset(sec, 0, sizeof(sec));
     sec[0].scheme = cdd_test_mut_str("OAuth2");
     sec[0].scopes = sec_scopes;
@@ -416,15 +416,15 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
     g_cdd_strdup_fail = 0;
     meta.security = NULL;
     meta.n_security = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* append_root_servers OOM */
   for (k = 1; k <= 6; ++k) {
     cdd_c_error_t rc_oom;
     struct DocServer srv[1];
-    openapi_spec_init(&spec);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     memset(srv, 0, sizeof(srv));
     srv[0].url = cdd_test_mut_str("http://srv");
     srv[0].name = cdd_test_mut_str("name");
@@ -440,7 +440,7 @@ TEST test_c2openapi_oom_helpers_servers_and_security(void) {
     g_cdd_strdup_fail = 0;
     meta.servers = NULL;
     meta.n_servers = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   PASS();
@@ -466,7 +466,7 @@ TEST test_c2openapi_oom_helpers_sig_and_file_process(void) {
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY ||
            rc_oom == CDD_C_ERROR_INVALID_ARGUMENT);
     if (rc_oom == CDD_C_SUCCESS)
-      c2openapi_free_parsed_sig(&sig);
+      g_cdd_last_alloc_err = c2openapi_free_parsed_sig(&sig);
     g_cdd_alloc_fail = 0;
   }
 
@@ -478,23 +478,23 @@ TEST test_c2openapi_oom_helpers_sig_and_file_process(void) {
   /* process_file OOM */
   for (k = 1; k <= 6; ++k) {
     cdd_c_error_t rc_oom;
-    openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
     g_cdd_alloc_fail = k;
     rc_oom = c2openapi_process_file(test_c, &spec);
     ASSERT(rc_oom == CDD_C_SUCCESS || rc_oom == CDD_C_ERROR_MEMORY ||
            rc_oom == CDD_C_ERROR_IO);
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   remove(test_c);
 
   /* walker_cb warning path */
   {
-    openapi_spec_init(&spec);
+    g_cdd_last_alloc_err = openapi_spec_init(&spec);
     rc = c2openapi_walker_cb("nonexistent_walker_file_xyz.c", &spec);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   PASS();
@@ -510,8 +510,8 @@ TEST test_c2openapi_remaining_edge_cases(void) {
   struct C2OpenAPI_ParsedSig sig;
   cdd_c_error_t rc = 0;
 
-  openapi_spec_init(&spec);
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
 
   /* spec_find_tag with NULL _out_val */
   rc = c2openapi_spec_find_tag(&spec, "tag", NULL);
@@ -520,7 +520,7 @@ TEST test_c2openapi_remaining_edge_cases(void) {
   /* free_parsed_sig with return_type */
   memset(&sig, 0, sizeof(sig));
   sig.return_type = c_cdd_strdup_macro("int");
-  c2openapi_free_parsed_sig(&sig);
+  g_cdd_last_alloc_err = c2openapi_free_parsed_sig(&sig);
 
   /* add_oauth_flows with unknown flow type */
   {
@@ -729,11 +729,12 @@ TEST test_c2openapi_remaining_edge_cases(void) {
     struct EnumMembers em_src;
     int f_idx;
 
-    struct_fields_init(&sf_src);
+    g_cdd_last_alloc_err = struct_fields_init(&sf_src);
     for (f_idx = 0; f_idx < 9; ++f_idx) {
       char fname[16];
       CDD_SNPRINTF(fname, sizeof(fname), "f%d", f_idx);
-      struct_fields_add(&sf_src, fname, "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_src, fname, "integer", NULL, NULL, NULL);
     }
 
     memset(&td_item, 0, sizeof(td_item));
@@ -747,32 +748,32 @@ TEST test_c2openapi_remaining_edge_cases(void) {
     /* Fail struct_fields_init inside c2openapi_register_types (alloc #4) */
     {
       struct OpenAPI_Spec reg_spec;
-      openapi_spec_init(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_init(&reg_spec);
       g_cdd_alloc_fail = 4;
       rc = c2openapi_register_types(&reg_spec, &tdl);
       g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       reg_spec.n_defined_schemas = 0;
       C_CDD_FREE(reg_spec.defined_schema_names[0]);
-      openapi_spec_free(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&reg_spec);
     }
 
     /* Fail struct_fields_add realloc inside c2openapi_register_types (alloc #5)
      */
     {
       struct OpenAPI_Spec reg_spec;
-      openapi_spec_init(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_init(&reg_spec);
       g_cdd_alloc_fail = 5;
       rc = c2openapi_register_types(&reg_spec, &tdl);
       g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      openapi_spec_free(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&reg_spec);
     }
-    struct_fields_free(&sf_src);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_src);
 
     /* Now test KIND_ENUM OOM in c2openapi_register_types */
-    enum_members_init(&em_src);
-    enum_members_add(&em_src, "EV1");
+    g_cdd_last_alloc_err = enum_members_init(&em_src);
+    g_cdd_last_alloc_err = enum_members_add(&em_src, "EV1");
     memset(&td_item, 0, sizeof(td_item));
     td_item.kind = KIND_ENUM;
     td_item.name = cdd_test_mut_str("OomRegEnum");
@@ -781,40 +782,40 @@ TEST test_c2openapi_remaining_edge_cases(void) {
     /* Fail struct_fields_init on KIND_ENUM (alloc #4) */
     {
       struct OpenAPI_Spec reg_spec;
-      openapi_spec_init(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_init(&reg_spec);
       g_cdd_alloc_fail = 4;
       rc = c2openapi_register_types(&reg_spec, &tdl);
       g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       reg_spec.n_defined_schemas = 0;
       C_CDD_FREE(reg_spec.defined_schema_names[0]);
-      openapi_spec_free(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&reg_spec);
     }
 
     /* Fail enum_members_init on KIND_ENUM (alloc #5) */
     {
       struct OpenAPI_Spec reg_spec;
-      openapi_spec_init(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_init(&reg_spec);
       g_cdd_alloc_fail = 5;
       rc = c2openapi_register_types(&reg_spec, &tdl);
       g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      openapi_spec_free(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&reg_spec);
     }
 
     /* Fail enum_members_add strdup on KIND_ENUM (strdup #2) */
     {
       struct OpenAPI_Spec reg_spec;
-      openapi_spec_init(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_init(&reg_spec);
       g_cdd_strdup_fail = 2;
       rc = c2openapi_register_types(&reg_spec, &tdl);
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      openapi_spec_free(&reg_spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&reg_spec);
     }
-    enum_members_free(&em_src);
+    g_cdd_last_alloc_err = enum_members_free(&em_src);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

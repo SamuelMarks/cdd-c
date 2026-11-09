@@ -64,8 +64,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
   /* 1. Security header apply IO failure (hits line 4393) */
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_HEADER;
-  c_cdd_strdup("sec_key", &sch.name);
-  c_cdd_strdup("X-Api-Key", &sch.key_name);
+  g_cdd_last_alloc_err = c_cdd_strdup("sec_key", &sch.name);
+  g_cdd_last_alloc_err = c_cdd_strdup("X-Api-Key", &sch.key_name);
   spec.security_schemes =
       (struct OpenAPI_SecurityScheme *)calloc(1, sizeof(sch));
   ASSERT(spec.security_schemes);
@@ -82,13 +82,14 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
 
   /* Clear security schemes */
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
 
   /* 2. Range 2XX binary write_binary_success failure (hits line 4789) */
@@ -103,7 +104,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -116,7 +118,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -135,7 +138,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -148,7 +152,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -161,7 +166,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -183,7 +189,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
         fp = cdd_test_tmpfile_global();
         g_io_calls = 0;
         g_fail_io_after = io_fail;
-        client_body_write_inline_json_parse(fp, &sch_ref);
+        g_cdd_last_alloc_err =
+            client_body_write_inline_json_parse(fp, &sch_ref);
         g_fail_io_after = -1;
         fclose(fp);
       }
@@ -192,7 +199,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
         fp = cdd_test_tmpfile_global();
         g_io_calls = 0;
         g_fail_io_after = io_fail;
-        client_body_write_inline_json_parse(fp, &sch_ref);
+        g_cdd_last_alloc_err =
+            client_body_write_inline_json_parse(fp, &sch_ref);
         g_fail_io_after = -1;
         fclose(fp);
       }
@@ -205,8 +213,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "tags", "n_tags", "string", ',',
-                                          "url_encode", 1, 0);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "tags", "n_tags", "string", ',', "url_encode", 1, 0);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -214,8 +222,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "tags", "n_tags", "string", ',',
-                                          NULL, 0, 0);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "tags", "n_tags", "string", ',', NULL, 0, 0);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -223,8 +231,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "items", "n_items", "Item", '&',
-                                          NULL, 0, 1);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "items", "n_items", "Item", '&', NULL, 0, 1);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -232,8 +240,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "ints", "n_ints", "integer", '|',
-                                          "url_encode", 0, 0);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "ints", "n_ints", "integer", '|', "url_encode", 0, 0);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -241,8 +249,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "nums", "n_nums", "number", '|',
-                                          "url_encode", 0, 0);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "nums", "n_nums", "number", '|', "url_encode", 0, 0);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -250,8 +258,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "bools", "n_bools", "boolean",
-                                          '|', "url_encode", 0, 0);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "bools", "n_bools", "boolean", '|', "url_encode", 0, 0);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -259,8 +267,8 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_joined_form_array(fp, "str_raw", "n_str_raw", "string",
-                                          '|', "url_encode", 0, 0);
+      g_cdd_last_alloc_err = client_body_write_joined_form_array(
+          fp, "str_raw", "n_str_raw", "string", '|', "url_encode", 0, 0);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -354,7 +362,7 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_header_param_logic(fp, &hdr_op);
+      g_cdd_last_alloc_err = client_body_write_header_param_logic(fp, &hdr_op);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -434,13 +442,13 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_cookie_param_logic(fp, &ck_op);
+      g_cdd_last_alloc_err = client_body_write_cookie_param_logic(fp, &ck_op);
       g_fail_io_after = -1;
       fclose(fp);
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

@@ -122,155 +122,229 @@ TEST test_openapi_validation_operation_ids_branches(void) {
   id_cap = 0;
 
   /* 9. path_item_ref_matches_component */
-  ASSERT_EQ(0, path_item_ref_matches_component(NULL, NULL, "item"));
-  ASSERT_EQ(0, path_item_ref_matches_component(&spec, "ref", NULL));
-  ASSERT_EQ(0, path_item_ref_matches_component(&spec, "bad_prefix", "item"));
-  ASSERT_EQ(1, path_item_ref_matches_component(
-                   &spec, "#/components/pathItems/my_item", "my_item"));
-  ASSERT_EQ(0, path_item_ref_matches_component(
-                   &spec, "#/components/pathItems/other_item", "my_item"));
-  g_cdd_alloc_fail = 1;
-  ASSERT_EQ(0, path_item_ref_matches_component(
-                   &spec, "#/components/pathItems/my_item", "my_item"));
-  g_cdd_alloc_fail = 0;
-
-  /* 10. component_path_item_is_referenced */
-  ASSERT_EQ(CDD_C_SUCCESS, component_path_item_is_referenced(NULL, "item"));
-  ASSERT_EQ(CDD_C_SUCCESS, component_path_item_is_referenced(&spec, NULL));
-  spec.paths = paths;
-  spec.n_paths = 1;
-  paths[0].ref = cdd_test_mut_str("#/components/pathItems/my_item");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_path_item_is_referenced(&spec, "my_item"));
-  paths[0].ref = cdd_test_mut_str("#/components/pathItems/other_item");
-  ASSERT_EQ(CDD_C_SUCCESS, component_path_item_is_referenced(&spec, "my_item"));
-  paths[0].ref = NULL;
-  spec.webhooks = &paths[1];
-  spec.n_webhooks = 1;
-  paths[1].ref = cdd_test_mut_str("#/components/pathItems/my_item");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_path_item_is_referenced(&spec, "my_item"));
-  paths[1].ref = cdd_test_mut_str("#/components/pathItems/other_item");
-  ASSERT_EQ(CDD_C_SUCCESS, component_path_item_is_referenced(&spec, "my_item"));
-  paths[1].ref = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS, component_path_item_is_referenced(&spec, "my_item"));
-  memset(&spec, 0, sizeof(spec));
-
-  /* 11. callback_ref_matches_component */
-  ASSERT_EQ(0, callback_ref_matches_component(NULL, NULL, "cb"));
-  ASSERT_EQ(0, callback_ref_matches_component(&spec, "ref", NULL));
-  ASSERT_EQ(0, callback_ref_matches_component(&spec, "bad_prefix", "cb"));
-  ASSERT_EQ(1, callback_ref_matches_component(
-                   &spec, "#/components/callbacks/my_cb", "my_cb"));
-  ASSERT_EQ(0, callback_ref_matches_component(
-                   &spec, "#/components/callbacks/other_cb", "my_cb"));
-  g_cdd_alloc_fail = 1;
-  ASSERT_EQ(0, callback_ref_matches_component(
-                   &spec, "#/components/callbacks/my_cb", "my_cb"));
-  g_cdd_alloc_fail = 0;
-
-  /* 12. component_callback_is_referenced_in_ops */
-  ASSERT_EQ(CDD_C_SUCCESS,
-            component_callback_is_referenced_in_ops(NULL, 0, &spec, "cb"));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            component_callback_is_referenced_in_ops(ops, 1, NULL, "cb"));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            component_callback_is_referenced_in_ops(ops, 1, &spec, NULL));
-  ops[0].callbacks = cbs;
-  ops[0].n_callbacks = 1;
-  cbs[0].ref = cdd_test_mut_str("#/components/callbacks/my_cb");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced_in_ops(ops, 1, &spec, "my_cb"));
-  cbs[0].ref = cdd_test_mut_str("#/components/callbacks/other_cb");
-  ASSERT_EQ(CDD_C_SUCCESS,
-            component_callback_is_referenced_in_ops(ops, 1, &spec, "my_cb"));
-  cbs[0].ref = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS,
-            component_callback_is_referenced_in_ops(ops, 1, &spec, "my_cb"));
-
-  /* 13. component_callback_is_referenced */
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(NULL, "cb"));
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, NULL));
-  /* referenced in paths operations */
-  cbs[0].ref = cdd_test_mut_str("#/components/callbacks/my_cb");
-  spec.paths = paths;
-  spec.n_paths = 1;
-  paths[0].operations = ops;
-  paths[0].n_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-  paths[0].n_operations = 0;
-  paths[0].additional_operations = ops;
-  paths[0].n_additional_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-  paths[0].n_additional_operations = 0;
-
-  /* referenced in webhooks operations */
-  spec.webhooks = &paths[1];
-  spec.n_webhooks = 1;
-  paths[1].operations = ops;
-  paths[1].n_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-  paths[1].n_operations = 0;
-  paths[1].additional_operations = ops;
-  paths[1].n_additional_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-  paths[1].n_additional_operations = 0;
-
-  /* referenced in component_path_items */
-  spec.paths = NULL;
-  spec.n_paths = 0;
-  spec.webhooks = &paths[1];
-  spec.n_webhooks = 1;
-  paths[1].operations = NULL;
-  paths[1].n_operations = 0;
-  spec.component_path_items = &paths[0];
-  spec.n_component_path_items = 1;
-  spec.component_path_item_names = &cpi_name;
-  paths[0].operations = ops;
-  paths[0].n_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-  paths[0].n_operations = 0;
-  paths[0].additional_operations = ops;
-  paths[0].n_additional_operations = 1;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-
-  /* If component_path_item is itself referenced, it is skipped */
-  paths[1].ref = cdd_test_mut_str("#/components/pathItems/my_item");
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, "my_cb"));
-  paths[1].ref = NULL;
-  cbs[0].ref = NULL;
-
-  /* component_path_items == NULL */
-  spec.component_path_items = NULL;
-  spec.n_component_path_items = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, "my_cb"));
-
-  /* component_path_items != NULL && n_component_path_items == 0 */
-  spec.component_path_items = paths;
-  spec.n_component_path_items = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, "my_cb"));
-
-  /* component_path_item_names == NULL */
-  cbs[0].ref = cdd_test_mut_str("#/components/callbacks/my_cb");
-  spec.component_path_items = &paths[0];
-  spec.n_component_path_items = 1;
-  spec.component_path_item_names = NULL;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            component_callback_is_referenced(&spec, "my_cb"));
-
-  /* component_path_item_names[0] == NULL */
   {
-    char *null_name = NULL;
-    char **null_names = &null_name;
-    spec.component_path_item_names = null_names;
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-              component_callback_is_referenced(&spec, "my_cb"));
+    int bval = 0;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              path_item_ref_matches_component(&spec, "ref", "item", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              path_item_ref_matches_component(NULL, NULL, "item", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              path_item_ref_matches_component(&spec, "ref", NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, path_item_ref_matches_component(
+                                 &spec, "bad_prefix", "item", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              path_item_ref_matches_component(
+                  &spec, "#/components/pathItems/my_item", "my_item", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, path_item_ref_matches_component(
+                                 &spec, "#/components/pathItems/other_item",
+                                 "my_item", &bval));
+    ASSERT_EQ(0, bval);
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              path_item_ref_matches_component(
+                  &spec, "#/components/pathItems/my_item", "my_item", &bval));
+    ASSERT_EQ(0, bval);
+    g_cdd_alloc_fail = 0;
+
+    /* 10. component_path_item_is_referenced */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              component_path_item_is_referenced(&spec, "item", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(NULL, "item", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(&spec, NULL, &bval));
+    ASSERT_EQ(0, bval);
+    spec.paths = paths;
+    spec.n_paths = 1;
+    paths[0].ref = cdd_test_mut_str("#/components/pathItems/my_item");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(&spec, "my_item", &bval));
+    ASSERT_EQ(1, bval);
+    paths[0].ref = cdd_test_mut_str("#/components/pathItems/other_item");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(&spec, "my_item", &bval));
+    ASSERT_EQ(0, bval);
+    paths[0].ref = NULL;
+    spec.webhooks = &paths[1];
+    spec.n_webhooks = 1;
+    paths[1].ref = cdd_test_mut_str("#/components/pathItems/my_item");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(&spec, "my_item", &bval));
+    ASSERT_EQ(1, bval);
+    paths[1].ref = cdd_test_mut_str("#/components/pathItems/other_item");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(&spec, "my_item", &bval));
+    ASSERT_EQ(0, bval);
+    paths[1].ref = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_path_item_is_referenced(&spec, "my_item", &bval));
+    ASSERT_EQ(0, bval);
+    memset(&spec, 0, sizeof(spec));
+
+    /* 11. callback_ref_matches_component */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              callback_ref_matches_component(&spec, "ref", "cb", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              callback_ref_matches_component(NULL, NULL, "cb", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              callback_ref_matches_component(&spec, "ref", NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              callback_ref_matches_component(&spec, "bad_prefix", "cb", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              callback_ref_matches_component(
+                  &spec, "#/components/callbacks/my_cb", "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              callback_ref_matches_component(
+                  &spec, "#/components/callbacks/other_cb", "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              callback_ref_matches_component(
+                  &spec, "#/components/callbacks/my_cb", "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+    g_cdd_alloc_fail = 0;
+
+    /* 12. component_callback_is_referenced_in_ops */
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        component_callback_is_referenced_in_ops(ops, 1, &spec, "cb", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced_in_ops(
+                                 NULL, 0, &spec, "cb", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced_in_ops(
+                                 ops, 1, NULL, "cb", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced_in_ops(
+                                 ops, 1, &spec, NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ops[0].callbacks = cbs;
+    ops[0].n_callbacks = 1;
+    cbs[0].ref = cdd_test_mut_str("#/components/callbacks/my_cb");
+    ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced_in_ops(
+                                 ops, 1, &spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    cbs[0].ref = cdd_test_mut_str("#/components/callbacks/other_cb");
+    ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced_in_ops(
+                                 ops, 1, &spec, "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+    cbs[0].ref = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced_in_ops(
+                                 ops, 1, &spec, "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+
+    /* 13. component_callback_is_referenced */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              component_callback_is_referenced(&spec, "cb", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(NULL, "cb", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, NULL, &bval));
+    ASSERT_EQ(0, bval);
+    /* referenced in paths operations */
+    cbs[0].ref = cdd_test_mut_str("#/components/callbacks/my_cb");
+    spec.paths = paths;
+    spec.n_paths = 1;
+    paths[0].operations = ops;
+    paths[0].n_operations = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    paths[0].n_operations = 0;
+    paths[0].additional_operations = ops;
+    paths[0].n_additional_operations = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    paths[0].n_additional_operations = 0;
+
+    /* referenced in webhooks operations */
+    spec.webhooks = &paths[1];
+    spec.n_webhooks = 1;
+    paths[1].operations = ops;
+    paths[1].n_operations = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    paths[1].n_operations = 0;
+    paths[1].additional_operations = ops;
+    paths[1].n_additional_operations = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    paths[1].n_additional_operations = 0;
+
+    /* referenced in component_path_items */
+    spec.paths = NULL;
+    spec.n_paths = 0;
+    spec.webhooks = &paths[1];
+    spec.n_webhooks = 1;
+    paths[1].operations = NULL;
+    paths[1].n_operations = 0;
+    spec.component_path_items = &paths[0];
+    spec.n_component_path_items = 1;
+    spec.component_path_item_names = &cpi_name;
+    paths[0].operations = ops;
+    paths[0].n_operations = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+    paths[0].n_operations = 0;
+    paths[0].additional_operations = ops;
+    paths[0].n_additional_operations = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+
+    /* If component_path_item is itself referenced, it is skipped */
+    paths[1].ref = cdd_test_mut_str("#/components/pathItems/my_item");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+    paths[1].ref = NULL;
+    cbs[0].ref = NULL;
+
+    /* component_path_items == NULL */
+    spec.component_path_items = NULL;
+    spec.n_component_path_items = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+
+    /* component_path_items != NULL && n_component_path_items == 0 */
+    spec.component_path_items = paths;
+    spec.n_component_path_items = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(0, bval);
+
+    /* component_path_item_names == NULL */
+    cbs[0].ref = cdd_test_mut_str("#/components/callbacks/my_cb");
+    spec.component_path_items = &paths[0];
+    spec.n_component_path_items = 1;
+    spec.component_path_item_names = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "my_cb", &bval));
+    ASSERT_EQ(1, bval);
+
+    /* component_path_item_names[0] == NULL */
+    {
+      char *null_name = NULL;
+      char **null_names = &null_name;
+      spec.component_path_item_names = null_names;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                component_callback_is_referenced(&spec, "my_cb", &bval));
+      ASSERT_EQ(1, bval);
+    }
   }
   cbs[0].ref = NULL;
 

@@ -103,19 +103,21 @@ xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
  * @brief Checks if header name is content type.
  *
  * @param[in] name The name.
- * @return 1 if true, 0 otherwise.
+ * @param[out] out_is_ct Set to 1 if true, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-header_name_is_content_type_openapi(const char *name);
+header_name_is_content_type_openapi(const char *name, int *out_is_ct);
 
 /**
  * @brief Checks if parameter is a reserved header.
  *
  * @param[in] p The parameter.
- * @return 1 if true, 0 otherwise.
+ * @param[out] out_is_reserved Set to 1 if true, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT cdd_c_error_t param_is_reserved_header_openapi(
+    const struct OpenAPI_Parameter *p, int *out_is_reserved);
 
 /**
  * @brief Converts oauth flow type to string.
@@ -130,9 +132,11 @@ oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
  * @brief Checks if a schema type is primitive.
  *
  * @param[in] type The schema type string.
- * @return 1 if true, 0 otherwise.
+ * @param[out] out_is_prim Set to 1 if true, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type);
+extern C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type,
+                                                              int *out_is_prim);
 
 /**
  * @brief Merges extra schema object properties.
@@ -148,19 +152,21 @@ extern C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
  * @brief Checks if license fields are invalid.
  *
  * @param[in] lic The license structure to check.
- * @return CDD_C_SUCCESS if valid, error code if invalid.
+ * @param[out] out_invalid Set to 1 if invalid, 0 if valid.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-license_fields_invalid(const struct OpenAPI_License *lic);
+license_fields_invalid(const struct OpenAPI_License *lic, int *out_invalid);
 
 /**
  * @brief Checks if server URL contains query or fragment parts.
  *
  * @param[in] url The server URL to validate.
- * @return CDD_C_SUCCESS if valid, error code if invalid.
+ * @param[out] out_has_qf Set to 1 if query or fragment is present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-server_url_has_query_or_fragment(const char *url);
+server_url_has_query_or_fragment(const char *url, int *out_has_qf);
 
 /**
  * @brief Clones a parson JSON value.
@@ -176,10 +182,11 @@ extern C_CDD_EXPORT cdd_c_error_t clone_json_value(const JSON_Value *val,
  * @brief Checks if a schema reference structure contains any data.
  *
  * @param[in] ref The schema reference to check.
- * @return CDD_C_SUCCESS if empty, non-zero error/status if populated.
+ * @param[out] out_has_data Set to 1 if populated, 0 if empty.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-schema_ref_has_data(const struct OpenAPI_SchemaRef *ref);
+schema_ref_has_data(const struct OpenAPI_SchemaRef *ref, int *out_has_data);
 
 /**
  * @brief Resolves the schema ref keyword string ($ref or $dynamicRef).
@@ -219,11 +226,13 @@ extern C_CDD_EXPORT cdd_c_error_t write_schema_type(JSON_Object *obj,
  * @param[in] types Array of type strings.
  * @param[in] n_types Number of elements in types array.
  * @param[in] value The string value to search for.
- * @return CDD_C_ERROR_UNKNOWN if found, CDD_C_SUCCESS if not found.
+ * @param[out] out_contains Set to 1 if found, 0 if not found.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types,
                                                       size_t n_types,
-                                                      const char *value);
+                                                      const char *value,
+                                                      int *out_contains);
 
 /**
  * @brief Writes schema type union field to JSON object.

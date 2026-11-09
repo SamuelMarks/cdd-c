@@ -73,19 +73,22 @@ extern C_CDD_EXPORT cdd_c_error_t codegen_url_write_query_params(
  * @brief Checks if an OpenAPI parameter type string is a primitive scalar.
  *
  * @param[in] type Parameter type string.
- * @return Non-zero if primitive, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_prim Set to 1 if primitive, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t is_primitive_type_url(const char *type);
+extern C_CDD_EXPORT cdd_c_error_t is_primitive_type_url(const char *type,
+                                                        int *out_is_prim);
 
 /**
  * @brief Checks if an OpenAPI parameter is represented as key-value object
  * pairs.
  *
  * @param[in] p The OpenAPI parameter structure.
- * @return Non-zero if object KV parameter, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_kv Set to 1 if object KV parameter, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-param_is_object_kv_url(const struct OpenAPI_Parameter *p);
+param_is_object_kv_url(const struct OpenAPI_Parameter *p, int *out_is_kv);
 
 /**
  * @brief Computes the base essence length (before `;`) of a media type string.
@@ -103,49 +106,56 @@ media_type_base_len_url(const char *media_type, size_t *_out_val);
  *
  * @param[in] media_type The media type string to inspect.
  * @param[in] expected The expected base media type string.
- * @return Non-zero if equal, CDD_C_SUCCESS otherwise.
+ * @param[out] out_eq Set to 1 if equal, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t media_type_ieq_url(const char *media_type,
-                                                     const char *expected);
+                                                     const char *expected,
+                                                     int *out_eq);
 
 /**
  * @brief Checks whether a media type is `application/json` or has a `+json`
  * suffix.
  *
  * @param[in] media_type The media type string.
- * @return Non-zero if JSON media type, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_json Set to 1 if JSON media type, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-media_type_is_json_url(const char *media_type);
+extern C_CDD_EXPORT cdd_c_error_t media_type_is_json_url(const char *media_type,
+                                                         int *out_is_json);
 
 /**
  * @brief Checks whether a media type is `application/x-www-form-urlencoded`.
  *
  * @param[in] media_type The media type string.
- * @return Non-zero if form-urlencoded media type, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_form Set to 1 if form-urlencoded media type, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-media_type_is_form_url(const char *media_type);
+extern C_CDD_EXPORT cdd_c_error_t media_type_is_form_url(const char *media_type,
+                                                         int *out_is_form);
 
 /**
  * @brief Checks whether a `querystring` parameter has a form-encoded object
  * schema.
  *
  * @param[in] p The OpenAPI parameter structure.
- * @return Non-zero if form object querystring, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_form_obj Set to 1 if form object querystring, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-querystring_param_is_form_object(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT cdd_c_error_t querystring_param_is_form_object(
+    const struct OpenAPI_Parameter *p, int *out_is_form_obj);
 
 /**
  * @brief Checks whether a `querystring` parameter references a JSON object
  * model.
  *
  * @param[in] p The OpenAPI parameter structure.
- * @return Non-zero if JSON model ref querystring, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_json_ref Set to 1 if JSON model ref querystring, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-querystring_param_is_json_ref(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT cdd_c_error_t querystring_param_is_json_ref(
+    const struct OpenAPI_Parameter *p, int *out_is_json_ref);
 
 /**
  * @brief Gets the primitive type name of a JSON-encoded `querystring`

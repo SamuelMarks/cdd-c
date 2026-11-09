@@ -59,7 +59,7 @@ TEST test_load_info_metadata(void) {
   ASSERT_STR_EQ("Apache-2.0", spec.info.license.identifier);
   ASSERT(spec.info.license.url == NULL);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -76,7 +76,7 @@ TEST test_load_info_missing_title_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -93,7 +93,7 @@ TEST test_load_info_missing_version_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -115,7 +115,7 @@ TEST test_load_license_identifier_and_url_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -134,7 +134,7 @@ TEST test_load_license_missing_name_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -158,7 +158,7 @@ TEST test_load_operation_metadata(void) {
   ASSERT_STR_EQ("Longer description", spec.paths[0].operations[0].description);
   ASSERT_EQ(1, spec.paths[0].operations[0].deprecated);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

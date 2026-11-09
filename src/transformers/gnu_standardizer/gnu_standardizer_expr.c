@@ -67,25 +67,26 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
             rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            cdd_cst_builder_init(&bld, tree, temp);
-            cdd_cst_bld_ident(&bld, "union");
-            cdd_cst_bld_space(&bld);
+            g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, temp);
+            g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "union");
+            g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
             {
               char tb2[128];
               const char *pooled = NULL;
               CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
-              cdd_pool_string_safe(tree, tb2, &pooled);
-              cdd_cst_bld_ident(&bld, pooled);
+              g_cdd_last_alloc_err = cdd_pool_string_safe(tree, tb2, &pooled);
+              g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled);
             }
             if (bld.error_state != 0) {
-              cdd_cst_builder_free(&bld);
-              cdd_cst_free_node_only(temp);
+              g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+              g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
               return CDD_C_ERROR_MEMORY;
             }
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                    temp->children, temp->num_children);
-            cdd_cst_builder_free(&bld);
-            cdd_cst_free_node_only(temp);
+            g_cdd_last_alloc_err =
+                cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                        temp->children, temp->num_children);
+            g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+            g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
           }
         }
       }
@@ -106,25 +107,26 @@ cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree) {
           rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (rc != CDD_C_SUCCESS)
             return rc;
-          cdd_cst_builder_init(&bld, tree, temp);
-          cdd_cst_bld_ident(&bld, "struct");
-          cdd_cst_bld_space(&bld);
+          g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, temp);
+          g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "struct");
+          g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
           {
             char tb2[128];
             const char *pooled = NULL;
             CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
-            cdd_pool_string_safe(tree, tb2, &pooled);
-            cdd_cst_bld_ident(&bld, pooled);
+            g_cdd_last_alloc_err = cdd_pool_string_safe(tree, tb2, &pooled);
+            g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled);
           }
           if (bld.error_state != 0) {
-            cdd_cst_builder_free(&bld);
-            cdd_cst_free_node_only(temp);
+            g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+            g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
             return CDD_C_ERROR_MEMORY;
           }
-          cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                  temp->children, temp->num_children);
-          cdd_cst_builder_free(&bld);
-          cdd_cst_free_node_only(temp);
+          g_cdd_last_alloc_err =
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                      temp->children, temp->num_children);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
         }
       }
     } else if (tok->kind == CDD_TOKEN_LPAREN) {

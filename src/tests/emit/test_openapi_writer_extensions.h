@@ -52,28 +52,32 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
     JSON_Object *path_item;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     root_obj = json_value_get_object(root);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
       paths_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "webhooks", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "webhooks", &_cdd_jo_1);
       hooks_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
       comps_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(paths_obj, "/test/route", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(paths_obj, "/test/route", &_cdd_jo_1);
       path_item = _cdd_jo_1;
     }
 
@@ -88,18 +92,21 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
 
     {
       double _cdd_jn_1 = 0.0;
-      cdd_json_object_get_number(hooks_obj, "x-hooks", &_cdd_jn_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_number(hooks_obj, "x-hooks", &_cdd_jn_1);
       ASSERT_EQ(1, (int)_cdd_jn_1);
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_object(comps_obj, "x-comps", &_cdd_jo_1);
-      cdd_json_object_get_string(_cdd_jo_1, "meta", &_cdd_js_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(comps_obj, "x-comps", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(_cdd_jo_1, "meta", &_cdd_js_2);
       ASSERT_STR_EQ("yes", _cdd_js_2);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -302,73 +309,78 @@ TEST test_openapi_utils(void) {
   ASSERT_EQ(0,
             xml_node_type_to_str_openapi((enum OpenAPI_XmlNodeType) - 1, &out));
 
-  ASSERT_EQ(0, header_name_is_content_type_openapi(NULL));
-  ASSERT_EQ(1, header_name_is_content_type_openapi("Content-Type"));
+  {
+    int is_ct = 0;
+    int is_res = 0;
+    int is_prim = 0;
 
-  memset(&p, 0, sizeof(p));
-  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = cdd_test_mut_str("Accept");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              header_name_is_content_type_openapi(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type_openapi(NULL, &is_ct));
+    ASSERT_EQ(0, is_ct);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              header_name_is_content_type_openapi("Content-Type", &is_ct));
+    ASSERT_EQ(1, is_ct);
 
-  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = cdd_test_mut_str("Accept");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Content-Type");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Authorization");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Content-Type");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+    memset(&p, 0, sizeof(p));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              param_is_reserved_header_openapi(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(NULL, &is_res));
+    ASSERT_EQ(0, is_res);
+    p.in = OA_PARAM_IN_HEADER;
+    p.name = cdd_test_mut_str("Accept");
+    ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p, &is_res));
+    ASSERT_EQ(1, is_res);
 
-  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = cdd_test_mut_str("Accept");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Content-Type");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Authorization");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Authorization");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+    p.name = cdd_test_mut_str("Content-Type");
+    ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p, &is_res));
+    ASSERT_EQ(1, is_res);
+    p.name = cdd_test_mut_str("Authorization");
+    ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p, &is_res));
+    ASSERT_EQ(1, is_res);
+    p.name = cdd_test_mut_str("X-Custom");
+    ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p, &is_res));
+    ASSERT_EQ(0, is_res);
 
-  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = cdd_test_mut_str("Accept");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Content-Type");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = cdd_test_mut_str("Authorization");
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+    /* OAuth Flow string conversion */
+    ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_IMPLICIT, &out));
+    ASSERT_STR_EQ("implicit", out);
+    ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_PASSWORD, &out));
+    ASSERT_STR_EQ("password", out);
+    ASSERT_EQ(0, oauth_flow_type_to_str_openapi(
+                     OA_OAUTH_FLOW_CLIENT_CREDENTIALS, &out));
+    ASSERT_STR_EQ("clientCredentials", out);
+    ASSERT_EQ(0, oauth_flow_type_to_str_openapi(
+                     OA_OAUTH_FLOW_AUTHORIZATION_CODE, &out));
+    ASSERT_STR_EQ("authorizationCode", out);
+    ASSERT_EQ(0, oauth_flow_type_to_str_openapi(
+                     OA_OAUTH_FLOW_DEVICE_AUTHORIZATION, &out));
+    ASSERT_STR_EQ("deviceAuthorization", out);
+    ASSERT_EQ(0, oauth_flow_type_to_str_openapi(
+                     (enum OpenAPI_OAuthFlowType) - 1, &out));
+    ASSERT(out == NULL);
 
-  /* OAuth Flow string conversion */
-  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_IMPLICIT, &out));
-  ASSERT_STR_EQ("implicit", out);
-  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_PASSWORD, &out));
-  ASSERT_STR_EQ("password", out);
-  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_CLIENT_CREDENTIALS,
-                                              &out));
-  ASSERT_STR_EQ("clientCredentials", out);
-  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_AUTHORIZATION_CODE,
-                                              &out));
-  ASSERT_STR_EQ("authorizationCode", out);
-  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(
-                   OA_OAUTH_FLOW_DEVICE_AUTHORIZATION, &out));
-  ASSERT_STR_EQ("deviceAuthorization", out);
-  ASSERT_EQ(0, oauth_flow_type_to_str_openapi((enum OpenAPI_OAuthFlowType) - 1,
-                                              &out));
-  ASSERT(out == NULL);
-
-  /* is_schema_primitive_openapi */
-  ASSERT_EQ(0, is_schema_primitive_openapi(NULL));
-  ASSERT_EQ(1, is_schema_primitive_openapi("string"));
-  ASSERT_EQ(1, is_schema_primitive_openapi("integer"));
-  ASSERT_EQ(1, is_schema_primitive_openapi("boolean"));
-  ASSERT_EQ(1, is_schema_primitive_openapi("number"));
-  ASSERT_EQ(1, is_schema_primitive_openapi("object"));
-  ASSERT_EQ(1, is_schema_primitive_openapi("null"));
-  ASSERT_EQ(0, is_schema_primitive_openapi("custom_type"));
+    /* is_schema_primitive_openapi */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              is_schema_primitive_openapi(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi(NULL, &is_prim));
+    ASSERT_EQ(0, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi("string", &is_prim));
+    ASSERT_EQ(1, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi("integer", &is_prim));
+    ASSERT_EQ(1, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi("boolean", &is_prim));
+    ASSERT_EQ(1, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi("number", &is_prim));
+    ASSERT_EQ(1, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi("object", &is_prim));
+    ASSERT_EQ(1, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS, is_schema_primitive_openapi("null", &is_prim));
+    ASSERT_EQ(1, is_prim);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              is_schema_primitive_openapi("custom_type", &is_prim));
+    ASSERT_EQ(0, is_prim);
+  }
 
   g_fail_io_after = -1;
 

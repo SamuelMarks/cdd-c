@@ -764,13 +764,16 @@ TEST test_reset_op_coverage(void) {
   op.n_responses = 2;
 
   /* find_response_media_type null cases */
-  find_response_media_type(NULL, "app/json", &found_mt);
+  g_cdd_last_alloc_err = find_response_media_type(NULL, "app/json", &found_mt);
   ASSERT_EQ(NULL, found_mt);
-  find_response_media_type(&op.responses[0], NULL, &found_mt);
+  g_cdd_last_alloc_err =
+      find_response_media_type(&op.responses[0], NULL, &found_mt);
   ASSERT_EQ(NULL, found_mt);
-  find_response_media_type(&op.responses[1], "app/json", &found_mt);
+  g_cdd_last_alloc_err =
+      find_response_media_type(&op.responses[1], "app/json", &found_mt);
   ASSERT_EQ(NULL, found_mt);
-  find_response_media_type(&op.responses[0], "nonexistent", &found_mt);
+  g_cdd_last_alloc_err =
+      find_response_media_type(&op.responses[0], "nonexistent", &found_mt);
   ASSERT_EQ(NULL, found_mt);
 
   reset_op(&op);

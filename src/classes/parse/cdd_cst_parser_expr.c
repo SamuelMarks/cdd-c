@@ -49,9 +49,9 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
         app_rc = append_child_node(n, child);
 
         if (app_rc != CDD_C_SUCCESS) {
-          free_node(child);
+          g_cdd_last_alloc_err = free_node(child);
           s->err = (int)app_rc;
-          free_node(n);
+          g_cdd_last_alloc_err = free_node(n);
           *out_node = NULL;
           return app_rc;
         }
@@ -62,7 +62,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           return rc;
         app_rc = append_child_node(n, base_list);
         if (app_rc != CDD_C_SUCCESS) {
-          free_node(base_list);
+          g_cdd_last_alloc_err = free_node(base_list);
           return app_rc;
         }
 
@@ -77,7 +77,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
             return rc;
           app_rc = append_child_node(base_list, base_spec);
           if (app_rc != CDD_C_SUCCESS) {
-            free_node(base_spec);
+            g_cdd_last_alloc_err = free_node(base_spec);
             return app_rc;
           }
 
@@ -237,7 +237,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
             return rc;
           app_rc = append_child_node(n, noexcept_node);
           if (app_rc != CDD_C_SUCCESS) {
-            free_node(noexcept_node);
+            g_cdd_last_alloc_err = free_node(noexcept_node);
             return app_rc;
           }
 
@@ -272,9 +272,9 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           app_rc = append_child_node(n, child);
 
           if (app_rc != CDD_C_SUCCESS) {
-            free_node(child);
+            g_cdd_last_alloc_err = free_node(child);
             s->err = (int)app_rc;
-            free_node(n);
+            g_cdd_last_alloc_err = free_node(n);
             *out_node = NULL;
             return app_rc;
           }
@@ -304,7 +304,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
         }
         if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0) {
           if (n->num_children == 0) {
-            free_node(n);
+            g_cdd_last_alloc_err = free_node(n);
             *out_node = NULL;
             return CDD_C_ERROR_MEMORY;
           }

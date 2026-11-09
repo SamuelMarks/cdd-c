@@ -46,7 +46,7 @@ cdd_c_error_t trim_trailing(char *str) {
   size_t len;
   if (!str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  c_cdd_str_trim_trailing_whitespace(str);
+  g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(str);
   len = strlen(str);
   while (len > 0 &&
          (str[len - 1] == ';' || isspace((unsigned char)str[len - 1]))) {
@@ -128,18 +128,18 @@ cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
   *_out_val = NULL;
   if (!val)
     return CDD_C_SUCCESS;
-  cdd_json_serialize_to_string(val, &serialized);
+  g_cdd_last_alloc_err = cdd_json_serialize_to_string(val, &serialized);
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_fail_json_serialize) {
     g_cdd_fail_json_serialize = 0;
-    cdd_json_free_serialized_string(serialized);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(serialized);
     serialized = NULL;
   }
 #endif
   if (!serialized)
     return CDD_C_ERROR_MEMORY;
-  cdd_json_parse_string(serialized, &copy);
-  cdd_json_free_serialized_string(serialized);
+  g_cdd_last_alloc_err = cdd_json_parse_string(serialized, &copy);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(serialized);
   if (!copy)
     return CDD_C_ERROR_MEMORY;
   *_out_val = copy;
@@ -205,7 +205,7 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
       {
         cdd_c_error_t rc_c2s = c_cdd_strdup(src[i], &out[i]);
         if (rc_c2s != CDD_C_SUCCESS) {
-          free_string_array_code2schema(out, src_count);
+          g_cdd_last_alloc_err = free_string_array_code2schema(out, src_count);
           return rc_c2s;
         }
       }
@@ -256,7 +256,7 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   if (!arr)
     return CDD_C_SUCCESS;
 
-  cdd_json_array_get_count(arr, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -268,13 +268,13 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
 
   for (i = 0; i < count; ++i) {
     const char *t = NULL;
-    cdd_json_array_get_string(arr, i, &t);
+    g_cdd_last_alloc_err = cdd_json_array_get_string(arr, i, &t);
     if (!t)
       continue;
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup(t, &types[n]);
       if (rc_c2s != CDD_C_SUCCESS) {
-        free_string_array_code2schema(types, count);
+        g_cdd_last_alloc_err = free_string_array_code2schema(types, count);
         return rc_c2s;
       }
     }
@@ -300,7 +300,7 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   if (out_union)
     *out_union = types;
   else
-    free_string_array_code2schema(types, n);
+    g_cdd_last_alloc_err = free_string_array_code2schema(types, n);
   if (out_count)
     *out_count = n;
 

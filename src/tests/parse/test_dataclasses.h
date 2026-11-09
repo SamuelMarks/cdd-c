@@ -61,7 +61,7 @@ static cdd_c_error_t Node_cleanup(struct Node *const obj) {
   if (obj == NULL)
     return CDD_C_SUCCESS;
   if (obj->next) {
-    Node_cleanup(obj->next);
+    g_cdd_last_alloc_err = Node_cleanup(obj->next);
     obj->next = NULL;
   }
   free(obj);
@@ -88,7 +88,7 @@ static cdd_c_error_t Node_deepcopy(const struct Node *src, struct Node **dest) {
   (*dest)->value = src->value;
 
   if (src->next) {
-    Node_deepcopy(src->next, &(*dest)->next);
+    g_cdd_last_alloc_err = Node_deepcopy(src->next, &(*dest)->next);
   } else {
     (*dest)->next = NULL;
   }
@@ -126,7 +126,7 @@ TEST test_recursive_cleanup(void) {
   next->next = NULL;
 
   /* Should recursively free 'next' without crashing */
-  Node_cleanup(head);
+  g_cdd_last_alloc_err = Node_cleanup(head);
   g_fail_io_after = -1;
   PASS();
 }
@@ -157,8 +157,8 @@ TEST test_recursive_deepcopy(void) {
   ASSERT(copy->next != next);
   ASSERT_EQ(20, copy->next->value);
 
-  Node_cleanup(head);
-  Node_cleanup(copy);
+  g_cdd_last_alloc_err = Node_cleanup(head);
+  g_cdd_last_alloc_err = Node_cleanup(copy);
   g_fail_io_after = -1;
   PASS();
 }
@@ -219,8 +219,8 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(NULL, foo2);
 
-  FooE_cleanup(foo0);
-  FooE_cleanup(foo1);
+  g_cdd_last_alloc_err = FooE_cleanup(foo0);
+  g_cdd_last_alloc_err = FooE_cleanup(foo1);
   g_fail_io_after = -1;
   PASS();
 }
@@ -251,8 +251,8 @@ TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(NULL, h2);
 
-  HazE_cleanup(h0);
-  HazE_cleanup(h1);
+  g_cdd_last_alloc_err = HazE_cleanup(h0);
+  g_cdd_last_alloc_err = HazE_cleanup(h1);
   g_fail_io_after = -1;
   PASS();
 }
@@ -282,10 +282,10 @@ TEST test_FooE_json_roundtrip(void) {
     ASSERT_EQ_FMT(0, rc, "%d");
     ASSERT(foo_out != NULL);
     ASSERT(FooE_eq(foo_in, foo_out) == 0);
-    FooE_cleanup(foo_out);
+    g_cdd_last_alloc_err = FooE_cleanup(foo_out);
   }
   free(json_out);
-  FooE_cleanup(foo_in);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_in);
   g_fail_io_after = -1;
   PASS();
 }
@@ -313,10 +313,10 @@ TEST test_HazE_json_roundtrip(void) {
     ASSERT_EQ(0, rc);
     ASSERT(haz_out != NULL);
     ASSERT(HazE_eq(haz_in, haz_out) == 0);
-    HazE_cleanup(haz_out);
+    g_cdd_last_alloc_err = HazE_cleanup(haz_out);
   }
   free(json_out);
-  HazE_cleanup(haz_in);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_in);
   g_fail_io_after = -1;
   PASS();
 }
@@ -340,12 +340,12 @@ TEST test_json_parsing_errors(void) {
   ASSERT_EQ(
       0, FooE_from_json(
              "{\"can\": 1, \"haz\": {\"bzr\": \"v\", \"tank\": \"BIG\"}}", &f));
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   f = NULL;
 
   ASSERT_EQ(0,
             FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f));
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   g_fail_io_after = -1;
   PASS();
 }
@@ -378,7 +378,7 @@ TEST test_json_parsing_corner_cases(void) {
   ASSERT_EQ(0, rc);
   ASSERT(f != NULL);
   ASSERT(f->bar == NULL);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   g_fail_io_after = -1;
 
   PASS();
@@ -438,7 +438,7 @@ TEST test_debug_and_display(void) {
   struct HazE *haz = NULL;
   struct FooE *foo = NULL;
   fprintf(stderr, "A\n");
-  FooE_default(&foo);
+  g_cdd_last_alloc_err = FooE_default(&foo);
   fprintf(stderr, "B\n");
   ASSERT_EQ(0, FooE_debug(foo, stdout));
   fprintf(stderr, "C\n");
@@ -447,7 +447,7 @@ TEST test_debug_and_display(void) {
   ASSERT_EQ(0, FooE_display(foo, stdout));
   fprintf(stderr, "E\n");
 
-  HazE_default(&haz);
+  g_cdd_last_alloc_err = HazE_default(&haz);
   fprintf(stderr, "F\n");
   ASSERT_EQ(0, HazE_debug(haz, stdout));
   fprintf(stderr, "G\n");
@@ -456,9 +456,9 @@ TEST test_debug_and_display(void) {
   ASSERT_EQ(0, HazE_display(haz, stdout));
   fprintf(stderr, "I\n");
 
-  FooE_cleanup(foo);
+  g_cdd_last_alloc_err = FooE_cleanup(foo);
   fprintf(stderr, "J\n");
-  HazE_cleanup(haz);
+  g_cdd_last_alloc_err = HazE_cleanup(haz);
   fprintf(stderr, "K\n");
   g_fail_io_after = -1;
   PASS();
@@ -473,9 +473,9 @@ TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
 
-  FooE_default(&foo);
+  g_cdd_last_alloc_err = FooE_default(&foo);
   fprintf(stderr, "B\n");
-  HazE_default(&haz);
+  g_cdd_last_alloc_err = HazE_default(&haz);
   fprintf(stderr, "F\n");
 
 #ifndef _WIN32
@@ -483,7 +483,7 @@ TEST test_display_fail(void) {
     int rc = 0;
     const char *const tmp_fname = "display_test.tmp";
     FILE *fh = NULL;
-    write_to_file(tmp_fname, "content");
+    g_cdd_last_alloc_err = write_to_file(tmp_fname, "content");
 #if defined(_MSC_VER)
     if (fopen_s(&fh, tmp_fname, "r") != 0)
       fh = NULL;
@@ -506,9 +506,9 @@ TEST test_display_fail(void) {
    * coverage. */
 #endif
 
-  FooE_cleanup(foo);
+  g_cdd_last_alloc_err = FooE_cleanup(foo);
   fprintf(stderr, "J\n");
-  HazE_cleanup(haz);
+  g_cdd_last_alloc_err = HazE_cleanup(haz);
   fprintf(stderr, "K\n");
   g_fail_io_after = -1;
 
@@ -524,10 +524,10 @@ TEST test_eq_null_cases(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
   struct HazE *h1 = NULL, *h2 = NULL;
 
-  FooE_default(&f1);
-  HazE_default(&h1);
-  FooE_default(&f2);
-  HazE_default(&h2);
+  g_cdd_last_alloc_err = FooE_default(&f1);
+  g_cdd_last_alloc_err = HazE_default(&h1);
+  g_cdd_last_alloc_err = FooE_default(&f2);
+  g_cdd_last_alloc_err = HazE_default(&h2);
 
   ASSERT(FooE_eq(NULL, NULL) == 0);
   ASSERT(FooE_eq(f1, NULL) != 0);
@@ -546,10 +546,10 @@ TEST test_eq_null_cases(void) {
   f2->bar = NULL;
   ASSERT(FooE_eq(f1, f2) == 0); /* Both bars are null */
 
-  FooE_cleanup(f1);
-  FooE_cleanup(f2);
-  HazE_cleanup(h1);
-  HazE_cleanup(h2);
+  g_cdd_last_alloc_err = FooE_cleanup(f1);
+  g_cdd_last_alloc_err = FooE_cleanup(f2);
+  g_cdd_last_alloc_err = HazE_cleanup(h1);
+  g_cdd_last_alloc_err = HazE_cleanup(h2);
   g_fail_io_after = -1;
   PASS();
 }
@@ -613,8 +613,8 @@ TEST test_Tank_to_str_from_str(void) {
  * @return Greatest test result.
  */
 TEST test_cleanup_null(void) {
-  FooE_cleanup(NULL);
-  HazE_cleanup(NULL);
+  g_cdd_last_alloc_err = FooE_cleanup(NULL);
+  g_cdd_last_alloc_err = HazE_cleanup(NULL);
   g_fail_io_after = -1;
   PASS();
 }
@@ -639,22 +639,23 @@ TEST test_to_json_with_null_fields(void) {
     JSON_Object *obj = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json_out, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json_out, &_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
     ASSERT(obj != NULL);
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_object_get_value(obj, "bzr", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_value(obj, "bzr", &_cdd_jv_1);
       ASSERT_EQ(JSONNull, json_value_get_type(_cdd_jv_1));
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(obj, "tank", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(obj, "tank", &_cdd_js_1);
       ASSERT_STR_EQ("BIG", _cdd_js_1);
     }
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
   free(json_out);
   json_out = NULL;
@@ -666,41 +667,44 @@ TEST test_to_json_with_null_fields(void) {
     JSON_Object *obj = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json_out, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json_out, &_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
     ASSERT(obj != NULL);
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_object_get_value(obj, "bar", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_value(obj, "bar", &_cdd_jv_1);
       ASSERT_EQ(JSONNull, json_value_get_type(_cdd_jv_1));
     }
     {
       double _cdd_jn_1 = 0.0;
-      cdd_json_object_get_number(obj, "can", &_cdd_jn_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_number(obj, "can", &_cdd_jn_1);
       ASSERT_EQ(12, (int)_cdd_jn_1);
     }
     {
       JSON_Object *haz_obj = NULL;
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(obj, "haz", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(obj, "haz", &_cdd_jo_1);
         haz_obj = _cdd_jo_1;
       }
       ASSERT(haz_obj != NULL);
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_object_get_value(haz_obj, "bzr", &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_value(haz_obj, "bzr", &_cdd_jv_1);
         ASSERT_EQ(JSONNull, json_value_get_type(_cdd_jv_1));
       }
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(haz_obj, "tank", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(haz_obj, "tank", &_cdd_js_1);
         ASSERT_STR_EQ("BIG", _cdd_js_1);
       }
     }
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
   free(json_out);
   json_out = NULL;
@@ -718,9 +722,9 @@ TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
 
-  FooE_default(&foo);
+  g_cdd_last_alloc_err = FooE_default(&foo);
   fprintf(stderr, "B\n");
-  HazE_default(&haz);
+  g_cdd_last_alloc_err = HazE_default(&haz);
   fprintf(stderr, "F\n");
 
 #ifndef _WIN32
@@ -728,7 +732,7 @@ TEST test_debug_fail(void) {
     int rc = 0;
     const char *const tmp_fname = "debug_test.tmp";
     FILE *fh = NULL;
-    write_to_file(tmp_fname, "content");
+    g_cdd_last_alloc_err = write_to_file(tmp_fname, "content");
 #if defined(_MSC_VER)
     if (fopen_s(&fh, tmp_fname, "r") != 0)
       fh = NULL;
@@ -752,9 +756,9 @@ TEST test_debug_fail(void) {
   /* MSVC aborts on writing to read-only streams. */
 #endif
 
-  FooE_cleanup(foo);
+  g_cdd_last_alloc_err = FooE_cleanup(foo);
   fprintf(stderr, "J\n");
-  HazE_cleanup(haz);
+  g_cdd_last_alloc_err = HazE_cleanup(haz);
   fprintf(stderr, "K\n");
   g_fail_io_after = -1;
 
@@ -779,7 +783,7 @@ TEST test_json_parsing_wrong_types(void) {
                               "\"v\", \"tank\": \"BIG\"}}",
                               &f));
   ASSERT(f->bar == NULL);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   f = NULL;
 
   /* can is not a number */
@@ -788,14 +792,14 @@ TEST test_json_parsing_wrong_types(void) {
                            "{\"bzr\": \"v\", \"tank\": \"BIG\"}}",
                            &f));
   ASSERT(f->can == 0);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   f = NULL;
 
   /* haz is not an object */
   ASSERT_EQ(0,
             FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": 123}", &f));
   ASSERT(f->haz == NULL);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   g_fail_io_after = -1;
 
   PASS();
@@ -819,7 +823,7 @@ TEST test_deepcopy_null_fields(void) {
   ASSERT(haz_out != NULL);
   ASSERT(haz_out->bzr == NULL);
   ASSERT(haz_out->tank == Tank_BIG);
-  HazE_cleanup(haz_out);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_out);
 
   /* Deepcopy FooE with NULL bar and NULL haz */
   rc = FooE_deepcopy(&foo_in, &foo_out);
@@ -828,7 +832,7 @@ TEST test_deepcopy_null_fields(void) {
   ASSERT(foo_out->bar == NULL);
   ASSERT(foo_out->can == 42);
   ASSERT(foo_out->haz == NULL);
-  FooE_cleanup(foo_out);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_out);
   g_fail_io_after = -1;
 
   PASS();
@@ -849,7 +853,7 @@ TEST test_json_parsing_missing_fields(void) {
   ASSERT_EQ(0, rc);
   ASSERT(f != NULL);
   ASSERT(f->bar == NULL);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   f = NULL;
 
   /* `haz` being missing (null) is fine */
@@ -857,7 +861,7 @@ TEST test_json_parsing_missing_fields(void) {
   ASSERT_EQ(0, rc);
   ASSERT(f != NULL);
   ASSERT(f->haz == NULL);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   f = NULL;
 
   /* `can` optional and can be missing */
@@ -866,7 +870,7 @@ TEST test_json_parsing_missing_fields(void) {
   ASSERT_EQ(0, rc);
   ASSERT(f != NULL);
   ASSERT(f->can == 0);
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   g_fail_io_after = -1;
 
   PASS();
@@ -888,7 +892,7 @@ TEST test_debug_with_null_nested(void) {
   rc = FooE_debug(f, stdout);
   ASSERT_EQ(0, rc);
 
-  FooE_cleanup(f);
+  g_cdd_last_alloc_err = FooE_cleanup(f);
   g_fail_io_after = -1;
   PASS();
 }
@@ -940,7 +944,7 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
   rc = HazE_deepcopy(&haz_in, &haz_out);
   ASSERT_EQ(0, rc);
   ASSERT(haz_out != NULL);
-  HazE_cleanup(haz_out);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_out);
 
   g_fail_io_after = -1;
   PASS();
@@ -952,8 +956,8 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
  */
 TEST test_simple_json_HazE_more_eq_cases(void) {
   struct HazE *h1 = NULL, *h2 = NULL;
-  HazE_default(&h1);
-  HazE_default(&h2);
+  g_cdd_last_alloc_err = HazE_default(&h1);
+  g_cdd_last_alloc_err = HazE_default(&h2);
 
   /* Test bzr member inequality */
   free(h1->bzr);
@@ -971,8 +975,8 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   h2->bzr = strdup("abc");
   ASSERT(HazE_eq(h2, h1) != 0);
 
-  HazE_cleanup(h1);
-  HazE_cleanup(h2);
+  g_cdd_last_alloc_err = HazE_cleanup(h1);
+  g_cdd_last_alloc_err = HazE_cleanup(h2);
   g_fail_io_after = -1;
   PASS();
 }
@@ -983,8 +987,8 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
  */
 TEST test_simple_json_more_eq_cases(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
-  FooE_default(&f1);
-  FooE_default(&f2);
+  g_cdd_last_alloc_err = FooE_default(&f1);
+  g_cdd_last_alloc_err = FooE_default(&f2);
 
   /* Test can member inequality */
   f1->can = 1;
@@ -994,12 +998,12 @@ TEST test_simple_json_more_eq_cases(void) {
   ASSERT(FooE_eq(f1, f2) == 0); /* Back to equal */
 
   /* Test one-sided null haz */
-  HazE_cleanup(f1->haz);
+  g_cdd_last_alloc_err = HazE_cleanup(f1->haz);
   f1->haz = NULL;
   ASSERT(FooE_eq(f1, f2) != 0);
 
-  FooE_cleanup(f1);
-  FooE_cleanup(f2);
+  g_cdd_last_alloc_err = FooE_cleanup(f1);
+  g_cdd_last_alloc_err = FooE_cleanup(f2);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1010,8 +1014,8 @@ TEST test_simple_json_more_eq_cases(void) {
  */
 TEST test_FooE_eq_nested_diff(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
-  FooE_default(&f1);
-  FooE_default(&f2);
+  g_cdd_last_alloc_err = FooE_default(&f1);
+  g_cdd_last_alloc_err = FooE_default(&f2);
 
   /* Test haz member inequality */
   f1->haz->tank = Tank_BIG;
@@ -1021,8 +1025,8 @@ TEST test_FooE_eq_nested_diff(void) {
   f2->haz->tank = Tank_BIG;
   ASSERT(FooE_eq(f1, f2) == 0);
 
-  FooE_cleanup(f1);
-  FooE_cleanup(f2);
+  g_cdd_last_alloc_err = FooE_cleanup(f1);
+  g_cdd_last_alloc_err = FooE_cleanup(f2);
   g_fail_io_after = -1;
   PASS();
 }

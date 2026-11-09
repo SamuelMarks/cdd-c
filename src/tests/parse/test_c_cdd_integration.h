@@ -82,8 +82,8 @@ TEST test_integration_full_pipeline(void) {
 
   /* Cleanup */
   free(final_output);
-  allocation_site_list_free(&allocs);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = allocation_site_list_free(&allocs);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -139,10 +139,10 @@ TEST test_integration_recursive_fix(void) {
   char *root = NULL;
   int rc = 0;
 
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&root, "%s%sfix_rec_test_%d", sys_tmp, PATH_SEP, rand())) {
   }
-  makedirs(root);
+  g_cdd_last_alloc_err = makedirs(root);
 
   {
     char *sub = NULL;
@@ -153,20 +153,22 @@ TEST test_integration_recursive_fix(void) {
 
     if (asprintf(&sub, "%s%ssub", root, PATH_SEP)) {
     }
-    makedirs(sub);
+    g_cdd_last_alloc_err = makedirs(sub);
 
     /* File in root */
     if (asprintf(&f1, "%s%sa.c", root, PATH_SEP)) {
     }
     /* Must provide variable 'p' for safety check to attach to */
-    write_to_file(f1, ""
-                      "void a() { void * p = (void *)malloc(1); }");
+    g_cdd_last_alloc_err =
+        write_to_file(f1, ""
+                          "void a() { void * p = (void *)malloc(1); }");
 
     /* File in sub */
     if (asprintf(&f2, "%s%sb.c", sub, PATH_SEP)) {
     }
-    write_to_file(f2, ""
-                      "void b() { void * p = (void *)malloc(1); }");
+    g_cdd_last_alloc_err =
+        write_to_file(f2, ""
+                          "void b() { void * p = (void *)malloc(1); }");
 
     /* Call fix */
     {
@@ -217,7 +219,7 @@ TEST test_integration_fix_file_in_place(void) {
   size_t sz;
   int rc = 0;
 
-  write_to_file(in_file, content);
+  g_cdd_last_alloc_err = write_to_file(in_file, content);
 
   {
     char *argv[2];
@@ -246,10 +248,10 @@ TEST test_integration_fix_dir_error_no_flag(void) {
   char *root = NULL;
   int rc = 0;
 
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&root, "%s%sfix_err_test_%d", sys_tmp, PATH_SEP, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
 
   {
     char *argv[1];
@@ -261,7 +263,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
   {
     char *argv[1];
     argv[0] = cdd_test_mut_str("integ_in.c"); /* File */
-    write_to_file("integ_in.c", "void f(){}");
+    g_cdd_last_alloc_err = write_to_file("integ_in.c", "void f(){}");
     rc = fix_code_main(1, argv);
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
     remove("integ_in.c");
@@ -309,7 +311,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   int rc = 0;
 
   /* 1. Setup Project Environment */
-  tempdir(&sys_tmp);
+  g_cdd_last_alloc_err = tempdir(&sys_tmp);
   if (asprintf(&project_root, "%s%scdd_project_%d", sys_tmp, PATH_SEP,
                rand())) {
   }
@@ -323,11 +325,11 @@ TEST test_end_to_end_project_lifecycle(void) {
      Single file containing callee and caller.
      Alloc returns raw ptr. Caller consumes it.
   */
-  write_to_file(src_c,
-                "#include <stdlib.h>\n"
-                "char* make_data() { return malloc(10); }\n"
-                ""
-                "void process_data() { char *d = make_data(); *d = 1; }");
+  g_cdd_last_alloc_err = write_to_file(
+      src_c, "#include <stdlib.h>\n"
+             "char* make_data() { return malloc(10); }\n"
+             ""
+             "void process_data() { char *d = make_data(); *d = 1; }");
 
   /* 2. Initial Audit: Expect Violations */
   {
@@ -338,7 +340,7 @@ TEST test_end_to_end_project_lifecycle(void) {
     ASSERT_EQ(1, stats.allocations_unchecked); /* malloc in make_data */
     /* Note: make_data is also a function_returning_alloc */
     ASSERT_EQ(1, stats.functions_returning_alloc);
-    audit_stats_free(&stats);
+    g_cdd_last_alloc_err = audit_stats_free(&stats);
   }
 
   /* 3. Execute Fix */
@@ -361,7 +363,7 @@ TEST test_end_to_end_project_lifecycle(void) {
     /* The newly injected check in the return rewrite should be counted as
      * checked */
     ASSERT_EQ(1, stats.allocations_checked);
-    audit_stats_free(&stats);
+    g_cdd_last_alloc_err = audit_stats_free(&stats);
   }
 
   /* 5. Source Code Inspection */
@@ -421,8 +423,9 @@ TEST test_integration_schema2code_with_guards(void) {
   int rc = 0;
 
   /* 1. Setup */
-  write_to_file(schema_file,
-                "{\"components\":{\"schemas\":{\"S\":{\"type\":\"object\"}}}}");
+  g_cdd_last_alloc_err = write_to_file(
+      schema_file,
+      "{\"components\":{\"schemas\":{\"S\":{\"type\":\"object\"}}}}");
 
   /* 2. Run */
   {

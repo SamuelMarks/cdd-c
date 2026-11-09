@@ -69,7 +69,7 @@ TEST test_ffi_ir_extract_inheritance_e2e(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
   ASSERT_EQ(1, ir != NULL);
 
@@ -85,7 +85,7 @@ TEST test_ffi_ir_extract_inheritance_e2e(void) {
     ASSERT_EQ(1, found_derived);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -112,7 +112,7 @@ TEST test_ffi_ir_extract_template_instantiation(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
   ASSERT_EQ(1, ir != NULL);
 
@@ -140,7 +140,7 @@ TEST test_ffi_ir_extract_template_instantiation(void) {
     ASSERT_EQ(1, found_box_inner);
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -180,17 +180,17 @@ TEST test_ffi_ir_extract_docstring_and_sal_intents(void) {
                long_param_buf);
 #endif
 
-  write_to_file("test_long.h", code_buf);
+  g_cdd_last_alloc_err = write_to_file("test_long.h", code_buf);
   ASSERT_EQ(0,
             cdd_ffi_ir_extract_exports("test_long.h", code_buf, &config, &ir));
   if (ir) {
-    cdd_ffi_ir_free(ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     free(ir);
     ir = NULL;
   }
   remove("test_long.h");
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
   ASSERT_EQ(1, ir != NULL);
 
@@ -211,7 +211,7 @@ TEST test_ffi_ir_extract_docstring_and_sal_intents(void) {
     }
   }
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -235,7 +235,7 @@ TEST test_ffi_ir_extract_trampolines_direct(void) {
       (cdd_ffi_virtual_method_t *)calloc(1, sizeof(cdd_ffi_virtual_method_t));
   ir.nodes[0].virtual_methods[0].name = strdup("myVirtualMethod");
 
-  write_to_file("empty.h", "");
+  g_cdd_last_alloc_err = write_to_file("empty.h", "");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_single_file_exports_test(
                                &ir, "empty.h", "", &config));
 
@@ -253,7 +253,7 @@ TEST test_ffi_ir_extract_trampolines_direct(void) {
     ASSERT_EQ(1, found_tramp);
   }
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   remove("empty.h");
   PASS();
 }
@@ -460,7 +460,7 @@ TEST test_ffi_ir_extractor_helpers(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_include_visitor_test(&info, &mctx));
     /* Test include_visitor with real file and recursive error */
     {
-      write_to_file("rec_err.h", "rec_content");
+      g_cdd_last_alloc_err = write_to_file("rec_err.h", "rec_content");
       info.resolved_path = "rec_err.h";
       /* force allocation failure in extract_exports_recursive */
       g_ffi_extractor_alloc_fail = 1;
@@ -506,7 +506,7 @@ TEST test_ffi_ir_extractor_helpers(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_instantiate_templates_test(&ir));
     g_ffi_extractor_alloc_fail = 0;
 
-    cdd_ffi_ir_free(&ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   }
 
   /* cdd_ffi_mangle_cpp_name error branches */
@@ -529,7 +529,7 @@ TEST test_ffi_ir_extractor_helpers(void) {
     cdd_ffi_ir_t ir = {0};
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_add_node_test(&ir, CDD_FFI_NODE_STRUCT,
                                                       "NoOutNode", NULL));
-    cdd_ffi_ir_free(&ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   }
 
   PASS();
@@ -550,7 +550,7 @@ TEST test_ffi_emit_java_fopen_fail(void) {
   ASSERT_EQ(1, ir != NULL);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_java(ir, &config));
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -568,11 +568,11 @@ TEST test_ffi_extractor_trivia(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
   ASSERT_EQ(1, ir != NULL);
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename);
   PASS();
@@ -604,7 +604,7 @@ TEST test_ffi_extractor_missing_branches(void) {
                                                 &config);
   g_cdd_ffi_extractor_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  cdd_ffi_ir_free(&test_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   memset(&test_ir, 0, sizeof(test_ir));
 
   /* 2. g_cdd_ffi_extractor_fail = 2 (get_class_name failure) */
@@ -613,7 +613,7 @@ TEST test_ffi_extractor_missing_branches(void) {
                                                 &config);
   g_cdd_ffi_extractor_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  cdd_ffi_ir_free(&test_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   memset(&test_ir, 0, sizeof(test_ir));
   ASSERT_EQ(0, remove("base.h"));
 
@@ -624,7 +624,7 @@ TEST test_ffi_extractor_missing_branches(void) {
                                                 &config);
   g_cdd_ffi_extractor_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  cdd_ffi_ir_free(&test_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   memset(&test_ir, 0, sizeof(test_ir));
   ASSERT_EQ(0, remove("s.h"));
 
@@ -635,7 +635,7 @@ TEST test_ffi_extractor_missing_branches(void) {
                                                 code_nested, &config);
   g_cdd_ffi_extractor_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  cdd_ffi_ir_free(&test_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   memset(&test_ir, 0, sizeof(test_ir));
   ASSERT_EQ(0, remove("parent.h"));
 
@@ -646,7 +646,7 @@ TEST test_ffi_extractor_missing_branches(void) {
       &test_ir, "test_ffi_macro_temp.h", code_macro, &config);
   g_cdd_ffi_extractor_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  cdd_ffi_ir_free(&test_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   ASSERT_EQ(0, remove("test_ffi_macro_temp.h"));
 
   /* 6. g_cdd_ffi_extractor_fail = 6 (map_c_type_to_ffi_kind failure) */
@@ -656,7 +656,7 @@ TEST test_ffi_extractor_missing_branches(void) {
                                                 &config);
   g_cdd_ffi_extractor_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  cdd_ffi_ir_free(&test_ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
   ASSERT_EQ(0, remove("s2.h"));
 
   /* 7. NULL arguments to extract_single_file_exports_test */
@@ -680,19 +680,19 @@ TEST test_ffi_extractor_trivia_oom(void) {
   int i;
   int rc;
 
-  write_to_file(filename, code);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
   for (i = 1; i < 50; i++) {
     g_ffi_extractor_alloc_fail = i;
     rc = cdd_ffi_ir_extract_exports(filename, code, &config, &ir);
     g_ffi_extractor_alloc_fail = 0;
     if (rc == CDD_C_SUCCESS) {
-      cdd_ffi_ir_free(ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
       free(ir);
       ir = NULL;
       break;
     }
     if (ir) {
-      cdd_ffi_ir_free(ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
       free(ir);
       ir = NULL;
     }

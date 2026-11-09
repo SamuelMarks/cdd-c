@@ -170,7 +170,8 @@ static cdd_c_error_t find_class_declaration_by_name(cdd_cst_tree_t *tree,
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
-  cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
+  g_cdd_last_alloc_err =
+      cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
   return CDD_C_SUCCESS;
 }
 
@@ -215,7 +216,8 @@ static cdd_c_error_t find_func_definition_by_name(cdd_cst_tree_t *tree,
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
-  cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
+  g_cdd_last_alloc_err =
+      cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
   return CDD_C_SUCCESS;
 }
 
@@ -343,7 +345,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
   /* Extract Types */
   rc = c_inspector_scan_file_types(filename, &types);
   if (rc != CDD_C_SUCCESS) {
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     return rc;
   }
 
@@ -384,8 +386,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
         break;
       if (tree_full) {
         cdd_cst_node_t *cst_node = NULL;
-        find_class_declaration_by_name(tree_full, types.items[i].name,
-                                       &cst_node);
+        g_cdd_last_alloc_err = find_class_declaration_by_name(
+            tree_full, types.items[i].name, &cst_node);
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_cst_node)
           cst_node = NULL;
@@ -393,8 +395,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
         if (cst_node) {
           cdd_token_t *first = NULL;
           cdd_token_t *last = NULL;
-          get_first_token(cst_node, &first);
-          get_last_token(cst_node, &last);
+          g_cdd_last_alloc_err = get_first_token(cst_node, &first);
+          g_cdd_last_alloc_err = get_last_token(cst_node, &last);
 #ifdef CDD_BUILD_TESTS
           if (g_cdd_ffi_fail_token) {
             first = NULL;
@@ -432,7 +434,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
 #endif
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(structs_base.nodes);
-            cdd_cst_tree_free(tree_base);
+            g_cdd_last_alloc_err = cdd_cst_tree_free(tree_base);
             break;
           }
           for (si = 0; si < structs_base.size; si++) {
@@ -514,7 +516,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
             }
           }
           C_CDD_FREE(structs_base.nodes);
-          cdd_cst_tree_free(tree_base);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree_base);
         }
       }
       if (rc != CDD_C_SUCCESS)
@@ -586,7 +588,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
       }
     }
   }
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
 
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -596,7 +598,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
 
   rc = c_inspector_extract_signatures(content, &sigs);
   if (rc != CDD_C_SUCCESS) {
-    func_sig_list_free(&sigs);
+    g_cdd_last_alloc_err = func_sig_list_free(&sigs);
     return rc;
   }
 
@@ -609,7 +611,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
       break;
     if (tree_full) {
       cdd_cst_node_t *cst_node = NULL;
-      find_func_definition_by_name(tree_full, sigs.items[i].name, &cst_node);
+      g_cdd_last_alloc_err = find_func_definition_by_name(
+          tree_full, sigs.items[i].name, &cst_node);
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_ffi_fail_cst_node)
         cst_node = NULL;
@@ -617,8 +620,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
       if (cst_node) {
         cdd_token_t *first = NULL;
         cdd_token_t *last = NULL;
-        get_first_token(cst_node, &first);
-        get_last_token(cst_node, &last);
+        g_cdd_last_alloc_err = get_first_token(cst_node, &first);
+        g_cdd_last_alloc_err = get_last_token(cst_node, &last);
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_token) {
           first = NULL;
@@ -766,7 +769,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
         break;
     }
   }
-  func_sig_list_free(&sigs);
+  g_cdd_last_alloc_err = func_sig_list_free(&sigs);
 
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -808,7 +811,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
                   rc = CDD_C_ERROR_UNKNOWN;
 #endif
                 if (rc != CDD_C_SUCCESS) {
-                  cdd_macro_eval_result_free(&eval_res);
+                  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&eval_res);
                   break;
                 }
                 node->evaluated_value = CDD_STRDUP(buf);
@@ -823,7 +826,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
               } else {
                 node->evaluated_value = CDD_STRDUP(eval_res.str_val);
               }
-              cdd_macro_eval_result_free(&eval_res);
+              g_cdd_last_alloc_err = cdd_macro_eval_result_free(&eval_res);
             } else {
               node->inferred_type = CDD_FFI_MACRO_TYPE_UNKNOWN;
               node->evaluated_value = NULL;
@@ -832,7 +835,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
         }
       }
     }
-    pp_context_free(&pp_ctx);
+    g_cdd_last_alloc_err = pp_context_free(&pp_ctx);
   }
 
   if (rc != CDD_C_SUCCESS)
@@ -984,7 +987,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                                         tree_full);
 
   if (tree_full) {
-    cdd_cst_tree_free(tree_full);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree_full);
   }
 
   return rc;
@@ -1181,10 +1184,10 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
     C_CDD_FREE(ctx.visited[k]);
   }
   C_CDD_FREE(ctx.visited);
-  pp_context_free(&pp_ctx);
+  g_cdd_last_alloc_err = pp_context_free(&pp_ctx);
 
   if (rc != CDD_C_SUCCESS) {
-    cdd_ffi_ir_free(ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
     C_CDD_FREE(ir);
     *out_ir = NULL;
     return rc;

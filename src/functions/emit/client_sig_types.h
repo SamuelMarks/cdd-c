@@ -80,12 +80,12 @@ extern C_CDD_EXPORT cdd_c_error_t multipart_header_param_name(
  * @brief Checks if a header name is Content-Type (case-insensitive).
  *
  * @param[in] name Header name string.
- * @param[out] out Pointer to receive 1 if Content-Type, 0 otherwise.
- * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT if out is
- * NULL.
+ * @param[out] out_is_ct Pointer to receive 1 if Content-Type, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT if out_is_ct
+ * is NULL.
  */
 extern C_CDD_EXPORT cdd_c_error_t header_name_is_content_type(const char *name,
-                                                              int *out);
+                                                              int *out_is_ct);
 
 /**
  * @brief Maps an OpenAPI type to a C output pointer parameter type.

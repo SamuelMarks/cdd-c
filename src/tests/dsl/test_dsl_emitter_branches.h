@@ -168,7 +168,7 @@ TEST test_dsl_emitter_exhaustive(void) {
   rc = cdd_ffi_emit_dsl(ir, (const void *)&config);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   free(config.output_dir);
   PASS();

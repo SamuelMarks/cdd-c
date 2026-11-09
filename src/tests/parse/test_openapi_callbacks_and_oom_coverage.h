@@ -54,7 +54,7 @@ TEST test_openapi_callbacks_coverage(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"$ref\":\"#/components/callbacks/"
         "MyCb\",\"summary\":\"sum\",\"description\":\"desc\"}",
         &_cdd_jv_1);
@@ -66,59 +66,59 @@ TEST test_openapi_callbacks_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, &spec, 1));
     ASSERT_STR_EQ("sum", cb.summary);
     ASSERT_STR_EQ("desc", cb.description);
-    free_callback(&cb);
+    g_cdd_last_alloc_err = free_callback(&cb);
 
     /* ref with resolve_refs = 0 and spec = NULL */
     memset(&cb, 0, sizeof(cb));
     ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, NULL, 0));
-    free_callback(&cb);
+    g_cdd_last_alloc_err = free_callback(&cb);
 
     g_cdd_strdup_fail = 2;
     memset(&cb, 0, sizeof(cb));
     ASSERT_NEQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, &spec, 1));
     g_cdd_strdup_fail = 0;
-    free_callback(&cb);
+    g_cdd_last_alloc_err = free_callback(&cb);
 
     memset(&cb, 0, sizeof(cb));
     ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, NULL, 1));
-    free_callback(&cb);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_callback(&cb);
+    g_cdd_last_alloc_err = json_value_free(jv);
 
     /* ref without summary and without description */
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/MyCb\"}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(
+          "{\"$ref\":\"#/components/callbacks/MyCb\"}", &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
       memset(&cb, 0, sizeof(cb));
       ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(json_value_get_object(jv),
                                                      &cb, &spec, 1));
-      free_callback(&cb);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = free_callback(&cb);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/NotFound\"}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"$ref\":\"#/components/callbacks/NotFound\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     memset(&cb, 0, sizeof(cb));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_callback_object(json_value_get_object(jv), &cb, &spec, 1));
-    free_callback(&cb);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_callback(&cb);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* Callback with paths and extensions */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"x-ext\":\"val\",\"{$request.query.url}\":{\"post\":"
         "{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}",
         &_cdd_jv_1);
@@ -128,8 +128,8 @@ TEST test_openapi_callbacks_coverage(void) {
     jo = json_value_get_object(jv);
     memset(&cb, 0, sizeof(cb));
     ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, NULL, 0));
-    free_callback(&cb);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_callback(&cb);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Pre-set summary and description on callback */
@@ -138,22 +138,24 @@ TEST test_openapi_callbacks_coverage(void) {
   cb.description = strdup("existing_desc");
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/"
-                          "MyCb\",\"summary\":\"s\",\"description\":\"d\"}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"$ref\":\"#/components/callbacks/"
+                              "MyCb\",\"summary\":\"s\",\"description\":\"d\"}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     jo = json_value_get_object(jv);
     ASSERT_EQ(CDD_C_SUCCESS, parse_callback_object(jo, &cb, NULL, 0));
-    free_callback(&cb);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_callback(&cb);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Callback with invalid method in paths */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"/path\":{\"invalid_method\":{}}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"/path\":{\"invalid_method\":{}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -163,14 +165,14 @@ TEST test_openapi_callbacks_coverage(void) {
     if (rc_cb != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc_cb);
     }
-    free_callback(&cb);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_callback(&cb);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* 11. parse_callbacks_object */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -180,13 +182,13 @@ TEST test_openapi_callbacks_coverage(void) {
               parse_callbacks_object(json_value_get_object(jv), &out_cbs,
                                      &out_cb_count, NULL, 0));
     ASSERT_EQ(0, out_cb_count);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"cb1\":{\"x-ext\":\"v\"},\"cb2\":123}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"cb1\":{\"x-ext\":\"v\"},\"cb2\":123}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -196,10 +198,10 @@ TEST test_openapi_callbacks_coverage(void) {
               parse_callbacks_object(json_value_get_object(jv), &out_cbs,
                                      &out_cb_count, NULL, 0));
     ASSERT_EQ(2, out_cb_count);
-    free_callback(&out_cbs[0]);
-    free_callback(&out_cbs[1]);
+    g_cdd_last_alloc_err = free_callback(&out_cbs[0]);
+    g_cdd_last_alloc_err = free_callback(&out_cbs[1]);
     free(out_cbs);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   PASS();
@@ -276,7 +278,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
     for (i = 0; i < n_oom; ++i) {
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(oom_resps[i], &_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_parse_string(oom_resps[i], &_cdd_jv_1);
         jv = _cdd_jv_1;
       }
       if (jv) {
@@ -289,7 +291,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             rc_oom = parse_response_object(jo, &resp, &spec, 1, "op", "200");
             if (rc_oom != CDD_C_SUCCESS)
               ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-            free_response(&resp);
+            g_cdd_last_alloc_err = free_response(&resp);
             g_cdd_alloc_fail = 0;
 
             g_cdd_strdup_fail = k;
@@ -297,7 +299,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             rc_oom = parse_response_object(jo, &resp, &spec, 1, "op", "200");
             if (rc_oom != CDD_C_SUCCESS)
               ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-            free_response(&resp);
+            g_cdd_last_alloc_err = free_response(&resp);
             g_cdd_strdup_fail = 0;
           } else if (i == 1 || i == 4 || i == 5 || i == 8 || i == 10) {
             g_cdd_alloc_fail = k;
@@ -305,7 +307,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             rc_oom = parse_request_body_object(jo, &rb, &spec, 1, "op");
             if (rc_oom != CDD_C_SUCCESS)
               ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-            free_request_body(&rb);
+            g_cdd_last_alloc_err = free_request_body(&rb);
             g_cdd_alloc_fail = 0;
 
             g_cdd_strdup_fail = k;
@@ -313,7 +315,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             rc_oom = parse_request_body_object(jo, &rb, &spec, 1, "op");
             if (rc_oom != CDD_C_SUCCESS)
               ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-            free_request_body(&rb);
+            g_cdd_last_alloc_err = free_request_body(&rb);
             g_cdd_strdup_fail = 0;
           } else if (i == 2) {
             g_cdd_alloc_fail = k;
@@ -321,7 +323,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             rc_oom = parse_responses(jo, &op, &spec, "op");
             if (rc_oom != CDD_C_SUCCESS)
               ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-            free_operation(&op);
+            g_cdd_last_alloc_err = free_operation(&op);
             g_cdd_alloc_fail = 0;
 
             g_cdd_strdup_fail = k;
@@ -329,7 +331,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             rc_oom = parse_responses(jo, &op, &spec, "op");
             if (rc_oom != CDD_C_SUCCESS)
               ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-            free_operation(&op);
+            g_cdd_last_alloc_err = free_operation(&op);
             g_cdd_strdup_fail = 0;
           } else if (i == 3 || i == 11) {
             g_cdd_alloc_fail = k;
@@ -342,7 +344,7 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             if (out_cbs) {
               size_t m;
               for (m = 0; m < out_cb_count; ++m)
-                free_callback(&out_cbs[m]);
+                g_cdd_last_alloc_err = free_callback(&out_cbs[m]);
               free(out_cbs);
             }
             g_cdd_alloc_fail = 0;
@@ -357,16 +359,16 @@ TEST test_openapi_responses_request_bodies_callbacks_oom(void) {
             if (out_cbs) {
               size_t m;
               for (m = 0; m < out_cb_count; ++m)
-                free_callback(&out_cbs[m]);
+                g_cdd_last_alloc_err = free_callback(&out_cbs[m]);
               free(out_cbs);
             }
             g_cdd_strdup_fail = 0;
           }
         }
-        json_value_free(jv);
+        g_cdd_last_alloc_err = json_value_free(jv);
       }
     }
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   g_cdd_alloc_fail = 0;

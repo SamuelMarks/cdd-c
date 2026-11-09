@@ -102,7 +102,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- list(\n", node->name);
@@ -125,7 +125,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- function(", node->name);
@@ -152,7 +152,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
           arg_name = "func";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_arg";
-        get_r_type(node->fields[j].type, &rt);
+        g_cdd_last_alloc_err = get_r_type(node->fields[j].type, &rt);
         fprintf(f, ", \n    as.%s(%s)", rt, arg_name);
       }
       fprintf(f, "\n  )\n");

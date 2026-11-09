@@ -513,7 +513,7 @@ error:
     C_CDD_FREE(pending_trivia_head);
     pending_trivia_head = n;
   }
-  cdd_lexer_free_token_list(list);
+  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
   return CDD_C_ERROR_MEMORY;
 }
 

@@ -133,14 +133,16 @@ TEST test_int_min_validation(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min = 1;
   f->min_val = 10.0;
 
-  code = (gen_parse_code("SMin", &sf, &_ast_gen_parse_code_0),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SMin", &sf, &_ast_gen_parse_code_0),
           _ast_gen_parse_code_0);
   ASSERT(code != NULL);
 
@@ -149,7 +151,7 @@ TEST test_int_min_validation(void) {
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -164,15 +166,17 @@ TEST test_int_exclusive_min(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min = 1;
   f->min_val = 5.0;
   f->exclusive_min = 1;
 
-  code = (gen_parse_code("SExcMin", &sf, &_ast_gen_parse_code_1),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SExcMin", &sf, &_ast_gen_parse_code_1),
           _ast_gen_parse_code_1);
   ASSERT(code != NULL);
 
@@ -181,7 +185,7 @@ TEST test_int_exclusive_min(void) {
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -196,14 +200,16 @@ TEST test_double_max_validation(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "val", "number", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_max = 1;
   f->max_val = 100.5;
 
-  code = (gen_parse_code("SMax", &sf, &_ast_gen_parse_code_2),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SMax", &sf, &_ast_gen_parse_code_2),
           _ast_gen_parse_code_2);
   ASSERT(code != NULL);
 
@@ -212,7 +218,7 @@ TEST test_double_max_validation(void) {
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -227,15 +233,17 @@ TEST test_double_exclusive_max(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "val", "number", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_max = 1;
   f->max_val = 0.0;
   f->exclusive_max = 1;
 
-  code = (gen_parse_code("SExcMax", &sf, &_ast_gen_parse_code_3),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SExcMax", &sf, &_ast_gen_parse_code_3),
           _ast_gen_parse_code_3);
   ASSERT(code != NULL);
 
@@ -244,7 +252,7 @@ TEST test_double_exclusive_max(void) {
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -259,8 +267,9 @@ TEST test_min_and_max(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min = 1;
@@ -268,7 +277,8 @@ TEST test_min_and_max(void) {
   f->has_max = 1;
   f->max_val = 120;
 
-  code = (gen_parse_code("Person", &sf, &_ast_gen_parse_code_4),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("Person", &sf, &_ast_gen_parse_code_4),
           _ast_gen_parse_code_4);
   ASSERT(code != NULL);
 
@@ -278,7 +288,7 @@ TEST test_min_and_max(void) {
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -293,8 +303,9 @@ TEST test_string_len_validation(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min_len = 1;
@@ -302,7 +313,8 @@ TEST test_string_len_validation(void) {
   f->has_max_len = 1;
   f->max_len = 10;
 
-  code = (gen_parse_code("StrLen", &sf, &_ast_gen_parse_code_5),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("StrLen", &sf, &_ast_gen_parse_code_5),
           _ast_gen_parse_code_5);
   ASSERT(code != NULL);
 
@@ -313,7 +325,7 @@ TEST test_string_len_validation(void) {
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -328,8 +340,9 @@ TEST test_string_simple_pattern_prefix(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -351,14 +364,15 @@ TEST test_string_simple_pattern_prefix(void) {
 #endif
 #endif
 
-  code = (gen_parse_code("SPat", &sf, &_ast_gen_parse_code_6),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SPat", &sf, &_ast_gen_parse_code_6),
           _ast_gen_parse_code_6);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strncmp(ret->p, \"prefix\", 6) != 0"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -373,8 +387,9 @@ TEST test_string_simple_pattern_suffix(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -396,14 +411,15 @@ TEST test_string_simple_pattern_suffix(void) {
 #endif
 #endif
 
-  code = (gen_parse_code("SSuf", &sf, &_ast_gen_parse_code_7),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SSuf", &sf, &_ast_gen_parse_code_7),
           _ast_gen_parse_code_7);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strcmp(ret->p + len - 6, \"suffix\")"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -418,8 +434,9 @@ TEST test_string_simple_pattern_exact(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -441,14 +458,15 @@ TEST test_string_simple_pattern_exact(void) {
 #endif
 #endif
 
-  code = (gen_parse_code("SExact", &sf, &_ast_gen_parse_code_8),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SExact", &sf, &_ast_gen_parse_code_8),
           _ast_gen_parse_code_8);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strcmp(ret->p, \"exact\") != 0"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -463,8 +481,9 @@ TEST test_string_simple_pattern_contains(void) {
   char *code;
   struct StructField *f;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -486,14 +505,15 @@ TEST test_string_simple_pattern_contains(void) {
 #endif
 #endif
 
-  code = (gen_parse_code("SSub", &sf, &_ast_gen_parse_code_9),
+  code = (g_cdd_last_alloc_err =
+              gen_parse_code("SSub", &sf, &_ast_gen_parse_code_9),
           _ast_gen_parse_code_9);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strstr(ret->p, \"sub\") == NULL"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -505,8 +525,9 @@ TEST test_string_simple_pattern_contains(void) {
 TEST test_validation_errors(void) {
   char *_out = NULL;
   struct StructFields sf;
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
 
   g_io_calls = 0;
   g_fail_io_after = 1; /* TMPFILE fails */
@@ -530,7 +551,7 @@ TEST test_validation_errors(void) {
   C_CDD_FREE(_out);
 
   g_fail_io_after = -1;
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 

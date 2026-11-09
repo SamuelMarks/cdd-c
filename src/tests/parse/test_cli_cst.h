@@ -247,7 +247,7 @@ TEST test_cli_standardize_gnu(void) {
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   cli_standardize_gnu_main(1, argv_missing));
 
-        write_to_file("test_gnu_file.h", "void foo();");
+        g_cdd_last_alloc_err = write_to_file("test_gnu_file.h", "void foo();");
 
         /* Test valid args */
         rc = cli_standardize_gnu_main(7, argv);
@@ -323,25 +323,25 @@ TEST test_cli_cst_process_errors(void) {
     int i;
     for (i = 1; i <= 500; i++) {
       g_cdd_alloc_fail = i;
-      cli_cst_transformer_main(3, argv_fix);
+      g_cdd_last_alloc_err = cli_cst_transformer_main(3, argv_fix);
     }
     g_cdd_alloc_fail = 0;
 
     for (i = 1; i <= 500; i++) {
       g_cdd_cst_alloc_node_fail = i;
-      cli_cst_transformer_main(3, argv_fix);
+      g_cdd_last_alloc_err = cli_cst_transformer_main(3, argv_fix);
     }
     g_cdd_cst_alloc_node_fail = 0;
 
     for (i = 1; i <= 500; i++) {
       g_cdd_cst_alloc_node_fail = i;
-      cli_cst_transformer_main(3, argv_fix);
+      g_cdd_last_alloc_err = cli_cst_transformer_main(3, argv_fix);
     }
     g_cdd_cst_alloc_node_fail = 0;
 
     for (i = 1; i <= 500; i++) {
       g_cdd_cst_emit_realloc_fail = i;
-      cli_cst_transformer_main(3, argv_fix);
+      g_cdd_last_alloc_err = cli_cst_transformer_main(3, argv_fix);
     }
     g_cdd_cst_emit_realloc_fail = 0;
   }
@@ -350,8 +350,9 @@ TEST test_cli_cst_process_errors(void) {
   /* Output file open failure in fix mode */
   /* By creating a directory with the same name, fopen for write will fail */
   remove("test_cli_cst_file.h");
-  makedir("test_cli_cst_file.h");
-  write_to_file("test_cli_cst_file.h/foo", "void foo();"); /* just something */
+  g_cdd_last_alloc_err = makedir("test_cli_cst_file.h");
+  g_cdd_last_alloc_err = write_to_file("test_cli_cst_file.h/foo",
+                                       "void foo();"); /* just something */
 
   /* The tool opens it for read first. But it's a directory, so read fails?
    * If read succeeds but write fails, we hit the write error.

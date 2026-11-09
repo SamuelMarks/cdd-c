@@ -51,7 +51,9 @@ TEST test_body_header_array_param(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14),
+          _ast_gen_body_14);
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Ids") != NULL);
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-Ids\", joined)") !=
@@ -62,25 +64,33 @@ TEST test_body_header_array_param(void) {
 
   /* Test string array */
   param.items_type = cdd_test_mut_str("string");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14),
+          _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
   /* Test number array */
   param.items_type = cdd_test_mut_str("number");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14),
+          _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
   /* Test boolean array */
   param.items_type = cdd_test_mut_str("boolean");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14),
+          _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
   /* Test unsupported array */
   param.items_type = cdd_test_mut_str("unsupported");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14),
+          _ast_gen_body_14);
   ASSERT(code);
   free(code);
 
@@ -125,7 +135,9 @@ TEST test_body_header_object_param(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_15), _ast_gen_body_15);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_15),
+          _ast_gen_body_15);
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Filter") != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &X-Filter[i]") != NULL);
@@ -174,7 +186,9 @@ TEST test_body_header_json_param_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Filter") != NULL);
   ASSERT(strstr(code, "Filter_to_json") != NULL);
@@ -187,27 +201,37 @@ TEST test_body_header_json_param_ref(void) {
   /* Test primitive arrays */
   param.is_array = 1;
   param.items_type = cdd_test_mut_str("string");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("integer");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("number");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("boolean");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("unsupported");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
@@ -215,55 +239,73 @@ TEST test_body_header_json_param_ref(void) {
   param.is_array = 0;
   param.type = cdd_test_mut_str("object");
   param.schema.ref_name = NULL;
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON array (no is_array flag) */
   param.type = cdd_test_mut_str("array");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive string */
   param.type = cdd_test_mut_str("string");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive integer */
   param.type = cdd_test_mut_str("integer");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive number */
   param.type = cdd_test_mut_str("number");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive boolean */
   param.type = cdd_test_mut_str("boolean");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive unsupported */
   param.type = cdd_test_mut_str("unsupported");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON missing type */
   param.type = NULL;
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
   /* Test JSON unknown type */
   param.type = cdd_test_mut_str("unknown");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16),
+          _ast_gen_body_16);
   ASSERT(code);
   free(code);
 
@@ -305,7 +347,9 @@ TEST test_body_header_number_param(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_17), _ast_gen_body_17);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_17),
+          _ast_gen_body_17);
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Rate") != NULL);
   ASSERT(strstr(code, "spr"
@@ -352,7 +396,9 @@ TEST test_body_cookie_param(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18),
+          _ast_gen_body_18);
   ASSERT(code);
   ASSERT(strstr(code, "Cookie Parameters") != NULL);
   ASSERT(
@@ -363,27 +409,37 @@ TEST test_body_cookie_param(void) {
   /* Test primitive arrays */
   param.is_array = 1;
   param.items_type = cdd_test_mut_str("string");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18),
+          _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("integer");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18),
+          _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("number");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18),
+          _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("boolean");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18),
+          _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
   param.items_type = cdd_test_mut_str("unsupported");
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18),
+          _ast_gen_body_18);
   ASSERT(code);
   free(code);
 
@@ -429,7 +485,9 @@ TEST test_body_cookie_param_number_array(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_19), _ast_gen_body_19);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_19),
+          _ast_gen_body_19);
   ASSERT(code);
   ASSERT(strstr(code, "Cookie Parameters") != NULL);
   ASSERT(strstr(code, "spr"
@@ -481,7 +539,9 @@ TEST test_body_cookie_param_array_explode_false(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_20), _ast_gen_body_20);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_20),
+          _ast_gen_body_20);
   ASSERT(code);
   ASSERT(strstr(code, "joined_len") != NULL);
   ASSERT(strstr(code, "joined[joined_len++] = ','") != NULL);
@@ -529,7 +589,9 @@ TEST test_body_cookie_param_object_form(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_21), _ast_gen_body_21);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_21),
+          _ast_gen_body_21);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &prefs[i]") != NULL);
   ASSERT(strstr(code, "url_encode(") != NULL);
@@ -579,7 +641,9 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_22), _ast_gen_body_22);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_22),
+          _ast_gen_body_22);
   ASSERT(code);
   ASSERT(strstr(code, "url_encode_allow_reserved") != NULL);
   ASSERT(
@@ -638,7 +702,9 @@ TEST test_body_security_query_api_key(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_23), _ast_gen_body_23);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_23),
+          _ast_gen_body_23);
   ASSERT(code);
   printf("\n--- SEC QUERY KEY ---\n%s\n--------------------\n", code);
   ASSERT(strstr(code, "struct UrlQueryParams qp") != NULL);
@@ -695,7 +761,9 @@ TEST test_body_security_cookie_api_key(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_24), _ast_gen_body_24);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_24),
+          _ast_gen_body_24);
   ASSERT(code);
   printf("\n--- SEC COOKIE KEY ---\n%s\n--------------------\n", code);
   ASSERT(strstr(code, "cookie_str") != NULL);

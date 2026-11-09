@@ -134,10 +134,17 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
   free(sref.ref);
 
   /* 3. component_callback_is_referenced branches */
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(NULL, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(NULL, "cb"));
-  ASSERT_EQ(CDD_C_SUCCESS, component_callback_is_referenced(&spec, "cb"));
+  {
+    int is_ref = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(NULL, NULL, &is_ref));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, NULL, &is_ref));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(NULL, "cb", &is_ref));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              component_callback_is_referenced(&spec, "cb", &is_ref));
+  }
 
   /* 4. parse_request_body_object array of inline objects */
   {
@@ -151,15 +158,15 @@ TEST test_openapi_loader_uri_and_schema_ref_branches(void) {
     JSON_Value *jv = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(array_rb_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(array_rb_json, &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
       memset(&spec, 0, sizeof(spec));
       rc = openapi_load_from_json(jv, &spec);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      openapi_spec_free(&spec);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -209,7 +216,7 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
               find_component_media_type(&spec, "#/bad/prefix/Json", &mt_out));
     ASSERT(mt_out == NULL);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 2. find_media_object_by_name */
   ASSERT_EQ(CDD_C_SUCCESS, find_media_object_by_name(NULL, NULL, &jo_out));
@@ -217,7 +224,7 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"application/json\":{\"schema\":{\"type\":\"string\"}},\"text/html; "
         "charset=utf-8\":{\"schema\":{\"type\":\"string\"}}}",
         &_cdd_jv_1);
@@ -238,7 +245,7 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
               find_media_object_by_name(jo_content, "image/png", &jo_out));
     ASSERT(jo_out == NULL);
 
-    json_value_free(jv_content);
+    g_cdd_last_alloc_err = json_value_free(jv_content);
   }
 
   /* 3. parse_response_object copying examples from primary media type */
@@ -253,7 +260,7 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
         "\"v2\"}}}}}}}}}}";
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(resp_ex_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(resp_ex_json, &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
@@ -264,8 +271,8 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
       ASSERT_EQ(1, spec.paths[0].n_operations);
       ASSERT_EQ(1, spec.paths[0].operations[0].n_responses);
       ASSERT_EQ(2, spec.paths[0].operations[0].responses[0].n_examples);
-      openapi_spec_free(&spec);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -283,7 +290,8 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
         "\"itemSchema\":{\"type\":\"string\"},\"example\":\"abc\"}}}}}}}}}}";
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(item_schema_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string(item_schema_json, &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
@@ -293,8 +301,8 @@ TEST test_openapi_loader_media_type_and_response_examples(void) {
       ASSERT_EQ(1, spec.n_paths);
       ASSERT_EQ(1, spec.paths[0].operations[0].n_parameters);
       ASSERT_EQ(1, spec.paths[0].operations[0].parameters[0].example_set);
-      openapi_spec_free(&spec);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -320,7 +328,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"$ref\":\"#/components/schemas/Bar\",\"summary\":\"Bar "
         "Sum\",\"description\":\"Bar Desc\",\"format\":\"custom\","
         "\"contentMediaType\":\"text/plain\",\"contentEncoding\":\"utf-8\","
@@ -340,13 +348,13 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
     ASSERT_STR_EQ("text/plain", sref.content_media_type);
     ASSERT_STR_EQ("utf-8", sref.content_encoding);
     ASSERT_EQ(1, sref.external_docs_set);
-    free_schema_ref_content(&sref);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_schema_ref_content(&sref);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"type\":\"array\",\"items\":{\"type\":\"string\",\"format\":"
         "\"byte\","
         "\"contentMediaType\":\"image/png\",\"contentEncoding\":\"base64\","
@@ -367,8 +375,8 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
     ASSERT_EQ(1, sref.n_items_examples);
     ASSERT_EQ(1, sref.items_const_value_set);
     ASSERT_EQ(1, sref.items_default_value_set);
-    free_schema_ref_content(&sref);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_schema_ref_content(&sref);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* 2. Swagger 2.0 full spec */
@@ -381,7 +389,7 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
         "\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(swagger2_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(swagger2_json, &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
@@ -394,8 +402,8 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
       ASSERT_EQ(2, spec.n_schemes);
       ASSERT_EQ(1, spec.n_consumes);
       ASSERT_EQ(1, spec.n_produces);
-      openapi_spec_free(&spec);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -411,7 +419,8 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
         "Summary\",\"description\":\"Overridden Description\"}}}";
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(path_override_json, &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string(path_override_json, &_cdd_jv_1);
       jv = _cdd_jv_1;
     }
     if (jv) {
@@ -421,8 +430,8 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
       ASSERT_EQ(1, spec.n_paths);
       ASSERT_STR_EQ("Overridden Summary", spec.paths[0].summary);
       ASSERT_STR_EQ("Overridden Description", spec.paths[0].description);
-      openapi_spec_free(&spec);
-      json_value_free(jv);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
   }
 
@@ -431,14 +440,14 @@ TEST test_openapi_loader_swagger2_and_schema_ref_branches(void) {
     JSON_Value *jv_int = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("123", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("123", &_cdd_jv_1);
       jv_int = _cdd_jv_1;
     }
     if (jv_int) {
       memset(&spec, 0, sizeof(spec));
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                 openapi_load_from_json(jv_int, &spec));
-      json_value_free(jv_int);
+      g_cdd_last_alloc_err = json_value_free(jv_int);
     }
   }
 

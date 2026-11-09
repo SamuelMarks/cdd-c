@@ -50,7 +50,7 @@ TEST test_cmake_modifier_basic(void) {
   ASSERT(strstr(diff_str, "+endif()\n") != NULL);
 
   free(diff_str);
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   g_fail_io_after = -1;
   PASS();
 }
@@ -74,7 +74,7 @@ TEST test_cmake_modifier_global(void) {
   ASSERT(strstr(diff_str, "+    add_compile_options( /W4)\n") != NULL);
 
   free(diff_str);
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   g_fail_io_after = -1;
   PASS();
 }
@@ -91,7 +91,8 @@ TEST test_cmake_modifier_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cmake_modifier_init(&mod, NULL, "my_target"));
 
-  cmake_modifier_init(&mod, "CMakeLists.txt", "my_target");
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "CMakeLists.txt", "my_target");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cmake_modifier_add_compile_opt(NULL, "/W4"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -101,7 +102,7 @@ TEST test_cmake_modifier_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cmake_modifier_add_link_lib(&mod, NULL));
 
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   g_fail_io_after = -1;
   PASS();
 }
@@ -121,7 +122,7 @@ TEST test_cmake_parser_oom(void) {
   int i;
   int rc;
 
-  makedirs("test_cmake_dir");
+  g_cdd_last_alloc_err = makedirs("test_cmake_dir");
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_cmake_dir/CMakeLists.txt", "w") != 0)
     f = NULL;
@@ -142,35 +143,38 @@ TEST test_cmake_parser_oom(void) {
     rc = cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_fail_alloc = 0;
     if (rc == CDD_C_SUCCESS)
-      cmake_modifier_free(&mod);
+      g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   }
 
   for (i = 1; i <= 5; i++) {
-    cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    g_cdd_last_alloc_err =
+        cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_fail_alloc = i;
     rc = cmake_modifier_add_compile_opt(&mod, "/W4");
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_fail_alloc = 0;
-    cmake_modifier_free(&mod);
+    g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   }
 
   for (i = 1; i <= 5; i++) {
-    cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    g_cdd_last_alloc_err =
+        cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_fail_alloc = i;
     rc = cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_fail_alloc = 0;
-    cmake_modifier_free(&mod);
+    g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   }
 
   for (i = 1; i <= 15; i++) {
-    cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
-    cmake_modifier_add_compile_opt(&mod, "/W4");
-    cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+    g_cdd_last_alloc_err =
+        cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    g_cdd_last_alloc_err = cmake_modifier_add_compile_opt(&mod, "/W4");
+    g_cdd_last_alloc_err = cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
 
     g_cdd_fail_alloc = i;
     rc = cmake_modifier_apply_diff(&mod, &diff_str);
@@ -182,11 +186,12 @@ TEST test_cmake_parser_oom(void) {
       free(diff_str);
       diff_str = NULL;
     }
-    cmake_modifier_free(&mod);
+    g_cdd_last_alloc_err = cmake_modifier_free(&mod);
   }
 
   /* Test non-existent file with OOM on empty string dupe */
-  cmake_modifier_init(&mod, "test_cmake_dir/non_existent.txt", "test");
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "test_cmake_dir/non_existent.txt", "test");
   g_cdd_fail_alloc = 1;
   rc = cmake_modifier_apply_diff(&mod, &diff_str);
   if (rc != CDD_C_SUCCESS) {
@@ -195,39 +200,43 @@ TEST test_cmake_parser_oom(void) {
   g_cdd_fail_alloc = 0;
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
   /* Test with link_libs only (no compile_opts) */
-  cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
-  cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+  g_cdd_last_alloc_err = cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
   /* Test global with link_libs only */
-  cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", NULL);
-  cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", NULL);
+  g_cdd_last_alloc_err = cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
   /* Test with compile_opts only (no link_libs) */
-  cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
-  cmake_modifier_add_compile_opt(&mod, "/W4");
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+  g_cdd_last_alloc_err = cmake_modifier_add_compile_opt(&mod, "/W4");
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
   /* Test global with compile_opts only */
-  cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", NULL);
-  cmake_modifier_add_compile_opt(&mod, "/W4");
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", NULL);
+  g_cdd_last_alloc_err = cmake_modifier_add_compile_opt(&mod, "/W4");
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
 /* Trigger src[len-1] != '\n' */
 #if defined(_MSC_VER)
@@ -240,14 +249,15 @@ TEST test_cmake_parser_oom(void) {
     fprintf(f2, "project(test) ");
     fclose(f2);
   }
-  cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists2.txt", "test");
-  cmake_modifier_apply_diff(&mod, &diff_str);
+  g_cdd_last_alloc_err =
+      cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists2.txt", "test");
+  g_cdd_last_alloc_err = cmake_modifier_apply_diff(&mod, &diff_str);
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
   /* Test free NULL */
-  cmake_modifier_free(NULL);
+  g_cdd_last_alloc_err = cmake_modifier_free(NULL);
 
   /* Test fopen failure */
   ASSERT_EQ(
@@ -255,7 +265,7 @@ TEST test_cmake_parser_oom(void) {
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   free(diff_str);
   diff_str = NULL;
-  cmake_modifier_free(&mod);
+  g_cdd_last_alloc_err = cmake_modifier_free(&mod);
 
   remove("test_cmake_dir/CMakeLists2.txt");
 

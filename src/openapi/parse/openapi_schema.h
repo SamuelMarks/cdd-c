@@ -84,11 +84,11 @@ extern C_CDD_EXPORT cdd_c_error_t copy_string_array(char ***dst,
  * @brief Checks if a JSON schema object represents a pure string `enum`.
  *
  * @param[in] schema_obj JSON object representing the schema.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if string enum only, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_is_enum Set to 1 if string enum only, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-schema_is_string_enum_only(const JSON_Object *schema_obj);
+schema_is_string_enum_only(const JSON_Object *schema_obj, int *out_is_enum);
 
 /**
  * @brief Checks if a JSON schema value/object is compatible with C struct
@@ -96,22 +96,23 @@ schema_is_string_enum_only(const JSON_Object *schema_obj);
  *
  * @param[in] schema_val JSON value of the schema.
  * @param[in] schema_obj JSON object of the schema.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if struct-compatible, CDD_C_SUCCESS
- * (0) otherwise.
+ * @param[out] out_compat Set to 1 if struct-compatible, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t schema_is_struct_compatible(
-    const JSON_Value *schema_val, const JSON_Object *schema_obj);
+extern C_CDD_EXPORT cdd_c_error_t
+schema_is_struct_compatible(const JSON_Value *schema_val,
+                            const JSON_Object *schema_obj, int *out_compat);
 
 /**
  * @brief Checks if a JSON schema object uses `allOf`, `anyOf`, or `oneOf`
  * composition.
  *
  * @param[in] schema_obj JSON object representing the schema.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if composition is present,
- * CDD_C_SUCCESS (0) otherwise.
+ * @param[out] out_has_comp Set to 1 if composition is present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-schema_has_composition(const JSON_Object *schema_obj);
+schema_has_composition(const JSON_Object *schema_obj, int *out_has_comp);
 
 /**
  * @brief Parses a JSON array of schemas into an array of OpenAPI_SchemaRef.
@@ -177,10 +178,11 @@ extern C_CDD_EXPORT cdd_c_error_t apply_schema_ref_to_header(
  *
  * @param[in] spec OpenAPI specification to inspect.
  * @param[in] name Schema name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if in use, CDD_C_SUCCESS (0) if free.
+ * @param[out] out_in_use Set to 1 if in use, 0 if free.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-schema_name_in_use(const struct OpenAPI_Spec *spec, const char *name);
+extern C_CDD_EXPORT cdd_c_error_t schema_name_in_use(
+    const struct OpenAPI_Spec *spec, const char *name, int *out_in_use);
 
 /**
  * @brief Sanitizes a string into a valid OpenAPI component key
@@ -209,21 +211,21 @@ extern C_CDD_EXPORT cdd_c_error_t make_unique_schema_name(
  *
  * @param[in] arr JSON array of type strings.
  * @param[in] type Target type string to find.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if present, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_includes Set to 1 if present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-schema_type_array_includes(const JSON_Array *arr, const char *type);
+extern C_CDD_EXPORT cdd_c_error_t schema_type_array_includes(
+    const JSON_Array *arr, const char *type, int *out_includes);
 
 /**
  * @brief Checks if a JSON schema object represents an object-like structure.
  *
  * @param[in] schema_obj JSON object representing the schema.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if object-like, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_is_obj Set to 1 if object-like, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-schema_object_is_object_like(const JSON_Object *schema_obj);
+schema_object_is_object_like(const JSON_Object *schema_obj, int *out_is_obj);
 
 /**
  * @brief Appends a parsed struct schema definition to `spec->defined_schemas`.
@@ -244,11 +246,11 @@ append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
  *
  * @param[in] spec OpenAPI specification to inspect.
  * @param[in] name Schema name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if exists, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_exists Set to 1 if exists, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-raw_schema_name_exists(const struct OpenAPI_Spec *spec, const char *name);
+extern C_CDD_EXPORT cdd_c_error_t raw_schema_name_exists(
+    const struct OpenAPI_Spec *spec, const char *name, int *out_exists);
 
 /**
  * @brief Serializes and appends a raw JSON schema value to
@@ -333,11 +335,12 @@ build_inline_param_name(const char *param_name, char **_out_val);
  *
  * @param[in] root Root JSON value.
  * @param[in] root_obj Root JSON object (if object).
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if standalone schema document,
- * CDD_C_SUCCESS (0) otherwise.
+ * @param[out] out_is_schema Set to 1 if standalone schema document, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-root_is_schema_document(const JSON_Value *root, const JSON_Object *root_obj);
+extern C_CDD_EXPORT cdd_c_error_t root_is_schema_document(
+    const JSON_Value *root, const JSON_Object *root_obj, int *out_is_schema);
 
 /**
  * @brief Stores the serialized root JSON of a standalone schema document in

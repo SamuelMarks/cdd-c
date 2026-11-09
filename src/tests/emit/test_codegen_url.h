@@ -148,9 +148,9 @@ static void run_io_loop(const struct OpenAPI_Operation *op, const char *tmpl,
     g_io_calls = 0;
     g_fail_io_after = i;
     if (op) {
-      gen_query_code(op, &code);
+      g_cdd_last_alloc_err = gen_query_code(op, &code);
     } else {
-      gen_url_code(tmpl, params, n_params, &code);
+      g_cdd_last_alloc_err = gen_url_code(tmpl, params, n_params, &code);
     }
     if (code) {
       free(code);
@@ -182,7 +182,8 @@ TEST test_query_gen_scalar(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_0), _ast_gen_query_code_0);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_0),
+          _ast_gen_query_code_0);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
   run_io_loop(NULL, "/users", NULL, 0);
@@ -224,7 +225,8 @@ TEST test_query_gen_scalar_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_1), _ast_gen_query_code_1);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_1),
+          _ast_gen_query_code_1);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
   ASSERT(strstr(code, "spr"
@@ -258,7 +260,8 @@ TEST test_query_gen_array_explode_int(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_2), _ast_gen_query_code_2);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_2),
+          _ast_gen_query_code_2);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -297,7 +300,8 @@ TEST test_query_gen_array_explode_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_3), _ast_gen_query_code_3);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_3),
+          _ast_gen_query_code_3);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -334,7 +338,8 @@ TEST test_query_gen_array_explode_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_4), _ast_gen_query_code_4);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_4),
+          _ast_gen_query_code_4);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -370,7 +375,8 @@ TEST test_query_gen_array_form_default_explode(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_5), _ast_gen_query_code_5);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_5),
+          _ast_gen_query_code_5);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -403,7 +409,8 @@ TEST test_query_gen_querystring(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_6), _ast_gen_query_code_6);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_6),
+          _ast_gen_query_code_6);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -437,7 +444,8 @@ TEST test_query_gen_querystring_form_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_7), _ast_gen_query_code_7);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_7),
+          _ast_gen_query_code_7);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -472,7 +480,8 @@ TEST test_query_gen_querystring_json_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_8), _ast_gen_query_code_8);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_8),
+          _ast_gen_query_code_8);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -507,7 +516,8 @@ TEST test_query_gen_querystring_json_primitive(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_9), _ast_gen_query_code_9);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_9),
+          _ast_gen_query_code_9);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -543,7 +553,8 @@ TEST test_query_gen_querystring_json_array(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_10), _ast_gen_query_code_10);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_10),
+          _ast_gen_query_code_10);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -579,7 +590,8 @@ TEST test_query_gen_querystring_json_array_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_11), _ast_gen_query_code_11);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_11),
+          _ast_gen_query_code_11);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -615,7 +627,8 @@ TEST test_query_gen_querystring_raw_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_12), _ast_gen_query_code_12);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_12),
+          _ast_gen_query_code_12);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -650,7 +663,8 @@ TEST test_query_gen_querystring_raw_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_13), _ast_gen_query_code_13);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_13),
+          _ast_gen_query_code_13);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -689,7 +703,8 @@ TEST test_query_gen_array_form_explode_false(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_14), _ast_gen_query_code_14);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_14),
+          _ast_gen_query_code_14);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -725,7 +740,8 @@ TEST test_query_gen_array_space_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_15), _ast_gen_query_code_15);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_15),
+          _ast_gen_query_code_15);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -761,7 +777,8 @@ TEST test_query_gen_array_pipe_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_16), _ast_gen_query_code_16);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_16),
+          _ast_gen_query_code_16);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 
@@ -795,7 +812,8 @@ TEST test_query_gen_scalar_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_17), _ast_gen_query_code_17);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_17),
+          _ast_gen_query_code_17);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
   ASSERT(strstr(code, "url_encode_allow_reserved") != NULL);
@@ -831,7 +849,8 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_code(&op, &_ast_gen_query_code_18), _ast_gen_query_code_18);
+  code = (g_cdd_last_alloc_err = gen_query_code(&op, &_ast_gen_query_code_18),
+          _ast_gen_query_code_18);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
 

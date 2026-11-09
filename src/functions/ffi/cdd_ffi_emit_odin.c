@@ -88,7 +88,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: struct #c {\n", node->name);
@@ -96,7 +96,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *otype = NULL;
-        get_odin_type(node->fields[j].type, &otype);
+        g_cdd_last_alloc_err = get_odin_type(node->fields[j].type, &otype);
         fprintf(f, "    %s: %s,\n", fname, otype);
       }
       fprintf(f, "}\n\n");
@@ -107,7 +107,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: enum c.int {\n", node->name);
@@ -138,7 +138,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    // %s\n", node->doc);
       fprintf(f, "    %s :: proc(", node->name);
@@ -150,7 +150,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "ctx";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
-        get_odin_type(node->fields[j].type, &ot);
+        g_cdd_last_alloc_err = get_odin_type(node->fields[j].type, &ot);
         fprintf(f, "%s: %s", arg_name, ot);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -159,7 +159,8 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       if (node->return_or_base_type.kind != CDD_FFI_KIND_VOID) {
         const char *ret_ot = NULL;
-        get_odin_type(node->return_or_base_type, &ret_ot);
+        g_cdd_last_alloc_err =
+            get_odin_type(node->return_or_base_type, &ret_ot);
         fprintf(f, " -> %s", ret_ot);
       }
       fprintf(f, " ---\n");

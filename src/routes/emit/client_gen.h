@@ -187,10 +187,12 @@ extern C_CDD_EXPORT cdd_c_error_t sanitize_tag(const char *tag,
  *
  * @param[in] a First OpenAPI parameter.
  * @param[in] b Second OpenAPI parameter.
- * @return Non-zero if matching, CDD_C_SUCCESS otherwise.
+ * @param[out] out_match Set to 1 if matching, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t param_keys_match(
-    const struct OpenAPI_Parameter *a, const struct OpenAPI_Parameter *b);
+extern C_CDD_EXPORT cdd_c_error_t
+param_keys_match(const struct OpenAPI_Parameter *a,
+                 const struct OpenAPI_Parameter *b, int *out_match);
 
 /**
  * @brief Merges path-level and operation-level parameters into an effective

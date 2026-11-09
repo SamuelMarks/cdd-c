@@ -54,7 +54,7 @@ TEST test_gnu_standardizer_transparent_union(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -78,7 +78,7 @@ TEST test_gnu_standardizer_vector_and_mode(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -101,7 +101,7 @@ TEST test_gnu_standardizer_anon_and_compound(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -123,7 +123,7 @@ TEST test_gnu_standardizer_stmt_expr_contexts(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -147,7 +147,7 @@ TEST test_gnu_standardizer_cleanup_and_longjmp(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -168,7 +168,7 @@ TEST test_gnu_standardizer_builtin_expect(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -197,7 +197,7 @@ TEST test_gnu_standardizer_more_cases(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -278,14 +278,14 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   out = NULL;
 
   /* Trampoline detection returns CDD_C_ERROR_SYSTEM */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_tramp), &tree));
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Zero length in middle polyfills to -1 comment */
@@ -294,7 +294,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "-1 /* zero-length array in middle of struct */") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   out = NULL;
 
@@ -304,7 +304,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   out = NULL;
 
@@ -314,7 +314,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   out = NULL;
 
@@ -325,7 +325,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   out = NULL;
 
@@ -334,7 +334,7 @@ TEST test_gnu_standardizer_more_cases_100(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   out = NULL;
 
@@ -408,26 +408,26 @@ TEST test_gnu_standardizer_error_branches(void) {
                                  "f_in; }\n"),
                              &tree));
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* typeof with unclosed bracket inside parens */
   ASSERT_EQ(
       0, cdd_cst_parse(az_span_create_from_str("typeof(int[5) arr;\n"), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* packed struct */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_packed), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* return void expr */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_ret_void), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* OOM on pooling no-arg attribute comment */
@@ -435,66 +435,66 @@ TEST test_gnu_standardizer_error_branches(void) {
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   g_cdd_alloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_noarg_attr), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* code_lbl_break */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl_break), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* RBRACE scope cleanups */
   ASSERT_EQ(0,
             cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* return cleanups */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cleanup), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* local label ref */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lbl), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* case ranges */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cases), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* designated init ranges */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_desig), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* lvalue cast */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_lval), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* conditional ? : and standalone x ? : y (lhs_start == 0) */
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_cond), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("x ? : y;\n"), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* variadic macro */
@@ -504,15 +504,15 @@ TEST test_gnu_standardizer_error_branches(void) {
   g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_gnu(tree, &config));
   g_cdd_alloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* g_cdd_cst_alloc_node_fail error returns */
   if (cdd_cst_parse(az_span_create_from_str(code_stmt), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   {
@@ -520,114 +520,114 @@ TEST test_gnu_standardizer_error_branches(void) {
     for (vi = 1; vi <= 6; vi++) {
       if (cdd_cst_parse(az_span_create_from_str(code_vla), &tree) == 0) {
         g_cdd_cst_alloc_node_fail = vi;
-        cdd_transform_gnu(tree, &config);
+        g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
         g_cdd_cst_alloc_node_fail = 0;
-        cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         tree = NULL;
       }
     }
     config.fallback_vla_to_malloc = 0;
     if (cdd_cst_parse(az_span_create_from_str(code_vla), &tree) == 0) {
       g_cdd_cst_alloc_node_fail = 1;
-      cdd_transform_gnu(tree, &config);
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
       g_cdd_cst_alloc_node_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
     config.fallback_vla_to_malloc = 1;
     for (vi = 1; vi <= 6; vi++) {
       if (cdd_cst_parse(az_span_create_from_str(code_vla_block), &tree) == 0) {
         g_cdd_cst_alloc_node_fail = vi;
-        cdd_transform_gnu(tree, &config);
+        g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
         g_cdd_cst_alloc_node_fail = 0;
-        cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         tree = NULL;
       }
     }
     if (cdd_cst_parse(
             az_span_create_from_str("struct S { int a[0]; int b; };\n"),
             &tree) == 0) {
-      cdd_transform_gnu(tree, &config);
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }
   if (cdd_cst_parse(az_span_create_from_str(code_typeof_arr), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(az_span_create_from_str("typeof(int) x;\n"), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(az_span_create_from_str("__auto_type x = 1;\n"), &tree) ==
       0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(az_span_create_from_str("unsigned long long x = "
                                             "18446744073709551616ULL;\n"),
                     &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(
           az_span_create_from_str("struct Anon { struct { int a; }; };\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(
           az_span_create_from_str("struct AnonU { union { int a; }; };\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(az_span_create_from_str(code_complex), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(az_span_create_from_str(code_align), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(az_span_create_from_str(code_scope_cleanup), &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
   if (cdd_cst_parse(az_span_create_from_str("int f(int x) { return "
                                             "__builtin_expect(x, 1); }\n"),
                     &tree) == 0) {
-    cdd_transform_gnu(tree, &config);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
@@ -635,27 +635,27 @@ TEST test_gnu_standardizer_error_branches(void) {
           az_span_create_from_str("void fc(float z) { __real__ z; }\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(
           az_span_create_from_str("void fc(float z) { __imag__ z; }\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   if (cdd_cst_parse(
           az_span_create_from_str("void fc(void) { __auto_type a = 1; }\n"),
           &tree) == 0) {
     g_cdd_cst_alloc_node_fail = 1;
-    cdd_transform_gnu(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
     g_cdd_cst_alloc_node_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   {
@@ -670,8 +670,8 @@ TEST test_gnu_standardizer_error_branches(void) {
       CDD_SNPRINTF(code, sizeof(code), "int x = %s;\n", long_num);
 #endif
       if (cdd_cst_parse(az_span_create_from_str(code), &tree) == 0) {
-        cdd_transform_gnu(tree, &config);
-        cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_transform_gnu(tree, &config);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         tree = NULL;
       }
     }

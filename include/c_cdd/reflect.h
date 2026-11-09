@@ -907,6 +907,18 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_to_json(
     const void *obj, const struct cdd_type_info *ti, char **out_json);
 
 /**
+ * @brief Populates an existing `JSON_Object` in-place from a struct instance
+ * `obj` driven purely by its runtime `cdd_type_info` table.
+ *
+ * @param[in] obj Pointer to struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in,out] jobj Target JSON object (as `void *` for header decoupling).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_to_json_object(
+    const void *obj, const struct cdd_type_info *ti, void *jobj);
+
+/**
  * @brief Deserializes a JSON string into a newly allocated struct instance
  * `*out_obj` driven purely by its runtime `cdd_type_info` table.
  *

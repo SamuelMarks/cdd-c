@@ -52,13 +52,14 @@ TEST test_init_simple_positional(void) {
   struct TokenList *_ast_tokenize_str_0;
   const char *code = cdd_test_mut_str("{ 1, 2, 3 }");
   struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_0), _ast_tokenize_str_0);
+      (g_cdd_last_alloc_err = tokenize_str(code, &_ast_tokenize_str_0),
+       _ast_tokenize_str_0);
   struct InitList list;
   size_t consumed = 0;
   int rc = 0;
 
   ASSERT(tl);
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   rc = parse_initializer(tl, 0, tl->size, &list, &consumed);
   ASSERT_EQ(0, rc);
@@ -71,8 +72,8 @@ TEST test_init_simple_positional(void) {
   ASSERT_STR_EQ("2", list.items[1].value->data.scalar);
   ASSERT_STR_EQ("3", list.items[2].value->data.scalar);
 
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -85,12 +86,13 @@ TEST test_init_designated_fields(void) {
   struct TokenList *_ast_tokenize_str_1;
   const char *code = cdd_test_mut_str("{ .x = 10, .y = 20 }");
   struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_1), _ast_tokenize_str_1);
+      (g_cdd_last_alloc_err = tokenize_str(code, &_ast_tokenize_str_1),
+       _ast_tokenize_str_1);
   struct InitList list;
   int rc = 0;
 
   ASSERT(tl);
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(0, rc);
@@ -102,8 +104,8 @@ TEST test_init_designated_fields(void) {
   ASSERT_STR_EQ(".y", list.items[1].designator);
   ASSERT_STR_EQ("20", list.items[1].value->data.scalar);
 
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -116,12 +118,13 @@ TEST test_init_array_index(void) {
   struct TokenList *_ast_tokenize_str_2;
   const char *code = cdd_test_mut_str("{ [0] = 1, [5] = 2 }");
   struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_2), _ast_tokenize_str_2);
+      (g_cdd_last_alloc_err = tokenize_str(code, &_ast_tokenize_str_2),
+       _ast_tokenize_str_2);
   struct InitList list;
   int rc = 0;
 
   ASSERT(tl);
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(0, rc);
@@ -133,8 +136,8 @@ TEST test_init_array_index(void) {
   ASSERT_STR_EQ("[5]", list.items[1].designator);
   ASSERT_STR_EQ("2", list.items[1].value->data.scalar);
 
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -148,12 +151,13 @@ TEST test_init_nested(void) {
   const char *code =
       cdd_test_mut_str("{ .pt = { .x = 1, .y = 2 }, .flag = 1 }");
   struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_3), _ast_tokenize_str_3);
+      (g_cdd_last_alloc_err = tokenize_str(code, &_ast_tokenize_str_3),
+       _ast_tokenize_str_3);
   struct InitList list;
   int rc = 0;
 
   ASSERT(tl);
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(0, rc);
@@ -174,8 +178,8 @@ TEST test_init_nested(void) {
   ASSERT_STR_EQ(".flag", list.items[1].designator);
   ASSERT_STR_EQ("1", list.items[1].value->data.scalar);
 
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -190,12 +194,13 @@ TEST test_init_mixed_expressions(void) {
   const char *code = cdd_test_mut_str("{ .a = 1 + 2, .b = func(x, y), "
                                       ".c = (int){ 0 } }");
   struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_4), _ast_tokenize_str_4);
+      (g_cdd_last_alloc_err = tokenize_str(code, &_ast_tokenize_str_4),
+       _ast_tokenize_str_4);
   struct InitList list;
   int rc = 0;
 
   ASSERT(tl);
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(0, rc);
@@ -230,8 +235,8 @@ TEST test_init_mixed_expressions(void) {
 
   ASSERT(strstr(list.items[2].value->data.scalar, "(int){0}"));
 
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -244,19 +249,20 @@ TEST test_init_trailing_comma(void) {
   struct TokenList *_ast_tokenize_str_5;
   const char *code = cdd_test_mut_str("{ 1, }");
   struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_5), _ast_tokenize_str_5);
+      (g_cdd_last_alloc_err = tokenize_str(code, &_ast_tokenize_str_5),
+       _ast_tokenize_str_5);
   struct InitList list;
   int rc = 0;
 
   ASSERT(tl);
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, list.count); /* 1 is value, comma consumed, } ends loop */
 
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -271,21 +277,23 @@ TEST test_init_errors(void) {
   struct TokenList *tl;
   struct InitList list;
 
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
 
   /* Missing brace */
-  tl = (tokenize_str("1, 2", &_ast_tokenize_str_6), _ast_tokenize_str_6);
+  tl = (g_cdd_last_alloc_err = tokenize_str("1, 2", &_ast_tokenize_str_6),
+        _ast_tokenize_str_6);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Unterminated */
-  tl = (tokenize_str("{ 1, 2", &_ast_tokenize_str_7), _ast_tokenize_str_7);
+  tl = (g_cdd_last_alloc_err = tokenize_str("{ 1, 2", &_ast_tokenize_str_7),
+        _ast_tokenize_str_7);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
 
   PASS();
@@ -312,15 +320,15 @@ TEST test_init_oom(void) {
       continue;
     }
 
-    init_list_init(&list);
+    g_cdd_last_alloc_err = init_list_init(&list);
     rc = parse_initializer(tl, 0, tl->size, &list, NULL);
     g_cdd_alloc_fail = 0;
 
     if (rc != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
-    init_list_free(&list);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = init_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tl);
   }
   g_fail_io_after = -1;
   PASS();
@@ -337,35 +345,35 @@ TEST test_init_more_errors(void) {
 
   /* Invalid designator ending */
   ASSERT_EQ(0, tokenize_str("{ .x , }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Empty expression */
   ASSERT_EQ(0, tokenize_str("{ , }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Designator invalid syntax limit */
   ASSERT_EQ(0, tokenize_str("{ .x }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Empty list? */
   ASSERT_EQ(0, tokenize_str("{ }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -381,107 +389,107 @@ TEST test_init_branches(void) {
 
   /* Null args */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, init_list_init(NULL));
-  init_list_free(NULL);
+  g_cdd_last_alloc_err = init_list_free(NULL);
 
   ASSERT_EQ(0, tokenize_str("{ 1 }", &tl));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(NULL, 0, tl->size, &list, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, NULL, NULL));
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Expression with brackets */
   ASSERT_EQ(0, tokenize_str("{ .x = a[0] }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Designator reaching limit without = */
   ASSERT_EQ(0, tokenize_str("{ .x", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Trailing whitespace EOF */
   ASSERT_EQ(0, tokenize_str("{ 1,   ", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Semicolon in designator */
   ASSERT_EQ(0, tokenize_str("{ .x ; }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Empty tokens to hit i >= end_idx for LBRACE */
   ASSERT_EQ(0, tokenize_str("", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Resize list > 4 */
   ASSERT_EQ(0, tokenize_str("{ 1, 2, 3, 4, 5, 6 }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, parse_initializer(tl, 0, tl->size, &list, NULL));
   ASSERT_EQ(6, list.count);
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Mock init_value_free(NULL) via manual list injection */
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   list.items = (struct InitItem *)C_CDD_CALLOC(1, sizeof(struct InitItem));
   list.items[0].value = NULL;
   list.items[0].designator = NULL;
   list.count = 1;
   list.capacity = 1;
-  init_list_free(&list);
+  g_cdd_last_alloc_err = init_list_free(&list);
 
   /* Test skip_ws failure branches */
   ASSERT_EQ(CDD_C_SUCCESS, tokenize_str("{ 1 }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   g_initializer_fail_skip_ws = 1;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
   g_initializer_fail_skip_ws = 0;
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   ASSERT_EQ(CDD_C_SUCCESS, tokenize_str("{ 1 }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   g_initializer_fail_skip_ws = 2;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
   g_initializer_fail_skip_ws = 0;
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   ASSERT_EQ(CDD_C_SUCCESS, tokenize_str("{ .a = 1 }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   g_initializer_fail_skip_ws = 3;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
   g_initializer_fail_skip_ws = 0;
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   ASSERT_EQ(CDD_C_SUCCESS, tokenize_str("{ 1 }", &tl));
-  init_list_init(&list);
+  g_cdd_last_alloc_err = init_list_init(&list);
   g_initializer_fail_skip_ws = 4;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
   g_initializer_fail_skip_ws = 0;
-  init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();

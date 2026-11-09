@@ -749,7 +749,7 @@ int main(int argc, char **argv) {
            (unsigned long)tree->root->num_children,
            (unsigned long)tree->root->capacity);
     if (tree)
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
 #if defined(_MSC_VER) && _MSC_VER <= 1400

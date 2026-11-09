@@ -44,14 +44,14 @@ TEST test_cdd_transform_safe_crt_oom_malloc(void) {
   const char code[] = "void f() { char *p = malloc; strcpy(p, \"a\"); }";
   memset(&config, 0, sizeof(config));
   for (i = 1; i <= 20; i++) {
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
     g_safe_crt_malloc_fail = i;
-    cdd_transform_safe_crt(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   }
   g_safe_crt_malloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 #endif
   PASS();
 }
@@ -107,94 +107,94 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   {
     int i;
     for (i = 1; i <= 200; i++) {
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
       ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
       g_safe_crt_malloc_fail = i;
-      cdd_transform_safe_crt(tree, &config);
+      g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
       g_safe_crt_malloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
     for (i = 1; i <= 20; i++) {
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
       ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
       g_cdd_cst_alloc_node_fail = i;
-      cdd_transform_safe_crt(tree, &config);
+      g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
       g_cdd_cst_alloc_node_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_cdd_cst_alloc_node_fail = 3;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_cdd_cst_alloc_node_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_cdd_query_err_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_safe_crt(tree, &config));
   g_cdd_query_err_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_safe_crt_malloc_fail = 2;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_safe_crt_malloc_fail = 15;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 14;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 13;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 12;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 11;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 10;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 9;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 8;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 7;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_safe_crt_malloc_fail = 3;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_safe_crt_malloc_fail = 4;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   g_safe_crt_malloc_fail = 5;
-  cdd_transform_safe_crt(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 0;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree2));
-  cdd_transform_safe_crt(tree2, &config);
-  cdd_cst_tree_free(tree2);
+  g_cdd_last_alloc_err = cdd_transform_safe_crt(tree2, &config);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree2);
 
   {
     const char *code9 =
@@ -204,21 +204,21 @@ TEST test_cdd_transform_safe_crt_oom(void) {
     cdd_cst_tree_t *tree9 = NULL;
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code9), &tree9));
     ASSERT_EQ(0, cdd_transform_safe_crt(tree9, &config));
-    cdd_cst_tree_free(tree9);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree9);
 
     {
       const char *code10 = "void edge10() { scanf(\"%s\", NULL); }";
       cdd_cst_tree_t *tree10 = NULL;
       ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code10), &tree10));
       ASSERT_EQ(0, cdd_transform_safe_crt(tree10, &config));
-      cdd_cst_tree_free(tree10);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree10);
 
       {
         const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
         cdd_cst_tree_t *tree11 = NULL;
         ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code11), &tree11));
         ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
-        cdd_cst_tree_free(tree11);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree11);
 
         {
           const char code12[] = {
@@ -250,7 +250,7 @@ TEST test_cdd_transform_safe_crt_oom(void) {
           cdd_cst_tree_t *tree12 = NULL;
           ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code12), &tree12));
           ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
-          cdd_cst_tree_free(tree12);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree12);
 
 #endif
           g_fail_io_after = -1;
@@ -296,7 +296,7 @@ TEST test_cdd_transform_safe_crt_needs_buffers(void) {
     ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree));
     rc_t = cdd_transform_safe_crt(tree, &config);
     ASSERT_EQ(0, rc_t);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   PASS();
@@ -443,7 +443,7 @@ TEST test_cdd_transform_safe_crt_more_cases(void) {
     int t_rc = 0;
     if (p_rc == 0) {
       t_rc = cdd_transform_safe_crt(tree, &config);
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
     ASSERT_EQ(0, p_rc);
@@ -521,12 +521,12 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
   for (j = 0; j < 15; j++) {
     for (i = 1; i <= 30000; i++) {
       int rem;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
       ASSERT_EQ(0,
                 cdd_cst_parse(az_span_create_from_str(oom_snippets[j]), &tree));
       g_mock_safe_crt_rules_fail = i;
-      cdd_transform_safe_crt(tree, &config);
+      g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &config);
       rem = g_mock_safe_crt_rules_fail;
       g_mock_safe_crt_rules_fail = 0;
       if (rem > 0) {
@@ -534,7 +534,7 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
       }
     }
   }
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 #endif
   PASS();
 }
@@ -560,7 +560,7 @@ TEST test_cdd_transform_safe_crt_mock_fails(void) {
   ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
   g_mock_check_unsupported_calls_fail = 0;
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 

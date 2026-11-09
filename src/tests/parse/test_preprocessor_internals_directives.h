@@ -88,7 +88,7 @@ TEST test_pp_100_cov_directives(void) {
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     g_cdd_fail_identify_keyword_or_id = 0;
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("gnu::attr(1)"), &tl);
@@ -97,7 +97,7 @@ TEST test_pp_100_cov_directives(void) {
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_pp_token_to_string_fail = 0;
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("limit(10)"), &tl);
@@ -106,75 +106,75 @@ TEST test_pp_100_cov_directives(void) {
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     g_cdd_pp_eval_expr_fail = 0;
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("suffix(end) (nested)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    pp_embed_params_free(&params);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = pp_embed_params_free(&params);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("limit"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("gnu::123(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("gnu::unknown(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("gnu::"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
   /* 10. Scan defines: GNU variadic macro */
-  write_to_file(test_file, "#define GNU_VAR(a...) a\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#define GNU_VAR(a...) a\n");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 11. Scan includes directives and error hooks */
-  write_to_file(test_file, "#if 0\n"
-                           "#include \"ignored.h\"\n"
-                           "#endif\n"
-                           "#include <sys/stat.h\n"
-                           "#ifdef FOO\n"
-                           "#endif\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#if 0\n"
+                                                  "#include \"ignored.h\"\n"
+                                                  "#endif\n"
+                                                  "#include <sys/stat.h\n"
+                                                  "#ifdef FOO\n"
+                                                  "#endif\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Error in pp_is_defined_macro during #ifdef */
-  write_to_file(test_file, "#ifdef FOO\n#endif\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#ifdef FOO\n#endif\n");
   g_cdd_pp_is_defined_macro_fail = 1;
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_is_defined_macro_fail = 0;
 
   /* System include with closing > */
-  write_to_file(test_file, "#include <stdio.h>\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#include <stdio.h>\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Error in C_CDD_MALLOC during #include raw_path */
-  write_to_file(test_file, "#include \"header.h\"\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#include \"header.h\"\n");
   for (i = 1; i <= 10; i++) {
     g_cdd_alloc_fail = (int)i;
     rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
@@ -290,18 +290,18 @@ TEST test_pp_100_cov_directives(void) {
 
   {
     struct PreprocessorContext macro_ctx;
-    pp_context_init(&macro_ctx);
+    g_cdd_last_alloc_err = pp_context_init(&macro_ctx);
     memset(&def, 0, sizeof(def));
     def.name = C_CDD_STRDUP("FUNC_MACRO");
     def.is_function_like = 1;
-    pp_add_macro_internal(&macro_ctx, &def);
+    g_cdd_last_alloc_err = pp_add_macro_internal(&macro_ctx, &def);
     memset(&def, 0, sizeof(def));
     def.name = C_CDD_STRDUP("NULL_VAL_MACRO");
     def.value = NULL;
-    pp_add_macro_internal(&macro_ctx, &def);
+    g_cdd_last_alloc_err = pp_add_macro_internal(&macro_ctx, &def);
 
     s.ctx = &macro_ctx;
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("FUNC_MACRO"), &tl);
@@ -311,7 +311,7 @@ TEST test_pp_100_cov_directives(void) {
     s.end = tl->size;
     rc = pp_parse_primary(&s, &val);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
 
     rc = tokenize(az_span_create_from_str("NULL_VAL_MACRO"), &tl);
@@ -321,9 +321,9 @@ TEST test_pp_100_cov_directives(void) {
     s.end = tl->size;
     rc = pp_parse_primary(&s, &val);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
-    pp_context_free(&macro_ctx);
+    g_cdd_last_alloc_err = pp_context_free(&macro_ctx);
   }
 
   /* Single colon edge cases for ( gnu : pure ) and embed gnu : attr(1) */
@@ -334,7 +334,7 @@ TEST test_pp_100_cov_directives(void) {
   s.error = 0;
   s.end = tl->size;
   rc = pp_handle_has_c_attribute(&s, &val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   {
@@ -343,30 +343,30 @@ TEST test_pp_100_cov_directives(void) {
     rc = tokenize(az_span_create_from_str("gnu : attr(1)"), &tl);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = pp_parse_embed_params(tl, 0, tl->size, &ctx, &params);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
   /* Scan defines edge cases: trailing #, trailing #define, #define FOO at EOF
    */
-  write_to_file(test_file, "#");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  write_to_file(test_file, "#define");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#define");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  write_to_file(test_file, "#define FOO");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#define FOO");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  write_to_file(test_file, "#define FOO(a)");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#define FOO(a)");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* OOM on macro value allocation in scan_defines */
-  write_to_file(test_file, "#define FOO 123\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#define FOO 123\n");
   for (i = 1; i <= 6; i++) {
     g_cdd_alloc_fail = (int)i;
     rc = pp_scan_defines(&ctx, test_file);
@@ -376,32 +376,33 @@ TEST test_pp_100_cov_directives(void) {
   /* Scan includes edge cases: # without cmd, directive at EOF, #ifdef without
    * id, #ifdef 123, #include without path, #include 123, #else after
    * satisfied */
-  write_to_file(test_file, "#\n"
-                           "#include\n"
-                           "#include 123\n"
-                           "#ifdef\n"
-                           "#ifdef 123\n"
-                           "#endif\n"
-                           "#endif\n"
-                           "#if 1\n"
-                           "#elif 1\n"
-                           "#else\n"
-                           "#endif\n");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#\n"
+                                                  "#include\n"
+                                                  "#include 123\n"
+                                                  "#ifdef\n"
+                                                  "#ifdef 123\n"
+                                                  "#endif\n"
+                                                  "#endif\n"
+                                                  "#if 1\n"
+                                                  "#elif 1\n"
+                                                  "#else\n"
+                                                  "#endif\n");
   rc = pp_scan_includes(test_file, &ctx, NULL, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Scan includes embed with params */
-  write_to_file(test_file, "#embed \"file.bin\" limit(10)\n");
+  g_cdd_last_alloc_err =
+      write_to_file(test_file, "#embed \"file.bin\" limit(10)\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Trailing # at end of file */
-  write_to_file(test_file, "#");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Trailing #include at end of file */
-  write_to_file(test_file, "#include");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#include");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
@@ -410,7 +411,7 @@ TEST test_pp_100_cov_directives(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* #define FOO(a at EOF */
-  write_to_file(test_file, "#define FOO(a");
+  g_cdd_last_alloc_err = write_to_file(test_file, "#define FOO(a");
   rc = pp_scan_defines(&ctx, test_file);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
@@ -422,7 +423,7 @@ TEST test_pp_100_cov_directives(void) {
   s.error = 0;
   s.end = tl->size;
   rc = pp_handle_has_c_attribute(&s, &val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* ( gnu :: at EOF */
@@ -433,7 +434,7 @@ TEST test_pp_100_cov_directives(void) {
   s.error = 0;
   s.end = tl->size;
   rc = pp_handle_has_c_attribute(&s, &val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Hex literal 0x10 in parse_primary */
@@ -446,7 +447,7 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(16, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   s.ctx = NULL;
@@ -459,7 +460,7 @@ TEST test_pp_100_cov_directives(void) {
   s.end = tl->size;
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Keyword token in parse_primary */
@@ -472,7 +473,7 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* defined at EOF */
@@ -484,7 +485,7 @@ TEST test_pp_100_cov_directives(void) {
   s.end = tl->size;
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Empty parens in __has_c_attribute with skip_ws fail at line 877 */
@@ -498,7 +499,7 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_skip_ws_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Double colon without scope before it: ( :: pure ) */
@@ -509,7 +510,7 @@ TEST test_pp_100_cov_directives(void) {
   s.error = 0;
   s.end = tl->size;
   rc = pp_handle_has_c_attribute(&s, &val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("( :: pure )"), &tl);
@@ -522,7 +523,7 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_skip_ws_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Decimal literal length > 2 not starting with 0 in parse_primary */
@@ -535,7 +536,7 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(123, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Semicolon token in parse_primary */
@@ -547,7 +548,7 @@ TEST test_pp_100_cov_directives(void) {
   s.end = tl->size;
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Identifier in parse_primary when ctx is NULL */
@@ -561,7 +562,7 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* defined followed by non-identifier */
@@ -573,7 +574,7 @@ TEST test_pp_100_cov_directives(void) {
   s.end = tl->size;
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* g_cdd_pp_eval_expr_fail = 2 for --hook == 0 */
@@ -585,29 +586,32 @@ TEST test_pp_100_cov_directives(void) {
   rc = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_eval_expr_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Scan includes with cb == NULL on existing file */
-  write_to_file("test_inc_exist.h", "\n");
-  write_to_file(test_file, "#include \"test_inc_exist.h\"\n");
+  g_cdd_last_alloc_err = write_to_file("test_inc_exist.h", "\n");
+  g_cdd_last_alloc_err =
+      write_to_file(test_file, "#include \"test_inc_exist.h\"\n");
   rc = pp_scan_includes(test_file, &ctx, NULL, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Scan includes embed without parameters after filename */
-  write_to_file("test_embed.bin", "\n");
-  write_to_file(test_file, "#embed \"test_embed.bin\"\n");
+  g_cdd_last_alloc_err = write_to_file("test_embed.bin", "\n");
+  g_cdd_last_alloc_err =
+      write_to_file(test_file, "#embed \"test_embed.bin\"\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   remove("test_embed.bin");
 
   /* Scan includes callback abort on include */
-  write_to_file(test_file, "#include \"test_inc_exist.h\"\n");
+  g_cdd_last_alloc_err =
+      write_to_file(test_file, "#include \"test_inc_exist.h\"\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_abort_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   remove("test_inc_exist.h");
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(test_file);
   PASS();
 }

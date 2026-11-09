@@ -79,13 +79,13 @@ process_file(const char *filepath,
   rc = transform_fn(tree, config);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error transforming %s\n", filepath);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     C_CDD_FREE(str);
     return rc;
   }
 
   rc = cdd_cst_emit(tree, &out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error emitting %s\n", filepath);
     C_CDD_FREE(str);

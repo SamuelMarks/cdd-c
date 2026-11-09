@@ -53,8 +53,8 @@ TEST test_cleanup_generation(void) {
     ASSERT(strstr(content, "free(obj);"));
 
     free(content);
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -98,8 +98,8 @@ TEST test_default_generation(void) {
     ASSERT(strstr(content, "strdup(\"test\");"));
 
     free(content);
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -145,8 +145,8 @@ TEST test_deepcopy_generation(void) {
 #endif
 
     free(content);
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -189,8 +189,8 @@ TEST test_eq_generation(void) {
     ASSERT(strstr(content, "strcmp(a->name, b->name)"));
 
     free(content);
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -233,8 +233,8 @@ TEST test_guards_injection(void) {
     ASSERT(strstr(content, "#endif /* MY_GUARD */"));
 
     free(content);
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -333,8 +333,8 @@ TEST test_struct_debug_func(void) {
     ASSERT(strstr(content, "(unknown)"));
 
     free(content);
-    struct_fields_free(NULL);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(NULL);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -403,8 +403,8 @@ TEST test_struct_invalid_args(void) {
       fclose(tmp);
   }
 
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(NULL);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -428,8 +428,8 @@ TEST test_struct_fields_add_bitwidth(void) {
   ASSERT_EQ(2, sf.size);
   ASSERT_STR_EQ("\0", sf.fields[1].bit_width);
 
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(NULL);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

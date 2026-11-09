@@ -76,7 +76,8 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       (config->library_name) ? config->library_name : "mylib";
   char class_name[256];
 
-  to_camel_case(lib_name, class_name, sizeof(class_name));
+  g_cdd_last_alloc_err =
+      to_camel_case(lib_name, class_name, sizeof(class_name));
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.php", config->output_dir,
@@ -112,13 +113,13 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "            struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
-        get_cdef_type(node->fields[j].type, &ftype);
+        g_cdd_last_alloc_err = get_cdef_type(node->fields[j].type, &ftype);
         if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
           fprintf(f, "                struct %s %s;\n", ftype, fname);
         } else {
@@ -128,12 +129,12 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "            };\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ct = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      get_cdef_type(node->return_or_base_type, &ret_ct);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = get_cdef_type(node->return_or_base_type, &ret_ct);
       fprintf(f, "            %s %s(", ret_ct, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        get_cdef_type(node->fields[j].type, &ct);
+        g_cdd_last_alloc_err = get_cdef_type(node->fields[j].type, &ct);
         fprintf(f, "%s %s", ct,
                 node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1)
@@ -151,7 +152,7 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "    /**\n     * %s\n     */\n", node->doc);
       fprintf(f, "    public function %s(", node->name);

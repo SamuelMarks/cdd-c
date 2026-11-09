@@ -73,18 +73,18 @@ static cdd_c_error_t load_spec_str2(const char *json_str,
   cdd_c_error_t rc = 0;
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(json_str, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(json_str, &_cdd_jv_1);
     dyn = _cdd_jv_1;
   }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = openapi_spec_init(spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(dyn);
+    g_cdd_last_alloc_err = json_value_free(dyn);
     return rc;
   }
   rc = openapi_load_from_json(dyn, spec);
-  json_value_free(dyn);
+  g_cdd_last_alloc_err = json_value_free(dyn);
   return rc;
 }
 

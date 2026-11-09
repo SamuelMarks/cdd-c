@@ -250,7 +250,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
                            (int)((size_t)config & 0u));
 
   if (current_tree != tree) {
-    arena_free_all();
+    g_cdd_last_alloc_err = arena_free_all();
     current_tree = tree;
   }
 
@@ -258,7 +258,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     replaced_any = 0;
     rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res);
     if (rc != CDD_C_SUCCESS) {
-      arena_free_all();
+      g_cdd_last_alloc_err = arena_free_all();
       current_tree = NULL;
       return (cdd_c_error_t)rc;
     }
@@ -298,7 +298,11 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       if (rc != CDD_C_SUCCESS)
         goto loop_err;
 
-      chk_rc = check_needs_transform(ast);
+      {
+        int needs_transform = 0;
+        g_cdd_last_alloc_err = check_needs_transform(ast, &needs_transform);
+        chk_rc = (cdd_c_error_t)needs_transform;
+      }
       if (chk_rc) {
         msc_node = NULL;
         else_node = NULL;
@@ -330,8 +334,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &msc_node);
         if (rc != CDD_C_SUCCESS) {
           first_tok->leading_trivia = saved_trivia;
-          cdd_cst_free_node(new_node);
-          cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_free_node(new_node);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
           goto loop_err;
         }
         chk_rc = cdd_cst_builder_init(&msc_bld, tree, msc_node);
@@ -341,10 +345,10 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         if (rc != CDD_C_SUCCESS) {
           g_msc_ctx = NULL;
           first_tok->leading_trivia = saved_trivia;
-          cdd_cst_free_node(new_node);
-          cdd_cst_free_node(msc_node);
-          cdd_cst_builder_free(&msc_bld);
-          cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_free_node(new_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(msc_node);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&msc_bld);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
           goto loop_err;
         }
         g_msc_ctx = NULL;
@@ -352,22 +356,22 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
         if (rc != CDD_C_SUCCESS) {
           first_tok->leading_trivia = saved_trivia;
-          cdd_cst_free_node(new_node);
-          cdd_cst_free_node(msc_node);
-          cdd_cst_builder_free(&msc_bld);
-          cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_free_node(new_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(msc_node);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&msc_bld);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
           goto loop_err;
         }
         chk_rc = cdd_cst_builder_init(&else_bld, tree, else_node);
         rc = emit_ast_bld(ast, &else_bld, 0, NULL);
         if (rc != CDD_C_SUCCESS) {
           first_tok->leading_trivia = saved_trivia;
-          cdd_cst_free_node(new_node);
-          cdd_cst_free_node(msc_node);
-          cdd_cst_free_node(else_node);
-          cdd_cst_builder_free(&else_bld);
-          cdd_cst_builder_free(&msc_bld);
-          cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_free_node(new_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(msc_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(else_node);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&else_bld);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&msc_bld);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
           goto loop_err;
         }
 
@@ -530,24 +534,24 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
           if (bld.error_state == 0) {
             chk_rc = cdd_cst_replace_node(tree, stmt, new_node);
-            cdd_cst_free_node(stmt);
+            g_cdd_last_alloc_err = cdd_cst_free_node(stmt);
             replaced_any = 1;
-            cdd_cst_free_node_only(msc_node);
-            cdd_cst_free_node_only(else_node);
+            g_cdd_last_alloc_err = cdd_cst_free_node_only(msc_node);
+            g_cdd_last_alloc_err = cdd_cst_free_node_only(else_node);
           } else {
-            cdd_cst_free_node(new_node);
-            cdd_cst_free_node(msc_node);
-            cdd_cst_free_node(else_node);
+            g_cdd_last_alloc_err = cdd_cst_free_node(new_node);
+            g_cdd_last_alloc_err = cdd_cst_free_node(msc_node);
+            g_cdd_last_alloc_err = cdd_cst_free_node(else_node);
           }
         } else {
-          cdd_cst_free_node(new_node);
-          cdd_cst_free_node(msc_node);
-          cdd_cst_free_node(else_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(new_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(msc_node);
+          g_cdd_last_alloc_err = cdd_cst_free_node(else_node);
         }
 
-        cdd_cst_builder_free(&msc_bld);
-        cdd_cst_builder_free(&else_bld);
-        cdd_cst_builder_free(&bld);
+        g_cdd_last_alloc_err = cdd_cst_builder_free(&msc_bld);
+        g_cdd_last_alloc_err = cdd_cst_builder_free(&else_bld);
+        g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
 
         if (replaced_any) {
           break;
@@ -558,13 +562,13 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     C_CDD_FREE(res.nodes);
   } while (replaced_any);
 
-  arena_free_all();
+  g_cdd_last_alloc_err = arena_free_all();
   current_tree = NULL;
   return CDD_C_SUCCESS;
 
 loop_err:
   C_CDD_FREE(res.nodes);
-  arena_free_all();
+  g_cdd_last_alloc_err = arena_free_all();
   current_tree = NULL;
   return (cdd_c_error_t)rc;
 }

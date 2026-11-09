@@ -290,7 +290,7 @@ cdd_c_error_t doc_metadata_free(struct DocMetadata *meta) {
   if (meta->request_body_content_type)
     C_CDD_FREE(meta->request_body_content_type);
 
-  doc_free_arazzo_metadata(meta);
+  g_cdd_last_alloc_err = doc_free_arazzo_metadata(meta);
 
   memset(meta, 0, sizeof(*meta));
   return CDD_C_SUCCESS;

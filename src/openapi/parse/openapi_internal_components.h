@@ -225,10 +225,12 @@ extern C_CDD_EXPORT cdd_c_error_t parse_parameter_object(
  *
  * @param[in] a First OpenAPI parameter.
  * @param[in] b Second OpenAPI parameter.
- * @return Non-zero if equal, CDD_C_SUCCESS otherwise.
+ * @param[out] out_equal Set to 1 if equal, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t param_key_equals(
-    const struct OpenAPI_Parameter *a, const struct OpenAPI_Parameter *b);
+extern C_CDD_EXPORT cdd_c_error_t
+param_key_equals(const struct OpenAPI_Parameter *a,
+                 const struct OpenAPI_Parameter *b, int *out_equal);
 
 /**
  * @brief Parses parameters array from the given input.

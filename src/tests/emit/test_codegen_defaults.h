@@ -127,11 +127,14 @@ TEST test_default_primitive(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
-  struct_fields_add(&sf, "flag", "boolean", NULL, "1", NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "flag", "boolean", NULL, "1", NULL);
 
-  code = (generate_def_code("Prim", &sf, &_ast_generate_def_code_0),
+  code = (g_cdd_last_alloc_err =
+              generate_def_code("Prim", &sf, &_ast_generate_def_code_0),
           _ast_generate_def_code_0);
   ASSERT(code != NULL);
 
@@ -140,7 +143,7 @@ TEST test_default_primitive(void) {
   ASSERT(strstr(code, "(*out)->flag = 1;"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -154,11 +157,13 @@ TEST test_default_string(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   /* JSON string defaults usually come quoted e.g. "\"foo\"" from parser */
-  struct_fields_add(&sf, "s", "string", NULL, "\"hello\"", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s", "string", NULL, "\"hello\"", NULL);
 
-  code = (generate_def_code("StrS", &sf, &_ast_generate_def_code_1),
+  code = (g_cdd_last_alloc_err =
+              generate_def_code("StrS", &sf, &_ast_generate_def_code_1),
           _ast_generate_def_code_1);
   ASSERT(code != NULL);
 
@@ -173,7 +178,7 @@ TEST test_default_string(void) {
                       "CDD_C_ERROR_MEMORY; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -187,10 +192,12 @@ TEST test_default_enum(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "e", "enum", "Color", "\"RED\"", NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "e", "enum", "Color", "\"RED\"", NULL);
 
-  code = (generate_def_code("EnumStruct", &sf, &_ast_generate_def_code_2),
+  code = (g_cdd_last_alloc_err =
+              generate_def_code("EnumStruct", &sf, &_ast_generate_def_code_2),
           _ast_generate_def_code_2);
   ASSERT(code != NULL);
 
@@ -200,7 +207,7 @@ TEST test_default_enum(void) {
                       "*out=NULL; return rc; }"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -214,10 +221,12 @@ TEST test_default_no_defaults(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
-  code = (generate_def_code("NoDef", &sf, &_ast_generate_def_code_3),
+  code = (g_cdd_last_alloc_err =
+              generate_def_code("NoDef", &sf, &_ast_generate_def_code_3),
           _ast_generate_def_code_3);
   ASSERT(code != NULL);
 
@@ -226,7 +235,7 @@ TEST test_default_no_defaults(void) {
   ASSERT(strstr(code, "(*out)->x = ") == NULL);
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -240,12 +249,14 @@ TEST test_default_nullptr(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "ptr_val", "integer", NULL, "nullptr",
-                    NULL); /* treated as raw */
-  struct_fields_add(&sf, "str_ptr", "string", NULL, "nullptr", NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &sf, "ptr_val", "integer", NULL, "nullptr", NULL); /* treated as raw */
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "str_ptr", "string", NULL, "nullptr", NULL);
 
-  code = (generate_def_code("PtrStruct", &sf, &_ast_generate_def_code_4),
+  code = (g_cdd_last_alloc_err =
+              generate_def_code("PtrStruct", &sf, &_ast_generate_def_code_4),
           _ast_generate_def_code_4);
   ASSERT(code != NULL);
 
@@ -254,7 +265,7 @@ TEST test_default_nullptr(void) {
   ASSERT(strstr(code, "(*out)->str_ptr = NULL;"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -268,13 +279,16 @@ TEST test_default_binary_literal(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   /* 0b101 -> 5 */
-  struct_fields_add(&sf, "bin_val", "integer", NULL, "0b101", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "bin_val", "integer", NULL, "0b101", NULL);
   /* 0B11 -> 3 */
-  struct_fields_add(&sf, "bin_cap", "integer", NULL, "0B11", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "bin_cap", "integer", NULL, "0B11", NULL);
 
-  code = (generate_def_code("BinStruct", &sf, &_ast_generate_def_code_5),
+  code = (g_cdd_last_alloc_err =
+              generate_def_code("BinStruct", &sf, &_ast_generate_def_code_5),
           _ast_generate_def_code_5);
   ASSERT(code != NULL);
 
@@ -285,7 +299,7 @@ TEST test_default_binary_literal(void) {
   ASSERT(strstr(code, "(*out)->bin_cap = 0x0000000000000003ULL;"));
 
   C_CDD_FREE(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -339,9 +353,9 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
-  struct_fields_init(&sf);
-  enum_members_add(&sf.enum_members, "M1");
-  enum_members_add(&sf.enum_members, "UNKNOWN");
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = enum_members_add(&sf.enum_members, "M1");
+  g_cdd_last_alloc_err = enum_members_add(&sf.enum_members, "UNKNOWN");
   sf.enum_members.members[sf.enum_members.size] = NULL;
   sf.enum_members
       .size++; /* Intentionally leave one member NULL to test !member branch */
@@ -371,7 +385,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
 
   if (tmp)
     fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -388,33 +402,50 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
-  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
-  struct_fields_add(&sf, "r", "object", "R", NULL, NULL);
-  struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
-  struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
-  struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
-  struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
-  struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
-  struct_fields_add(&sf, "fa_s", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "r", "object", "R", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fa_s", "array", "string", NULL, NULL);
   sf.fields[sf.size - 1].fixed_array_len = 4;
-  struct_fields_add(&sf, "fa_i", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fa_i", "array", "integer", NULL, NULL);
   sf.fields[sf.size - 1].fixed_array_len = 4;
-  struct_fields_add(&sf, "fa_b", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fa_b", "array", "boolean", NULL, NULL);
   sf.fields[sf.size - 1].fixed_array_len = 4;
-  struct_fields_add(&sf, "fa_n", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fa_n", "array", "number", NULL, NULL);
   sf.fields[sf.size - 1].fixed_array_len = 4;
-  struct_fields_add(&sf, "fa_r", "array", "R", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fa_r", "array", "R", NULL, NULL);
   sf.fields[sf.size - 1].fixed_array_len = 4;
-  struct_fields_add(&sf, "fs", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fs", "string", NULL, NULL, NULL);
   sf.fields[sf.size - 1].fixed_array_len = 16;
-  struct_fields_add(&sf, "bi", "integer", NULL, NULL, "4");
-  struct_fields_add(&sf, "bb", "boolean", NULL, NULL, "1");
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "bi", "integer", NULL, NULL, "4");
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "bb", "boolean", NULL, NULL, "1");
   cfg.json_guard = cdd_test_mut_str("JSON_G");
   cfg.utils_guard = cdd_test_mut_str("UTILS_G");
 
@@ -435,7 +466,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   {
     struct StructFields empty_sf;
     int j;
-    struct_fields_init(&empty_sf);
+    g_cdd_last_alloc_err = struct_fields_init(&empty_sf);
     for (j = 1; j < 20; j++) {
       g_fail_io_after = j;
       g_io_calls = 0;
@@ -444,12 +475,12 @@ TEST test_write_struct_declaration_h_io_fail(void) {
         break;
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
-    struct_fields_free(&empty_sf);
+    g_cdd_last_alloc_err = struct_fields_free(&empty_sf);
   }
 
   if (tmp)
     fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -466,19 +497,28 @@ TEST test_write_union_declaration_h_io_fail(void) {
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
-  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
-  struct_fields_add(&sf, "r", "object", "R", NULL, NULL);
-  struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
-  struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
-  struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
-  struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
-  struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "r", "object", "R", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
   cfg.json_guard = cdd_test_mut_str("JSON_G");
   cfg.utils_guard = cdd_test_mut_str("UTILS_G");
 
@@ -496,7 +536,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   }
   if (tmp)
     fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -510,7 +550,7 @@ TEST test_codegen_h_bounds(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
 
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -536,7 +576,7 @@ TEST test_codegen_h_bounds(void) {
 
   if (tmp)
     fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -548,8 +588,9 @@ TEST test_codegen_h_bounds(void) {
 TEST test_def_errors(void) {
   char *_out = NULL;
   struct StructFields sf;
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
 
   g_io_calls = 0;
   g_fail_io_after = 1; /* TMPFILE fails */
@@ -575,7 +616,7 @@ TEST test_def_errors(void) {
   C_CDD_FREE(_out);
 
   g_fail_io_after = -1;
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 
@@ -593,11 +634,11 @@ TEST test_codegen_serde_cli_exhaustive(void) {
   memset(&cfg, 0, sizeof(cfg));
 
   /* 1. Enum with all container and variant attributes */
-  struct_fields_init(&sf);
-  enum_members_add(&sf.enum_members, "M1");
-  enum_members_add(&sf.enum_members, "M2");
-  enum_members_add(&sf.enum_members, "M3");
-  enum_members_add(&sf.enum_members, "M4");
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = enum_members_add(&sf.enum_members, "M1");
+  g_cdd_last_alloc_err = enum_members_add(&sf.enum_members, "M2");
+  g_cdd_last_alloc_err = enum_members_add(&sf.enum_members, "M3");
+  g_cdd_last_alloc_err = enum_members_add(&sf.enum_members, "M4");
 
   CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "EnumRen");
   sf.enum_members.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
@@ -611,12 +652,12 @@ TEST test_codegen_serde_cli_exhaustive(void) {
   sf.enum_members.serde_untagged = 1;
 
   sf.enum_members.serde_names[0] = strdup("m1_ren");
-  enum_member_add_alias(&sf.enum_members, 0, "m1_al");
+  g_cdd_last_alloc_err = enum_member_add_alias(&sf.enum_members, 0, "m1_al");
   sf.enum_members.serde_skip[0] = 1;
   sf.enum_members.serde_other_idx = 0;
 
   /* M2: alias first, then skip */
-  enum_member_add_alias(&sf.enum_members, 1, "m2_al");
+  g_cdd_last_alloc_err = enum_member_add_alias(&sf.enum_members, 1, "m2_al");
   sf.enum_members.serde_skip[1] = 1;
 
   /* M3: skip first */
@@ -668,14 +709,18 @@ TEST test_codegen_serde_cli_exhaustive(void) {
     sf.enum_members.serde_skip = saved_skip;
     sf.enum_members.n_serde_aliases = saved_nal;
   }
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 2. Union with all attributes and failure paths */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "u_s", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "u_e", "enum", "#/definitions/UE", NULL, NULL);
-  struct_fields_add(&sf, "u_o", "object", "#/definitions/UO", NULL, NULL);
-  struct_fields_add(&sf, "u_ar", "array", "#/definitions/UA", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "u_s", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "u_e", "enum", "#/definitions/UE", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "u_o", "object", "#/definitions/UO", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "u_ar", "array", "#/definitions/UA", NULL, NULL);
   CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "UnionRen");
   CDD_STRCPY(sf.serde_tag, sizeof(sf.serde_tag), "utag");
   CDD_STRCPY(sf.serde_content, sizeof(sf.serde_content), "ucontent");
@@ -716,10 +761,10 @@ TEST test_codegen_serde_cli_exhaustive(void) {
     g_cdd_fail_str_after_last = 0;
   }
 #endif
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 3. Struct with all container and field Serde + CLI attributes */
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
   CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), "StructRen");
   sf.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
   sf.serde_rename_all_ser = CDD_SERDE_CASE_CAMELCASE;
@@ -742,7 +787,8 @@ TEST test_codegen_serde_cli_exhaustive(void) {
   CDD_STRCPY(sf.cli_env_prefix, sizeof(sf.cli_env_prefix), "APP_");
 
   /* Field 0: array with rich serde + cli attributes */
-  struct_fields_add(&sf, "f_arr", "array", "#/definitions/SubItem", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "f_arr", "array",
+                                           "#/definitions/SubItem", NULL, NULL);
   CDD_STRCPY(sf.fields[0].serde_rename, sizeof(sf.fields[0].serde_rename),
              "f0_ren");
   CDD_STRCPY(sf.fields[0].serde_rename_ser,
@@ -754,7 +800,7 @@ TEST test_codegen_serde_cli_exhaustive(void) {
              sizeof(sf.fields[0].serde_replace_from), "a");
   CDD_STRCPY(sf.fields[0].serde_replace_to,
              sizeof(sf.fields[0].serde_replace_to), "b");
-  struct_field_add_alias(&sf.fields[0], "f0_al");
+  g_cdd_last_alloc_err = struct_field_add_alias(&sf.fields[0], "f0_al");
   sf.fields[0].serde_skip = 1;
   sf.fields[0].serde_skip_if_kind = CDD_SERDE_SKIP_IF_EMPTY;
   sf.fields[0].serde_flatten = 1;
@@ -779,19 +825,23 @@ TEST test_codegen_serde_cli_exhaustive(void) {
   sf.fields[0].cli_action = CDD_CLI_ACTION_APPEND;
   sf.fields[0].cli_value_delimiter = ',';
   sf.fields[0].cli_subcommand = 1;
-  struct_field_add_cli_conflict(&sf.fields[0], "other_flag");
-  struct_field_add_cli_requires(&sf.fields[0], "req_flag");
+  g_cdd_last_alloc_err =
+      struct_field_add_cli_conflict(&sf.fields[0], "other_flag");
+  g_cdd_last_alloc_err =
+      struct_field_add_cli_requires(&sf.fields[0], "req_flag");
 
   /* Field 1: skip_serializing + skip_deserializing + skip_if_zero + default_val
    */
-  struct_fields_add(&sf, "f1", "integer", NULL, "10", NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "f1", "integer", NULL, "10", NULL);
   sf.fields[1].serde_skip_serializing = 1;
   sf.fields[1].serde_skip_deserializing = 1;
   sf.fields[1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
   sf.fields[1].serde_has_default = 1;
 
   /* Field 2: write_only + read_only + skip_if_func + bare default */
-  struct_fields_add(&sf, "f2", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "f2", "string", NULL, NULL, NULL);
   sf.fields[2].write_only = 1;
   sf.fields[2].read_only = 1;
   sf.fields[2].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
@@ -800,12 +850,15 @@ TEST test_codegen_serde_cli_exhaustive(void) {
   sf.fields[2].serde_has_default = 1;
 
   /* Field 3: skip_if_null + skip_if_func with empty fn */
-  struct_fields_add(&sf, "f3", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "f3", "string", NULL, NULL, NULL);
   sf.fields[3].serde_skip_if_kind = CDD_SERDE_SKIP_IF_FUNC;
 
   /* Field 4: enum and object fields for get_type_from_ref */
-  struct_fields_add(&sf, "f_enum", "enum", "#/definitions/SE", NULL, NULL);
-  struct_fields_add(&sf, "f_obj", "object", "#/definitions/SO", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "f_enum", "enum", "#/definitions/SE", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "f_obj", "object", "#/definitions/SO", NULL, NULL);
 
   cfg.cli_guard = cdd_test_mut_str("CLI_G");
   cfg.emit_cli = 1;
@@ -838,10 +891,11 @@ TEST test_codegen_serde_cli_exhaustive(void) {
    * serde_names != NULL, when v_n_al > 0 only, and when v_other is first */
   {
     struct StructFields sf_e;
-    struct_fields_init(&sf_e);
-    enum_members_add(&sf_e.enum_members, "V1");
-    enum_members_add(&sf_e.enum_members, "V2");
-    enum_member_add_alias(&sf_e.enum_members, 0, "v1_al_only");
+    g_cdd_last_alloc_err = struct_fields_init(&sf_e);
+    g_cdd_last_alloc_err = enum_members_add(&sf_e.enum_members, "V1");
+    g_cdd_last_alloc_err = enum_members_add(&sf_e.enum_members, "V2");
+    g_cdd_last_alloc_err =
+        enum_member_add_alias(&sf_e.enum_members, 0, "v1_al_only");
     sf_e.enum_members.serde_other_idx = 1;
     for (j = 0; j < 30; ++j) {
       g_fail_io_after = j;
@@ -852,35 +906,43 @@ TEST test_codegen_serde_cli_exhaustive(void) {
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
     g_fail_io_after = -1;
-    struct_fields_free(&sf_e);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_e);
   }
 
   /* Test IO failure on field with serde_skip=0, default_val, bare default,
    * cli_short first, and container cli_name first */
   {
     struct StructFields sf_io2;
-    struct_fields_init(&sf_io2);
+    g_cdd_last_alloc_err = struct_fields_init(&sf_io2);
     sf_io2.is_cli_command = 1;
-    struct_fields_add(&sf_io2, "f_defval", "string", NULL, "dv", NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_io2, "f_defval", "string", NULL, "dv", NULL);
     sf_io2.fields[0].serde_has_default = 1;
     sf_io2.fields[0].cli_short = 's';
-    struct_fields_add(&sf_io2, "f_baredef", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_io2, "f_baredef", "integer", NULL, NULL, NULL);
     sf_io2.fields[1].serde_has_default = 1;
-    struct_fields_add(&sf_io2, "f_clifirst", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_io2, "f_clifirst", "integer", NULL, NULL, NULL);
     sf_io2.fields[2].cli_short = 'c';
-    struct_fields_add(&sf_io2, "f_skip_if_null", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&sf_io2, "f_skip_if_null",
+                                             "string", NULL, NULL, NULL);
     sf_io2.fields[3].serde_skip_if_kind = CDD_SERDE_SKIP_IF_NULL;
-    struct_fields_add(&sf_io2, "f_ren_skipser", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_io2, "f_ren_skipser", "string", NULL, NULL, NULL);
     CDD_STRCPY(sf_io2.fields[4].serde_rename,
                sizeof(sf_io2.fields[4].serde_rename), "r_ss");
     sf_io2.fields[4].serde_skip_serializing = 1;
-    struct_fields_add(&sf_io2, "f_deffn_first", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&sf_io2, "f_deffn_first",
+                                             "integer", NULL, NULL, NULL);
     sf_io2.fields[5].serde_has_default = 1;
     CDD_STRCPY(sf_io2.fields[5].serde_default_fn,
                sizeof(sf_io2.fields[5].serde_default_fn), "dff");
-    struct_fields_add(&sf_io2, "f_cliskip", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_io2, "f_cliskip", "integer", NULL, NULL, NULL);
     sf_io2.fields[6].cli_skip = 1;
-    struct_fields_add(&sf_io2, "f_cliskip_tf", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_io2, "f_cliskip_tf", "integer", NULL, NULL, NULL);
     sf_io2.fields[7].cli_skip_to_cli = 1;
     sf_io2.fields[7].cli_skip_from_cli = 1;
     for (j = 0; j < 100; ++j) {
@@ -892,14 +954,15 @@ TEST test_codegen_serde_cli_exhaustive(void) {
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
     g_fail_io_after = -1;
-    struct_fields_free(&sf_io2);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_io2);
   }
 
   /* Test array field serde comment IO failure when container has no comment */
   {
     struct StructFields sf_arr_io;
-    struct_fields_init(&sf_arr_io);
-    struct_fields_add(&sf_arr_io, "arr", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf_arr_io);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf_arr_io, "arr", "array", "string", NULL, NULL);
     sf_arr_io.fields[0].serde_skip = 1;
     for (j = 0; j < 10; ++j) {
       g_fail_io_after = j;
@@ -910,7 +973,7 @@ TEST test_codegen_serde_cli_exhaustive(void) {
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
     g_fail_io_after = -1;
-    struct_fields_free(&sf_arr_io);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_arr_io);
   }
 
 #ifdef CDD_BUILD_TESTS
@@ -925,7 +988,7 @@ TEST test_codegen_serde_cli_exhaustive(void) {
     g_cdd_fail_str_after_last = 0;
   }
 #endif
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* 4. Test each container attribute and field attribute as the FIRST attribute
    * (to cover both branches of `first_attr ? "" : ", "`, `f_first ? "" : ", "`,
@@ -934,8 +997,9 @@ TEST test_codegen_serde_cli_exhaustive(void) {
     int step;
     for (step = 0; step < 30; ++step) {
       struct StructFields s_perm;
-      struct_fields_init(&s_perm);
-      struct_fields_add(&s_perm, "x", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_init(&s_perm);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&s_perm, "x", "integer", NULL, NULL, NULL);
       switch (step) {
       case 0:
         s_perm.serde_rename_all = CDD_SERDE_CASE_SNAKECASE;
@@ -959,7 +1023,7 @@ TEST test_codegen_serde_cli_exhaustive(void) {
         break;
       case 4:
         CDD_STRCPY(s_perm.serde_prefix, sizeof(s_perm.serde_prefix), "p");
-        struct_field_add_alias(&s_perm.fields[0], "al");
+        g_cdd_last_alloc_err = struct_field_add_alias(&s_perm.fields[0], "al");
         break;
       case 5:
         CDD_STRCPY(s_perm.serde_suffix, sizeof(s_perm.serde_suffix), "s");
@@ -1039,10 +1103,12 @@ TEST test_codegen_serde_cli_exhaustive(void) {
         s_perm.fields[0].cli_subcommand = 1;
         break;
       case 24:
-        struct_field_add_cli_conflict(&s_perm.fields[0], "cf");
+        g_cdd_last_alloc_err =
+            struct_field_add_cli_conflict(&s_perm.fields[0], "cf");
         break;
       case 25:
-        struct_field_add_cli_requires(&s_perm.fields[0], "rq");
+        g_cdd_last_alloc_err =
+            struct_field_add_cli_requires(&s_perm.fields[0], "rq");
         break;
       case 26:
         s_perm.fields[0].cli_skip = 1;
@@ -1063,7 +1129,7 @@ TEST test_codegen_serde_cli_exhaustive(void) {
         break;
       }
       ASSERT_EQ(0, write_struct_declaration_h(tmp, "PermS", &s_perm, NULL));
-      struct_fields_free(&s_perm);
+      g_cdd_last_alloc_err = struct_fields_free(&s_perm);
     }
   }
 

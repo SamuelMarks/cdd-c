@@ -26,17 +26,17 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->is_array = src->is_array;
   dst->ref_is_dynamic = src->ref_is_dynamic;
   if (src->ref_name) {
-    c_cdd_strdup(src->ref_name, &dst->ref_name);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->ref_name, &dst->ref_name);
     if (!dst->ref_name)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->ref) {
-    c_cdd_strdup(src->ref, &dst->ref);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->ref, &dst->ref);
     if (!dst->ref)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->inline_type) {
-    c_cdd_strdup(src->inline_type, &dst->inline_type);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->inline_type, &dst->inline_type);
     if (!dst->inline_type)
       return CDD_C_ERROR_MEMORY;
   }
@@ -47,27 +47,29 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return rc;
   }
   if (src->format) {
-    c_cdd_strdup(src->format, &dst->format);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->format, &dst->format);
     if (!dst->format)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->content_type) {
-    c_cdd_strdup(src->content_type, &dst->content_type);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->content_type, &dst->content_type);
     if (!dst->content_type)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->content_media_type) {
-    c_cdd_strdup(src->content_media_type, &dst->content_media_type);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->content_media_type, &dst->content_media_type);
     if (!dst->content_media_type)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->content_encoding) {
-    c_cdd_strdup(src->content_encoding, &dst->content_encoding);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->content_encoding, &dst->content_encoding);
     if (!dst->content_encoding)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->items_format) {
-    c_cdd_strdup(src->items_format, &dst->items_format);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->items_format, &dst->items_format);
     if (!dst->items_format)
       return CDD_C_ERROR_MEMORY;
   }
@@ -78,30 +80,32 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return rc;
   }
   if (src->items_ref) {
-    c_cdd_strdup(src->items_ref, &dst->items_ref);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->items_ref, &dst->items_ref);
     if (!dst->items_ref)
       return CDD_C_ERROR_MEMORY;
   }
   dst->items_ref_is_dynamic = src->items_ref_is_dynamic;
   if (src->items_content_media_type) {
-    c_cdd_strdup(src->items_content_media_type, &dst->items_content_media_type);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->items_content_media_type,
+                                        &dst->items_content_media_type);
     if (!dst->items_content_media_type)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->items_content_encoding) {
-    c_cdd_strdup(src->items_content_encoding, &dst->items_content_encoding);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->items_content_encoding, &dst->items_content_encoding);
     if (!dst->items_content_encoding)
       return CDD_C_ERROR_MEMORY;
   }
   dst->nullable = src->nullable;
   dst->items_nullable = src->items_nullable;
   if (src->summary) {
-    c_cdd_strdup(src->summary, &dst->summary);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->summary, &dst->summary);
     if (!dst->summary)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->description) {
-    c_cdd_strdup(src->description, &dst->description);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->description, &dst->description);
     if (!dst->description)
       return CDD_C_ERROR_MEMORY;
   }
@@ -160,43 +164,45 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->schema_extra_json) {
-    c_cdd_strdup(src->schema_extra_json, &dst->schema_extra_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->schema_extra_json, &dst->schema_extra_json);
     if (!dst->schema_extra_json)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->external_docs.description) {
-    c_cdd_strdup(src->external_docs.description,
-                 &dst->external_docs.description);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->external_docs.description,
+                                        &dst->external_docs.description);
     if (!dst->external_docs.description)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->external_docs.url) {
-    c_cdd_strdup(src->external_docs.url, &dst->external_docs.url);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->external_docs.url, &dst->external_docs.url);
     if (!dst->external_docs.url)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->external_docs.extensions_json) {
-    c_cdd_strdup(src->external_docs.extensions_json,
-                 &dst->external_docs.extensions_json);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->external_docs.extensions_json,
+                                        &dst->external_docs.extensions_json);
     if (!dst->external_docs.extensions_json)
       return CDD_C_ERROR_MEMORY;
   }
   dst->external_docs_set = src->external_docs_set;
   if (src->discriminator.property_name) {
-    c_cdd_strdup(src->discriminator.property_name,
-                 &dst->discriminator.property_name);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->discriminator.property_name,
+                                        &dst->discriminator.property_name);
     if (!dst->discriminator.property_name)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->discriminator.default_mapping) {
-    c_cdd_strdup(src->discriminator.default_mapping,
-                 &dst->discriminator.default_mapping);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->discriminator.default_mapping,
+                                        &dst->discriminator.default_mapping);
     if (!dst->discriminator.default_mapping)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->discriminator.extensions_json) {
-    c_cdd_strdup(src->discriminator.extensions_json,
-                 &dst->discriminator.extensions_json);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->discriminator.extensions_json,
+                                        &dst->discriminator.extensions_json);
     if (!dst->discriminator.extensions_json)
       return CDD_C_ERROR_MEMORY;
   }
@@ -210,14 +216,16 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->discriminator.n_mapping = src->discriminator.n_mapping;
     for (i = 0; i < src->discriminator.n_mapping; ++i) {
       if (src->discriminator.mapping[i].value) {
-        c_cdd_strdup(src->discriminator.mapping[i].value,
-                     &dst->discriminator.mapping[i].value);
+        g_cdd_last_alloc_err =
+            c_cdd_strdup(src->discriminator.mapping[i].value,
+                         &dst->discriminator.mapping[i].value);
         if (!dst->discriminator.mapping[i].value)
           return CDD_C_ERROR_MEMORY;
       }
       if (src->discriminator.mapping[i].schema) {
-        c_cdd_strdup(src->discriminator.mapping[i].schema,
-                     &dst->discriminator.mapping[i].schema);
+        g_cdd_last_alloc_err =
+            c_cdd_strdup(src->discriminator.mapping[i].schema,
+                         &dst->discriminator.mapping[i].schema);
         if (!dst->discriminator.mapping[i].schema)
           return CDD_C_ERROR_MEMORY;
       }
@@ -227,22 +235,24 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->xml.node_type = src->xml.node_type;
   dst->xml.node_type_set = src->xml.node_type_set;
   if (src->xml.name) {
-    c_cdd_strdup(src->xml.name, &dst->xml.name);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->xml.name, &dst->xml.name);
     if (!dst->xml.name)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->xml.namespace_uri) {
-    c_cdd_strdup(src->xml.namespace_uri, &dst->xml.namespace_uri);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->xml.namespace_uri, &dst->xml.namespace_uri);
     if (!dst->xml.namespace_uri)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->xml.prefix) {
-    c_cdd_strdup(src->xml.prefix, &dst->xml.prefix);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->xml.prefix, &dst->xml.prefix);
     if (!dst->xml.prefix)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->xml.extensions_json) {
-    c_cdd_strdup(src->xml.extensions_json, &dst->xml.extensions_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->xml.extensions_json, &dst->xml.extensions_json);
     if (!dst->xml.extensions_json)
       return CDD_C_ERROR_MEMORY;
   }
@@ -275,7 +285,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->has_max_len = src->has_max_len;
   dst->max_len = src->max_len;
   if (src->pattern) {
-    c_cdd_strdup(src->pattern, &dst->pattern);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->pattern, &dst->pattern);
     if (!dst->pattern)
       return CDD_C_ERROR_MEMORY;
   }
@@ -295,7 +305,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->items_has_max_len = src->items_has_max_len;
   dst->items_max_len = src->items_max_len;
   if (src->items_pattern) {
-    c_cdd_strdup(src->items_pattern, &dst->items_pattern);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->items_pattern, &dst->items_pattern);
     if (!dst->items_pattern)
       return CDD_C_ERROR_MEMORY;
   }
@@ -335,17 +346,20 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->items_default_value_set = 1;
   }
   if (src->items_extra_json) {
-    c_cdd_strdup(src->items_extra_json, &dst->items_extra_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->items_extra_json, &dst->items_extra_json);
     if (!dst->items_extra_json)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->collection_format) {
-    c_cdd_strdup(src->collection_format, &dst->collection_format);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->collection_format, &dst->collection_format);
     if (!dst->collection_format)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->items_collection_format) {
-    c_cdd_strdup(src->items_collection_format, &dst->items_collection_format);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->items_collection_format,
+                                        &dst->items_collection_format);
     if (!dst->items_collection_format)
       return CDD_C_ERROR_MEMORY;
   }
@@ -461,12 +475,12 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       struct OpenAPI_MultipartField *dst_field = &dst->multipart_fields[i];
       dst_field->is_binary = src_field->is_binary;
       if (src_field->name) {
-        c_cdd_strdup(src_field->name, &dst_field->name);
+        g_cdd_last_alloc_err = c_cdd_strdup(src_field->name, &dst_field->name);
         if (!dst_field->name)
           return CDD_C_ERROR_MEMORY;
       }
       if (src_field->type) {
-        c_cdd_strdup(src_field->type, &dst_field->type);
+        g_cdd_last_alloc_err = c_cdd_strdup(src_field->type, &dst_field->type);
         if (!dst_field->type)
           return CDD_C_ERROR_MEMORY;
       }
@@ -512,7 +526,7 @@ cdd_c_error_t copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
                                         const struct OpenAPI_SchemaRef *item) {
   cdd_c_error_t rc = copy_item_schema_as_array_inner(dst, item);
   if (rc != CDD_C_SUCCESS)
-    free_schema_ref_content(dst);
+    g_cdd_last_alloc_err = free_schema_ref_content(dst);
   return rc;
 }
 
@@ -531,12 +545,12 @@ cdd_c_error_t copy_any_value(struct OpenAPI_Any *dst,
   dst->number = src->number;
   dst->boolean = src->boolean;
   if (src->type == OA_ANY_STRING && src->string) {
-    c_cdd_strdup(src->string, &dst->string);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->string, &dst->string);
     if (!dst->string)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->type == OA_ANY_JSON && src->json) {
-    c_cdd_strdup(src->json, &dst->json);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->json, &dst->json);
     if (!dst->json)
       return CDD_C_ERROR_MEMORY;
   }

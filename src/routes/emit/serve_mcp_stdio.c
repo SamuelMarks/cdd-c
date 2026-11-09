@@ -386,12 +386,12 @@ cdd_c_error_t CddJsonRpcResponse_to_json(const struct CddJsonRpcResponse *resp,
     rc = cdd_json_parse_string(resp->result_json, &res_val);
     rc = cdd_json_object_set_value(root_obj, "result", res_val);
   } else {
-    char *err_str = NULL;
     JSON_Value *err_val = NULL;
-    rc = cdd_reflect_to_json(&resp->error, &CddJsonRpcErrorObj_type_info,
-                             &err_str);
-    rc = cdd_json_parse_string(err_str, &err_val);
-    C_CDD_FREE(err_str);
+    JSON_Object *err_obj = NULL;
+    rc = cdd_json_value_init_object(&err_val);
+    rc = cdd_json_value_get_object(err_val, &err_obj);
+    rc = cdd_reflect_to_json_object(&resp->error, &CddJsonRpcErrorObj_type_info,
+                                    err_obj);
     rc = cdd_json_object_set_value(root_obj, "error", err_val);
   }
   if (resp->id_val) {
@@ -401,7 +401,7 @@ cdd_c_error_t CddJsonRpcResponse_to_json(const struct CddJsonRpcResponse *resp,
     rc = cdd_json_object_set_null(root_obj, "id");
   }
   rc = cdd_json_serialize_to_string(root_val, out_json);
-  cdd_json_value_free(root_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
   return rc;
 }
 
@@ -513,7 +513,7 @@ cdd_c_error_t build_mcp_resources_read(const JSON_Object *params,
   rc = cdd_json_array_append_value(arr_val->array_val, item_val);
   rc = cdd_json_object_set_value(res_val->object_val, "contents", arr_val);
   rc = cdd_json_serialize_to_string(res_val, &serialized);
-  cdd_json_value_free(res_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(res_val);
   *out_json = serialized;
   return rc;
 }
@@ -552,7 +552,7 @@ cdd_c_error_t build_mcp_prompts_get(const JSON_Object *params,
   rc = cdd_json_array_append_value(msgs_val->array_val, msg_val);
   rc = cdd_json_object_set_value(res_val->object_val, "messages", msgs_val);
   rc = cdd_json_serialize_to_string(res_val, &serialized);
-  cdd_json_value_free(res_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(res_val);
   *out_json = serialized;
   return rc;
 }
@@ -583,7 +583,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   rc = cdd_json_object_get_value(root_obj, "id", &id_val);
 
   if (!method) {
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return send_stdio_rpc_error(id_val, -32600, "Invalid Request");
   }
 
@@ -642,7 +642,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
     rc = cdd_json_object_get_object(root_obj, "params", &params);
     rc = build_mcp_resources_read(params, &res_str);
     rc = send_stdio_rpc_response(id_val, res_str);
-    cdd_json_free_serialized_string(res_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(res_str);
   } else if (strcmp(method, "resources/subscribe") == 0) {
     rc = send_stdio_rpc_response(id_val, "{}");
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
@@ -674,7 +674,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
     rc = cdd_json_object_get_object(root_obj, "params", &params);
     rc = build_mcp_prompts_get(params, &prompt_str);
     rc = send_stdio_rpc_response(id_val, prompt_str);
-    cdd_json_free_serialized_string(prompt_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(prompt_str);
   } else if (strcmp(method, "completion/complete") == 0) {
     rc = send_stdio_rpc_response(
         id_val,
@@ -774,7 +774,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
     rc = send_stdio_rpc_error(id_val, -32601, "Method not found");
   }
 
-  cdd_json_value_free(root_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
   return rc;
 }
 

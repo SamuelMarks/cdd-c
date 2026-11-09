@@ -77,9 +77,9 @@ static cdd_c_error_t free_scope(cdd_cst_scope_t *scope) {
   size_t i;
   if (!scope)
     return CDD_C_SUCCESS;
-  free_symbols(scope->symbols);
+  g_cdd_last_alloc_err = free_symbols(scope->symbols);
   for (i = 0; i < scope->num_children; i++) {
-    free_scope(scope->children[i]);
+    g_cdd_last_alloc_err = free_scope(scope->children[i]);
   }
   if (scope->children)
     C_CDD_FREE(scope->children);
@@ -96,7 +96,7 @@ static cdd_c_error_t free_scope(cdd_cst_scope_t *scope) {
 cdd_c_error_t cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   if (!env)
     return CDD_C_SUCCESS;
-  free_scope(env->global_scope);
+  g_cdd_last_alloc_err = free_scope(env->global_scope);
   C_CDD_FREE(env);
   return CDD_C_SUCCESS;
 }

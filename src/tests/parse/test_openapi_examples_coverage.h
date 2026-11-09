@@ -57,26 +57,26 @@ TEST test_openapi_examples_copy_and_find(void) {
   ASSERT_EQ(CDD_C_SUCCESS, copy_example_fields(&ex_dst, &ex_src));
   /* copy when dst fields are already populated */
   ASSERT_EQ(CDD_C_SUCCESS, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   /* Test OOM on each strdup in copy_example_fields */
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ex_dst.name = strdup("name");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ex_dst.name = strdup("name");
   ex_dst.ref = strdup("ref");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ex_dst.name = strdup("name");
@@ -84,7 +84,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   ex_dst.extensions_json = strdup("{}");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ex_dst.name = strdup("name");
@@ -93,7 +93,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   ex_dst.summary = strdup("sum");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ex_dst.name = strdup("name");
@@ -105,7 +105,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   ex_dst.value_set = 1;
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ex_dst.name = strdup("name");
@@ -118,7 +118,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   ex_dst.serialized_value = strdup("ser");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
   g_cdd_strdup_fail = 0;
 
@@ -129,7 +129,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   ex_src.data_value.string = cdd_test_mut_str("foo");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
   g_cdd_strdup_fail = 0;
 
@@ -140,7 +140,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   ex_src.value.string = cdd_test_mut_str("bar");
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, copy_example_fields(&ex_dst, &ex_src));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
   g_cdd_strdup_fail = 0;
 
@@ -216,17 +216,18 @@ TEST test_openapi_examples_parse_all_branches(void) {
   /* ex_obj != NULL, out == NULL */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex", NULL, &spec, 0));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* name OOM */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"value\": \"v\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"value\": \"v\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -234,28 +235,28 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, "name", &ex_dst, &spec, 0));
   g_cdd_strdup_fail = 0;
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* $ref with and without resolve_refs */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"$ref\": \"#/components/examples/comp_ex\"}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"$ref\": \"#/components/examples/comp_ex\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "name", &ex_dst, &spec, 1));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, NULL, &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, NULL, &ex_dst, NULL, 1));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   /* $ref OOM */
@@ -263,7 +264,7 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 1));
   g_cdd_strdup_fail = 0;
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   /* $ref copy failure on OOM */
@@ -271,14 +272,15 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, "name", &ex_dst, &spec, 1));
   g_cdd_strdup_fail = 0;
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* serializedValue OOM */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"serializedValue\": \"ser\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"serializedValue\": \"ser\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -286,14 +288,15 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
   g_cdd_strdup_fail = 0;
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* extensions failure */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"value\": 1, \"x-ext\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"value\": 1, \"x-ext\": 1}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -301,14 +304,15 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
   g_cdd_strdup_fail = 0;
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* dataValue failure */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"dataValue\": \"str\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"dataValue\": \"str\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -316,16 +320,17 @@ TEST test_openapi_examples_parse_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
   g_cdd_strdup_fail = 0;
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* summary, description, externalValue */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"summary\": \"s\", \"description\": \"d\", "
-                          "\"externalValue\": \"http://ext\"}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"summary\": \"s\", \"description\": \"d\", "
+                              "\"externalValue\": \"http://ext\"}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -333,64 +338,66 @@ TEST test_openapi_examples_parse_all_branches(void) {
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
 
   g_cdd_strdup_fail = 3;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
   g_cdd_strdup_fail = 0;
 
   /* Valid externalValue example */
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex1", &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* dataValue and value parsing */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"value\": \"v\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"value\": \"v\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex2", &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"dataValue\": \"dv\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"dataValue\": \"dv\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, parse_example_object(jo, "ex3", &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* Validation failure: both value and externalValue */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"value\": \"v\", \"externalValue\": \"http://ext\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_example_object(jo, NULL, &ex_dst, &spec, 0));
-  free_example(&ex_dst);
+  g_cdd_last_alloc_err = free_example(&ex_dst);
   memset(&ex_dst, 0, sizeof(ex_dst));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 4. parse_examples_object */
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -404,7 +411,7 @@ TEST test_openapi_examples_parse_all_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -412,13 +419,14 @@ TEST test_openapi_examples_parse_all_branches(void) {
             parse_examples_object(jo, &examples_arr, &n_examples, &spec, 0));
   ASSERT_EQ(NULL, examples_arr);
   ASSERT_EQ(0, n_examples);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"ex1\": {\"value\": 1}, \"invalid_child\": "
-                          "\"not_obj\", \"ex2\": {\"value\": 2}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"ex1\": {\"value\": 1}, \"invalid_child\": "
+                              "\"not_obj\", \"ex2\": {\"value\": 2}}",
+                              &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -431,11 +439,11 @@ TEST test_openapi_examples_parse_all_branches(void) {
             parse_examples_object(jo, &examples_arr, &n_examples, &spec, 0));
   ASSERT_EQ(3, n_examples);
   ASSERT(examples_arr != NULL);
-  free_example(&examples_arr[0]);
-  free_example(&examples_arr[2]);
+  g_cdd_last_alloc_err = free_example(&examples_arr[0]);
+  g_cdd_last_alloc_err = free_example(&examples_arr[2]);
   free(examples_arr);
   examples_arr = NULL;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 5. parse_media_examples */
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -444,33 +452,35 @@ TEST test_openapi_examples_parse_all_branches(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"example\": 1, \"examples\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"example\": 1, \"examples\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,
                                  &n_examples, &spec, 0));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"examples\": {\"ex\": {\"value\": \"test\"}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"examples\": {\"ex\": {\"value\": \"test\"}}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS,
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,
                                  &n_examples, &spec, 0));
-  free_example(&examples_arr[0]);
+  g_cdd_last_alloc_err = free_example(&examples_arr[0]);
   free(examples_arr);
   examples_arr = NULL;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"example\": \"val\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"example\": \"val\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -478,8 +488,8 @@ TEST test_openapi_examples_parse_all_branches(void) {
             parse_media_examples(jo, &example_any, &example_set, &examples_arr,
                                  &n_examples, &spec, 0));
   ASSERT_EQ(1, example_set);
-  free_any_value(&example_any);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = free_any_value(&example_any);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   PASS();
 }

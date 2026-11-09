@@ -159,9 +159,10 @@ TEST test_codegen_config_json_guards(void) {
 
     ASSERT(tmp);
 
-    struct_fields_init(&sf);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
 
-    struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
     memset(&config, 0, sizeof(config));
 
@@ -220,7 +221,7 @@ TEST test_codegen_config_json_guards(void) {
 
     free(content);
 
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     if (tmp)
       fclose(tmp);
@@ -256,9 +257,10 @@ TEST test_union_config_json_guards(void) {
 
     ASSERT(tmp);
 
-    struct_fields_init(&sf);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
 
-    struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
     memset(&config, 0, sizeof(config));
 
@@ -287,7 +289,7 @@ TEST test_union_config_json_guards(void) {
 
     free(content);
 
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     if (tmp)
       fclose(tmp);
@@ -469,7 +471,7 @@ TEST test_schema_codegen_enum_output(void) {
     int f_alloc;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{"
           "\"My-Enum\":{\"type\":\"string\",\"enum\":[\"A\"]},"
           "\"My-Obj\":{\"type\":\"object\",\"x-cdd-rename\":\"CustomWire\","
@@ -486,12 +488,14 @@ TEST test_schema_codegen_enum_output(void) {
 
     for (f_alloc = 1; f_alloc <= 15; ++f_alloc) {
       g_cdd_alloc_fail = f_alloc;
-      generate_header("enum_san_out", "enum_san_out", schemas_obj, NULL);
+      g_cdd_last_alloc_err =
+          generate_header("enum_san_out", "enum_san_out", schemas_obj, NULL);
       g_cdd_alloc_fail = 0;
     }
     for (f_alloc = 1; f_alloc <= 8; ++f_alloc) {
       g_cdd_alloc_fail = f_alloc;
-      generate_source("enum_san_out", "enum_san_out", schemas_obj, NULL);
+      g_cdd_last_alloc_err =
+          generate_source("enum_san_out", "enum_san_out", schemas_obj, NULL);
       g_cdd_alloc_fail = 0;
     }
     ASSERT_EQ(CDD_C_SUCCESS, generate_header("enum_san_out", "enum_san_out",
@@ -500,7 +504,7 @@ TEST test_schema_codegen_enum_output(void) {
                                              schemas_obj, NULL));
     remove("enum_san_out.h");
     remove("enum_san_out.c");
-    json_value_free(root_v);
+    g_cdd_last_alloc_err = json_value_free(root_v);
   }
   g_fail_io_after = -1;
   PASS();
@@ -540,9 +544,10 @@ TEST test_codegen_config_utils_guards(void) {
 
     ASSERT(tmp);
 
-    struct_fields_init(&sf);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
 
-    struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
 
     memset(&config, 0, sizeof(config));
 
@@ -583,7 +588,7 @@ TEST test_codegen_config_utils_guards(void) {
 
     free(content);
 
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     if (tmp)
       fclose(tmp);
@@ -650,11 +655,11 @@ TEST test_schema_constraints_bounds(void) {
   }
 #endif
 
-  schema_constraints_free(&sc);
-  schema_constraints_free(NULL); /* Should be safe */
+  g_cdd_last_alloc_err = schema_constraints_free(&sc);
+  g_cdd_last_alloc_err = schema_constraints_free(NULL); /* Should be safe */
 
   /* Test cleanup of additional properties */
-  schema_constraints_init(&sc);
+  g_cdd_last_alloc_err = schema_constraints_init(&sc);
   sc.has_additional_properties = 1;
   sc.additional_properties =
       (struct SchemaType *)calloc(1, sizeof(struct SchemaType));
@@ -676,7 +681,7 @@ TEST test_schema_constraints_bounds(void) {
 #else
   strcpy(sc.additional_properties->ref, "r");
 #endif
-  schema_constraints_free(&sc);
+  g_cdd_last_alloc_err = schema_constraints_free(&sc);
   g_fail_io_after = -1;
 
   PASS();

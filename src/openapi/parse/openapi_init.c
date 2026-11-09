@@ -145,10 +145,10 @@ cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
 
   {
     size_t len = 0;
-    uri_base_len(base_src, &len);
+    g_cdd_last_alloc_err = uri_base_len(base_src, &len);
     if (len == 0)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    dup_substr(base_src, len, &base);
+    g_cdd_last_alloc_err = dup_substr(base_src, len, &base);
   }
   if (!base)
     return CDD_C_ERROR_MEMORY;

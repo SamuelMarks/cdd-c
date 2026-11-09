@@ -307,18 +307,18 @@ cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
 
   rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_ENTRY, &cfg->entry_block);
   if (rc != CDD_C_SUCCESS) {
-    cdd_cst_cfg_free(cfg);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
     return rc;
   }
   rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_EXIT, &cfg->exit_block);
   if (rc != CDD_C_SUCCESS) {
-    cdd_cst_cfg_free(cfg);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
     return rc;
   }
 
   rc = walk_function_body(cfg, function_node);
   if (rc != CDD_C_SUCCESS) {
-    cdd_cst_cfg_free(cfg);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
     return rc;
   }
 

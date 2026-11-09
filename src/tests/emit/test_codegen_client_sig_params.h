@@ -34,7 +34,8 @@ TEST test_sig_query_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_23), _ast_gen_sig_23);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_23),
+          _ast_gen_sig_23);
   ASSERT(code);
   {
     int io_i;
@@ -95,7 +96,8 @@ TEST test_sig_path_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_24), _ast_gen_sig_24);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_24),
+          _ast_gen_sig_24);
   ASSERT(code);
   {
     int io_i;
@@ -156,7 +158,8 @@ TEST test_sig_header_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_25), _ast_gen_sig_25);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_25),
+          _ast_gen_sig_25);
   ASSERT(code);
   {
     int io_i;
@@ -217,7 +220,8 @@ TEST test_sig_cookie_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_26), _ast_gen_sig_26);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_26),
+          _ast_gen_sig_26);
   ASSERT(code);
   {
     int io_i;
@@ -279,7 +283,8 @@ TEST test_sig_json_content_query_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_27), _ast_gen_sig_27);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_27),
+          _ast_gen_sig_27);
   ASSERT(code);
   {
     int io_i;
@@ -343,7 +348,7 @@ TEST test_sig_header_param_boolean(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -406,7 +411,7 @@ TEST test_sig_header_param_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -469,7 +474,7 @@ TEST test_sig_header_param_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -532,7 +537,7 @@ TEST test_sig_header_param_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -724,7 +729,7 @@ TEST test_sig_response_array_string_ref(void) {
   resp.schema.ref_name = cdd_test_mut_str("string");
   op.responses = &resp;
   op.n_responses = 1;
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -777,7 +782,7 @@ TEST test_sig_response_array_integer_ref(void) {
   resp.schema.ref_name = cdd_test_mut_str("integer");
   op.responses = &resp;
   op.n_responses = 1;
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -830,7 +835,7 @@ TEST test_sig_response_array_struct_ref(void) {
   resp.schema.ref_name = cdd_test_mut_str("Pet");
   op.responses = &resp;
   op.n_responses = 1;
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -937,7 +942,7 @@ TEST test_sig_unsupported_prefix(void) {
   param.in = OA_PARAM_IN_QUERYSTRING;
   param.type = cdd_test_mut_str("string");
   param.content_type = cdd_test_mut_str("unsupported/type");
-  gen_sig(&op, NULL, &code);
+  g_cdd_last_alloc_err = gen_sig(&op, NULL, &code);
   ASSERT(code);
   free(code);
   PASS();

@@ -100,7 +100,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
       fprintf(c_f,
               "static int Tcl_%s(ClientData clientData, Tcl_Interp *interp, "
               "int objc, Tcl_Obj *const objv[]) {\n",
@@ -259,7 +259,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
     for (i = 0; i < ir->nodes_count; i++) {
       node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
-        cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
         fprintf(c_f,
                 "    Tcl_CreateObjCommand(interp, \"%s::%s\", Tcl_%s, NULL, "
                 "NULL);\n",

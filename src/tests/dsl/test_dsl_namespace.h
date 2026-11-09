@@ -34,8 +34,8 @@ TEST test_dsl_parser_namespace(void) {
   ASSERT_EQ((size_t)1, ir->nodes_count);
   ASSERT_STR_EQ("test", ir->nodes[0].name);
 
-  cdd_dsl_token_list_free(&list);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }

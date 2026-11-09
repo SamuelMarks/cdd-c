@@ -46,8 +46,8 @@ TEST test_dsl_parser_macros(void) {
   ASSERT_STR_EQ("LOG", ir->nodes[2].name);
   ASSERT_STR_EQ(" printf(\"hi\"); ", ir->nodes[2].raw_body);
 
-  cdd_dsl_token_list_free(&list);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }

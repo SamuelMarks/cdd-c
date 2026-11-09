@@ -119,8 +119,8 @@ TEST test_sync_remaining_branches(void) {
   free(str_out);
   str_out = NULL;
 
-  free_cst_node_list(&cst);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 5. find_function_node with non-function node and non-identifier before
@@ -134,8 +134,8 @@ TEST test_sync_remaining_branches(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(node == NULL);
 
-  free_cst_node_list(&cst);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 6. apply_query_sync failure paths */
@@ -167,9 +167,9 @@ TEST test_sync_remaining_branches(void) {
     ASSERT(rc != CDD_C_SUCCESS);
     g_cdd_fail_patch_list_add = 0;
 
-    patch_list_free(&patches);
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = patch_list_free(&patches);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
@@ -223,9 +223,9 @@ TEST test_sync_remaining_branches(void) {
     op.parameters = &param;
     op.n_parameters = 1;
 
-    patch_list_free(&patches);
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = patch_list_free(&patches);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
@@ -257,8 +257,8 @@ TEST test_sync_remaining_branches(void) {
     ASSERT(rc != CDD_C_SUCCESS);
     g_cdd_fail_patch_list_add = 0;
 
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
@@ -276,8 +276,8 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
@@ -292,8 +292,8 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl, &cst, &spec, &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
@@ -312,8 +312,8 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl_match, &cst_match, &spec,
                                      &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_cst_node_list(&cst_match);
-    free_token_list(tl_match);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst_match);
+    g_cdd_last_alloc_err = free_token_list(tl_match);
   }
 
   /* Node without brace in apply_updates (body_start == 0) */
@@ -333,7 +333,7 @@ TEST test_sync_remaining_branches(void) {
     cst_nob.capacity = 1;
     rc = cdd_test_sync_apply_updates("file.c", tl_nob, &cst_nob, &spec, &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl_nob);
+    g_cdd_last_alloc_err = free_token_list(tl_nob);
   }
 
   /* Node without semicolon after snprintf in apply_updates */
@@ -356,7 +356,7 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl_nosemi, &cst_nosemi, &spec,
                                      &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl_nosemi);
+    g_cdd_last_alloc_err = free_token_list(tl_nosemi);
   }
 
   /* Node with start_token == end_token in extract_current_sig and
@@ -382,7 +382,7 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_extract_current_sig(tl_empty, &empty_fn, NULL, &str_out);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(str_out == NULL);
-    free_token_list(tl_empty);
+    g_cdd_last_alloc_err = free_token_list(tl_empty);
   }
 
   /* RPAREN before LPAREN */
@@ -402,7 +402,7 @@ TEST test_sync_remaining_branches(void) {
     ASSERT(str_out != NULL);
     free(str_out);
     str_out = NULL;
-    free_token_list(tl_paren);
+    g_cdd_last_alloc_err = free_token_list(tl_paren);
   }
 
   /* Immediate query statements and missing semicolon in query */
@@ -424,10 +424,10 @@ TEST test_sync_remaining_branches(void) {
       ASSERT_EQ(0, rc);
       rc = cdd_test_sync_apply_query_sync(&op, tl_imm, node, &patches);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      patch_list_free(&patches);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
     }
-    free_cst_node_list(&cst_imm);
-    free_token_list(tl_imm);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst_imm);
+    g_cdd_last_alloc_err = free_token_list(tl_imm);
   }
 
   /* Semicolon before query statements in query sync */
@@ -450,10 +450,10 @@ TEST test_sync_remaining_branches(void) {
       ASSERT_EQ(0, rc);
       rc = cdd_test_sync_apply_query_sync(&op, tl_semi, node, &patches);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      patch_list_free(&patches);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
     }
-    free_cst_node_list(&cst_semi);
-    free_token_list(tl_semi);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst_semi);
+    g_cdd_last_alloc_err = free_token_list(tl_semi);
   }
 
   /* Non-identifier before LPAREN in find_function_node */
@@ -477,7 +477,7 @@ TEST test_sync_remaining_branches(void) {
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       ASSERT(node == NULL);
     }
-    free_token_list(tl_star);
+    g_cdd_last_alloc_err = free_token_list(tl_star);
   }
 
   /* Function without parens in apply_updates */
@@ -498,7 +498,7 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl_noparen, &cst_noparen, &spec,
                                      &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl_noparen);
+    g_cdd_last_alloc_err = free_token_list(tl_noparen);
   }
 
   /* Node starting with LPAREN in find_function_node (id_idx <=
@@ -520,7 +520,7 @@ TEST test_sync_remaining_branches(void) {
                                           &node);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(node == NULL);
-    free_token_list(tl_lpar);
+    g_cdd_last_alloc_err = free_token_list(tl_lpar);
 
     /* Test k > node->start_token but id_idx == node->start_token */
     rc = tokenize(az_span_create_from_str("int (void) { return 0; }\n"),
@@ -532,7 +532,7 @@ TEST test_sync_remaining_branches(void) {
                                           &node);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(node == NULL);
-    free_token_list(tl_lpar);
+    g_cdd_last_alloc_err = free_token_list(tl_lpar);
   }
 
   /* Function with unclosed paren in apply_updates (actual_sig == NULL) */
@@ -554,7 +554,7 @@ TEST test_sync_remaining_branches(void) {
     rc = cdd_test_sync_apply_updates("file.c", tl_unclosed, &cst_unclosed,
                                      &spec, &cfg);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl_unclosed);
+    g_cdd_last_alloc_err = free_token_list(tl_unclosed);
   }
 
   /* patch_list_apply OOM in apply_updates */
@@ -573,13 +573,14 @@ TEST test_sync_remaining_branches(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_alloc_fail = 0;
 
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
   /* 9. api_sync_file with non-NULL config and parse_tokens error */
-  write_to_file("temp_sync_test2.c", "int main() { return 0; }\n");
+  g_cdd_last_alloc_err =
+      write_to_file("temp_sync_test2.c", "int main() { return 0; }\n");
   rc = api_sync_file("temp_sync_test2.c", &spec, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 

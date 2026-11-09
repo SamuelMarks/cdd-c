@@ -1050,7 +1050,7 @@ TEST test_struct_reflection_and_codegen(void) {
         sf_bw.fields[13].fixed_array_len = 16;
         ASSERT_EQ(CDD_C_SUCCESS,
                   write_struct_reflect_func(tmp, "BwExprRefl", &sf_bw, NULL));
-        struct_fields_free(&sf_bw);
+        g_cdd_last_alloc_err = struct_fields_free(&sf_bw);
       }
 
       /* Test enum reflection lookup and runtime registries */
@@ -1488,7 +1488,7 @@ TEST test_struct_reflection_and_codegen(void) {
         ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
       }
       g_fail_io_after = -1;
-      struct_fields_free(&sf_rf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_rf);
 
       /* Test write_func_reflect_func */
       {
@@ -1685,7 +1685,7 @@ TEST test_struct_reflection_and_codegen(void) {
                                      tmp, "FixBfStruct", &sf_fix, NULL));
         ASSERT_EQ(CDD_C_SUCCESS, write_struct_cli_all_funcs(tmp, "FixBfStruct",
                                                             &sf_fix, NULL));
-        struct_fields_free(&sf_fix);
+        g_cdd_last_alloc_err = struct_fields_free(&sf_fix);
 
         ASSERT_EQ(CDD_C_SUCCESS, enum_members_init(&em_al));
         ASSERT_EQ(CDD_C_SUCCESS, enum_members_add(&em_al, "ONE"));
@@ -1700,7 +1700,7 @@ TEST test_struct_reflection_and_codegen(void) {
           ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
         }
         g_fail_io_after = -1;
-        enum_members_free(&em_al);
+        g_cdd_last_alloc_err = enum_members_free(&em_al);
       }
 
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -1723,7 +1723,7 @@ TEST test_struct_reflection_and_codegen(void) {
       }
       g_fail_io_after = -1;
     }
-    struct_fields_free(&sf_empty);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_empty);
     fclose(tmp);
   }
   PASS();

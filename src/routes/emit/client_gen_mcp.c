@@ -297,12 +297,14 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                        spec->defined_schema_names[i]) == 0) {
               /* MATCHED! */
               char *escaped = NULL;
-              escape_c_string_literal(spec->raw_schema_json[k], &escaped);
+              g_cdd_last_alloc_err =
+                  escape_c_string_literal(spec->raw_schema_json[k], &escaped);
               if (escaped) {
-                fprintf(cfile,
-                        "    cdd_json_object_set_string(res_obj, \"text\", "
-                        "\"%s\");\n",
-                        escaped);
+                g_cdd_last_alloc_err =
+                    fprintf(cfile,
+                            "    cdd_json_object_set_string(res_obj, \"text\", "
+                            "\"%s\");\n",
+                            escaped);
                 C_CDD_FREE(escaped);
                 found_raw = 1;
               }
@@ -796,16 +798,17 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = CDD_C_SUCCESS;
     {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }
   rc = (fprintf(hfile, "#endif /* %s */\n", guard) < 0) ? CDD_C_ERROR_IO
                                                         : CDD_C_SUCCESS;
   if (rc != CDD_C_SUCCESS) {
-    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-            __LINE__);
+    g_cdd_last_alloc_err = fprintf(
+        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
     goto cleanup;
   }
 

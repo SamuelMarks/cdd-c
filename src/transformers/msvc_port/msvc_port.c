@@ -181,7 +181,8 @@ static cdd_c_error_t replace_msvc_identifiers(
             new_tok->trailing_trivia = t->trailing_trivia;
             t->leading_trivia = NULL;
             t->trailing_trivia = NULL;
-            cdd_cst_replace_token_child(node, i, new_tok);
+            g_cdd_last_alloc_err =
+                cdd_cst_replace_token_child(node, i, new_tok);
           }
         }
       }
@@ -258,24 +259,25 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
             return CDD_C_ERROR_MEMORY;
           }
           wrap_node->kind = CDD_CST_UNKNOWN;
-          cdd_cst_builder_init(&bld, tree, wrap_node);
-          cdd_cst_bld_ifndef(&bld, "_MSC_VER");
-          cdd_cst_bld_include(&bld, inc_str, 1);
+          g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, wrap_node);
+          g_cdd_last_alloc_err = cdd_cst_bld_ifndef(&bld, "_MSC_VER");
+          g_cdd_last_alloc_err = cdd_cst_bld_include(&bld, inc_str, 1);
           if (!added_compat) {
-            cdd_cst_bld_else(&bld);
-            cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
+            g_cdd_last_alloc_err = cdd_cst_bld_else(&bld);
+            g_cdd_last_alloc_err =
+                cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
             added_compat = 1;
           }
-          cdd_cst_bld_endif(&bld);
+          g_cdd_last_alloc_err = cdd_cst_bld_endif(&bld);
 
           if (bld.error_state == 0) {
-            cdd_cst_replace_node(tree, dir, wrap_node);
-            cdd_cst_free_node(dir);
+            g_cdd_last_alloc_err = cdd_cst_replace_node(tree, dir, wrap_node);
+            g_cdd_last_alloc_err = cdd_cst_free_node(dir);
           } else {
             C_CDD_FREE(wrap_node->children);
             C_CDD_FREE(wrap_node);
           }
-          cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
         }
       }
     }
@@ -300,31 +302,31 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
       if (deps_node) {
         deps_node->kind = CDD_CST_UNKNOWN;
-        cdd_cst_builder_init(&bld, tree, deps_node);
-        cdd_cst_bld_ifndef(&bld, "_MSC_VER");
-        cdd_cst_bld_else(&bld);
+        g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, deps_node);
+        g_cdd_last_alloc_err = cdd_cst_bld_ifndef(&bld, "_MSC_VER");
+        g_cdd_last_alloc_err = cdd_cst_bld_else(&bld);
         if (needs_basetsd) {
-          cdd_cst_bld_include(&bld, "BaseTsd.h", 1);
+          g_cdd_last_alloc_err = cdd_cst_bld_include(&bld, "BaseTsd.h", 1);
         }
         if (needs_expect) {
-          cdd_cst_bld_snippet(&bld,
-                              "#define cdd_builtin_expect(exp, c) (exp)\n");
+          g_cdd_last_alloc_err = cdd_cst_bld_snippet(
+              &bld, "#define cdd_builtin_expect(exp, c) (exp)\n");
         }
-        cdd_cst_bld_endif(&bld);
+        g_cdd_last_alloc_err = cdd_cst_bld_endif(&bld);
         if (bld.error_state == 0) {
           /* insert at start of root's children */
           rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(deps_node->children);
             C_CDD_FREE(deps_node);
-            cdd_cst_builder_free(&bld);
+            g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
             return rc;
           }
         } else {
           C_CDD_FREE(deps_node->children);
           C_CDD_FREE(deps_node);
         }
-        cdd_cst_builder_free(&bld);
+        g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
       }
     }
   }

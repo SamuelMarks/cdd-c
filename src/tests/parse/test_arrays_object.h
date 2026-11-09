@@ -54,8 +54,9 @@ TEST test_generated_obj_array_logic(void) {
   size_t output_len;
   FILE *tmp;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -65,7 +66,8 @@ TEST test_generated_obj_array_logic(void) {
 #endif
   ASSERT(tmp);
 
-  write_struct_from_jsonObject_func(tmp, "Container", &sf, NULL);
+  g_cdd_last_alloc_err =
+      write_struct_from_jsonObject_func(tmp, "Container", &sf, NULL);
 
   fseek(tmp, 0, SEEK_END);
   output_len = (size_t)ftell(tmp);
@@ -95,7 +97,7 @@ TEST test_generated_obj_array_logic(void) {
   free(output_buf);
   if (tmp)
     fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -123,7 +125,7 @@ TEST test_code2schema_obj_array_detection(void) {
   char *json_content;
   size_t len;
 
-  write_to_file("test_obj_array.h", header);
+  g_cdd_last_alloc_err = write_to_file("test_obj_array.h", header);
 
   {
     char *argv[2];
@@ -165,8 +167,9 @@ TEST test_arrays_object_cleanup_generation(void) {
   size_t output_len;
   FILE *tmp;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -176,7 +179,7 @@ TEST test_arrays_object_cleanup_generation(void) {
 #endif
   ASSERT(tmp);
 
-  write_struct_cleanup_func(tmp, "Container", &sf, NULL);
+  g_cdd_last_alloc_err = write_struct_cleanup_func(tmp, "Container", &sf, NULL);
 
   fseek(tmp, 0, SEEK_END);
   output_len = (size_t)ftell(tmp);
@@ -195,7 +198,7 @@ TEST test_arrays_object_cleanup_generation(void) {
   free(output_buf);
   if (tmp)
     fclose(tmp);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

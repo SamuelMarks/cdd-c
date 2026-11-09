@@ -93,7 +93,7 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
     /* Check for ?? */
     if (c == '?' && current + 2 < len && base[current + 1] == '?') {
       int mapped = 0;
-      get_trigraph_map(base[current + 2], &mapped);
+      g_cdd_last_alloc_err = get_trigraph_map(base[current + 2], &mapped);
       if (mapped) {
         c = mapped;
         char_len = 3;
@@ -277,7 +277,8 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 
     size_t adv;
 
-    peek_logical(t + i_tok, tok->length - i_tok, 0, &adv, &c);
+    g_cdd_last_alloc_err =
+        peek_logical(t + i_tok, tok->length - i_tok, 0, &adv, &c);
 
     if (c == -1)
 
@@ -342,14 +343,15 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
     size_t start = pos;
 
-    peek_logical(base, len, pos, &consumed, &c);
+    g_cdd_last_alloc_err = peek_logical(base, len, pos, &consumed, &c);
 
     if (c == -1)
 
       break;
 
     if (c == '.') {
-      peek_logical(base, len, pos + consumed, &peek_con, &peek_dot_c);
+      g_cdd_last_alloc_err =
+          peek_logical(base, len, pos + consumed, &peek_con, &peek_dot_c);
     }
 
     if (isspace(c)) {
@@ -360,7 +362,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         int nc = -1;
 
-        peek_logical(base, len, pos, &consumed, &nc);
+        g_cdd_last_alloc_err = peek_logical(base, len, pos, &consumed, &nc);
 
         if (nc != -1 && isspace(nc)) {
 
@@ -381,7 +383,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
       pos += consumed;
 
-      peek_logical(base, len, pos, &next_con, &next_hash_c);
+      g_cdd_last_alloc_err =
+          peek_logical(base, len, pos, &next_con, &next_hash_c);
 
       if (next_hash_c == '#') {
 
@@ -406,7 +409,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         int u = -1;
 
-        peek_logical(base, len, pos + consumed, &u_con, &u);
+        g_cdd_last_alloc_err =
+            peek_logical(base, len, pos + consumed, &u_con, &u);
 
         if (u != 'u' && u != 'U') {
 
@@ -429,7 +433,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           int h = -1;
 
-          peek_logical(base, len, pos + consumed + u_con, &hex_con, &h);
+          g_cdd_last_alloc_err =
+              peek_logical(base, len, pos + consumed + u_con, &hex_con, &h);
 
           if (h == -1 || !isxdigit(h)) {
 
@@ -452,7 +457,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         int nc = -1;
 
-        peek_logical(base, len, pos, &nc_con, &nc);
+        g_cdd_last_alloc_err = peek_logical(base, len, pos, &nc_con, &nc);
 
         if (nc != -1 && (isalnum(nc) || nc == '_' || nc == '\\')) {
 
@@ -464,7 +469,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
             int u = -1;
 
-            peek_logical(base, len, pos + nc_con, &u_con, &u);
+            g_cdd_last_alloc_err =
+                peek_logical(base, len, pos + nc_con, &u_con, &u);
 
             if (u == 'u' || u == 'U') {
 
@@ -472,7 +478,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
               int h = -1;
 
-              peek_logical(base, len, pos + nc_con + u_con, &hex_con, &h);
+              g_cdd_last_alloc_err =
+                  peek_logical(base, len, pos + nc_con + u_con, &hex_con, &h);
 
               if (h == -1 || !isxdigit(h)) {
 
@@ -503,7 +510,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         /* Check raw text for common keywords */
 
-        identify_keyword_or_id(base + start, id_len, &k);
+        g_cdd_last_alloc_err = identify_keyword_or_id(base + start, id_len, &k);
 
         /* If still ID, check strict logic for spliced keywords if needed */
 
@@ -516,19 +523,23 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           /* Add checks for spliced keywords if necessary */
 
-          token_matches_string(&tmp_tok, "int", &matched);
+          g_cdd_last_alloc_err =
+              token_matches_string(&tmp_tok, "int", &matched);
           if (matched) {
             k = TOKEN_KEYWORD_INT;
           } else {
-            token_matches_string(&tmp_tok, "return", &matched);
+            g_cdd_last_alloc_err =
+                token_matches_string(&tmp_tok, "return", &matched);
             if (matched) {
               k = TOKEN_KEYWORD_RETURN;
             } else {
-              token_matches_string(&tmp_tok, "switch", &matched);
+              g_cdd_last_alloc_err =
+                  token_matches_string(&tmp_tok, "switch", &matched);
               if (matched) {
                 k = TOKEN_KEYWORD_SWITCH;
               } else {
-                token_matches_string(&tmp_tok, "if", &matched);
+                g_cdd_last_alloc_err =
+                    token_matches_string(&tmp_tok, "if", &matched);
                 if (matched) {
                   k = TOKEN_KEYWORD_IF;
                 }
@@ -545,7 +556,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
       if (c == '.') {
         int dummy_c = -1;
-        peek_logical(base, len, pos, &consumed, &dummy_c);
+        g_cdd_last_alloc_err =
+            peek_logical(base, len, pos, &consumed, &dummy_c);
       }
 
       pos += consumed;
@@ -554,7 +566,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         int nc = -1;
 
-        peek_logical(base, len, pos, &consumed, &nc);
+        g_cdd_last_alloc_err = peek_logical(base, len, pos, &consumed, &nc);
 
         /* C23 Digit Separators: Allow '\'' inside number if followed by alnum
 
@@ -566,7 +578,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
           int next_peek = -1;
 
-          peek_logical(base, len, pos + consumed, &next_peek_con, &next_peek);
+          g_cdd_last_alloc_err = peek_logical(base, len, pos + consumed,
+                                              &next_peek_con, &next_peek);
 
           if (next_peek != -1 && isalnum(next_peek)) {
 
@@ -607,7 +620,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         int nc = -1;
 
-        peek_logical(base, len, pos, &consumed, &nc);
+        g_cdd_last_alloc_err = peek_logical(base, len, pos, &consumed, &nc);
 
         if (nc == -1)
 
@@ -617,7 +630,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         if (nc == '\\') {
           int esc_c = -1;
-          peek_logical(base, len, pos, &consumed, &esc_c);
+          g_cdd_last_alloc_err =
+              peek_logical(base, len, pos, &consumed, &esc_c);
 
           pos += consumed;
 
@@ -641,7 +655,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
     if (rc != CDD_C_SUCCESS) {
 
-      free_token_list(list);
+      g_cdd_last_alloc_err = free_token_list(list);
 
       *out = NULL;
 

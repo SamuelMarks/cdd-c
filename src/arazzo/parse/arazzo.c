@@ -35,20 +35,20 @@ parse_arazzo_extensions(const JSON_Object *obj,
   size_t i;
   size_t count = 0;
 
-  cdd_json_object_get_count(obj, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(obj, &count);
   for (i = 0; i < count; ++i) {
     const char *name = NULL;
-    cdd_json_object_get_name(obj, i, &name);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(obj, i, &name);
     if (strncmp(name, "x-", 2) == 0) {
       JSON_Value *val_at = NULL;
       struct OpenAPI_Any val;
       cdd_c_error_t rc;
       memset(&val, 0, sizeof(val));
-      cdd_json_object_get_value_at(obj, i, &val_at);
+      g_cdd_last_alloc_err = cdd_json_object_get_value_at(obj, i, &val_at);
       rc = parse_any_value(val_at, &val);
       if (rc == CDD_C_SUCCESS)
         rc = arazzo_extension_list_append(ext_list, name, &val);
-      free_any_value(&val);
+      g_cdd_last_alloc_err = free_any_value(&val);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
@@ -68,7 +68,7 @@ parse_arazzo_extensions(const JSON_Object *obj,
 static cdd_c_error_t dup_opt_json_str(const JSON_Object *obj, const char *key,
                                       char **out_str) {
   const char *s = NULL;
-  cdd_json_object_get_string(obj, key, &s);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(obj, key, &s);
   if (!s)
     return CDD_C_SUCCESS;
   *out_str = C_CDD_STRDUP(s);
@@ -1339,29 +1339,18 @@ const struct cdd_type_info Arazzo_Workflow_type_info = {
     0};
 
 /**
- * @brief Table-driven helper to populate reflected `char *` string fields from
- * a `JSON_Object`.
+ * @brief Table-driven helper to populate reflected fields from a `JSON_Object`
+ * using `cdd_reflect_from_json_object`.
  *
  * @param[in] obj Source JSON object.
  * @param[in] ti Runtime reflection descriptor.
  * @param[in,out] target Target C struct pointer.
- * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 static cdd_c_error_t
 arazzo_parse_reflected_strings(const JSON_Object *obj,
                                const struct cdd_type_info *ti, void *target) {
-  size_t i;
-  for (i = 0; i < ti->n_fields; ++i) {
-    const struct cdd_field_info *f = &ti->fields[i];
-    char *s_out = NULL;
-    cdd_c_error_t rc;
-    memcpy(&s_out, (unsigned char *)target + f->offset, sizeof(s_out));
-    rc = dup_opt_json_str(obj, f->wire_name, &s_out);
-    memcpy((unsigned char *)target + f->offset, &s_out, sizeof(s_out));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
-  return CDD_C_SUCCESS;
+  return cdd_reflect_from_json_object(obj, ti, target);
 }
 
 /**
@@ -1384,16 +1373,16 @@ parse_criterion_or_expr_type(const JSON_Object *obj, const char *type_key,
   JSON_Value_Type vtype = JSONError;
   cdd_c_error_t rc;
 
-  cdd_json_object_get_value(obj, type_key, &tval);
+  g_cdd_last_alloc_err = cdd_json_object_get_value(obj, type_key, &tval);
   if (!tval) {
     *out_type = ARAZZO_CRITERION_SIMPLE;
     return CDD_C_SUCCESS;
   }
 
-  cdd_json_value_get_type(tval, &vtype);
+  g_cdd_last_alloc_err = cdd_json_value_get_type(tval, &vtype);
   if (vtype == JSONString) {
     const char *tstr = NULL;
-    cdd_json_value_get_string(tval, &tstr);
+    g_cdd_last_alloc_err = cdd_json_value_get_string(tval, &tstr);
     if (strcmp(tstr, "simple") == 0)
       *out_type = ARAZZO_CRITERION_SIMPLE;
     else if (strcmp(tstr, "regex") == 0)
@@ -1410,8 +1399,8 @@ parse_criterion_or_expr_type(const JSON_Object *obj, const char *type_key,
   if (vtype == JSONObject) {
     JSON_Object *et_obj = NULL;
     const char *dtype = NULL;
-    cdd_json_value_get_object(tval, &et_obj);
-    cdd_json_object_get_string(et_obj, "type", &dtype);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(tval, &et_obj);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(et_obj, "type", &dtype);
     if (!dtype)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     *out_type = ARAZZO_CRITERION_EXPRESSION_TYPE;
@@ -1438,7 +1427,7 @@ Arazzo_Criterion_from_jsonObject(const JSON_Object *cobj,
                                  struct Arazzo_Criterion *out_crit) {
   const char *cond = NULL;
   cdd_c_error_t rc;
-  cdd_json_object_get_string(cobj, "condition", &cond);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(cobj, "condition", &cond);
   if (!cobj || !out_crit || !cond)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = arazzo_parse_reflected_strings(cobj, &Arazzo_Criterion_type_info,
@@ -1469,7 +1458,7 @@ static cdd_c_error_t parse_criteria_array(const JSON_Array *arr,
   cdd_c_error_t rc;
 
   if (arr)
-    cdd_json_array_get_count(arr, &n);
+    g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &n);
   if (n == 0)
     return CDD_C_SUCCESS;
 
@@ -1482,7 +1471,7 @@ static cdd_c_error_t parse_criteria_array(const JSON_Array *arr,
 
   for (i = 0; i < n; ++i) {
     JSON_Object *elem_obj = NULL;
-    cdd_json_array_get_object(arr, i, &elem_obj);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &elem_obj);
     rc = Arazzo_Criterion_from_jsonObject(elem_obj, &items[i]);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -1531,14 +1520,15 @@ static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
   if (!pobj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_json_object_get_string(pobj, "reference", &ref_str);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(pobj, "reference", &ref_str);
   if (ref_str) {
     param->reusable.is_reusable = 1;
     rc = arazzo_parse_reflected_strings(pobj, &Arazzo_Reusable_type_info,
                                         &param->reusable);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    cdd_json_object_get_value(pobj, "value", &vval);
+    g_cdd_last_alloc_err = cdd_json_object_get_value(pobj, "value", &vval);
     if (vval) {
       param->reusable.has_value_override = 1;
       rc = parse_any_value(vval, &param->reusable.value);
@@ -1548,8 +1538,8 @@ static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
     return CDD_C_SUCCESS;
   }
 
-  cdd_json_object_get_string(pobj, "name", &name_str);
-  cdd_json_object_get_value(pobj, "value", &vval);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(pobj, "name", &name_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_value(pobj, "value", &vval);
   if (!name_str || !vval)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -1557,15 +1547,15 @@ static cdd_c_error_t parse_arazzo_param_obj(const JSON_Object *pobj,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  cdd_json_object_get_string(pobj, "in", &in_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(pobj, "in", &in_str);
   if (in_str) {
     rc = arazzo_param_in_from_str(in_str, &param->in);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  cdd_json_value_get_object(vval, &vobj);
-  cdd_json_object_get_string(vobj, "selector", &sel_str);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(vval, &vobj);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(vobj, "selector", &sel_str);
   if (sel_str) {
     param->is_selector = 1;
     rc = parse_selector_obj(vobj, &param->selector);
@@ -1603,7 +1593,7 @@ parse_arazzo_params_array(const JSON_Array *arr,
   cdd_c_error_t rc;
 
   if (arr)
-    cdd_json_array_get_count(arr, &n);
+    g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &n);
   if (n == 0)
     return CDD_C_SUCCESS;
 
@@ -1616,7 +1606,7 @@ parse_arazzo_params_array(const JSON_Array *arr,
 
   for (i = 0; i < n; ++i) {
     JSON_Object *elem_obj = NULL;
-    cdd_json_array_get_object(arr, i, &elem_obj);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &elem_obj);
     rc = parse_arazzo_param_obj(elem_obj, &items[i]);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -1644,15 +1634,16 @@ parse_success_action_object(const JSON_Object *aobj,
   if (!aobj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_json_object_get_string(aobj, "reference", &ref_str);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(aobj, "reference", &ref_str);
   if (ref_str) {
     act->reusable.is_reusable = 1;
     return arazzo_parse_reflected_strings(aobj, &Arazzo_Reusable_type_info,
                                           &act->reusable);
   }
 
-  cdd_json_object_get_string(aobj, "type", &type_str);
-  cdd_json_object_get_string(aobj, "name", &name_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(aobj, "type", &type_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(aobj, "name", &name_str);
   if (!name_str || !type_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -1664,12 +1655,13 @@ parse_success_action_object(const JSON_Object *aobj,
                                       act);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  cdd_json_object_get_array(aobj, "parameters", &params_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(aobj, "parameters", &params_arr);
   rc = parse_arazzo_params_array(params_arr, &act->parameters,
                                  &act->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  cdd_json_object_get_array(aobj, "criteria", &crit_arr);
+  g_cdd_last_alloc_err = cdd_json_object_get_array(aobj, "criteria", &crit_arr);
   rc = parse_criteria_array(crit_arr, &act->criteria, &act->n_criteria);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -1698,15 +1690,16 @@ parse_failure_action_object(const JSON_Object *aobj,
   if (!aobj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_json_object_get_string(aobj, "reference", &ref_str);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(aobj, "reference", &ref_str);
   if (ref_str) {
     act->reusable.is_reusable = 1;
     return arazzo_parse_reflected_strings(aobj, &Arazzo_Reusable_type_info,
                                           &act->reusable);
   }
 
-  cdd_json_object_get_string(aobj, "type", &type_str);
-  cdd_json_object_get_string(aobj, "name", &name_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(aobj, "type", &type_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(aobj, "name", &name_str);
   if (!name_str || !type_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -1714,16 +1707,19 @@ parse_failure_action_object(const JSON_Object *aobj,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  cdd_json_object_has_value_of_type(aobj, "retryAfter", JSONNumber, &hv);
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value_of_type(aobj, "retryAfter", JSONNumber, &hv);
   if (hv) {
     act->has_retry_after = 1;
-    cdd_json_object_get_number(aobj, "retryAfter", &act->retry_after);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_number(aobj, "retryAfter", &act->retry_after);
   }
   hv = 0;
-  cdd_json_object_has_value_of_type(aobj, "retryLimit", JSONNumber, &hv);
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value_of_type(aobj, "retryLimit", JSONNumber, &hv);
   if (hv) {
     act->has_retry_limit = 1;
-    cdd_json_object_get_number(aobj, "retryLimit", &dv);
+    g_cdd_last_alloc_err = cdd_json_object_get_number(aobj, "retryLimit", &dv);
     act->retry_limit = (int)dv;
   }
 
@@ -1731,12 +1727,13 @@ parse_failure_action_object(const JSON_Object *aobj,
                                       act);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  cdd_json_object_get_array(aobj, "parameters", &params_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(aobj, "parameters", &params_arr);
   rc = parse_arazzo_params_array(params_arr, &act->parameters,
                                  &act->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  cdd_json_object_get_array(aobj, "criteria", &crit_arr);
+  g_cdd_last_alloc_err = cdd_json_object_get_array(aobj, "criteria", &crit_arr);
   rc = parse_criteria_array(crit_arr, &act->criteria, &act->n_criteria);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -1761,7 +1758,7 @@ static cdd_c_error_t parse_outputs_map(const JSON_Object *out_obj,
   cdd_c_error_t rc;
 
   if (out_obj)
-    cdd_json_object_get_count(out_obj, &n);
+    g_cdd_last_alloc_err = cdd_json_object_get_count(out_obj, &n);
   if (n == 0)
     return CDD_C_SUCCESS;
 
@@ -1776,16 +1773,16 @@ static cdd_c_error_t parse_outputs_map(const JSON_Object *out_obj,
     const char *k = NULL;
     JSON_Value *v = NULL;
     JSON_Value_Type vtype = JSONError;
-    cdd_json_object_get_name(out_obj, i, &k);
-    cdd_json_object_get_value_at(out_obj, i, &v);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(out_obj, i, &k);
+    g_cdd_last_alloc_err = cdd_json_object_get_value_at(out_obj, i, &v);
     items[i].key = C_CDD_STRDUP(k);
     if (!items[i].key)
       return CDD_C_ERROR_MEMORY;
 
-    cdd_json_value_get_type(v, &vtype);
+    g_cdd_last_alloc_err = cdd_json_value_get_type(v, &vtype);
     if (vtype == JSONString) {
       const char *vs = NULL;
-      cdd_json_value_get_string(v, &vs);
+      g_cdd_last_alloc_err = cdd_json_value_get_string(v, &vs);
       items[i].expression_or_value = C_CDD_STRDUP(vs);
       if (!items[i].expression_or_value)
         return CDD_C_ERROR_MEMORY;
@@ -1796,7 +1793,7 @@ static cdd_c_error_t parse_outputs_map(const JSON_Object *out_obj,
     } else if (vtype == JSONObject) {
       JSON_Object *vobj = NULL;
       items[i].is_selector = 1;
-      cdd_json_value_get_object(v, &vobj);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(v, &vobj);
       rc = parse_selector_obj(vobj, &items[i].selector);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -1833,7 +1830,8 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
   size_t fcount = 0;
   cdd_c_error_t rc;
 
-  cdd_json_object_get_string(sobj, "stepId", &step_id_str);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(sobj, "stepId", &step_id_str);
   if (!step_id_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -1860,14 +1858,15 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
   if (target_count != 1)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_json_object_has_value_of_type(sobj, "timeout", JSONNumber, &hv);
+  g_cdd_last_alloc_err =
+      cdd_json_object_has_value_of_type(sobj, "timeout", JSONNumber, &hv);
   if (hv) {
     step->has_timeout = 1;
-    cdd_json_object_get_number(sobj, "timeout", &dv);
+    g_cdd_last_alloc_err = cdd_json_object_get_number(sobj, "timeout", &dv);
     step->timeout_ms = (int)dv;
   }
 
-  cdd_json_object_get_string(sobj, "action", &act_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(sobj, "action", &act_str);
   if (act_str) {
     if (strcmp(act_str, "send") == 0)
       step->action = ARAZZO_ASYNC_SEND;
@@ -1877,7 +1876,7 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  cdd_json_object_get_array(sobj, "dependsOn", &dep_arr);
+  g_cdd_last_alloc_err = cdd_json_object_get_array(sobj, "dependsOn", &dep_arr);
   if (dep_arr) {
     rc = parse_string_enum_array(dep_arr, &step->depends_on,
                                  &step->n_depends_on);
@@ -1885,25 +1884,29 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return rc;
   }
 
-  cdd_json_object_get_array(sobj, "parameters", &params_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(sobj, "parameters", &params_arr);
   rc = parse_arazzo_params_array(params_arr, &step->parameters,
                                  &step->n_parameters);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  cdd_json_object_get_object(sobj, "requestBody", &rb_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(sobj, "requestBody", &rb_obj);
   if (rb_obj) {
     JSON_Array *rep_arr = NULL;
     JSON_Value *pay_val = NULL;
     size_t rcount = 0;
-    cdd_json_object_get_array(rb_obj, "replacements", &rep_arr);
-    cdd_json_array_get_count(rep_arr, &rcount);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_array(rb_obj, "replacements", &rep_arr);
+    g_cdd_last_alloc_err = cdd_json_array_get_count(rep_arr, &rcount);
     step->has_request_body = 1;
     rc = dup_opt_json_str(rb_obj, "contentType",
                           &step->request_body.content_type);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    cdd_json_object_get_value(rb_obj, "payload", &pay_val);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_value(rb_obj, "payload", &pay_val);
     if (pay_val) {
       rc = parse_any_value(pay_val, &step->request_body.payload);
       if (rc != CDD_C_SUCCESS)
@@ -1922,9 +1925,10 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
         JSON_Value *rval = NULL;
         struct Arazzo_PayloadReplacement *rep =
             &step->request_body.replacements[i];
-        cdd_json_array_get_object(rep_arr, i, &robj);
-        cdd_json_object_get_string(robj, "target", &tgt_str);
-        cdd_json_object_get_value(robj, "value", &rval);
+        g_cdd_last_alloc_err = cdd_json_array_get_object(rep_arr, i, &robj);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(robj, "target", &tgt_str);
+        g_cdd_last_alloc_err = cdd_json_object_get_value(robj, "value", &rval);
         if (!tgt_str || !rval)
           return CDD_C_ERROR_INVALID_ARGUMENT;
         rc = dup_opt_json_str(robj, "target", &rep->target);
@@ -1948,14 +1952,16 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
       return rc;
   }
 
-  cdd_json_object_get_array(sobj, "successCriteria", &scrit_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(sobj, "successCriteria", &scrit_arr);
   rc = parse_criteria_array(scrit_arr, &step->success_criteria,
                             &step->n_success_criteria);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  cdd_json_object_get_array(sobj, "onSuccess", &succ_arr);
-  cdd_json_array_get_count(succ_arr, &scount);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(sobj, "onSuccess", &succ_arr);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(succ_arr, &scount);
   if (scount > 0) {
     step->on_success = (struct Arazzo_SuccessAction *)C_CDD_CALLOC(
         scount, sizeof(struct Arazzo_SuccessAction));
@@ -1964,15 +1970,16 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
     step->n_on_success = scount;
     for (i = 0; i < scount; ++i) {
       JSON_Object *elem_obj = NULL;
-      cdd_json_array_get_object(succ_arr, i, &elem_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(succ_arr, i, &elem_obj);
       rc = parse_success_action_object(elem_obj, &step->on_success[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  cdd_json_object_get_array(sobj, "onFailure", &fail_arr);
-  cdd_json_array_get_count(fail_arr, &fcount);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(sobj, "onFailure", &fail_arr);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(fail_arr, &fcount);
   if (fcount > 0) {
     step->on_failure = (struct Arazzo_FailureAction *)C_CDD_CALLOC(
         fcount, sizeof(struct Arazzo_FailureAction));
@@ -1981,14 +1988,14 @@ static cdd_c_error_t parse_step_object(const JSON_Object *sobj,
     step->n_on_failure = fcount;
     for (i = 0; i < fcount; ++i) {
       JSON_Object *elem_obj = NULL;
-      cdd_json_array_get_object(fail_arr, i, &elem_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(fail_arr, i, &elem_obj);
       rc = parse_failure_action_object(elem_obj, &step->on_failure[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  cdd_json_object_get_object(sobj, "outputs", &out_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(sobj, "outputs", &out_obj);
   rc = parse_outputs_map(out_obj, &step->outputs, &step->n_outputs);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -2009,9 +2016,9 @@ cdd_c_error_t Arazzo_SourceDescription_from_jsonObject(
   const char *url_str = NULL;
   cdd_c_error_t rc;
 
-  cdd_json_object_get_string(sd_obj, "type", &tstr);
-  cdd_json_object_get_string(sd_obj, "name", &name_str);
-  cdd_json_object_get_string(sd_obj, "url", &url_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(sd_obj, "type", &tstr);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(sd_obj, "name", &name_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(sd_obj, "url", &url_str);
   if (!sd_obj || !out_sd || !name_str || !url_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -2065,12 +2072,13 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
   size_t fc = 0;
   cdd_c_error_t rc;
 
-  cdd_json_object_get_string(wobj, "workflowId", &wf_id_str);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(wobj, "workflowId", &wf_id_str);
   if (!wf_id_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_json_object_get_array(wobj, "steps", &steps_arr);
-  cdd_json_array_get_count(steps_arr, &n_steps);
+  g_cdd_last_alloc_err = cdd_json_object_get_array(wobj, "steps", &steps_arr);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(steps_arr, &n_steps);
   if (n_steps == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -2078,7 +2086,7 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  cdd_json_object_get_object(wobj, "inputs", &in_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(wobj, "inputs", &in_obj);
   if (in_obj) {
     wf->has_inputs = 1;
     rc = parse_schema_ref(in_obj, &wf->inputs, NULL);
@@ -2086,7 +2094,7 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
       return rc;
   }
 
-  cdd_json_object_get_array(wobj, "dependsOn", &dep_arr);
+  g_cdd_last_alloc_err = cdd_json_object_get_array(wobj, "dependsOn", &dep_arr);
   if (dep_arr) {
     rc = parse_string_enum_array(dep_arr, &wf->depends_on, &wf->n_depends_on);
     if (rc != CDD_C_SUCCESS)
@@ -2101,14 +2109,15 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
 
   for (i = 0; i < n_steps; ++i) {
     JSON_Object *st_obj = NULL;
-    cdd_json_array_get_object(steps_arr, i, &st_obj);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(steps_arr, i, &st_obj);
     rc = parse_step_object(st_obj, &wf->steps[i]);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  cdd_json_object_get_array(wobj, "successActions", &succ_arr);
-  cdd_json_array_get_count(succ_arr, &sc);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(wobj, "successActions", &succ_arr);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(succ_arr, &sc);
   if (sc > 0) {
     wf->success_actions = (struct Arazzo_SuccessAction *)C_CDD_CALLOC(
         sc, sizeof(struct Arazzo_SuccessAction));
@@ -2117,15 +2126,16 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
     wf->n_success_actions = sc;
     for (i = 0; i < sc; ++i) {
       JSON_Object *elem_obj = NULL;
-      cdd_json_array_get_object(succ_arr, i, &elem_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(succ_arr, i, &elem_obj);
       rc = parse_success_action_object(elem_obj, &wf->success_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  cdd_json_object_get_array(wobj, "failureActions", &fail_arr);
-  cdd_json_array_get_count(fail_arr, &fc);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(wobj, "failureActions", &fail_arr);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(fail_arr, &fc);
   if (fc > 0) {
     wf->failure_actions = (struct Arazzo_FailureAction *)C_CDD_CALLOC(
         fc, sizeof(struct Arazzo_FailureAction));
@@ -2134,18 +2144,19 @@ static cdd_c_error_t parse_workflow_object(const JSON_Object *wobj,
     wf->n_failure_actions = fc;
     for (i = 0; i < fc; ++i) {
       JSON_Object *elem_obj = NULL;
-      cdd_json_array_get_object(fail_arr, i, &elem_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(fail_arr, i, &elem_obj);
       rc = parse_failure_action_object(elem_obj, &wf->failure_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  cdd_json_object_get_object(wobj, "outputs", &out_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(wobj, "outputs", &out_obj);
   rc = parse_outputs_map(out_obj, &wf->outputs, &wf->n_outputs);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  cdd_json_object_get_array(wobj, "parameters", &params_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(wobj, "parameters", &params_arr);
   rc =
       parse_arazzo_params_array(params_arr, &wf->parameters, &wf->n_parameters);
   if (rc != CDD_C_SUCCESS)
@@ -2170,12 +2181,15 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
   size_t n = 0;
   cdd_c_error_t rc;
 
-  cdd_json_object_get_object(cobj, "inputs", &in_obj);
-  cdd_json_object_get_object(cobj, "parameters", &pm_obj);
-  cdd_json_object_get_object(cobj, "successActions", &sa_obj);
-  cdd_json_object_get_object(cobj, "failureActions", &fa_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(cobj, "inputs", &in_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(cobj, "parameters", &pm_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(cobj, "successActions", &sa_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(cobj, "failureActions", &fa_obj);
 
-  cdd_json_object_get_count(in_obj, &n);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(in_obj, &n);
   if (n > 0) {
     comp->input_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->input_keys)
@@ -2189,11 +2203,11 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       JSON_Value *val_at = NULL;
       JSON_Object *sch_obj = NULL;
       const char *kname = NULL;
-      cdd_json_object_get_value_at(in_obj, i, &val_at);
-      cdd_json_value_get_object(val_at, &sch_obj);
+      g_cdd_last_alloc_err = cdd_json_object_get_value_at(in_obj, i, &val_at);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &sch_obj);
       if (!sch_obj)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      cdd_json_object_get_name(in_obj, i, &kname);
+      g_cdd_last_alloc_err = cdd_json_object_get_name(in_obj, i, &kname);
       comp->input_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->input_keys[i])
         return CDD_C_ERROR_MEMORY;
@@ -2204,7 +2218,7 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
   }
 
   n = 0;
-  cdd_json_object_get_count(pm_obj, &n);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(pm_obj, &n);
   if (n > 0) {
     comp->parameter_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->parameter_keys)
@@ -2218,12 +2232,12 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       JSON_Value *val_at = NULL;
       JSON_Object *p_obj = NULL;
       const char *kname = NULL;
-      cdd_json_object_get_name(pm_obj, i, &kname);
+      g_cdd_last_alloc_err = cdd_json_object_get_name(pm_obj, i, &kname);
       comp->parameter_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->parameter_keys[i])
         return CDD_C_ERROR_MEMORY;
-      cdd_json_object_get_value_at(pm_obj, i, &val_at);
-      cdd_json_value_get_object(val_at, &p_obj);
+      g_cdd_last_alloc_err = cdd_json_object_get_value_at(pm_obj, i, &val_at);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &p_obj);
       rc = parse_arazzo_param_obj(p_obj, &comp->parameters[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -2231,7 +2245,7 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
   }
 
   n = 0;
-  cdd_json_object_get_count(sa_obj, &n);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(sa_obj, &n);
   if (n > 0) {
     comp->success_action_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->success_action_keys)
@@ -2245,12 +2259,12 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       JSON_Value *val_at = NULL;
       JSON_Object *s_obj = NULL;
       const char *kname = NULL;
-      cdd_json_object_get_name(sa_obj, i, &kname);
+      g_cdd_last_alloc_err = cdd_json_object_get_name(sa_obj, i, &kname);
       comp->success_action_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->success_action_keys[i])
         return CDD_C_ERROR_MEMORY;
-      cdd_json_object_get_value_at(sa_obj, i, &val_at);
-      cdd_json_value_get_object(val_at, &s_obj);
+      g_cdd_last_alloc_err = cdd_json_object_get_value_at(sa_obj, i, &val_at);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &s_obj);
       rc = parse_success_action_object(s_obj, &comp->success_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -2258,7 +2272,7 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
   }
 
   n = 0;
-  cdd_json_object_get_count(fa_obj, &n);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(fa_obj, &n);
   if (n > 0) {
     comp->failure_action_keys = (char **)C_CDD_CALLOC(n, sizeof(char *));
     if (!comp->failure_action_keys)
@@ -2272,12 +2286,12 @@ static cdd_c_error_t parse_components_object(const JSON_Object *cobj,
       JSON_Value *val_at = NULL;
       JSON_Object *f_obj = NULL;
       const char *kname = NULL;
-      cdd_json_object_get_name(fa_obj, i, &kname);
+      g_cdd_last_alloc_err = cdd_json_object_get_name(fa_obj, i, &kname);
       comp->failure_action_keys[i] = C_CDD_STRDUP(kname);
       if (!comp->failure_action_keys[i])
         return CDD_C_ERROR_MEMORY;
-      cdd_json_object_get_value_at(fa_obj, i, &val_at);
-      cdd_json_value_get_object(val_at, &f_obj);
+      g_cdd_last_alloc_err = cdd_json_object_get_value_at(fa_obj, i, &val_at);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &f_obj);
       rc = parse_failure_action_object(f_obj, &comp->failure_actions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -2430,16 +2444,20 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   size_t n_wf = 0;
   cdd_c_error_t rc;
 
-  cdd_json_value_get_object(root, &root_obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
   if (!root_obj || !out_spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  cdd_json_object_get_string(root_obj, "arazzo", &ver_str);
-  cdd_json_object_get_object(root_obj, "info", &info_obj);
-  cdd_json_object_get_array(root_obj, "sourceDescriptions", &sd_arr);
-  cdd_json_object_get_array(root_obj, "workflows", &wf_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(root_obj, "arazzo", &ver_str);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(root_obj, "info", &info_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(root_obj, "sourceDescriptions", &sd_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(root_obj, "workflows", &wf_arr);
 
-  cdd_json_array_get_count(sd_arr, &n_sd);
-  cdd_json_array_get_count(wf_arr, &n_wf);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(sd_arr, &n_sd);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(wf_arr, &n_wf);
   if (!ver_str || !info_obj || n_sd == 0 || n_wf == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -2455,7 +2473,7 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   else if (strncmp(ver_str, "1.1.", 4) == 0)
     out_spec->version = ARAZZO_VER_1_1_0;
   else {
-    arazzo_spec_free(out_spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -2470,27 +2488,28 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
       rc = CDD_C_ERROR_MEMORY;
   }
   if (rc != CDD_C_SUCCESS) {
-    arazzo_spec_free(out_spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
     return rc;
   }
   out_spec->n_source_descriptions = n_sd;
   for (i = 0; i < n_sd; ++i) {
     JSON_Object *elem_obj = NULL;
-    cdd_json_array_get_object(sd_arr, i, &elem_obj);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(sd_arr, i, &elem_obj);
     rc = Arazzo_SourceDescription_from_jsonObject(
         elem_obj, &out_spec->source_descriptions[i]);
     if (rc != CDD_C_SUCCESS) {
-      arazzo_spec_free(out_spec);
+      g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
       return rc;
     }
   }
 
-  cdd_json_object_get_object(root_obj, "components", &comp_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(root_obj, "components", &comp_obj);
   if (comp_obj) {
     out_spec->has_components = 1;
     rc = parse_components_object(comp_obj, &out_spec->components);
     if (rc != CDD_C_SUCCESS) {
-      arazzo_spec_free(out_spec);
+      g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
       return rc;
     }
   }
@@ -2498,16 +2517,16 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   out_spec->workflows = (struct Arazzo_Workflow *)C_CDD_CALLOC(
       n_wf, sizeof(struct Arazzo_Workflow));
   if (!out_spec->workflows) {
-    arazzo_spec_free(out_spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
     return CDD_C_ERROR_MEMORY;
   }
   out_spec->n_workflows = n_wf;
   for (i = 0; i < n_wf; ++i) {
     JSON_Object *elem_obj = NULL;
-    cdd_json_array_get_object(wf_arr, i, &elem_obj);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(wf_arr, i, &elem_obj);
     rc = parse_workflow_object(elem_obj, &out_spec->workflows[i]);
     if (rc != CDD_C_SUCCESS) {
-      arazzo_spec_free(out_spec);
+      g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
       return rc;
     }
   }
@@ -2516,7 +2535,7 @@ cdd_c_error_t arazzo_load_from_json_value(const JSON_Value *root,
   if (rc == CDD_C_SUCCESS)
     rc = arazzo_validate_spec(out_spec);
   if (rc != CDD_C_SUCCESS) {
-    arazzo_spec_free(out_spec);
+    g_cdd_last_alloc_err = arazzo_spec_free(out_spec);
     return rc;
   }
 
@@ -2542,6 +2561,6 @@ cdd_c_error_t arazzo_load_from_json(const char *json_str,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = arazzo_load_from_json_value(root, out_spec);
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   return rc;
 }

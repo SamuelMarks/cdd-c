@@ -86,7 +86,7 @@ TEST test_c2openapi_reach_100_percent(void) {
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_tag(&s, "tag"));
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&s);
+    g_cdd_last_alloc_err = openapi_spec_free(&s);
   }
 
   /* 2. spec_add_security_scheme add_oauth_flows realloc fail */
@@ -132,7 +132,7 @@ TEST test_c2openapi_reach_100_percent(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_strdup_fail = 0;
 
-    openapi_spec_free(&s);
+    g_cdd_last_alloc_err = openapi_spec_free(&s);
   }
 
   /* 3. spec_add_security_scheme new_schemes realloc fail */
@@ -147,7 +147,7 @@ TEST test_c2openapi_reach_100_percent(void) {
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_alloc_fail = 0;
-    openapi_spec_free(&s);
+    g_cdd_last_alloc_err = openapi_spec_free(&s);
   }
 
   /* 4. spec_add_security_scheme doc->name strdup fail */
@@ -162,7 +162,7 @@ TEST test_c2openapi_reach_100_percent(void) {
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&s);
+    g_cdd_last_alloc_err = openapi_spec_free(&s);
   }
 
   /* 5. spec_add_security_scheme apikey key_name strdup fail */
@@ -182,7 +182,7 @@ TEST test_c2openapi_reach_100_percent(void) {
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_security_scheme(&s, &d));
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&s);
+    g_cdd_last_alloc_err = openapi_spec_free(&s);
   }
 
   /* 6. c2openapi_cli_main collect_spec_tags fail via base spec tag OOM */
@@ -192,11 +192,11 @@ TEST test_c2openapi_reach_100_percent(void) {
     int step;
     int hit_tag_oom = 0;
     TEST_MKDIR("build/nonexistent_empty_src_dir");
-    fs_write_to_file(base_path,
-                     "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\","
-                     "\"version\":\"1\"},\"paths\":{\"/p\":{\"get\":{"
-                     "\"tags\":[\"my_op_tag\"],\"responses\":{\"200\":{"
-                     "\"description\":\"ok\"}}}}}}");
+    g_cdd_last_alloc_err = fs_write_to_file(
+        base_path, "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\","
+                   "\"version\":\"1\"},\"paths\":{\"/p\":{\"get\":{"
+                   "\"tags\":[\"my_op_tag\"],\"responses\":{\"200\":{"
+                   "\"description\":\"ok\"}}}}}}");
     argv[0] = cdd_test_mut_str("c2openapi");
     argv[1] = cdd_test_mut_str("--base");
     argv[2] = cdd_test_mut_str(base_path);

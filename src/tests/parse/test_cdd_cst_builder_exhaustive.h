@@ -34,9 +34,9 @@ TEST test_cdd_cst_builder_oom(void) {
   cdd_cst_node_t *root = NULL;
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
-  cdd_cst_builder_init(&b, tree, root);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, root);
 
   g_cdd_cst_alloc_token_fail = 1;
   {
@@ -62,18 +62,19 @@ TEST test_cdd_cst_builder_oom(void) {
     cdd_cst_node_t *n1 = NULL;
     cdd_cst_node_t *n2 = NULL;
     cdd_token_t tok = {0};
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_node(n1, n2));
     g_cdd_cst_realloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_token(n1, &tok));
-    cdd_cst_free_node_only(n1);
-    cdd_cst_free_node_only(n2);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(n1);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(n2);
   }
   g_cdd_cst_realloc_fail = 0;
 
   /* To trigger append_child_token failure inside cdd_cst_bld_token */
-  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success1");
+  g_cdd_last_alloc_err =
+      cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success1");
   b.target_node->capacity = b.target_node->num_children;
   g_cdd_cst_realloc_fail = 1;
   {
@@ -84,7 +85,8 @@ TEST test_cdd_cst_builder_oom(void) {
   b.error_state = 0;
 
   /* To trigger append_child_node failure inside cdd_cst_bld_block_open */
-  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success2");
+  g_cdd_last_alloc_err =
+      cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success2");
   b.target_node->capacity = b.target_node->num_children;
   g_cdd_cst_realloc_fail = 1;
   {
@@ -174,13 +176,14 @@ TEST test_cdd_cst_builder_oom(void) {
     for (i = 1; i <= 20; ++i) {
       tree->string_capacity = tree->num_strings;
       g_cdd_alloc_fail = i;
-      cdd_cst_bld_snippet(&b, "int /* test pool fail */ x;");
+      g_cdd_last_alloc_err =
+          cdd_cst_bld_snippet(&b, "int /* test pool fail */ x;");
       g_cdd_alloc_fail = 0;
       b.error_state = 0;
     }
   }
 
-  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "foo");
+  g_cdd_last_alloc_err = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "foo");
   ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_block_comment(&b, "test1"));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_block_comment(&b, "test2"));
 
@@ -189,7 +192,7 @@ TEST test_cdd_cst_builder_oom(void) {
     for (i = 1; i < 20; i++) {
       b.error_state = 0;
       g_cdd_alloc_fail = i;
-      cdd_cst_bld_snippet(&b, "int x;");
+      g_cdd_last_alloc_err = cdd_cst_bld_snippet(&b, "int x;");
     }
   }
   g_cdd_alloc_fail = 0;
@@ -200,7 +203,7 @@ TEST test_cdd_cst_builder_oom(void) {
     for (i = 1; i < 20; i++) {
       b.error_state = 0;
       g_cdd_alloc_fail = i;
-      cdd_cst_quote(&b, "%s", "foo");
+      g_cdd_last_alloc_err = cdd_cst_quote(&b, "%s", "foo");
     }
   }
   g_cdd_alloc_fail = 0;
@@ -219,13 +222,13 @@ TEST test_cdd_cst_builder_oom(void) {
     for (i = 1; i < 20; i++) {
       b.error_state = 0;
       g_cdd_alloc_fail = i;
-      cdd_cst_quote(&b, "int x;");
+      g_cdd_last_alloc_err = cdd_cst_quote(&b, "int x;");
     }
   }
   g_cdd_alloc_fail = 0;
   b.error_state = 0;
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 #endif
   g_fail_io_after = -1;
   PASS();
@@ -248,57 +251,57 @@ TEST test_cdd_cst_builder_punct_all(void) {
   cdd_cst_node_t *root = NULL;
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
-  cdd_cst_builder_init(&b, tree, root);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, root);
 
   /* Test all punct types */
-  cdd_cst_bld_punct(&b, "[");
-  cdd_cst_bld_punct(&b, "]");
-  cdd_cst_bld_punct(&b, "{");
-  cdd_cst_bld_punct(&b, "}");
-  cdd_cst_bld_punct(&b, "...");
-  cdd_cst_bld_punct(&b, "->");
-  cdd_cst_bld_punct(&b, ".");
-  cdd_cst_bld_punct(&b, "+");
-  cdd_cst_bld_punct(&b, "-");
-  cdd_cst_bld_punct(&b, "*");
-  cdd_cst_bld_punct(&b, "/");
-  cdd_cst_bld_punct(&b, "%");
-  cdd_cst_bld_punct(&b, "==");
-  cdd_cst_bld_punct(&b, "!=");
-  cdd_cst_bld_punct(&b, "<");
-  cdd_cst_bld_punct(&b, ">");
-  cdd_cst_bld_punct(&b, "<=");
-  cdd_cst_bld_punct(&b, ">=");
-  cdd_cst_bld_punct(&b, "&&");
-  cdd_cst_bld_punct(&b, "||");
-  cdd_cst_bld_punct(&b, "!");
-  cdd_cst_bld_punct(&b, "&");
-  cdd_cst_bld_punct(&b, "|");
-  cdd_cst_bld_punct(&b, "^");
-  cdd_cst_bld_punct(&b, "~");
-  cdd_cst_bld_punct(&b, "<<");
-  cdd_cst_bld_punct(&b, ">>");
-  cdd_cst_bld_punct(&b, "=");
-  cdd_cst_bld_punct(&b, "+=");
-  cdd_cst_bld_punct(&b, "-=");
-  cdd_cst_bld_punct(&b, "*=");
-  cdd_cst_bld_punct(&b, "/=");
-  cdd_cst_bld_punct(&b, "%=");
-  cdd_cst_bld_punct(&b, "<<=");
-  cdd_cst_bld_punct(&b, ">>=");
-  cdd_cst_bld_punct(&b, "&=");
-  cdd_cst_bld_punct(&b, "^=");
-  cdd_cst_bld_punct(&b, "|=");
-  cdd_cst_bld_punct(&b, "?");
-  cdd_cst_bld_punct(&b, ":");
-  cdd_cst_bld_punct(&b, ",");
-  cdd_cst_bld_punct(&b, "#");
-  cdd_cst_bld_punct(&b, "##");
-  cdd_cst_bld_punct(&b, "++");
-  cdd_cst_bld_punct(&b, "--");
-  cdd_cst_bld_punct(&b, "other");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "[");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "]");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "{");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "}");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "...");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "->");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ".");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "+");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "-");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "*");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "/");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "%");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "==");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "!=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "<");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ">");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "<=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ">=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "&&");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "||");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "!");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "&");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "|");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "^");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "~");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "<<");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ">>");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "+=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "-=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "*=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "/=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "%=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "<<=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ">>=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "&=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "^=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "|=");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "?");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ":");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, ",");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "#");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "##");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "++");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "--");
+  g_cdd_last_alloc_err = cdd_cst_bld_punct(&b, "other");
 
   /* Test all remaining builder functions for CDD_C_ERROR_INVALID_ARGUMENT and
    * error_state */
@@ -336,7 +339,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
     int i;
     for (i = 1; i <= 10; i++) {
       g_cdd_alloc_fail = i;
-      cdd_cst_bld_include(&b, "test_alloc_fail.h", 1);
+      g_cdd_last_alloc_err = cdd_cst_bld_include(&b, "test_alloc_fail.h", 1);
       g_cdd_alloc_fail = 0;
       b.error_state = 0;
     }
@@ -394,7 +397,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
   }
 #endif
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -410,9 +413,10 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   cdd_cst_node_t *new_node = NULL;
   int rc = 0;
 
-  cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
   node = tree->root;
-  cdd_cst_builder_init(&b, tree, node);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, node);
 
   /* pool_string expansion failure */
 #ifdef CDD_BUILD_TESTS
@@ -533,13 +537,13 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
   {
     cdd_cst_node_t *dummy = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &dummy);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &dummy);
     g_cdd_cst_realloc_fail = 1;
     rc = cdd_cst_quote(&b, "int %n;", dummy);
     ASSERT(rc != 0);
     g_cdd_cst_realloc_fail = 0;
     b.error_state = 0;
-    cdd_cst_free_node_only(dummy);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(dummy);
   }
 #endif
 
@@ -549,9 +553,12 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_tree_t *empty_tree = NULL;
     cdd_cst_node_t *empty_root = NULL;
     cdd_cst_builder_t empty_b;
-    cdd_cst_parse(az_span_create_from_str(""), &empty_tree);
-    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &empty_root);
-    cdd_cst_builder_init(&empty_b, empty_tree, empty_root);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str(""), &empty_tree);
+    g_cdd_last_alloc_err =
+        cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &empty_root);
+    g_cdd_last_alloc_err =
+        cdd_cst_builder_init(&empty_b, empty_tree, empty_root);
 
     {
       int step;
@@ -572,15 +579,15 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     empty_b.tree = empty_tree;
     empty_b.error_state = 0;
 
-    cdd_cst_free_node_only(empty_root);
-    cdd_cst_tree_free(empty_tree);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(empty_root);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(empty_tree);
   }
 #endif
 
-  cdd_cst_bld_block_comment(&b, "/* lead comment */");
-  cdd_cst_bld_ident(&b, "x");
-  cdd_cst_bld_line_comment(&b, "// trail comment");
-  cdd_cst_bld_newline(&b);
+  g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "/* lead comment */");
+  g_cdd_last_alloc_err = cdd_cst_bld_ident(&b, "x");
+  g_cdd_last_alloc_err = cdd_cst_bld_line_comment(&b, "// trail comment");
+  g_cdd_last_alloc_err = cdd_cst_bld_newline(&b);
 
   {
     cdd_cst_node_t *parent_node = NULL;
@@ -591,8 +598,8 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     tok_item.leading_trivia = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
     tok_item.trailing_trivia = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
 
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
-    cdd_cst_append_child_token(parent_node, &tok_item);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(parent_node, &tok_item);
     ASSERT_EQ(0, cdd_cst_extract_leading_trivia(parent_node, &triv));
     while (triv) {
       cdd_trivia_t *nxt = triv->next;
@@ -607,14 +614,16 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     }
 
     parent_node->num_children = 0;
-    cdd_cst_free_node_only(parent_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(parent_node);
   }
 
   /* Replace node preserve trivia */
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
-  cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
-  cdd_cst_builder_init(&b, tree, tree->root->children[0].val.node);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_builder_init(&b, tree, tree->root->children[0].val.node);
   node = tree->root->children[0].val.node;
   new_node = tree->root->children[0].val.node;
 
@@ -634,16 +643,17 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_node_t *n1 = NULL;
     cdd_cst_node_t *n2 = NULL;
     cdd_cst_node_t *new_n2 = NULL;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
-    cdd_cst_builder_init(&b, tree, tree->root);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
+    g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, tree->root);
 
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &new_n2);
-    cdd_cst_append_child_node(tree->root, n1);
-    cdd_cst_append_child_node(n1, n2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &new_n2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(tree->root, n1);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(n1, n2);
 
     g_cdd_alloc_fail = 2;
     g_cdd_cst_alloc_node_fail = 2;
@@ -652,7 +662,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     g_cdd_alloc_fail = 0;
     g_cdd_cst_alloc_node_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    cdd_cst_free_node(new_n2);
+    g_cdd_last_alloc_err = cdd_cst_free_node(new_n2);
     b.error_state = CDD_C_SUCCESS;
   }
 #endif
@@ -666,21 +676,21 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   {
     cdd_cst_node_t *n1 = NULL;
     cdd_cst_node_t *n2 = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
 
     b.target_node = n1;
-    cdd_cst_bld_snippet(
+    g_cdd_last_alloc_err = cdd_cst_bld_snippet(
         &b,
         "/* l1a */ /* l1b */ /* l1c */ int x /* t1a */ /* t1b */ /* t1c */;");
 
     b.target_node = n2;
-    cdd_cst_bld_snippet(
+    g_cdd_last_alloc_err = cdd_cst_bld_snippet(
         &b,
         "/* l2a */ /* l2b */ /* l2c */ int y /* t2a */ /* t2b */ /* t2c */;");
 
     /* Empty snippet to hit CDD_TOKEN_EOF */
-    cdd_cst_bld_snippet(&b, "/* just trivia */");
+    g_cdd_last_alloc_err = cdd_cst_bld_snippet(&b, "/* just trivia */");
 
     {
       char *giant_trivia = (char *)malloc(4500);
@@ -694,7 +704,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
       giant_trivia[4497] = 't';
       giant_trivia[4498] = ';';
       giant_trivia[4499] = '\0';
-      cdd_cst_bld_snippet(&b, giant_trivia);
+      g_cdd_last_alloc_err = cdd_cst_bld_snippet(&b, giant_trivia);
 
       memset(giant_trivia, ' ', 4499);
       giant_trivia[0] = 'i';
@@ -706,14 +716,14 @@ TEST test_cdd_cst_builder_exhaustive(void) {
       giant_trivia[4497] = '*';
       giant_trivia[4498] = '/';
       giant_trivia[4499] = '\0';
-      cdd_cst_bld_snippet(&b, giant_trivia);
+      g_cdd_last_alloc_err = cdd_cst_bld_snippet(&b, giant_trivia);
       free(giant_trivia);
     }
 
     rc = cdd_cst_transfer_trivia(n1, n2);
     ASSERT_EQ(0, rc);
-    cdd_cst_free_node(n1);
-    cdd_cst_free_node(n2);
+    g_cdd_last_alloc_err = cdd_cst_free_node(n1);
+    g_cdd_last_alloc_err = cdd_cst_free_node(n2);
   }
 
   {
@@ -726,7 +736,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     giant_format[2502] = '%';
     giant_format[2503] = 't';
     giant_format[2999] = '\0';
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &quote_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &quote_node);
     b.target_node = quote_node;
     rc = cdd_cst_quote(&b, giant_format, "some_token");
 
@@ -748,7 +758,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     rc = cdd_cst_quote(&b, "invalid format ending with %");
     ASSERT_EQ(0, rc);
     b.error_state = 0;
-    cdd_cst_free_node(quote_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node(quote_node);
   }
 
   /* OOM test for cdd_cst_bld_block_comment */
@@ -776,10 +786,10 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     /* Test extract trivia from node with NO tokens */
     cdd_cst_node_t *empty_node = NULL;
     cdd_trivia_t *tr = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
-    cdd_cst_extract_leading_trivia(empty_node, &tr);
-    cdd_cst_extract_trailing_trivia(empty_node, &tr);
-    cdd_cst_free_node_only(empty_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
+    g_cdd_last_alloc_err = cdd_cst_extract_leading_trivia(empty_node, &tr);
+    g_cdd_last_alloc_err = cdd_cst_extract_trailing_trivia(empty_node, &tr);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(empty_node);
   }
 
   /* Test trailing trivia transfer where replacement already has trailing trivia
@@ -787,21 +797,23 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   {
     cdd_cst_node_t *target_with_trail = NULL;
     cdd_cst_node_t *replacement_with_trail = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &target_with_trail);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &replacement_with_trail);
+    g_cdd_last_alloc_err =
+        cdd_cst_alloc_node(CDD_CST_STATEMENT, &target_with_trail);
+    g_cdd_last_alloc_err =
+        cdd_cst_alloc_node(CDD_CST_STATEMENT, &replacement_with_trail);
 
     b.target_node = target_with_trail;
-    cdd_cst_bld_block_comment(&b, "lead1a");
-    cdd_cst_bld_block_comment(&b, "lead1b");
-    cdd_cst_bld_block_comment(&b, "lead1c");
-    cdd_cst_bld_block_comment(&b, "lead1d");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead1a");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead1b");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead1c");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead1d");
 
     /* Test comment after a node */
     {
       cdd_cst_node_t *n1 = NULL;
       cdd_cst_node_t *n2 = NULL;
-      cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
-      cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
 
       b.target_node = n1;
       rc = cdd_cst_append_child_node(n1, n2);
@@ -811,15 +823,16 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
       /* Let's also do a block comment on a token with 3 existing trailing
        * trivias */
-      cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "tok_for_trail");
-      cdd_cst_bld_block_comment(&b, "trail1");
-      cdd_cst_bld_block_comment(&b, "trail2");
-      cdd_cst_bld_block_comment(&b, "trail3");
-      cdd_cst_bld_block_comment(&b, "trail4");
-      cdd_cst_free_node(n1);
+      g_cdd_last_alloc_err =
+          cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "tok_for_trail");
+      g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "trail1");
+      g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "trail2");
+      g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "trail3");
+      g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "trail4");
+      g_cdd_last_alloc_err = cdd_cst_free_node(n1);
     }
     b.target_node = target_with_trail;
-    cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "t1");
+    g_cdd_last_alloc_err = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "t1");
     /* Attach trailing trivia explicitly */
     {
       cdd_token_t *t =
@@ -836,10 +849,10 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     }
 
     b.target_node = replacement_with_trail;
-    cdd_cst_bld_block_comment(&b, "lead2a");
-    cdd_cst_bld_block_comment(&b, "lead2b");
-    cdd_cst_bld_block_comment(&b, "lead2c");
-    cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "r1");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead2a");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead2b");
+    g_cdd_last_alloc_err = cdd_cst_bld_block_comment(&b, "lead2c");
+    g_cdd_last_alloc_err = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "r1");
     {
       cdd_token_t *t = replacement_with_trail
                            ->children[replacement_with_trail->num_children - 1]
@@ -855,12 +868,13 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     }
 
     /* We also need to add them to root so they have parents */
-    cdd_cst_append_child_node(tree->root, target_with_trail);
+    g_cdd_last_alloc_err =
+        cdd_cst_append_child_node(tree->root, target_with_trail);
 
     rc = cdd_cst_replace_node_preserve_trivia(&b, target_with_trail,
                                               replacement_with_trail);
     ASSERT_EQ(0, rc);
-    cdd_cst_free_node(target_with_trail);
+    g_cdd_last_alloc_err = cdd_cst_free_node(target_with_trail);
   }
 
   /* Test empty nodes in trivia extraction */
@@ -868,23 +882,24 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_node_t *parent_node = NULL;
     cdd_cst_node_t *empty_node1 = NULL;
     cdd_cst_node_t *empty_node2 = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node1);
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node2);
 
-    cdd_cst_append_child_node(parent_node, empty_node1);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(parent_node, empty_node1);
     b.target_node = parent_node;
-    cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "mid");
-    cdd_cst_append_child_node(parent_node, empty_node2);
+    g_cdd_last_alloc_err = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "mid");
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(parent_node, empty_node2);
 
     /* Extraction should skip empty_node1/2 and find mid */
     {
       cdd_trivia_t *lead = NULL;
       cdd_trivia_t *trail = NULL;
-      cdd_cst_extract_leading_trivia(parent_node, &lead);
-      cdd_cst_extract_trailing_trivia(parent_node, &trail);
+      g_cdd_last_alloc_err = cdd_cst_extract_leading_trivia(parent_node, &lead);
+      g_cdd_last_alloc_err =
+          cdd_cst_extract_trailing_trivia(parent_node, &trail);
     }
-    cdd_cst_free_node(parent_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node(parent_node);
   }
   node = tree->root->children[0].val.node;
   new_node = tree->root->children[0].val.node;
@@ -928,7 +943,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   b.error_state = 0;
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 

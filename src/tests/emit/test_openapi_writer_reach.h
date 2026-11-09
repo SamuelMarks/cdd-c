@@ -41,7 +41,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
@@ -222,56 +222,56 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
       JSON_Value *tmp_v = NULL;
       JSON_Object *tmp_o = NULL;
       g_parson_oom_fail_at = -1;
-      cdd_json_value_init_object(&tmp_v);
-      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(tmp_v, &tmp_o);
       g_parson_oom_fail_at = k_idx;
-      write_discriminator_object(tmp_o, &disc, 1);
+      g_cdd_last_alloc_err = write_discriminator_object(tmp_o, &disc, 1);
       g_parson_oom_fail_at = -1;
-      cdd_json_value_free(tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_free(tmp_v);
     }
     for (k_idx = 0; k_idx < 25; ++k_idx) {
       JSON_Value *tmp_v = NULL;
       JSON_Object *tmp_o = NULL;
       g_parson_oom_fail_at = -1;
-      cdd_json_value_init_object(&tmp_v);
-      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(tmp_v, &tmp_o);
       g_parson_oom_fail_at = k_idx;
-      write_external_docs(tmp_o, "externalDocs", &ed);
+      g_cdd_last_alloc_err = write_external_docs(tmp_o, "externalDocs", &ed);
       g_parson_oom_fail_at = -1;
-      cdd_json_value_free(tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_free(tmp_v);
     }
     for (k_idx = 0; k_idx < 30; ++k_idx) {
       JSON_Value *tmp_v = NULL;
       JSON_Object *tmp_o = NULL;
       g_parson_oom_fail_at = -1;
-      cdd_json_value_init_object(&tmp_v);
-      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(tmp_v, &tmp_o);
       g_parson_oom_fail_at = k_idx;
-      write_info(tmp_o, &s_lic);
+      g_cdd_last_alloc_err = write_info(tmp_o, &s_lic);
       g_parson_oom_fail_at = -1;
-      cdd_json_value_free(tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_free(tmp_v);
     }
     for (k_idx = 0; k_idx < 15; ++k_idx) {
       JSON_Value *tmp_v = NULL;
       JSON_Object *tmp_o = NULL;
       g_parson_oom_fail_at = -1;
-      cdd_json_value_init_object(&tmp_v);
-      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(tmp_v, &tmp_o);
       g_parson_oom_fail_at = k_idx;
-      write_xml_object(tmp_o, &xml, 1);
+      g_cdd_last_alloc_err = write_xml_object(tmp_o, &xml, 1);
       g_parson_oom_fail_at = -1;
-      cdd_json_value_free(tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_free(tmp_v);
     }
     for (k_idx = 0; k_idx < 15; ++k_idx) {
       JSON_Value *tmp_v = NULL;
       JSON_Object *tmp_o = NULL;
       g_parson_oom_fail_at = -1;
-      cdd_json_value_init_object(&tmp_v);
-      cdd_json_value_get_object(tmp_v, &tmp_o);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(tmp_v, &tmp_o);
       g_parson_oom_fail_at = k_idx;
-      write_server_object(tmp_o, &srv_oom);
+      g_cdd_last_alloc_err = write_server_object(tmp_o, &srv_oom);
       g_parson_oom_fail_at = -1;
-      cdd_json_value_free(tmp_v);
+      g_cdd_last_alloc_err = cdd_json_value_free(tmp_v);
     }
   }
 
@@ -341,7 +341,7 @@ TEST test_openapi_writer_component_returns_and_root_oom(void) {
   }
 
   json_set_allocation_functions(malloc, free);
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 
@@ -373,7 +373,7 @@ TEST test_openapi_writer_strike_last_19(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     val = _cdd_jv_1;
   }
   obj = json_value_get_object(val);
@@ -492,7 +492,7 @@ TEST test_openapi_writer_strike_last_19(void) {
   }
   json_set_allocation_functions(malloc, free);
 
-  json_value_free(val);
+  g_cdd_last_alloc_err = json_value_free(val);
   PASS();
 }
 
@@ -546,7 +546,7 @@ TEST test_openapi_writer_nail_last_11(void) {
   for (k = 0; k < 20; ++k) {
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -554,12 +554,12 @@ TEST test_openapi_writer_nail_last_11(void) {
     g_parson_oom_fail_at = k;
     ASSERT_WRITER_RC(write_encoding_map(obj, &enc_parent, 1));
     json_set_allocation_functions(malloc, free);
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
   for (k = 0; k < 20; ++k) {
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -567,12 +567,12 @@ TEST test_openapi_writer_nail_last_11(void) {
     g_parson_oom_fail_at = k;
     ASSERT_WRITER_RC(write_encoding_array(obj, "arr", &enc_parent, 1));
     json_set_allocation_functions(malloc, free);
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
   for (k = 0; k < 20; ++k) {
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -580,7 +580,7 @@ TEST test_openapi_writer_nail_last_11(void) {
     g_parson_oom_fail_at = k;
     ASSERT_WRITER_RC(write_media_type_map(obj, "content", &mt_parent, 1));
     json_set_allocation_functions(malloc, free);
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 2. Line 2325: write_operation_object responses failure */
@@ -595,7 +595,7 @@ TEST test_openapi_writer_nail_last_11(void) {
   for (k = 0; k < 10; ++k) {
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -603,7 +603,7 @@ TEST test_openapi_writer_nail_last_11(void) {
     g_parson_oom_fail_at = k;
     ASSERT_WRITER_RC(write_operation_object(obj, &op_no_body));
     json_set_allocation_functions(malloc, free);
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 3. Line 2455: write_operations failure */
@@ -617,7 +617,7 @@ TEST test_openapi_writer_nail_last_11(void) {
   for (k = 0; k < 10; ++k) {
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -625,7 +625,7 @@ TEST test_openapi_writer_nail_last_11(void) {
     g_parson_oom_fail_at = k;
     ASSERT_WRITER_RC(write_operations(obj, &path_ops));
     json_set_allocation_functions(malloc, free);
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 4. Line 3397: root write_tags failure */
@@ -659,7 +659,7 @@ TEST test_openapi_writer_nail_last_11(void) {
     path_srv_fail.n_servers = 1;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -667,7 +667,7 @@ TEST test_openapi_writer_nail_last_11(void) {
     g_parson_oom_fail_at = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, write_path_item_object(obj, &path_srv_fail));
     json_set_allocation_functions(malloc, free);
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   PASS();

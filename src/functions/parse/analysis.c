@@ -115,7 +115,8 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
   list->sites[list->size].spec = spec;
 
   if (var_name) {
-    c_cdd_strdup(var_name, &list->sites[list->size].var_name);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(var_name, &list->sites[list->size].var_name);
     if (!list->sites[list->size].var_name)
       return CDD_C_ERROR_MEMORY;
   } else {
@@ -353,7 +354,7 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
 
     if (tok->kind == TOKEN_IDENTIFIER) {
       int matched = 0;
-      token_matches_string(tok, var_name, &matched);
+      g_cdd_last_alloc_err = token_matches_string(tok, var_name, &matched);
       if (matched) {
         int is_inside = 0;
         {
@@ -414,7 +415,7 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
 
       while (spec->name != NULL) {
         int matched = 0;
-        token_matches_string(tok, spec->name, &matched);
+        g_cdd_last_alloc_err = token_matches_string(tok, spec->name, &matched);
         if (matched) {
           char *var_name = NULL;
           int is_return = 0;
@@ -452,7 +453,8 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
               case TOKEN_RBRACE:
                 break;
               case TOKEN_ASSIGN:
-                get_assigned_var(tokens, prev, &var_name);
+                g_cdd_last_alloc_err =
+                    get_assigned_var(tokens, prev, &var_name);
                 break;
               default:
                 continue;

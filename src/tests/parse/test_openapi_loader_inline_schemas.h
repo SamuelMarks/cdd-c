@@ -35,7 +35,7 @@ TEST test_load_inline_response_schema_primitive(void) {
                 spec.paths[0].operations[0].responses[0].schema.inline_type);
   ASSERT_EQ(0, spec.paths[0].operations[0].responses[0].schema.is_array);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -60,7 +60,7 @@ TEST test_load_inline_response_schema_array(void) {
   ASSERT_STR_EQ("integer",
                 spec.paths[0].operations[0].responses[0].schema.inline_type);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -101,7 +101,7 @@ TEST test_load_inline_schema_format_and_content(void) {
     ASSERT_STR_EQ("base64", schema->content_encoding);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -133,7 +133,7 @@ TEST test_load_inline_schema_array_item_format_and_content(void) {
     ASSERT_STR_EQ("base64", schema->items_content_encoding);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -190,7 +190,7 @@ TEST test_load_inline_schema_const_examples_annotations(void) {
     ASSERT_EQ(0, schema->write_only);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -221,7 +221,7 @@ TEST test_load_schema_ref_summary_description(void) {
     ASSERT_STR_EQ("Mode description", schema->description);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -263,7 +263,7 @@ TEST test_load_parameter_schema_format_and_content(void) {
     ASSERT_STR_EQ("base64", p->schema.content_encoding);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -310,7 +310,7 @@ TEST test_load_inline_schema_enum_default_nullable(void) {
     ASSERT_STR_EQ("on", p->schema.default_value.string);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -341,7 +341,7 @@ TEST test_load_inline_schema_type_union(void) {
     ASSERT_STR_EQ("null", p->schema.type_union[2]);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -375,7 +375,7 @@ TEST test_load_inline_schema_array_items_enum_nullable(void) {
     ASSERT_STR_EQ("b", p->schema.items_enum_values[1].string);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

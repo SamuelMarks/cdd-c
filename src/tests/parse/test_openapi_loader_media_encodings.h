@@ -67,7 +67,7 @@ TEST test_load_response_multiple_content(void) {
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -131,7 +131,7 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -180,7 +180,7 @@ TEST test_load_media_type_encoding(void) {
     ASSERT_STR_EQ("integer", mt->encoding[0].headers[0].type);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -238,7 +238,7 @@ TEST test_load_media_type_prefix_item_encoding(void) {
     ASSERT_STR_EQ("text/plain", mt->item_encoding->encoding[0].content_type);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -265,7 +265,7 @@ TEST test_load_response_content_type(void) {
   ASSERT_STR_EQ("Message",
                 spec.paths[0].operations[0].responses[0].schema.ref_name);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -298,7 +298,7 @@ TEST test_load_response_content_type_specificity(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("text/plain",
                 spec.paths[0].operations[0].responses[0].content_type);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -322,7 +322,7 @@ TEST test_load_response_content_type_params_json(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("application/json; charset=utf-8",
                 spec.paths[0].operations[0].responses[0].content_type);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

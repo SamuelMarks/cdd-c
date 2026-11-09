@@ -63,28 +63,45 @@ TEST test_openapi_utils_verbs_and_params(void) {
   ASSERT_EQ(OA_VERB_UNKNOWN, verb);
 
   /* 2. is_fixed_operation_method */
-  ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method(NULL));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("get"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("POST"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("Put"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("DELETE"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("patch"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("HEAD"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("options"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("TRACE"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_fixed_operation_method("query"));
-  ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("foobar"));
-
   {
-    int eq = 0;
-    extern C_CDD_EXPORT int g_cdd_fail_str_iequal;
-    g_cdd_fail_str_iequal = 1;
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, is_fixed_operation_method("get"));
-    g_cdd_fail_str_iequal = 0;
+    int bval = 0;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              is_fixed_operation_method("get", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method(NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("get", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("POST", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("Put", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("DELETE", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("patch", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("HEAD", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("options", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("TRACE", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("query", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_fixed_operation_method("foobar", &bval));
+    ASSERT_EQ(0, bval);
 
-    g_cdd_fail_str_iequal = 2;
-    ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_iequal("a", "b", &eq));
-    g_cdd_fail_str_iequal = 0;
+    {
+      int eq = 0;
+      extern C_CDD_EXPORT int g_cdd_fail_str_iequal;
+      g_cdd_fail_str_iequal = 1;
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                is_fixed_operation_method("get", &bval));
+      g_cdd_fail_str_iequal = 0;
+
+      g_cdd_fail_str_iequal = 2;
+      ASSERT_EQ(CDD_C_SUCCESS, c_cdd_str_iequal("a", "b", &eq));
+      g_cdd_fail_str_iequal = 0;
+    }
   }
 
   /* 3. parse_param_in */
@@ -168,24 +185,43 @@ TEST test_openapi_utils_param_style_and_types(void) {
   ASSERT_EQ(OA_STYLE_UNKNOWN, style);
 
   /* 2. param_type_is_primitive */
-  ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive(NULL));
-  ASSERT(param_type_is_primitive("string") != 0);
-  ASSERT(param_type_is_primitive("integer") != 0);
-  ASSERT(param_type_is_primitive("number") != 0);
-  ASSERT(param_type_is_primitive("boolean") != 0);
-  ASSERT_EQ(0, param_type_is_primitive("object"));
-  ASSERT_EQ(0, param_type_is_primitive("array"));
+  {
+    int bval = 0;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              param_type_is_primitive("string", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive(NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive("string", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive("integer", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive("number", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive("boolean", &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive("object", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_primitive("array", &bval));
+    ASSERT_EQ(0, bval);
 
-  /* 3. param_type_is_object_like */
-  memset(&p, 0, sizeof(p));
-  ASSERT_EQ(0, param_type_is_object_like(NULL));
-  ASSERT_EQ(0, param_type_is_object_like(&p));
-  p.type = cdd_test_mut_str("array");
-  ASSERT_EQ(0, param_type_is_object_like(&p));
-  p.type = cdd_test_mut_str("string");
-  ASSERT_EQ(0, param_type_is_object_like(&p));
-  p.type = cdd_test_mut_str("MyModel");
-  ASSERT(param_type_is_object_like(&p) != 0);
+    /* 3. param_type_is_object_like */
+    memset(&p, 0, sizeof(p));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              param_type_is_object_like(&p, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_object_like(NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_object_like(&p, &bval));
+    ASSERT_EQ(0, bval);
+    p.type = cdd_test_mut_str("array");
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_object_like(&p, &bval));
+    ASSERT_EQ(0, bval);
+    p.type = cdd_test_mut_str("string");
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_object_like(&p, &bval));
+    ASSERT_EQ(0, bval);
+    p.type = cdd_test_mut_str("MyModel");
+    ASSERT_EQ(CDD_C_SUCCESS, param_type_is_object_like(&p, &bval));
+    ASSERT_EQ(1, bval);
+  }
 
   /* 4. validate_parameter_style */
   ASSERT_EQ(CDD_C_SUCCESS, validate_parameter_style(NULL, 0));
@@ -279,98 +315,128 @@ TEST test_openapi_utils_keys_and_maps(void) {
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
   struct OpenAPI_Parameter p;
+  int bval = 0;
 
   /* 1. component_key_is_valid */
-  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid(""));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, component_key_is_valid("Valid_Name.1-ok"));
-  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid("Invalid@Key"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, component_key_is_valid("ok", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid("", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid("Valid_Name.1-ok", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, component_key_is_valid("Invalid@Key", &bval));
+  ASSERT_EQ(0, bval);
 
   /* 2. media_type_key_is_valid */
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_key_is_valid(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_key_is_valid(""));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_key_is_valid("application/json+vnd.*_1"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_key_is_valid("invalid#media"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, media_type_key_is_valid("ok", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_key_is_valid(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_key_is_valid("", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_key_is_valid("application/json+vnd.*_1", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_key_is_valid("invalid#media", &bval));
+  ASSERT_EQ(0, bval);
 
   /* 3. validate_component_key_map */
   ASSERT_EQ(CDD_C_SUCCESS, validate_component_key_map(NULL));
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"Key1\": 1, \"Key_2.ok\": 2}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"Key1\": 1, \"Key_2.ok\": 2}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, validate_component_key_map(jo));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"Key1\": 1, \"Bad@Key\": 2}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"Key1\": 1, \"Bad@Key\": 2}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_component_key_map(jo));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 4. validate_media_type_key_map */
   ASSERT_EQ(CDD_C_SUCCESS, validate_media_type_key_map(NULL));
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"application/json\": 1, \"text/*\": 2}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"application/json\": 1, \"text/*\": 2}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_SUCCESS, validate_media_type_key_map(jo));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"bad!media\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"bad!media\": 1}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, validate_media_type_key_map(jo));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 5. header_name_is_content_type */
-  ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type(NULL));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, header_name_is_content_type("content-type"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, header_name_is_content_type("Content-Type"));
-  ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type("Accept"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            header_name_is_content_type("Content-Type", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type("content-type", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type("Content-Type", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, header_name_is_content_type("Accept", &bval));
+  ASSERT_EQ(0, bval);
 
   /* 6. header_param_is_reserved */
   memset(&p, 0, sizeof(p));
-  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, header_param_is_reserved(&p, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(0, bval);
   p.in = OA_PARAM_IN_QUERY;
   p.name = cdd_test_mut_str("Accept");
-  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.in = OA_PARAM_IN_HEADER;
   p.name = cdd_test_mut_str("Accept");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(1, bval);
   p.name = cdd_test_mut_str("Content-Type");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(1, bval);
   p.name = cdd_test_mut_str("Authorization");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(1, bval);
   p.name = cdd_test_mut_str("X-Custom");
-  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.name = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, header_param_is_reserved(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   {
     extern C_CDD_EXPORT int g_cdd_fail_str_iequal;
     g_cdd_fail_str_iequal = 1;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              header_name_is_content_type("Content-Type"));
+              header_name_is_content_type("Content-Type", &bval));
     g_cdd_fail_str_iequal = 0;
 
     g_cdd_fail_str_iequal = 1;
     p.name = cdd_test_mut_str("Accept");
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, header_param_is_reserved(&p));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              header_param_is_reserved(&p, &bval));
     g_cdd_fail_str_iequal = 0;
   }
 
@@ -511,7 +577,7 @@ TEST test_openapi_utils_any_values(void) {
   /* 2. parse_any_value types */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("\"test_str\"", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("\"test_str\"", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   memset(&any, 0, sizeof(any));
@@ -519,24 +585,24 @@ TEST test_openapi_utils_any_values(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(OA_ANY_STRING, any.type);
   ASSERT_STR_EQ("test_str", any.string);
-  free_any_value(&any);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = free_any_value(&any);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("123.45", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("123.45", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   memset(&any, 0, sizeof(any));
   rc = parse_any_value(jv, &any);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(OA_ANY_NUMBER, any.type);
-  free_any_value(&any);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = free_any_value(&any);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("true", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("true", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   memset(&any, 0, sizeof(any));
@@ -544,24 +610,24 @@ TEST test_openapi_utils_any_values(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(OA_ANY_BOOL, any.type);
   ASSERT_EQ(1, any.boolean);
-  free_any_value(&any);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = free_any_value(&any);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("null", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("null", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   memset(&any, 0, sizeof(any));
   rc = parse_any_value(jv, &any);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(OA_ANY_NULL, any.type);
-  free_any_value(&any);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = free_any_value(&any);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"nested\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{\"nested\": 1}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   memset(&any, 0, sizeof(any));
@@ -569,13 +635,13 @@ TEST test_openapi_utils_any_values(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(OA_ANY_JSON, any.type);
   ASSERT(any.json != NULL);
-  free_any_value(&any);
+  g_cdd_last_alloc_err = free_any_value(&any);
 
   {
     JSON_Value *jv_arr = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[1, 2]", &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string("[1, 2]", &_cdd_jv_1);
       jv_arr = _cdd_jv_1;
     }
     memset(&any, 0, sizeof(any));
@@ -583,8 +649,8 @@ TEST test_openapi_utils_any_values(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(OA_ANY_JSON, any.type);
     ASSERT(any.json != NULL);
-    free_any_value(&any);
-    json_value_free(jv_arr);
+    g_cdd_last_alloc_err = free_any_value(&any);
+    g_cdd_last_alloc_err = json_value_free(jv_arr);
   }
 
   /* OOM on any serialize */
@@ -600,7 +666,7 @@ TEST test_openapi_utils_any_values(void) {
     memset(&any, 0, sizeof(any));
     rc = parse_any_value(jv, &any);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    free_any_value(&any);
+    g_cdd_last_alloc_err = free_any_value(&any);
     g_cdd_fail_any_serialize = 0;
   }
 
@@ -613,13 +679,14 @@ TEST test_openapi_utils_any_values(void) {
   rc = parse_any_value(jv, &any);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 3. parse_any_field */
   ASSERT_EQ(CDD_C_SUCCESS, parse_any_field(NULL, NULL, NULL, NULL));
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"key1\": \"val1\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"key1\": \"val1\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -635,13 +702,13 @@ TEST test_openapi_utils_any_values(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, out_set);
   ASSERT_STR_EQ("val1", any.string);
-  free_any_value(&any);
+  g_cdd_last_alloc_err = free_any_value(&any);
 
   g_cdd_strdup_fail = 1;
   rc = parse_any_field(jo, "key1", &any, &out_set);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 4. parse_any_array */
   ASSERT_EQ(CDD_C_SUCCESS, parse_any_array(NULL, NULL, NULL));
@@ -651,7 +718,7 @@ TEST test_openapi_utils_any_values(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("[]", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("[]", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ja = json_value_get_array(jv);
@@ -660,11 +727,12 @@ TEST test_openapi_utils_any_values(void) {
   ASSERT_EQ(CDD_C_SUCCESS, parse_any_array(ja, &any_arr, &any_count));
   ASSERT(any_arr == NULL);
   ASSERT_EQ(0, any_count);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("[\"item1\", 2, true]", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("[\"item1\", 2, true]", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ja = json_value_get_array(jv);
@@ -677,7 +745,7 @@ TEST test_openapi_utils_any_values(void) {
   {
     size_t k;
     for (k = 0; k < any_count; ++k)
-      free_any_value(&any_arr[k]);
+      g_cdd_last_alloc_err = free_any_value(&any_arr[k]);
     free(any_arr);
     any_arr = NULL;
     any_count = 0;
@@ -694,14 +762,15 @@ TEST test_openapi_utils_any_values(void) {
   rc = parse_any_array(ja, &any_arr, &any_count);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *jv2 = NULL;
     JSON_Array *ja2 = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[\"item1\", \"item2\"]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[\"item1\", \"item2\"]", &_cdd_jv_1);
       jv2 = _cdd_jv_1;
     }
     ja2 = json_value_get_array(jv2);
@@ -709,7 +778,7 @@ TEST test_openapi_utils_any_values(void) {
     rc = parse_any_array(ja2, &any_arr, &any_count);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_strdup_fail = 0;
-    json_value_free(jv2);
+    g_cdd_last_alloc_err = json_value_free(jv2);
   }
 
   PASS();
@@ -737,7 +806,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"openapi\":\"3.2.0\",\"servers\":[{\"url\":\"https://"
         "api.example.com\"}],"
         "\"webhooks\":{\"newPet\":{\"post\":{\"operationId\":\"onNewPet\"}}},"
@@ -752,10 +821,10 @@ TEST test_openapi_utils_clone_and_extras(void) {
   {
     JSON_Array *_cdd_ja_1 = NULL;
     const char *_cdd_js_2 = NULL;
-    cdd_json_object_get_array(json_value_get_object(clone), "servers",
-                              &_cdd_ja_1);
-    cdd_json_object_get_string(json_array_get_object(_cdd_ja_1, 0), "url",
-                               &_cdd_js_2);
+    g_cdd_last_alloc_err = cdd_json_object_get_array(
+        json_value_get_object(clone), "servers", &_cdd_ja_1);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(
+        json_array_get_object(_cdd_ja_1, 0), "url", &_cdd_js_2);
     ASSERT_STR_EQ("https://api.example.com", _cdd_js_2);
   }
   {
@@ -788,7 +857,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
       _cdd_js_1 = _cdd_jv_1->string_val;
     ASSERT_STR_EQ("object", _cdd_js_1);
   }
-  json_value_free(clone);
+  g_cdd_last_alloc_err = json_value_free(clone);
   clone = NULL;
 
   /* OOM on clone serialize */
@@ -804,7 +873,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
     rc = clone_json_value(jv, &clone);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(clone != NULL);
-    json_value_free(clone);
+    g_cdd_last_alloc_err = json_value_free(clone);
     clone = NULL;
     g_cdd_fail_clone_json_serialize = 0;
   }
@@ -822,29 +891,45 @@ TEST test_openapi_utils_clone_and_extras(void) {
     rc = clone_json_value(jv, &clone);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(clone != NULL);
-    json_value_free(clone);
+    g_cdd_last_alloc_err = json_value_free(clone);
     clone = NULL;
     g_cdd_fail_clone_json_parse = 0;
   }
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 2. key_in_list */
-  ASSERT_EQ(CDD_C_SUCCESS, key_in_list(NULL, NULL, 0));
-  skip[0] = "skip1";
-  skip[1] = "skip2";
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, key_in_list("skip1", skip, 2));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, key_in_list("skip2", skip, 2));
-  ASSERT_EQ(CDD_C_SUCCESS, key_in_list("keep", skip, 2));
-  skip[0] = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS, key_in_list("skip1", skip, 2));
-  skip[0] = "skip1";
+  {
+    int bval = 0;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              key_in_list("skip1", skip, 2, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, key_in_list(NULL, NULL, 0, &bval));
+    ASSERT_EQ(0, bval);
+    skip[0] = "skip1";
+    skip[1] = "skip2";
+    ASSERT_EQ(CDD_C_SUCCESS, key_in_list("skip1", skip, 2, &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, key_in_list("skip2", skip, 2, &bval));
+    ASSERT_EQ(1, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, key_in_list("keep", skip, 2, &bval));
+    ASSERT_EQ(0, bval);
+    skip[0] = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, key_in_list("skip1", skip, 2, &bval));
+    ASSERT_EQ(0, bval);
+    skip[0] = "skip1";
 
-  /* 3. is_extension_key */
-  ASSERT_EQ(CDD_C_SUCCESS, is_extension_key(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, is_extension_key(""));
-  ASSERT_EQ(CDD_C_SUCCESS, is_extension_key("x"));
-  ASSERT_EQ(CDD_C_SUCCESS, is_extension_key("regularKey"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_extension_key("x-my-ext"));
+    /* 3. is_extension_key */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, is_extension_key("x-my-ext", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, is_extension_key(NULL, &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_extension_key("", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_extension_key("x", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_extension_key("regularKey", &bval));
+    ASSERT_EQ(0, bval);
+    ASSERT_EQ(CDD_C_SUCCESS, is_extension_key("x-my-ext", &bval));
+    ASSERT_EQ(1, bval);
+  }
 
   /* 4. collect_schema_extras */
   rc = collect_schema_extras(NULL, NULL, 0, NULL);
@@ -852,7 +937,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -863,12 +948,12 @@ TEST test_openapi_utils_clone_and_extras(void) {
   rc = collect_schema_extras(jo, skip, 2, &out_json);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(out_json == NULL);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"skip1\": 1, \"extra1\": \"val1\", \"extra2\": 2}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"skip1\": 1, \"extra1\": \"val1\", \"extra2\": 2}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -940,7 +1025,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
   rc = collect_schema_extras(jo, skip, 2, &out_json);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 5. collect_extensions */
   rc = collect_extensions(NULL, NULL);
@@ -950,7 +1035,8 @@ TEST test_openapi_utils_clone_and_extras(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"non_ext\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"non_ext\": 1}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -959,11 +1045,12 @@ TEST test_openapi_utils_clone_and_extras(void) {
   rc = collect_extensions(jo, &out_json);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(out_json == NULL);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"x-tag\": \"val\", \"regular\": 2}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"x-tag\": \"val\", \"regular\": 2}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -1035,7 +1122,7 @@ TEST test_openapi_utils_clone_and_extras(void) {
   rc = collect_extensions(jo, &out_json);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_strdup_fail = 0;
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   PASS();
 }
@@ -1049,83 +1136,117 @@ TEST test_openapi_utils_url_version_examples(void) {
   struct OpenAPI_Example ex;
   JSON_Value *jv = NULL;
   JSON_Object *jo = NULL;
+  int bval = 0;
 
   /* 1. url_has_query_or_fragment */
-  ASSERT_EQ(CDD_C_SUCCESS, url_has_query_or_fragment(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            url_has_query_or_fragment("https://example.com/api", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, url_has_query_or_fragment(NULL, &bval));
+  ASSERT_EQ(0, bval);
   ASSERT_EQ(CDD_C_SUCCESS,
-            url_has_query_or_fragment("https://example.com/api"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            url_has_query_or_fragment("https://example.com/api?a=1"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            url_has_query_or_fragment("https://example.com/api#section"));
+            url_has_query_or_fragment("https://example.com/api", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            url_has_query_or_fragment("https://example.com/api?a=1", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, url_has_query_or_fragment(
+                               "https://example.com/api#section", &bval));
+  ASSERT_EQ(1, bval);
 
   /* 2. openapi_version_supported */
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported(""));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, openapi_version_supported("3.0.0"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, openapi_version_supported("3.1.0"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, openapi_version_supported("3.2.0"));
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("2.0"));
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("4.0.0"));
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3x"));
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3.9"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_version_supported("3.0.0", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3.0.0", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3.1.0", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3.2.0", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("2.0", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("4.0.0", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3x", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_version_supported("3.9", &bval));
+  ASSERT_EQ(0, bval);
 
   /* 3. example_fields_valid */
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, example_fields_valid(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, example_fields_valid(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(NULL, &bval));
+  ASSERT_EQ(1, bval);
   memset(&ex, 0, sizeof(ex));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, example_fields_valid(&ex));
+  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex, &bval));
+  ASSERT_EQ(1, bval);
 
   /* Conflicting data_value and value */
   ex.data_value_set = 1;
   ex.value_set = 1;
-  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex));
+  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex, &bval));
+  ASSERT_EQ(0, bval);
 
   /* Conflicting serialized and external */
   memset(&ex, 0, sizeof(ex));
   ex.serialized_value = cdd_test_mut_str("ser");
   ex.external_value = cdd_test_mut_str("ext");
-  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex));
+  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex, &bval));
+  ASSERT_EQ(0, bval);
 
   /* Conflicting value and serialized */
   memset(&ex, 0, sizeof(ex));
   ex.value_set = 1;
   ex.serialized_value = cdd_test_mut_str("ser");
-  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex));
+  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex, &bval));
+  ASSERT_EQ(0, bval);
 
   /* Conflicting value and external */
   memset(&ex, 0, sizeof(ex));
   ex.value_set = 1;
   ex.external_value = cdd_test_mut_str("ext");
-  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex));
+  ASSERT_EQ(CDD_C_SUCCESS, example_fields_valid(&ex, &bval));
+  ASSERT_EQ(0, bval);
 
   /* 4. object_has_example_and_examples */
-  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            object_has_example_and_examples(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(NULL, &bval));
+  ASSERT_EQ(0, bval);
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"example\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"example\": 1}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(jo));
-  json_value_free(jv);
+  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(jo, &bval));
+  ASSERT_EQ(0, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"examples\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"examples\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(jo));
-  json_value_free(jv);
+  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(jo, &bval));
+  ASSERT_EQ(0, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"example\": 1, \"examples\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"example\": 1, \"examples\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, object_has_example_and_examples(jo));
-  json_value_free(jv);
+  ASSERT_EQ(CDD_C_SUCCESS, object_has_example_and_examples(jo, &bval));
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   PASS();
 }

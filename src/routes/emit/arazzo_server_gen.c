@@ -51,40 +51,47 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   rc = cdd_code_writer_init_buffer(&wt);
 
   /* 1. Server Orchestrator File */
-  cdd_code_writer_printf(&ws, "/**\n * @file %s_workflow_server.c\n",
-                         base_name);
-  cdd_code_writer_printf(
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &ws, "/**\n * @file %s_workflow_server.c\n", base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
       &ws, " * @brief Generated Arazzo v%s Server Workflow Orchestrator.\n",
       arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
-  cdd_code_writer_printf(&ws, " * @arazzo %s\n",
-                         arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &ws, " * @arazzo %s\n",
+      arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
   if (arazzo_spec->info.title) {
-    cdd_code_writer_printf(&ws, " * @infoTitle %s\n", arazzo_spec->info.title);
+    g_cdd_last_alloc_err = cdd_code_writer_printf(&ws, " * @infoTitle %s\n",
+                                                  arazzo_spec->info.title);
   }
   if (arazzo_spec->info.version) {
-    cdd_code_writer_printf(&ws, " * @infoVersion %s\n",
-                           arazzo_spec->info.version);
+    g_cdd_last_alloc_err = cdd_code_writer_printf(&ws, " * @infoVersion %s\n",
+                                                  arazzo_spec->info.version);
   }
-  cdd_code_writer_write(&ws, " */\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&ws, " */\n\n");
 
-  cdd_code_writer_write(&ws, "/* clang-format "
-                             "off */\n");
-  cdd_code_writer_write(&ws, "#include <stdio.h>\n");
-  cdd_code_writer_write(&ws, "#include <stdlib.h>\n");
-  cdd_code_writer_write(&ws, "#include <string.h>\n");
-  cdd_code_writer_write(&ws, "#include \"cdd_c_error.h\"\n");
-  cdd_code_writer_write(&ws, "#include <c_rest_request.h>\n");
-  cdd_code_writer_write(&ws, "#include <c_rest_response.h>\n");
-  cdd_code_writer_write(&ws, "#include <c_rest_router.h>\n");
-  cdd_code_writer_printf(&ws, "#include \"%s_workflows.h\"\n", base_name);
-  cdd_code_writer_write(&ws, "/* clang-format "
-                             "on */\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&ws, "/* clang-format "
+                                                    "off */\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&ws, "#include <stdio.h>\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&ws, "#include <stdlib.h>\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&ws, "#include <string.h>\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_write(&ws, "#include \"cdd_c_error.h\"\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_write(&ws, "#include <c_rest_request.h>\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_write(&ws, "#include <c_rest_response.h>\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_write(&ws, "#include <c_rest_router.h>\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_printf(&ws, "#include \"%s_workflows.h\"\n", base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_write(&ws, "/* clang-format "
+                                                    "on */\n\n");
 
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
     const char *wf_id = wf->workflow_id ? wf->workflow_id : "default_workflow";
 
-    cdd_code_writer_printf(
+    g_cdd_last_alloc_err = cdd_code_writer_printf(
         &ws,
         "/**\n"
         " * @brief Composite server workflow handler for `%s`.\n"
@@ -93,12 +100,13 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         wf_id, wf_id, wf_id, wf->description ? wf->description : "");
     for (j = 0; j < wf->n_steps; ++j) {
       const struct Arazzo_Step *st = &wf->steps[j];
-      cdd_code_writer_printf(&ws, " * @step %s [operationId:%s]\n",
-                             st->step_id ? st->step_id : "step_1",
-                             st->operation_id ? st->operation_id : "op");
+      g_cdd_last_alloc_err =
+          cdd_code_writer_printf(&ws, " * @step %s [operationId:%s]\n",
+                                 st->step_id ? st->step_id : "step_1",
+                                 st->operation_id ? st->operation_id : "op");
     }
-    cdd_code_writer_write(&ws, " */\n");
-    cdd_code_writer_printf(
+    g_cdd_last_alloc_err = cdd_code_writer_write(&ws, " */\n");
+    g_cdd_last_alloc_err = cdd_code_writer_printf(
         &ws,
         "cdd_c_error_t handle_workflow_%s(struct c_rest_request *req,\n"
         "                                 struct c_rest_response *res,\n"
@@ -108,20 +116,21 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         "  struct %sWorkflow_%s_Outputs out_s;\n"
         "  cdd_c_error_t rc;\n",
         wf_id, pfx, pfx, wf_id, pfx, wf_id);
-    cdd_code_writer_printf(&ws,
-                           "  (void)req;\n"
-                           "  (void)res;\n"
-                           "  (void)user_data;\n"
-                           "  memset(&clients, 0, sizeof(clients));\n"
-                           "  memset(&in_s, 0, sizeof(in_s));\n"
-                           "  memset(&out_s, 0, sizeof(out_s));\n"
-                           "  rc = %sworkflow_%s(&clients, &in_s, &out_s);\n"
-                           "  return rc;\n"
-                           "}\n\n",
-                           pfx, wf_id);
+    g_cdd_last_alloc_err = cdd_code_writer_printf(
+        &ws,
+        "  (void)req;\n"
+        "  (void)res;\n"
+        "  (void)user_data;\n"
+        "  memset(&clients, 0, sizeof(clients));\n"
+        "  memset(&in_s, 0, sizeof(in_s));\n"
+        "  memset(&out_s, 0, sizeof(out_s));\n"
+        "  rc = %sworkflow_%s(&clients, &in_s, &out_s);\n"
+        "  return rc;\n"
+        "}\n\n",
+        pfx, wf_id);
   }
 
-  cdd_code_writer_write(
+  g_cdd_last_alloc_err = cdd_code_writer_write(
       &ws, "/**\n"
            " * @brief Registers all Arazzo workflow composite routes on a "
            "`c_rest_router`.\n"
@@ -132,38 +141,45 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
     const char *wf_id = wf->workflow_id ? wf->workflow_id : "default_workflow";
-    cdd_code_writer_printf(&ws,
-                           "  /* c_rest_router_add(router, \"POST\", "
-                           "\"/workflows/%s\", handle_workflow_%s, NULL); */\n",
-                           wf_id, wf_id);
+    g_cdd_last_alloc_err = cdd_code_writer_printf(
+        &ws,
+        "  /* c_rest_router_add(router, \"POST\", "
+        "\"/workflows/%s\", handle_workflow_%s, NULL); */\n",
+        wf_id, wf_id);
   }
-  cdd_code_writer_write(&ws, "  return CDD_C_SUCCESS;\n}\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_write(&ws, "  return CDD_C_SUCCESS;\n}\n");
 
   /* 2. E2E `greatest.h` Test Header */
-  cdd_code_writer_printf(&wt, "/**\n * @file %s_workflow_tests.h\n", base_name);
-  cdd_code_writer_printf(
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &wt, "/**\n * @file %s_workflow_tests.h\n", base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
       &wt, " * @brief Generated Arazzo v%s E2E `greatest.h` Workflow Tests.\n",
       arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
-  cdd_code_writer_printf(&wt, " * @arazzo %s\n",
-                         arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
-  cdd_code_writer_write(&wt, " */\n\n");
-  cdd_code_writer_printf(&wt, "#ifndef C_CDD_%s_WORKFLOW_TESTS_H\n", base_name);
-  cdd_code_writer_printf(&wt, "#define C_CDD_%s_WORKFLOW_TESTS_H\n\n",
-                         base_name);
-  cdd_code_writer_write(&wt, "/* clang-format "
-                             "off */\n");
-  cdd_code_writer_write(&wt, "#include <greatest.h>\n");
-  cdd_code_writer_write(&wt, "#include <string.h>\n");
-  cdd_code_writer_printf(&wt, "#include \"%s_workflows.h\"\n", base_name);
-  cdd_code_writer_write(&wt, "/* clang-format "
-                             "on */\n\n");
-  cdd_code_writer_write(&wt, "#ifdef __cplusplus\nextern \"C\" {\n#endif /* "
-                             "__cplusplus */\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &wt, " * @arazzo %s\n",
+      arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&wt, " */\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &wt, "#ifndef C_CDD_%s_WORKFLOW_TESTS_H\n", base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &wt, "#define C_CDD_%s_WORKFLOW_TESTS_H\n\n", base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_write(&wt, "/* clang-format "
+                                                    "off */\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&wt, "#include <greatest.h>\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(&wt, "#include <string.h>\n");
+  g_cdd_last_alloc_err =
+      cdd_code_writer_printf(&wt, "#include \"%s_workflows.h\"\n", base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_write(&wt, "/* clang-format "
+                                                    "on */\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(
+      &wt, "#ifdef __cplusplus\nextern \"C\" {\n#endif /* "
+           "__cplusplus */\n\n");
 
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
     const char *wf_id = wf->workflow_id ? wf->workflow_id : "default_workflow";
-    cdd_code_writer_printf(
+    g_cdd_last_alloc_err = cdd_code_writer_printf(
         &wt,
         "/**\n"
         " * @brief E2E workflow test for `%s`.\n"
@@ -184,27 +200,28 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         wf_id, pfx, wf_id, pfx, wf_id);
   }
 
-  cdd_code_writer_printf(&wt, "SUITE(%s_arazzo_workflows_suite) {\n",
-                         base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &wt, "SUITE(%s_arazzo_workflows_suite) {\n", base_name);
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
     const char *wf_id = wf->workflow_id ? wf->workflow_id : "default_workflow";
-    cdd_code_writer_printf(&wt, "  RUN_TEST(test_workflow_%s);\n", wf_id);
+    g_cdd_last_alloc_err =
+        cdd_code_writer_printf(&wt, "  RUN_TEST(test_workflow_%s);\n", wf_id);
   }
-  cdd_code_writer_write(&wt, "}\n\n");
-  cdd_code_writer_write(&wt,
-                        "#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n\n");
-  cdd_code_writer_printf(&wt, "#endif /* C_CDD_%s_WORKFLOW_TESTS_H */\n",
-                         base_name);
+  g_cdd_last_alloc_err = cdd_code_writer_write(&wt, "}\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_write(
+      &wt, "#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n\n");
+  g_cdd_last_alloc_err = cdd_code_writer_printf(
+      &wt, "#endif /* C_CDD_%s_WORKFLOW_TESTS_H */\n", base_name);
 
   rc = cdd_code_writer_take_string(&ws, out_server_src);
-  cdd_code_writer_free(&ws);
+  g_cdd_last_alloc_err = cdd_code_writer_free(&ws);
   if (rc != CDD_C_SUCCESS) {
-    cdd_code_writer_free(&wt);
+    g_cdd_last_alloc_err = cdd_code_writer_free(&wt);
     return rc;
   }
   rc = cdd_code_writer_take_string(&wt, out_test_hdr);
-  cdd_code_writer_free(&wt);
+  g_cdd_last_alloc_err = cdd_code_writer_free(&wt);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(*out_server_src);
     *out_server_src = NULL;

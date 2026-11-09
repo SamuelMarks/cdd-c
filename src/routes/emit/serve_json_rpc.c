@@ -346,7 +346,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   rc = cdd_json_object_get_string(root_obj, "method", &method);
   if (!method) {
     rc = send_rpc_error_id(client_fd, id_val, -32600, "Invalid Request");
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return rc;
   }
 
@@ -405,7 +405,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     rc = cdd_json_object_get_object(root_obj, "params", &params);
     rc = build_mcp_resources_read(params, &res_str);
     rc = send_rpc_result_id(client_fd, id_val, res_str);
-    cdd_json_free_serialized_string(res_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(res_str);
   } else if (strcmp(method, "resources/subscribe") == 0) {
     rc = send_rpc_result_id(client_fd, id_val, "{}");
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
@@ -457,7 +457,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     rc = cdd_json_object_get_object(root_obj, "params", &params);
     rc = build_mcp_prompts_get(params, &prompt_str);
     rc = send_rpc_result_id(client_fd, id_val, prompt_str);
-    cdd_json_free_serialized_string(prompt_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(prompt_str);
   } else if (strcmp(method, "completion/complete") == 0) {
     rc = send_rpc_result_id(
         client_fd, id_val,
@@ -635,7 +635,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SERVER;
     } else {
       rc = send_rpc_error_id(client_fd, id_val, -32601, "Method not found");
-      cdd_json_value_free(root_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(root_val);
       return rc;
     }
 
@@ -671,7 +671,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     rc = send_rpc_error_id(client_fd, id_val, -32601, "Method not found");
   }
 
-  cdd_json_value_free(root_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
   return rc;
 }
 #endif /* !defined(__WATCOMC__) && !defined(__DOS__) &&                        \
@@ -817,52 +817,51 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
 #else
   cdd_serve_json_rpc_config_t cfg;
   const char *sug = NULL;
-  int i;
+  int is_help = 0;
+  int first_unk = -1;
   cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
   rc = cdd_cli_suggest_closest("serve_json_rpc", NULL, 0, &sug);
   cfg.port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;
-  cfg.bind_address = "0.0.0.0";
+  cfg.bind_address = NULL;
   cfg.max_requests =
       getenv("CDD_LISTEN") ? (size_t)atoi(getenv("CDD_LISTEN")) : 0;
 
-  for (i = 0; i < argc; i++) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c serve_json_rpc [args]");
-      puts("");
-      puts("Options:");
-      puts("  -p, --port <port>       Port to listen on (default: 8080)");
-      puts("  -l, --listen <address>  Address or connection limit to bind");
+  rc = cdd_cli_parse_reflected_argv(argc, argv, 1,
+                                    &cdd_serve_json_rpc_config_type_info, &cfg,
+                                    &is_help, &first_unk);
+  if (is_help) {
+    puts("Usage: cdd-c serve_json_rpc [args]");
+    puts("");
+    puts("Options:");
+    puts("  -p, --port <port>       Port to listen on (default: 8080)");
+    puts("  -l, --listen <address>  Address or connection limit to bind");
+    return rc;
+  }
+  if (rc != CDD_C_SUCCESS) {
+    /* Handle bare `-l` without argument as max_requests = 1 */
+    if (strcmp(argv[argc - 1], "-l") == 0 ||
+        strcmp(argv[argc - 1], "--listen") == 0) {
+      cfg.max_requests = 1;
+    } else {
       return rc;
-    } else if (argv[i][0] == '-' &&
-               cdd_reflect_find_field(&cdd_serve_json_rpc_config_type_info,
-                                      flag, &f) == CDD_C_SUCCESS) {
-      if (f->kind == CDD_FIELD_KIND_INTEGER) {
-        if (i + 1 < argc) {
-          cfg.port = atoi(argv[++i]);
-        } else {
-          return CDD_C_ERROR_INVALID_ARGUMENT;
-        }
-      } else {
-        cfg.max_requests = 1;
-        if (i + 1 < argc) {
-          const char *arg_val = argv[++i];
-          if (strchr(arg_val, '.') != NULL) {
-            cfg.bind_address = arg_val;
-          } else {
-            int parsed = atoi(arg_val);
-            cfg.max_requests =
-                (parsed == 255 || parsed <= 0) ? 0 : (size_t)parsed;
-          }
-        }
-      }
-    } else if (argv[i][0] == '-') {
-      fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[i]);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
+  }
+  if (first_unk >= 0 && argv[first_unk][0] == '-') {
+    fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[first_unk]);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  if (cfg.bind_address) {
+    if (strchr(cfg.bind_address, '.') == NULL) {
+      int parsed = atoi(cfg.bind_address);
+      cfg.max_requests = (parsed == 255 || parsed <= 0) ? 0 : (size_t)parsed;
+      cfg.bind_address = "0.0.0.0";
+    } else {
+      cfg.max_requests = 1;
+    }
+  } else {
+    cfg.bind_address = "0.0.0.0";
   }
 
   return serve_json_rpc_run(&cfg);

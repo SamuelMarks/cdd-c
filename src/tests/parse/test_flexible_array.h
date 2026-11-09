@@ -32,7 +32,7 @@ TEST test_parse_fam_basic(void) {
   int rc = 0;
 
   rc += 0;
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
 
   rc = parse_struct_member_line("char data[];", &sf);
   ASSERT_EQ(0, rc);
@@ -44,7 +44,7 @@ TEST test_parse_fam_basic(void) {
                 f->type); /* char[] maps to string type logic currently */
   ASSERT_EQ(1, f->is_flexible_array);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -60,7 +60,7 @@ TEST test_parse_fam_int(void) {
   int rc = 0;
 
   rc += 0;
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
 
   /* int items[]; */
   rc = parse_struct_member_line("int items[];", &sf);
@@ -71,7 +71,7 @@ TEST test_parse_fam_int(void) {
   ASSERT_STR_EQ("array", f->type);
   ASSERT_EQ(1, f->is_flexible_array);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -87,7 +87,7 @@ TEST test_parse_ptr_not_fam(void) {
   int rc = 0;
 
   rc += 0;
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
 
   rc = parse_struct_member_line("char *ptr;", &sf);
   ASSERT_EQ(0, rc);
@@ -96,7 +96,7 @@ TEST test_parse_ptr_not_fam(void) {
   ASSERT_STR_EQ("ptr", f->name);
   ASSERT_EQ(0, f->is_flexible_array);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -112,7 +112,7 @@ TEST test_parse_fixed_array_not_fam(void) {
   int rc = 0;
 
   rc += 0;
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
 
   rc = parse_struct_member_line("char buf[10];", &sf);
   ASSERT_EQ(0, rc);
@@ -123,7 +123,7 @@ TEST test_parse_fixed_array_not_fam(void) {
   ASSERT_STR_EQ("char[10]", f->c_type);
   ASSERT_EQ(0, f->is_flexible_array);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -138,7 +138,7 @@ TEST test_parse_fam_mixed_lines(void) {
   int rc = 0;
 
   rc += 0;
-  struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
 
   rc = parse_struct_member_line("int len;", &sf);
   ASSERT_EQ(0, rc);
@@ -149,7 +149,7 @@ TEST test_parse_fam_mixed_lines(void) {
   ASSERT_EQ(1, sf.fields[1].is_flexible_array);
   ASSERT_STR_EQ("vals", sf.fields[1].name);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

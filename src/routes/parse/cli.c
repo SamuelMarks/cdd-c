@@ -83,7 +83,7 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
 
   /* Need at least name and parens */
   if (lp < 1) {
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -232,9 +232,9 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
   }
 
 cleanup:
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   if (rc != CDD_C_SUCCESS) {
-    free_parsed_sig(out);
+    g_cdd_last_alloc_err = free_parsed_sig(out);
   }
   return rc;
 }
@@ -792,8 +792,8 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   /* Scan for server router registrations */
   rc = c2openapi_scan_server_routes(tokens, spec);
   if (rc != CDD_C_SUCCESS) {
-    free_cst_node_list(&cst);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tokens);
     C_CDD_FREE(content);
     C_CDD_FREE(comment_used);
     return rc;
@@ -802,8 +802,8 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   /* Scan for client GUI views */
   rc = c2openapi_scan_gui_views(tokens, spec);
   if (rc != CDD_C_SUCCESS) {
-    free_cst_node_list(&cst);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tokens);
     C_CDD_FREE(content);
     C_CDD_FREE(comment_used);
     return rc;
@@ -813,8 +813,8 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   if (spec->n_paths == 0) {
     rc = c2openapi_scan_mcp_tools(tokens, spec);
     if (rc != CDD_C_SUCCESS) {
-      free_cst_node_list(&cst);
-      free_token_list(tokens);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst);
+      g_cdd_last_alloc_err = free_token_list(tokens);
       C_CDD_FREE(content);
       C_CDD_FREE(comment_used);
       return rc;
@@ -882,7 +882,7 @@ cdd_c_error_t load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = openapi_load_from_json(root, spec);
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   return rc;
 }
 
@@ -918,14 +918,14 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
   self_uri = config->self_uri;
   dialect_uri = config->dialect_uri;
 
-  openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
 
   if (base_file) {
     rc = load_base_spec(base_file, &spec);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to load base OpenAPI spec %s: %d\n", base_file,
               rc);
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
       return rc;
     }
   }
@@ -936,7 +936,7 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
     rc = c_cdd_strdup(self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to set $self URI\n");
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
       return rc;
     }
   }
@@ -946,7 +946,7 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
     rc = c_cdd_strdup(dialect_uri, &spec.json_schema_dialect);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to set jsonSchemaDialect\n");
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
       return rc;
     }
   }
@@ -955,14 +955,14 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
   rc = walk_directory(src_dir, walker_cb, &spec);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error walking directory %s: %d\n", src_dir, rc);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
     return rc;
   }
 
   /* Derive top-level tags from operation tags */
   rc = collect_spec_tags(&spec);
   if (rc != CDD_C_SUCCESS) {
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
     return rc;
   }
 
@@ -970,7 +970,7 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error serializing spec: %d\n", rc);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
     return rc;
   }
 
@@ -983,7 +983,7 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
   }
 
   C_CDD_FREE(json);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   return rc;
 }
@@ -1050,7 +1050,7 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   cdd_docs_json_config_t cfg;
   const char *env_val;
   const char *sug = NULL;
-  int i;
+  int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
@@ -1062,31 +1062,20 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   cfg.no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
   cfg.no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
 
-  for (i = 0; i < argc; i++) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c to_docs_json [args]");
-      puts("");
-      puts("Options:");
-      puts("  -i, --input <spec.json>   Input OpenAPI spec file");
-      puts("  -o, --output <docs.json>  Output docs JSON file (default: "
-           "stdout)");
-      puts("  --no-imports              Omit #include statements from "
-           "generated snippets");
-      puts("  --no-wrapping             Omit main() wrapper from generated "
-           "snippets");
-      return rc;
-    } else if (cdd_reflect_find_field(&cdd_docs_json_config_type_info, flag,
-                                      &f) == CDD_C_SUCCESS) {
-      if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
-        c_cdd_bool_t bval = CDD_TRUE;
-        memcpy((unsigned char *)&cfg + f->offset, &bval, sizeof(bval));
-      } else if (i + 1 < argc) {
-        const char *arg_val = argv[++i];
-        memcpy((unsigned char *)&cfg + f->offset, &arg_val, sizeof(arg_val));
-      }
-    }
+  rc = cdd_cli_parse_reflected_argv(
+      argc, argv, 0, &cdd_docs_json_config_type_info, &cfg, &is_help, NULL);
+  if (is_help) {
+    puts("Usage: cdd-c to_docs_json [args]");
+    puts("");
+    puts("Options:");
+    puts("  -i, --input <spec.json>   Input OpenAPI spec file");
+    puts("  -o, --output <docs.json>  Output docs JSON file (default: "
+         "stdout)");
+    puts("  --no-imports              Omit #include statements from "
+         "generated snippets");
+    puts("  --no-wrapping             Omit main() wrapper from generated "
+         "snippets");
+    return rc;
   }
 
   return cdd_generate_docs_json(&cfg);
@@ -1102,50 +1091,39 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   cdd_generate_bindings_config_t config = {0};
   const char *sug = NULL;
-  int i;
+  int is_help = 0;
   cdd_c_error_t rc;
 
   rc = cdd_cli_suggest_closest("bind", NULL, 0, &sug);
-
-  for (i = 0; i < argc; i++) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c bind [OPTIONS]\n\n"
-           "Options:\n"
-           "  -i, --input <file|dir>    Input C header/source "
-           "or directory\n"
-           "  -o, --output-dir <dir>    Output directory for "
-           "bindings\n"
-           "  -l, --lang <langs>        Comma-separated list "
-           "of languages or "
-           "'*' "
-           "(e.g., python,rust)");
-      puts("  -n, --lib-name <name>     Name of the shared "
-           "library (e.g., "
-           "sqlite3)\n"
-           "  -m, --module-name <name>  Name of the generated "
-           "namespace/module\n"
-           "  --skip-static             Skip static inline "
-           "functions\n"
-           "  --opaque-pointers         Treat unknown structs "
-           "as void* "
-           "(opaque)\n"
-           "  --generate-tests          Generate basic "
-           "sanity-check tests\n"
-           "  -h, --help                Show this help "
-           "message");
-      return rc;
-    } else if (cdd_reflect_find_field(&cdd_generate_bindings_config_type_info,
-                                      flag, &f) == CDD_C_SUCCESS) {
-      if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
-        c_cdd_bool_t bval = CDD_TRUE;
-        memcpy((unsigned char *)&config + f->offset, &bval, sizeof(bval));
-      } else if (i + 1 < argc) {
-        const char *arg_val = argv[++i];
-        memcpy((unsigned char *)&config + f->offset, &arg_val, sizeof(arg_val));
-      }
-    }
+  rc = cdd_cli_parse_reflected_argv(argc, argv, 0,
+                                    &cdd_generate_bindings_config_type_info,
+                                    &config, &is_help, NULL);
+  if (is_help) {
+    puts("Usage: cdd-c bind [OPTIONS]\n\n"
+         "Options:\n"
+         "  -i, --input <file|dir>    Input C header/source "
+         "or directory\n"
+         "  -o, --output-dir <dir>    Output directory for "
+         "bindings\n"
+         "  -l, --lang <langs>        Comma-separated list "
+         "of languages or "
+         "'*' "
+         "(e.g., python,rust)");
+    puts("  -n, --lib-name <name>     Name of the shared "
+         "library (e.g., "
+         "sqlite3)\n"
+         "  -m, --module-name <name>  Name of the generated "
+         "namespace/module\n"
+         "  --skip-static             Skip static inline "
+         "functions\n"
+         "  --opaque-pointers         Treat unknown structs "
+         "as void* "
+         "(opaque)\n"
+         "  --generate-tests          Generate basic "
+         "sanity-check tests\n"
+         "  -h, --help                Show this help "
+         "message");
+    return rc;
   }
 
   if (!config.input || !config.output_dir || !config.target_langs) {

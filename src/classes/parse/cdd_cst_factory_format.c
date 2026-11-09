@@ -57,7 +57,7 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
     size_t i, j;
     rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
     if (rc != CDD_C_SUCCESS) {
-      cdd_cst_tree_free(temp_tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(temp_tree);
       *out_node = NULL;
       return rc;
     }
@@ -73,8 +73,8 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
 
       rc = cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone);
       if (rc != CDD_C_SUCCESS) {
-        cdd_cst_free_node(result);
-        cdd_cst_tree_free(temp_tree);
+        g_cdd_last_alloc_err = cdd_cst_free_node(result);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(temp_tree);
         *out_node = NULL;
         return rc;
       }
@@ -91,21 +91,22 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
           size_t k;
           for (k = j; k < stmt_clone->num_children; k++) {
             if (stmt_clone->children[k].kind == CDD_CST_CHILD_NODE) {
-              cdd_cst_free_node(stmt_clone->children[k].val.node);
+              g_cdd_last_alloc_err =
+                  cdd_cst_free_node(stmt_clone->children[k].val.node);
             }
           }
-          cdd_cst_free_node_only(stmt_clone);
-          cdd_cst_free_node(result);
-          cdd_cst_tree_free(temp_tree);
+          g_cdd_last_alloc_err = cdd_cst_free_node_only(stmt_clone);
+          g_cdd_last_alloc_err = cdd_cst_free_node(result);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(temp_tree);
           *out_node = NULL;
           return rc;
         }
       }
-      cdd_cst_free_node_only(stmt_clone);
+      g_cdd_last_alloc_err = cdd_cst_free_node_only(stmt_clone);
     }
   }
   if (temp_tree) {
-    cdd_cst_tree_free(temp_tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(temp_tree);
   }
   *out_node = result;
   return rc;

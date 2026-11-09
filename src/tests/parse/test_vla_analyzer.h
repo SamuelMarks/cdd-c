@@ -82,8 +82,8 @@ TEST test_scan_for_vlas_basic(void) {
   ASSERT_STR_EQ("c_vla", list.sites[4].var_name);
   ASSERT_STR_EQ("n", list.sites[4].size_expr);
 
-  vla_site_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = vla_site_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }
@@ -106,7 +106,8 @@ TEST test_scan_for_vlas_errors(void) {
   {
     extern C_CDD_EXPORT int g_cdd_fail_vla_basic_type;
     struct TokenList *tl_vla = NULL;
-    tokenize(az_span_create_from_str("int a[n];"), &tl_vla);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str("int a[n];"), &tl_vla);
 
     g_cdd_fail_vla_basic_type = 1;
     ASSERT_NEQ(0, scan_for_vlas(tl_vla, &list));
@@ -116,11 +117,11 @@ TEST test_scan_for_vlas_errors(void) {
     ASSERT_NEQ(0, scan_for_vlas(tl_vla, &list));
     g_cdd_fail_vla_basic_type = 0;
 
-    free_token_list(tl_vla);
+    g_cdd_last_alloc_err = free_token_list(tl_vla);
   }
 #endif
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -131,7 +132,7 @@ TEST test_scan_for_vlas_errors(void) {
  */
 TEST test_vla_site_list_nulls(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, vla_site_list_init(NULL));
-  vla_site_list_free(NULL); /* Should not crash */
+  g_cdd_last_alloc_err = vla_site_list_free(NULL); /* Should not crash */
   PASS();
 }
 
@@ -169,16 +170,16 @@ TEST test_scan_for_vlas_oom(void) {
   for (i = 0; i < 25; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    vla_site_list_init(&list);
+    g_cdd_last_alloc_err = vla_site_list_init(&list);
     res = scan_for_vlas(tokens, &list);
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
     g_fail_io_after = -1;
-    vla_site_list_free(&list);
+    g_cdd_last_alloc_err = vla_site_list_free(&list);
   }
 
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -196,8 +197,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
   ASSERT_EQ(0, list.count); /* Not a VLA */
-  vla_site_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = vla_site_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   tokens = NULL;
 
   /* Type alias / Typedef name as type: e.g. MyType arr[n]; or MyType *arr[n];
@@ -209,8 +210,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
     ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
     ASSERT_EQ(0, scan_for_vlas(tokens, &list));
     ASSERT_EQ(3, list.count);
-    vla_site_list_free(&list);
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = vla_site_list_free(&list);
+    g_cdd_last_alloc_err = free_token_list(tokens);
     tokens = NULL;
 
     /* Missing variable name (syntax error but we should not crash) */
@@ -219,8 +220,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
       ASSERT_EQ(0, tokenize(az_span_create_from_str(src3), &tokens));
       ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
       ASSERT_EQ(0, scan_for_vlas(tokens, &list));
-      vla_site_list_free(&list);
-      free_token_list(tokens);
+      g_cdd_last_alloc_err = vla_site_list_free(&list);
+      g_cdd_last_alloc_err = free_token_list(tokens);
       tokens = NULL;
 
       /* Missing semicolon */
@@ -229,8 +230,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
         ASSERT_EQ(0, tokenize(az_span_create_from_str(src4), &tokens));
         ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
         ASSERT_EQ(0, scan_for_vlas(tokens, &list));
-        vla_site_list_free(&list);
-        free_token_list(tokens);
+        g_cdd_last_alloc_err = vla_site_list_free(&list);
+        g_cdd_last_alloc_err = free_token_list(tokens);
         tokens = NULL;
 
         /* Missing array bracket closing */
@@ -239,8 +240,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
           ASSERT_EQ(0, tokenize(az_span_create_from_str(src5), &tokens));
           ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
           ASSERT_EQ(0, scan_for_vlas(tokens, &list));
-          vla_site_list_free(&list);
-          free_token_list(tokens);
+          g_cdd_last_alloc_err = vla_site_list_free(&list);
+          g_cdd_last_alloc_err = free_token_list(tokens);
           tokens = NULL;
 
           /* Type modifiers with whitespace */
@@ -250,8 +251,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
             ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
             ASSERT_EQ(0, scan_for_vlas(tokens, &list));
             ASSERT_EQ(1, list.count);
-            vla_site_list_free(&list);
-            free_token_list(tokens);
+            g_cdd_last_alloc_err = vla_site_list_free(&list);
+            g_cdd_last_alloc_err = free_token_list(tokens);
             tokens = NULL;
 
             /* Trigger capacity growth (> 4 items) */
@@ -263,8 +264,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
               ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
               ASSERT_EQ(0, scan_for_vlas(tokens, &list));
               ASSERT_EQ(6, list.count);
-              vla_site_list_free(&list);
-              free_token_list(tokens);
+              g_cdd_last_alloc_err = vla_site_list_free(&list);
+              g_cdd_last_alloc_err = free_token_list(tokens);
               tokens = NULL;
 
               /* Abrupt endings to hit i < tokens->size branches */
@@ -295,8 +296,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
                                      &tokens));
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
-                  vla_site_list_free(&list);
-                  free_token_list(tokens);
+                  g_cdd_last_alloc_err = vla_site_list_free(&list);
+                  g_cdd_last_alloc_err = free_token_list(tokens);
                   tokens = NULL;
                 }
 
@@ -316,30 +317,30 @@ TEST test_scan_for_vlas_edge_cases(void) {
                   mock_tokens.size = 3;
                   mock_tokens.capacity = 4;
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
-                  scan_for_vlas(&mock_tokens, &list);
-                  vla_site_list_free(&list);
+                  g_cdd_last_alloc_err = scan_for_vlas(&mock_tokens, &list);
+                  g_cdd_last_alloc_err = vla_site_list_free(&list);
 
                   /* Test 2: Ends exactly at identifier */
                   mock_tokens.size = 2; /* INT, IDENTIFIER */
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
-                  scan_for_vlas(&mock_tokens, &list);
-                  vla_site_list_free(&list);
+                  g_cdd_last_alloc_err = scan_for_vlas(&mock_tokens, &list);
+                  g_cdd_last_alloc_err = vla_site_list_free(&list);
 
                   /* Test 3: Ends with LBRACKET */
                   mock_toks[2].kind = TOKEN_LBRACKET;
                   mock_tokens.size = 3;
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
-                  scan_for_vlas(&mock_tokens, &list);
-                  vla_site_list_free(&list);
+                  g_cdd_last_alloc_err = scan_for_vlas(&mock_tokens, &list);
+                  g_cdd_last_alloc_err = vla_site_list_free(&list);
 
                   /* Test 4: Semicolon, LBRACE, RBRACE to hit line 209-211 */
                   ASSERT_EQ(0, tokenize(az_span_create_from_str(
                                             "int a[; int a[{ int a[}"),
                                         &tokens));
                   ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
-                  scan_for_vlas(tokens, &list);
-                  vla_site_list_free(&list);
-                  free_token_list(tokens);
+                  g_cdd_last_alloc_err = scan_for_vlas(tokens, &list);
+                  g_cdd_last_alloc_err = vla_site_list_free(&list);
+                  g_cdd_last_alloc_err = free_token_list(tokens);
                   tokens = NULL;
 
                   PASS();

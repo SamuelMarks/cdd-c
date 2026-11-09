@@ -34,8 +34,8 @@ TEST test_dsl_parser_modifiers(void) {
   ASSERT_EQ_FMT(CDD_FFI_NODE_FUNCTION, ir->nodes[0].kind, "%d");
   ASSERT_STR_EQ("my_func", ir->nodes[0].name);
 
-  cdd_dsl_token_list_free(&list);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }

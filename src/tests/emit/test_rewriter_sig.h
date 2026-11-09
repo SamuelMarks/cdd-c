@@ -41,7 +41,7 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
 
   rc = rewrite_signature(tl, &output);
   if (rc != 0) {
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     return rc;
   }
 
@@ -49,12 +49,12 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
     fprintf(stderr, "\nExpected: '%s'\nGot:      '%s'\n", expected,
             output ? output : "(null)");
     free(output);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
     return 1; /* Fail */
   }
 
   free(output);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   return 0; /* Success */
 }
 
@@ -73,7 +73,7 @@ static int test_rewrite_error(const char *input) {
 
   rc = rewrite_signature(tl, &output);
   C_CDD_FREE(output);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   return rc;
 }
 
@@ -261,15 +261,15 @@ TEST test_rewrite_name_comment(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  tokenize(az_span_create_from_str("int f  ()"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("int f  ()"), &tl);
   /* tokens: int, space, f, space, space, ( */
   /* Make the space before ( a comment */
   tl->tokens[3].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -283,13 +283,13 @@ TEST test_rewrite_all_ws_ret(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  tokenize(az_span_create_from_str("void f()"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("void f()"), &tl);
   tl->tokens[0].kind = TOKEN_WHITESPACE; /* make 'void' whitespace */
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -313,14 +313,14 @@ TEST test_rewrite_leading_ws(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  tokenize(az_span_create_from_str("int f()"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("int f()"), &tl);
   /* change 'int' to whitespace */
   tl->tokens[0].kind = TOKEN_WHITESPACE;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -335,123 +335,127 @@ TEST test_rewrite_missing_cov(void) {
   char *output = NULL;
 
   /* Test is_void_args with TOKEN_COMMENT */
-  tokenize(az_span_create_from_str("void f(void)"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("void f(void)"), &tl);
   tl->tokens[4].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("void f( void)"), &tl);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("void f( void)"), &tl);
   tl->tokens[4].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test has_meaningful_tokens with TOKEN_COMMENT */
-  tokenize(az_span_create_from_str("void f() int x;"), &tl);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("void f() int x;"), &tl);
   tl->tokens[5].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test bounds */
-  tokenize(az_span_create_from_str(" int f()"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str(" int f()"), &tl);
   tl->tokens[0].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str(""), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str(""), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("["), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("["), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("[["), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("[["), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("[ x"), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("[ x"), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("[[ attr"), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("[[ attr"), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("static  int f()"), &tl);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("static  int f()"), &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test empty parens */
-  tokenize(az_span_create_from_str("()"), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("()"), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("static ()"), &tl);
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("static ()"), &tl);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
-  tokenize(az_span_create_from_str("static /* comment */ ()"), &tl);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("static /* comment */ ()"), &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test ret comment */
-  tokenize(az_span_create_from_str("void  f()"), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("void  f()"), &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test kr comment */
-  tokenize(az_span_create_from_str("void f()  "), &tl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("void f()  "), &tl);
   tl->tokens[5].kind = TOKEN_COMMENT;
-  rewrite_signature(tl, &output);
+  g_cdd_last_alloc_err = rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Test no parens */
   ASSERT_NEQ(0, test_rewrite("void ()", "int ()"));
@@ -602,7 +606,7 @@ TEST test_rewrite_sig_oom(void) {
     struct TokenList *tl = NULL;
     az_span source;
     source = az_span_create_from_str("int f(int a);");
-    tokenize(source, &tl);
+    g_cdd_last_alloc_err = tokenize(source, &tl);
 
     g_cdd_alloc_fail = i;
     {
@@ -612,12 +616,12 @@ TEST test_rewrite_sig_oom(void) {
       if (rc == CDD_C_SUCCESS) {
         if (out_code)
           free(out_code);
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         break;
       }
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       C_CDD_FREE(out_code);
-      free_token_list(tl);
+      g_cdd_last_alloc_err = free_token_list(tl);
     }
   }
 #endif

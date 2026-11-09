@@ -35,19 +35,21 @@ validate_parameter_style(const struct OpenAPI_Parameter *p, int has_content);
  * @brief Checks if a component map key matches `^[a-zA-Z0-9._-]+$`.
  *
  * @param[in] name Component key string.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
- * invalid.
+ * @param[out] out_valid Set to 1 if valid, 0 if invalid.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t component_key_is_valid(const char *name);
+extern C_CDD_EXPORT cdd_c_error_t component_key_is_valid(const char *name,
+                                                         int *out_valid);
 
 /**
  * @brief Checks if a media type component key is valid.
  *
  * @param[in] name Media type key string.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
- * invalid.
+ * @param[out] out_valid Set to 1 if valid, 0 if invalid.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t media_type_key_is_valid(const char *name);
+extern C_CDD_EXPORT cdd_c_error_t media_type_key_is_valid(const char *name,
+                                                          int *out_valid);
 
 /**
  * @brief Validates all keys in a components sub-map.
@@ -72,31 +74,31 @@ validate_media_type_key_map(const JSON_Object *obj);
  * supported.
  *
  * @param[in] version Version string.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if supported, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_supported Set to 1 if supported, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-openapi_version_supported(const char *version);
+extern C_CDD_EXPORT cdd_c_error_t openapi_version_supported(const char *version,
+                                                            int *out_supported);
 
 /**
  * @brief Checks if an Example object's mutual exclusion rules are satisfied.
  *
  * @param[in] ex Example structure to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
- * invalid.
+ * @param[out] out_valid Set to 1 if valid, 0 if invalid.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-example_fields_valid(const struct OpenAPI_Example *ex);
+example_fields_valid(const struct OpenAPI_Example *ex, int *out_valid);
 
 /**
  * @brief Checks if a JSON object contains both `example` and `examples`.
  *
  * @param[in] obj JSON object to inspect.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if both are present, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_both Set to 1 if both are present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-object_has_example_and_examples(const JSON_Object *obj);
+object_has_example_and_examples(const JSON_Object *obj, int *out_both);
 
 /**
  * @brief Checks if a server variable name is defined in `srv->variables`.
@@ -175,10 +177,11 @@ validate_tag_parents(const struct OpenAPI_Spec *spec);
  * is valid.
  *
  * @param[in] code Status code key string.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if valid, CDD_C_SUCCESS (0) if
- * invalid.
+ * @param[out] out_valid Set to 1 if valid, 0 if invalid.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t is_valid_response_code_key(const char *code);
+extern C_CDD_EXPORT cdd_c_error_t is_valid_response_code_key(const char *code,
+                                                             int *out_valid);
 
 /**
  * @brief Frees a list of extracted path template parameter names.
@@ -195,11 +198,11 @@ extern C_CDD_EXPORT cdd_c_error_t free_name_list(char **names, size_t count);
  * @param[in] name Target string to find.
  * @param[in] names Array of strings.
  * @param[in] count Number of strings.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if present, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_in_list Set to 1 if present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t name_in_list(const char *name, char **names,
-                                               size_t count);
+                                               size_t count, int *out_in_list);
 
 /**
  * @brief Extracts `{param}` template parameter names from a route path.
@@ -383,22 +386,23 @@ collect_operation_ids(const struct OpenAPI_Path *paths, size_t n_paths,
  * @param[in] spec OpenAPI specification context.
  * @param[in] ref Reference string.
  * @param[in] name Component path item name.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if matches, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_matches Set to 1 if matches, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t path_item_ref_matches_component(
-    const struct OpenAPI_Spec *spec, const char *ref, const char *name);
+    const struct OpenAPI_Spec *spec, const char *ref, const char *name,
+    int *out_matches);
 
 /**
  * @brief Checks if a component path item is referenced anywhere in `spec`.
  *
  * @param[in] spec OpenAPI specification context.
  * @param[in] name Component path item name.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if referenced, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_referenced Set to 1 if referenced, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t component_path_item_is_referenced(
-    const struct OpenAPI_Spec *spec, const char *name);
+    const struct OpenAPI_Spec *spec, const char *name, int *out_referenced);
 
 /**
  * @brief Checks if a `$ref` matches a specific component callback name.
@@ -406,11 +410,12 @@ extern C_CDD_EXPORT cdd_c_error_t component_path_item_is_referenced(
  * @param[in] spec OpenAPI specification context.
  * @param[in] ref Reference string.
  * @param[in] name Component callback name.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if matches, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_matches Set to 1 if matches, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t callback_ref_matches_component(
-    const struct OpenAPI_Spec *spec, const char *ref, const char *name);
+extern C_CDD_EXPORT cdd_c_error_t
+callback_ref_matches_component(const struct OpenAPI_Spec *spec, const char *ref,
+                               const char *name, int *out_matches);
 
 /**
  * @brief Checks if a component callback is referenced in an array of
@@ -420,23 +425,23 @@ extern C_CDD_EXPORT cdd_c_error_t callback_ref_matches_component(
  * @param[in] n_ops Number of operations.
  * @param[in] spec OpenAPI specification context.
  * @param[in] name Component callback name.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if referenced, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_referenced Set to 1 if referenced, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t component_callback_is_referenced_in_ops(
     const struct OpenAPI_Operation *ops, size_t n_ops,
-    const struct OpenAPI_Spec *spec, const char *name);
+    const struct OpenAPI_Spec *spec, const char *name, int *out_referenced);
 
 /**
  * @brief Checks if a component callback is referenced anywhere in `spec`.
  *
  * @param[in] spec OpenAPI specification context.
  * @param[in] name Component callback name.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if referenced, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_referenced Set to 1 if referenced, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t component_callback_is_referenced(
-    const struct OpenAPI_Spec *spec, const char *name);
+    const struct OpenAPI_Spec *spec, const char *name, int *out_referenced);
 
 /**
  * @brief Collects and validates uniqueness of `operationId`s across callbacks.

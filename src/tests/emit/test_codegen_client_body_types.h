@@ -39,7 +39,9 @@ TEST test_body_header_param_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h1), _ast_gen_body_h1);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h1),
+          _ast_gen_body_h1);
   ASSERT(code);
   ASSERT(
       strstr(code, "http_headers_add(&req.headers, \"X-String\", X-String)") !=
@@ -73,7 +75,9 @@ TEST test_body_header_param_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h2), _ast_gen_body_h2);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h2),
+          _ast_gen_body_h2);
   ASSERT(code);
   ASSERT(strstr(code, "spr"
                       "intf(num_buf, \"%d\", X-Int);") != NULL);
@@ -106,7 +110,9 @@ TEST test_body_header_param_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h3), _ast_gen_body_h3);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h3),
+          _ast_gen_body_h3);
   ASSERT(code);
   ASSERT(strstr(code, "spr"
                       "intf(num_buf, \"%g\", X-Num);") != NULL);
@@ -139,7 +145,9 @@ TEST test_body_header_param_boolean(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h4), _ast_gen_body_h4);
+  code = (g_cdd_last_alloc_err =
+              gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h4),
+          _ast_gen_body_h4);
   ASSERT(code);
   ASSERT(strstr(code, "X-Bool ? \"true\" : \"false\"") != NULL);
   free(code);

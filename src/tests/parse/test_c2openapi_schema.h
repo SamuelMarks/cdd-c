@@ -37,9 +37,10 @@ TEST test_register_single_struct(void) {
 
   /* Setup */
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
-  write_to_file(header_file, "struct User { int id; char *name; };");
+  g_cdd_last_alloc_err =
+      write_to_file(header_file, "struct User { int id; char *name; };");
 
   /* Inspect */
   rc = c_inspector_scan_file_types(header_file, &types);
@@ -61,8 +62,8 @@ TEST test_register_single_struct(void) {
   }
 
   /* Cleanup */
-  openapi_spec_free(&spec);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(header_file);
   g_fail_io_after = -1;
   PASS();
@@ -78,13 +79,13 @@ TEST test_register_deduplication(void) {
   char *header_file = cdd_test_mut_str("test_reg_dedup.h");
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
   /* Define struct twice (simulator for parsing multiple files) */
   /* c_inspector will list it once per scan, but we simulate calling register
    * twice */
-  write_to_file(header_file, "struct Point { int x; };");
-  c_inspector_scan_file_types(header_file, &types);
+  g_cdd_last_alloc_err = write_to_file(header_file, "struct Point { int x; };");
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(header_file, &types);
 
   /* Call 1 */
   ASSERT_EQ(0, c2openapi_register_types(&spec, &types));
@@ -94,8 +95,8 @@ TEST test_register_deduplication(void) {
   ASSERT_EQ(0, c2openapi_register_types(&spec, &types));
   ASSERT_EQ(1, spec.n_defined_schemas); /* Should remain 1 */
 
-  openapi_spec_free(&spec);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(header_file);
   g_fail_io_after = -1;
   PASS();
@@ -113,25 +114,27 @@ TEST test_register_multiple_structs(void) {
   char *header_file = cdd_test_mut_str("test_reg_multi.h");
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
-  write_to_file(header_file,
-                "struct A { int a; };\nstruct B { struct A *nested; };");
+  g_cdd_last_alloc_err = write_to_file(
+      header_file, "struct A { int a; };\nstruct B { struct A *nested; };");
 
-  c_inspector_scan_file_types(header_file, &types);
+  g_cdd_last_alloc_err = c_inspector_scan_file_types(header_file, &types);
   ASSERT_EQ(2, types.size);
 
-  c2openapi_register_types(&spec, &types);
+  g_cdd_last_alloc_err = c2openapi_register_types(&spec, &types);
   ASSERT_EQ(2, spec.n_defined_schemas);
 
   /* Order depends on file scan order, usually linear */
   /* Verify existence, not strict index */
   {
     const struct StructFields *sfA =
-        (openapi_spec_find_schema(&spec, "A", &_ast_openapi_spec_find_schema_0),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "A", &_ast_openapi_spec_find_schema_0),
          _ast_openapi_spec_find_schema_0);
     const struct StructFields *sfB =
-        (openapi_spec_find_schema(&spec, "B", &_ast_openapi_spec_find_schema_1),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "B", &_ast_openapi_spec_find_schema_1),
          _ast_openapi_spec_find_schema_1);
     ASSERT(sfA != NULL);
     ASSERT(sfB != NULL);
@@ -141,8 +144,8 @@ TEST test_register_multiple_structs(void) {
     ASSERT_STR_EQ("A", sfB->fields[0].ref);
   }
 
-  openapi_spec_free(&spec);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(header_file);
   g_fail_io_after = -1;
   PASS();
@@ -157,15 +160,15 @@ TEST test_register_null_safety(void) {
   struct TypeDefList types;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             c2openapi_register_types(NULL, &types));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             c2openapi_register_types(&spec, NULL));
 
-  openapi_spec_free(&spec);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   g_fail_io_after = -1;
   PASS();
 }
@@ -182,9 +185,10 @@ TEST test_register_enum_schema(void) {
   int rc = 0;
 
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
-  write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
+  g_cdd_last_alloc_err =
+      write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
 
   rc = c_inspector_scan_file_types(header_file, &types);
   ASSERT_EQ(0, rc);
@@ -195,8 +199,8 @@ TEST test_register_enum_schema(void) {
 
   {
     const struct StructFields *sf =
-        (openapi_spec_find_schema(&spec, "Color",
-                                  &_ast_openapi_spec_find_schema_2),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "Color", &_ast_openapi_spec_find_schema_2),
          _ast_openapi_spec_find_schema_2);
     ASSERT(sf != NULL);
     ASSERT_EQ(1, sf->is_enum);
@@ -206,8 +210,8 @@ TEST test_register_enum_schema(void) {
     ASSERT_STR_EQ("BLUE", sf->enum_members.members[2]);
   }
 
-  openapi_spec_free(&spec);
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   remove(header_file);
   g_fail_io_after = -1;
   PASS();
@@ -226,7 +230,7 @@ TEST test_register_type_union_copy(void) {
   types_arr[0] = cdd_test_mut_str("string");
   types_arr[1] = cdd_test_mut_str("integer");
   ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
   /* Instead of scanning a file, we manually construct a TypeDefList */
   types.items = calloc(1, sizeof(struct TypeDefinition));
@@ -238,8 +242,9 @@ TEST test_register_type_union_copy(void) {
 
   {
     struct StructFields *sf = types.items[0].details.struct_fields;
-    struct_fields_init(sf);
-    struct_fields_add(sf, "prop1", "union", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(sf, "prop1", "union", NULL, NULL, NULL);
 
     sf->fields[0].type_union = types_arr;
     sf->fields[0].n_type_union = 2;
@@ -254,13 +259,13 @@ TEST test_register_type_union_copy(void) {
     ASSERT_EQ(2, spec.defined_schemas[0].fields[0].n_type_union);
     ASSERT_STR_EQ("string", spec.defined_schemas[0].fields[0].type_union[0]);
 
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     sf->fields[0].type_union = NULL;
     sf->fields[0].items_type_union = NULL;
     /* struct_fields_free(sf) is handled by type_def_list_free! */
     types.items[0].name = NULL; /* prevent free */
-    type_def_list_free(&types);
+    g_cdd_last_alloc_err = type_def_list_free(&types);
     g_fail_io_after = -1;
 
     PASS();
@@ -321,8 +326,8 @@ TEST test_register_ids_anchors(void) {
   types.items[1] = def_enum;
 
   ASSERT_EQ(CDD_C_SUCCESS, c2openapi_register_types(&spec, &types));
-  type_def_list_free(&types);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

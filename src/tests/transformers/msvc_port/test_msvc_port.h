@@ -87,7 +87,7 @@ TEST test_cdd_transform_msvc(void) {
 #ifdef CDD_BUILD_TESTS
           g_cdd_cst_realloc_fail = 0;
 #endif
-          cdd_cst_tree_free(tree_copy);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree_copy);
         }
       }
     }
@@ -108,12 +108,12 @@ TEST test_cdd_transform_msvc(void) {
     cdd_cst_tree_t *tree2 = NULL;
     cdd_cst_node_t *node;
     node = NULL;
-    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &node);
     tree2 = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
     tree2->root = node;
     ASSERT_EQ(
         0, cdd_transform_msvc(tree2, &config)); /* Should not crash on empty */
-    cdd_cst_tree_free(tree2);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree2);
   }
 
   rc = cdd_cst_emit(tree, &out);
@@ -129,7 +129,7 @@ TEST test_cdd_transform_msvc(void) {
   ASSERT(strstr(out, "cdd_builtin_expect") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -170,7 +170,7 @@ TEST test_cdd_transform_msvc_context(void) {
   ASSERT(strstr(out, "a.strdup") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -191,17 +191,18 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
          code);
   memset(&config, 0, sizeof(config));
 
-  cdd_cst_parse(az_span_create_from_str(code), &tree);
+  g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(code), &tree);
 
-  cdd_transform_msvc(tree, &config);
+  g_cdd_last_alloc_err = cdd_transform_msvc(tree, &config);
 
   /* We need a fresh tree since tokens get replaced */
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   {
     const char *simple_code = cdd_test_mut_str("#include <unistd.h>\n");
-    cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
     g_cdd_query_err_fail = 1;
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -212,31 +213,33 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_cst_alloc_node_fail = 0;
 
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
   /* Test wrap_node builder error */
   {
     const char *simple_code = cdd_test_mut_str("#include <unistd.h>\n");
-    cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
     g_cdd_cst_alloc_token_fail = 1;
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_cst_alloc_token_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
   {
     int r_idx;
     for (r_idx = 1; r_idx <= 20; r_idx++) {
-      cdd_cst_parse(az_span_create_from_str(code), &tree);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(code), &tree);
       tree->root->capacity = tree->root->num_children;
       g_cdd_cst_realloc_fail = r_idx;
-      cdd_transform_msvc(tree, &config);
+      g_cdd_last_alloc_err = cdd_transform_msvc(tree, &config);
       g_cdd_cst_realloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }
@@ -247,12 +250,13 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     /*  (moved to global) */
     int fail_idx;
     for (fail_idx = 1; fail_idx < 150; fail_idx++) {
-      cdd_cst_parse(az_span_create_from_str(code), &tree);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(code), &tree);
       printf("SETTING fail_idx=%d\n", fail_idx);
       g_cdd_alloc_fail = fail_idx;
-      cdd_transform_msvc(tree, &config);
+      g_cdd_last_alloc_err = cdd_transform_msvc(tree, &config);
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }
@@ -305,20 +309,20 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
         59,  10,  117, 110, 105, 111, 110, 32,  89,  32,  42,  114, 109, 100,
         105, 114, 59,  10,  101, 110, 117, 109, 32,  90,  32,  42,  103, 101,
         116, 99,  119, 100, 59,  10,  0};
-    cdd_cst_parse(az_span_create_from_str(misc), &tree);
+    g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(misc), &tree);
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
 
   /* Check NULL prev_prev_token */
   {
     const char *misc2 = cdd_test_mut_str("* strdup;");
-    cdd_cst_parse(az_span_create_from_str(misc2), &tree);
+    g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(misc2), &tree);
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
   }
   {
@@ -353,7 +357,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
       rc = cdd_transform_msvc(tree, &config);
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       g_cdd_cst_alloc_token_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }

@@ -101,54 +101,54 @@ TEST test_operation_any_from_json_value(void) {
   /* Types */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("\"hello\"", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("\"hello\"", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_STRING, out.type);
   ASSERT_STR_EQ("hello", out.string);
   free(out.string);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("42.5", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("42.5", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_NUMBER, out.type);
   ASSERT(out.number == 42.5);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("true", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("true", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_BOOL, out.type);
   ASSERT(out.boolean == true);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("null", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("null", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_NULL, out.type);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"a\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{\"a\": 1}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_JSON, out.type);
   ASSERT(strstr(out.json, "a") != NULL);
   free(out.json);
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
   g_fail_io_after = -1;
 
   PASS();
@@ -205,10 +205,10 @@ TEST test_operation_parse_link_params_json(void) {
 TEST test_operation_free_openapi_server_variables_op(void) {
   struct OpenAPI_Server srv;
   /* NULL */
-  free_openapi_server_variables_op(NULL);
+  g_cdd_last_alloc_err = free_openapi_server_variables_op(NULL);
 
   memset(&srv, 0, sizeof(srv));
-  free_openapi_server_variables_op(&srv);
+  g_cdd_last_alloc_err = free_openapi_server_variables_op(&srv);
 
   srv.n_variables = 1;
   srv.variables =
@@ -221,7 +221,7 @@ TEST test_operation_free_openapi_server_variables_op(void) {
   srv.variables[0].enum_values[0] = strdup("e1");
   srv.variables[0].enum_values[1] = strdup("e2");
 
-  free_openapi_server_variables_op(&srv);
+  g_cdd_last_alloc_err = free_openapi_server_variables_op(&srv);
   ASSERT(srv.variables == NULL);
   ASSERT_EQ(0, srv.n_variables);
   g_fail_io_after = -1;
@@ -268,7 +268,7 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   ASSERT_STR_EQ("e1", dst.variables[0].enum_values[0]);
   ASSERT_STR_EQ("def", dst.variables[0].enum_values[1]);
 
-  free_openapi_server_variables_op(&dst);
+  g_cdd_last_alloc_err = free_openapi_server_variables_op(&dst);
 
   /* Test validation for default_value in enum */
   free(src.variables[0].enum_values[1]);

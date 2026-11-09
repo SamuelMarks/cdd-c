@@ -47,8 +47,8 @@ TEST test_dsl_parser_basic(void) {
                 "%d");
   ASSERT_STR_EQ("/* comment */", ir->nodes[0].leading_trivia->text);
 
-  cdd_dsl_token_list_free(&list);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -89,8 +89,8 @@ TEST test_dsl_parser_exhaustive(void) {
   rc = cdd_dsl_parse(&list, &ir);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
-  cdd_dsl_token_list_free(&list);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }
@@ -138,14 +138,14 @@ TEST test_dsl_parser_oom_loop(void) {
     g_ffi_extractor_alloc_fail = 0;
     if (rc == CDD_C_SUCCESS) {
       printf("OOM loop succeeded at i=%d\n", i);
-      cdd_ffi_ir_free(ir);
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
       free(ir);
       ir = NULL;
       break;
     }
   }
 
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
   PASS();
 }
 

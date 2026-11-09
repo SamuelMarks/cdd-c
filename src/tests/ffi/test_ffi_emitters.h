@@ -591,49 +591,49 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     config.module_name = cdd_test_mut_str("TestMod");                          \
     config.generate_tests = 1;                                                 \
                                                                                \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
                                                                                \
     config.output_dir = NULL;                                                  \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
     config.output_dir = cdd_test_mut_str("build/test_out_dir");                \
                                                                                \
     config.input = NULL;                                                       \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
                                                                                \
     config.module_name = NULL;                                                 \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
     config.module_name = cdd_test_mut_str("TestMod");                          \
     config.library_name = NULL;                                                \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
     config.library_name = cdd_test_mut_str("test_Lib_name");                   \
                                                                                \
     for (i = 1; i <= 5; i++) {                                                 \
       g_fail_io_after = i;                                                     \
-      cdd_ffi_emit_##lang(ir, &config);                                        \
+      g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                 \
     }                                                                          \
     for (i = 555; i <= 557; i++) {                                             \
       g_fail_io_after = i;                                                     \
-      cdd_ffi_emit_##lang(ir, &config);                                        \
+      g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                 \
     }                                                                          \
     g_fail_io_after = -1;                                                      \
                                                                                \
-    cdd_ffi_emit_##lang(NULL, &config);                                        \
-    cdd_ffi_emit_##lang(ir, NULL);                                             \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(NULL, &config);                 \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, NULL);                      \
                                                                                \
     config.output_dir = cdd_test_mut_str("/does/not/exist/ever");              \
     for (i = 1; i <= 3; i++) {                                                 \
       g_fail_io_after = i;                                                     \
-      cdd_ffi_emit_##lang(ir, &config);                                        \
+      g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                 \
     }                                                                          \
     g_fail_io_after = 555;                                                     \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
     g_fail_io_after = -1;                                                      \
                                                                                \
     config.output_dir = cdd_test_mut_str("/dev/null/invalid_dir");             \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
                                                                                \
     config.output_dir = cdd_test_mut_str("/dev/null/invalid_dir");             \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
                                                                                \
     config.output_dir = cdd_test_mut_str("build/test_out_dir");                \
     {                                                                          \
@@ -667,7 +667,7 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
                  "erscoresAndWeJustNeedItToBeReallyLongSoWeWillRepeatIt");     \
       config.library_name = long_name;                                         \
     }                                                                          \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
     config.library_name = cdd_test_mut_str("test_Lib_name");                   \
                                                                                \
     {                                                                          \
@@ -675,15 +675,15 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
       memset(med_name, 'A', sizeof(med_name) - 1);                             \
       med_name[sizeof(med_name) - 1] = '\0';                                   \
       config.library_name = med_name;                                          \
-      cdd_ffi_emit_##lang(ir, &config);                                        \
+      g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                 \
       config.library_name = cdd_test_mut_str("test_Lib_name");                 \
     }                                                                          \
                                                                                \
     ir->nodes[0].fields_count = 0;                                             \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
                                                                                \
     ir->nodes_count = 0;                                                       \
-    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_cdd_last_alloc_err = cdd_ffi_emit_##lang(ir, &config);                   \
                                                                                \
     free_dummy_ir(ir);                                                         \
     g_fail_io_after = -1;                                                      \

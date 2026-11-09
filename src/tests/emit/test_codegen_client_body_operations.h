@@ -216,58 +216,61 @@ TEST test_client_body_all_operation_patterns(void) {
   ASSERT(spec.defined_schema_names);
 
   /* Schema 0: Complex form schema */
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "str_val", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "res_val", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "int_val", "integer", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "num_val", "number", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "bool_val", "boolean", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_matrix", "array", "string",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_pipe", "array", "string",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_space", "array", "string",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_num", "array", "number",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_bool", "array", "boolean",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_obj", "array", "SubModel",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "arr_unsup", "array",
-                    "custom_unknown", NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "obj_deep", "object", "SubModel",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "obj_space", "object", "SubModel",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "obj_pipe", "object", "SubModel",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "obj_matrix", "object",
-                    "SubModel", NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "obj_val", "object", "SubModel",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "obj_noref", "object", "", NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "unsupported", "custom_blob",
-                    NULL, NULL, NULL);
-  c_cdd_strdup("ComplexForm", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "str_val",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "res_val",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "int_val",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "num_val",
+                                           "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "bool_val",
+                                           "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "arr_matrix", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "arr_pipe",
+                                           "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "arr_space", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "arr_num",
+                                           "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "arr_bool",
+                                           "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "arr_obj",
+                                           "array", "SubModel", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&spec.defined_schemas[0], "arr_unsup", "array",
+                        "custom_unknown", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "obj_deep",
+                                           "object", "SubModel", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "obj_space", "object", "SubModel", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "obj_pipe",
+                                           "object", "SubModel", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "obj_matrix", "object", "SubModel", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "obj_val",
+                                           "object", "SubModel", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "obj_noref", "object", "", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "unsupported", "custom_blob", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("ComplexForm", &spec.defined_schema_names[0]);
 
   /* Schema 1: SubModel */
-  struct_fields_init(&spec.defined_schemas[1]);
-  struct_fields_add(&spec.defined_schemas[1], "p_str", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[1], "p_int", "integer", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[1], "p_num", "number", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[1], "p_bool", "boolean", NULL, NULL,
-                    NULL);
-  c_cdd_strdup("SubModel", &spec.defined_schema_names[1]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "p_str",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "p_int",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "p_num",
+                                           "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "p_bool",
+                                           "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("SubModel", &spec.defined_schema_names[1]);
   spec.n_defined_schemas = 2;
 
   /* Setup operation */
@@ -582,7 +585,7 @@ TEST test_client_body_all_operation_patterns(void) {
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -783,7 +786,7 @@ TEST test_client_body_default_responses_and_inlines(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   fclose(fp);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

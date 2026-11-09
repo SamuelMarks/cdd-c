@@ -259,31 +259,31 @@ TEST test_main_subcommands(void) {
   argv_generate_build_help[1] = cdd_test_mut_str("generate_build_system");
   argv_generate_build_help[2] = cdd_test_mut_str("--help");
   fprintf(stderr, "2\n");
-  cdd_main(5, argv_generate_build);
+  g_cdd_last_alloc_err = cdd_main(5, argv_generate_build);
   fprintf(stderr, "3\n");
-  cdd_main(4, argv_schema2code);
+  g_cdd_last_alloc_err = cdd_main(4, argv_schema2code);
   fprintf(stderr, "4\n");
-  cdd_main(5, argv_jsonschema2tests);
+  g_cdd_last_alloc_err = cdd_main(5, argv_jsonschema2tests);
   fprintf(stderr, "5\n");
-  cdd_main(3, argv_audit);
+  g_cdd_last_alloc_err = cdd_main(3, argv_audit);
   fprintf(stderr, "6\n");
-  cdd_main(4, argv_to_openapi);
-  cdd_main(4, argv_to_docs);
-  cdd_main(7, argv_from_openapi);
-  cdd_main(3, argv_transformer);
-  cdd_main(3, argv_standardize_gnu);
-  cdd_main(3, argv_code2schema_err);
-  cdd_main(3, argv_bind);
-  cdd_main(3, argv_generate_build_err);
-  cdd_main(3, argv_schema2code_err);
-  cdd_main(3, argv_serve_json_rpc_err);
-  cdd_main(3, argv_openapi2client);
-  cdd_main(3, argv_audit_err);
+  g_cdd_last_alloc_err = cdd_main(4, argv_to_openapi);
+  g_cdd_last_alloc_err = cdd_main(4, argv_to_docs);
+  g_cdd_last_alloc_err = cdd_main(7, argv_from_openapi);
+  g_cdd_last_alloc_err = cdd_main(3, argv_transformer);
+  g_cdd_last_alloc_err = cdd_main(3, argv_standardize_gnu);
+  g_cdd_last_alloc_err = cdd_main(3, argv_code2schema_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_bind);
+  g_cdd_last_alloc_err = cdd_main(3, argv_generate_build_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_schema2code_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_serve_json_rpc_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_openapi2client);
+  g_cdd_last_alloc_err = cdd_main(3, argv_audit_err);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(4, argv_audit_too_many));
-  cdd_main(3, argv_transformer_err);
-  cdd_main(3, argv_standardize_gnu_err);
-  cdd_main(3, argv_to_docs_json_err);
-  cdd_main(3, argv_bind_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_transformer_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_standardize_gnu_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_to_docs_json_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_bind_err);
 
 /* Close stdin or redirect to /dev/null so mcp does not block waiting for
  * input */
@@ -295,15 +295,15 @@ TEST test_main_subcommands(void) {
   }
 #endif
 
-  cdd_main(3, argv_mcp_err);
+  g_cdd_last_alloc_err = cdd_main(3, argv_mcp_err);
 
-  cdd_main(3, argv_c2openapi_help);
-  cdd_main(3, argv_code2schema_help);
-  cdd_main(3, argv_schema2code_help);
-  cdd_main(3, argv_to_openapi_help);
-  cdd_main(3, argv_from_openapi_help);
-  cdd_main(3, argv_audit_help);
-  cdd_main(3, argv_generate_build_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_c2openapi_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_code2schema_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_schema2code_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_to_openapi_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_from_openapi_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_audit_help);
+  g_cdd_last_alloc_err = cdd_main(3, argv_generate_build_help);
 
   /* cdd_main(2, argv_mcp); */
   /* cdd_main(2, argv_serve_json_rpc); */
@@ -368,7 +368,7 @@ TEST test_main_from_openapi_cli_options(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_main(5, argv_err)); /* missing input */
 
-  cdd_main(9, argv_flags);
+  g_cdd_last_alloc_err = cdd_main(9, argv_flags);
 
   /* Set ENV vars */
 #if defined(_WIN32)
@@ -483,8 +483,8 @@ TEST test_main_to_openapi_cli_options(void) {
   ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_help2));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_err));
 
-  cdd_main(6, argv_flags);
-  cdd_main(6, argv_flags2);
+  g_cdd_last_alloc_err = cdd_main(6, argv_flags);
+  g_cdd_last_alloc_err = cdd_main(6, argv_flags2);
 
   /* Set ENV vars */
 #if defined(_WIN32)

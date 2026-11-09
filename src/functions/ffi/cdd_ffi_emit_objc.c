@@ -222,7 +222,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         const char *t_str = NULL;
         int is_obj;
-        map_objc_type(&node->fields[j].type, 1, &t_str);
+        g_cdd_last_alloc_err = map_objc_type(&node->fields[j].type, 1, &t_str);
         /* simplistic pointer handling for class refs */
         is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                   strstr(t_str, "NSString") != NULL);
@@ -242,7 +242,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_type = NULL;
       int ret_is_obj;
-      map_objc_type(&node->return_or_base_type, 1, &ret_type);
+      g_cdd_last_alloc_err =
+          map_objc_type(&node->return_or_base_type, 1, &ret_type);
       ret_is_obj = (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
                     strstr(ret_type, "NSString") != NULL);
 
@@ -256,7 +257,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
-          map_objc_type(&node->fields[j].type, 0, &arg_type);
+          g_cdd_last_alloc_err =
+              map_objc_type(&node->fields[j].type, 0, &arg_type);
           arg_is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                         strstr(arg_type, "NSString") != NULL);
           CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
@@ -264,7 +266,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
 
           if (j > 0) {
-            capitalize_first(arg_name_cap);
+            g_cdd_last_alloc_err = capitalize_first(arg_name_cap);
             fprintf(h_file, " %s:(%s%s)%s", arg_name, arg_type,
                     arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           } else {
@@ -304,7 +306,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_type = NULL;
       int ret_is_obj;
-      map_objc_type(&node->return_or_base_type, 1, &ret_type);
+      g_cdd_last_alloc_err =
+          map_objc_type(&node->return_or_base_type, 1, &ret_type);
       ret_is_obj = (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
                     strstr(ret_type, "NSString") != NULL);
 
@@ -318,7 +321,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
-          map_objc_type(&node->fields[j].type, 0, &arg_type);
+          g_cdd_last_alloc_err =
+              map_objc_type(&node->fields[j].type, 0, &arg_type);
           arg_is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                         strstr(arg_type, "NSString") != NULL);
           CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
@@ -326,7 +330,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
 
           if (j > 0) {
-            capitalize_first(arg_name_cap);
+            g_cdd_last_alloc_err = capitalize_first(arg_name_cap);
             fprintf(m_file, " %s:(%s%s)%s", arg_name, arg_type,
                     arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           } else {
@@ -342,7 +346,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         const char *arg_type = NULL;
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
-        map_objc_type(&node->fields[j].type, 0, &arg_type);
+        g_cdd_last_alloc_err =
+            map_objc_type(&node->fields[j].type, 0, &arg_type);
         if (strstr(arg_type, "NSString") != NULL) {
           fprintf(m_file, "    const char * _c_%s = [%s UTF8String];\n",
                   arg_name, arg_name);
@@ -366,7 +371,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         const char *arg_type = NULL;
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
-        map_objc_type(&node->fields[j].type, 0, &arg_type);
+        g_cdd_last_alloc_err =
+            map_objc_type(&node->fields[j].type, 0, &arg_type);
         if (j > 0)
           fprintf(m_file, ", ");
 

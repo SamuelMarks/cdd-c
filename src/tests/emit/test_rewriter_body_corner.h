@@ -87,13 +87,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -118,13 +118,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -147,13 +147,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -173,13 +173,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -203,13 +203,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -230,13 +230,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -265,15 +265,15 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
-      find_allocations(tl2, &sites);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
-      allocation_site_list_free(&sites);
+      g_cdd_last_alloc_err = free_token_list(tl2);
+      g_cdd_last_alloc_err = allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -299,15 +299,15 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
-      find_allocations(tl2, &sites);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
-      allocation_site_list_free(&sites);
+      g_cdd_last_alloc_err = free_token_list(tl2);
+      g_cdd_last_alloc_err = allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -328,13 +328,13 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -352,13 +352,13 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -380,13 +380,13 @@ TEST test_rewrite_body_corner_cases(void) {
       struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -405,13 +405,13 @@ TEST test_rewrite_body_corner_cases(void) {
       struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -428,13 +428,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -448,13 +448,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -472,15 +472,15 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
-      find_allocations(tl2, &sites);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
-      allocation_site_list_free(&sites);
+      g_cdd_last_alloc_err = free_token_list(tl2);
+      g_cdd_last_alloc_err = allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -495,15 +495,15 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
-      find_allocations(tl2, &sites);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
-      allocation_site_list_free(&sites);
+      g_cdd_last_alloc_err = free_token_list(tl2);
+      g_cdd_last_alloc_err = allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -520,13 +520,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -540,13 +540,13 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -562,13 +562,13 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -581,13 +581,13 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = 0;
-      free_token_list(tl2);
+      g_cdd_last_alloc_err = free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
         rc2 += 0;
@@ -619,13 +619,13 @@ TEST test_rewrite_body_corner_oom_2(void) {
       struct TokenList *tl = NULL;
       char *out_code = NULL;
       /*  (moved to global) */
-      tokenize(az_span_create_from_str(cases[c]), &tl);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(cases[c]), &tl);
       g_cdd_alloc_fail = i;
       {
         int rc2 = rewrite_body(tl, NULL, funcs2, 2,
                                c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
         g_cdd_alloc_fail = 0;
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         if (out_code)
           C_CDD_FREE(out_code);
         if (rc2 == CDD_C_SUCCESS) {
@@ -641,13 +641,13 @@ TEST test_rewrite_body_corner_oom_2(void) {
       struct TokenList *tl = NULL;
       char *out_code = NULL;
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(cases[c]), &tl);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(cases[c]), &tl);
       g_cdd_strdup_fail = i;
       {
         int rc2 = rewrite_body(tl, NULL, funcs2, 2,
                                c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
         g_cdd_strdup_fail = 0;
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         if (out_code)
           C_CDD_FREE(out_code);
         if (rc2 == CDD_C_SUCCESS) {
@@ -716,7 +716,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, NULL, 0, NULL, &out_code);
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* 2. find_refactored_func failure */
   rc = tokenize(az_span_create_from_str("void f() { my_strdup(\"a\"); }"), &tl);
@@ -725,7 +725,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_refactored_func = 0;
   ASSERT(rc != CDD_C_SUCCESS);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("void f() { my_strdup(\"a\"); }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -733,7 +733,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_refactored_func = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* 3a. find_semicolon failure in statement (case 2) */
   rc = tokenize(az_span_create_from_str("void f() { my_strdup(\"a\"); }"), &tl);
@@ -745,7 +745,7 @@ TEST test_rewrite_body_error_percolation(void) {
     C_CDD_FREE(out_code);
     out_code = NULL;
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("void f() { my_strdup(\"a\"); }"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -753,7 +753,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_semicolon = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* 3b. find_semicolon failure in assignment (case 1) */
   rc = tokenize(
@@ -764,7 +764,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_semicolon = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* 3c. find_semicolon failure in return ptr transform */
   rc = tokenize(az_span_create_from_str("void f() { return s; }"), &tl);
@@ -773,7 +773,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, NULL, 0, &t_ret, &out_code);
   g_cdd_fail_find_semicolon = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* 3d. patch_list_add failure in is_decl assignment (patches 1, 2, 3) */
   for (i = 1; i <= 3; ++i) {
@@ -785,7 +785,7 @@ TEST test_rewrite_body_error_percolation(void) {
     rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
     g_cdd_fail_patch_list_add = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
   }
 
   /* 3d2. patch_list_add failure in non-decl assignment (patches 1, 2, 3) */
@@ -797,7 +797,7 @@ TEST test_rewrite_body_error_percolation(void) {
     rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
     g_cdd_fail_patch_list_add = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
   }
 
   /* 3e. join_tokens_range empty strdup failure */
@@ -810,7 +810,7 @@ TEST test_rewrite_body_error_percolation(void) {
     rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
     g_cdd_strdup_fail = 0;
     ASSERT_NEQ(CDD_C_SUCCESS, rc);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_token_list(tl);
   }
 
   /* 4. find_stmt_start failure */
@@ -821,7 +821,7 @@ TEST test_rewrite_body_error_percolation(void) {
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_stmt_start = 0;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* 5. Loop patch_list_add failures across all cases */
   for (c = 0; c < 8; ++c) {
@@ -834,11 +834,11 @@ TEST test_rewrite_body_error_percolation(void) {
     for (i = 1; i <= 10; ++i) {
       tl = NULL;
       out_code = NULL;
-      tokenize(az_span_create_from_str(cases[c]), &tl);
+      g_cdd_last_alloc_err = tokenize(az_span_create_from_str(cases[c]), &tl);
       g_cdd_fail_patch_list_add = i;
       rc = rewrite_body(tl, NULL, funcs2, 2, tr, &out_code);
       g_cdd_fail_patch_list_add = 0;
-      free_token_list(tl);
+      g_cdd_last_alloc_err = free_token_list(tl);
       if (out_code)
         C_CDD_FREE(out_code);
     }

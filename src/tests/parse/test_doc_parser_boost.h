@@ -245,60 +245,60 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_style_text_test("x", &st_val));
 
   /* 3. Parse block comments with variants */
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(backslash_comment, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(lowercase_comment1, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(lowercase_comment2, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(slash_comment, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(empty_attr_comment1, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(empty_attr_comment2, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(empty_attr_comment3, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(delim_comment1, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(delim_comment2, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(itemschema_comment, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(sec_types_comment, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
   /* 4. parse_optional_bool_attr failure percolation */
   {
@@ -312,59 +312,59 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
     const char c_enc_res[] = "/**\n * @encoding enc [allowReserved]\n */";
     const char c_rb_req[] = "/**\n * @requestbody [required]\n */";
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 1;
     rc = (doc_parse_block)(c_hdr, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 1;
     rc = (doc_parse_block)(c_param_exp, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 2;
     rc = (doc_parse_block)(c_param_res, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 3;
     rc = (doc_parse_block)(c_param_emp, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 4;
     rc = (doc_parse_block)(c_param_dep, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 1;
     rc = (doc_parse_block)(c_sec_dep, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 1;
     rc = (doc_parse_block)(c_enc_exp, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 2;
     rc = (doc_parse_block)(c_enc_res, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_doc_fail_parse_optional_bool_attr = 1;
     rc = (doc_parse_block)(c_rb_req, &meta);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* 5. Remaining corner cases & branch triggers */
@@ -434,60 +434,67 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
 
     char bool_buf[64];
     CDD_STRCPY(bool_buf, sizeof(bool_buf), "required_field");
-    parse_optional_bool_attr_test(bool_buf, "required", &set, &val);
+    g_cdd_last_alloc_err =
+        parse_optional_bool_attr_test(bool_buf, "required", &set, &val);
     CDD_STRCPY(bool_buf, sizeof(bool_buf), "required=false");
-    parse_optional_bool_attr_test(bool_buf, "required", &set, &val);
+    g_cdd_last_alloc_err =
+        parse_optional_bool_attr_test(bool_buf, "required", &set, &val);
     CDD_STRCPY(bool_buf, sizeof(bool_buf), "required:notabool");
-    parse_optional_bool_attr_test(bool_buf, "required", &set, &val);
+    g_cdd_last_alloc_err =
+        parse_optional_bool_attr_test(bool_buf, "required", &set, &val);
 
     CDD_STRCPY(bool_buf, sizeof(bool_buf), "example:");
-    parse_optional_example_attr_test(bool_buf, &ex_out);
+    g_cdd_last_alloc_err = parse_optional_example_attr_test(bool_buf, &ex_out);
 
-    parse_oauth_flow_type_text_test(NULL, &flow);
+    g_cdd_last_alloc_err = parse_oauth_flow_type_text_test(NULL, &flow);
 
     CDD_STRCPY(tok_buf, sizeof(tok_buf), "name:val");
-    find_key_token_test(tok_buf, "name", NULL, &tok_out);
-    find_key_token_test(tok_buf, "name", &klen, &tok_out);
+    g_cdd_last_alloc_err = find_key_token_test(tok_buf, "name", NULL, &tok_out);
+    g_cdd_last_alloc_err =
+        find_key_token_test(tok_buf, "name", &klen, &tok_out);
     CDD_STRCPY(tok_buf, sizeof(tok_buf), "name=val");
-    find_key_token_test(tok_buf, "name", &klen, &tok_out);
+    g_cdd_last_alloc_err =
+        find_key_token_test(tok_buf, "name", &klen, &tok_out);
     CDD_STRCPY(tok_buf, sizeof(tok_buf), "xname=val");
-    find_key_token_test(tok_buf, "name", &klen, &tok_out);
+    g_cdd_last_alloc_err =
+        find_key_token_test(tok_buf, "name", &klen, &tok_out);
     CDD_STRCPY(tok_buf, sizeof(tok_buf), "name_other");
-    find_key_token_test(tok_buf, "name", &klen, &tok_out);
-    find_key_token_test(NULL, "name", &klen, &tok_out);
+    g_cdd_last_alloc_err =
+        find_key_token_test(tok_buf, "name", &klen, &tok_out);
+    g_cdd_last_alloc_err = find_key_token_test(NULL, "name", &klen, &tok_out);
     CDD_STRCPY(tok_buf, sizeof(tok_buf), "s");
-    find_key_token_test(tok_buf, NULL, &klen, &tok_out);
+    g_cdd_last_alloc_err = find_key_token_test(tok_buf, NULL, &klen, &tok_out);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = (doc_parse_block)(c_more1, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = (doc_parse_block)(c_more2a, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = (doc_parse_block)("/**\n * @servervar v_orphaned [default=8080]\n */",
                            &meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = (doc_parse_block)(c_more2b, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = (doc_parse_block)(c_more3, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = (doc_parse_block)(c_decorators, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     {
       const char c_final_push1[] =
@@ -515,7 +522,8 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
       struct DocOAuthScope *sc = NULL;
       size_t n_sc = 0;
 
-      parse_oauth_scopes_test("read, ,write", &sc, &n_sc);
+      g_cdd_last_alloc_err =
+          parse_oauth_scopes_test("read, ,write", &sc, &n_sc);
       if (sc) {
         size_t s_i;
         for (s_i = 0; s_i < n_sc; ++s_i) {
@@ -524,62 +532,62 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
         free(sc);
       }
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)(c_final_push1, &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)(c_final_push2, &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @server http://api\n * @servervar v2 "
                              "[default:]\n */",
                              &meta);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @server\n */", &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @param p [itemSchema=true]\n */", &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @encoding myProp "
                              "[contentType:application/json]\n */",
                              &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @encoding enc [unclosed_attr\n * "
                              "@encoding enc2 [contentType:application/json]\n "
                              "*/",
                              &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @tagmeta\n * @tagmeta \"\"\n */", &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @encoding myProp\n */", &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = (doc_parse_block)("/**\n * @encoding enc [no_bracket", &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
   }
 
@@ -596,9 +604,9 @@ TEST test_doc_crlf_and_non_bracket_tags(void) {
                         " * @tagmeta mytag extra_text_not_bracket\r\n"
                         " * @securityscheme MyAuth extra_text_not_bracket\r\n"
                         " */";
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(CDD_C_SUCCESS, doc_parse_block(comment, &meta));
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   PASS();
 }
 
@@ -662,91 +670,91 @@ TEST test_doc_parser_extra_branches(void) {
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_add_tag(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_add_tag(NULL, "tag"));
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_add_tag(&meta, NULL));
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
   /* 2. License with both url and identifier returns invalid argument */
   {
     const char *lic_comment =
         "/**\n * @license MIT [url:https://mit.edu] [identifier:MIT]\n */";
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = doc_parse_block(lic_comment, &meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* 3. Comprehensive tags, operations, security comments with examples and OOM
    */
   {
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               doc_parse_block("/**\n * @route POST /pets\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               doc_parse_block("/**\n * @param id [in:path]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               doc_parse_block("/**\n * @param id [example:123]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block("/**\n * @param id [deprecated:false]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = doc_parse_block(
         "/**\n * @return 200 [summary:OK] [example:ok] [itemSchema:true]\n */",
         &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block(
             "/**\n * @responseHeader 200 X-Ex [example:hdr] [required]\n */",
             &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block("/**\n * @requestBody [contentType:application/json] "
                         "[example:mybody] [required:true]\n */",
                         &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               doc_parse_block("/**\n * @tagmeta mytag [summary:sum] "
                               "[description:desc] [parent:par] [kind:k]\n */",
                               &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               doc_parse_block(
                   "/**\n * @contact [name:Owner] [url:https://owner.com]\n */",
                   &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block(
             "/**\n * @tagmeta mytag2 [externalDocs:https://example.com/docs] "
             "[externalDocsDescription:docdesc]\n */",
             &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block(
@@ -754,22 +762,22 @@ TEST test_doc_parser_extra_branches(void) {
             "[openIdConnectUrl:https://example.com/oidc] "
             "[oauth2MetadataUrl:https://example.com/meta] [flow:implicit]\n */",
             &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block(
             "/**\n * @license [name:Apache] [url:https://apache.org]\n */",
             &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         doc_parse_block("/**\n * @security oauthSec read:pets, write:pets\n */",
                         &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* 4. Test error percolation via g_doc_fail_skip_ws and
@@ -831,21 +839,21 @@ TEST test_doc_parser_extra_branches(void) {
                            "[in:header] [flow:implicit]\n */";
 
     g_doc_fail_sec_text = 1;
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(sec_line, &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_sec_text = 0;
 
     g_doc_fail_sec_text = 2;
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(sec_line, &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_sec_text = 0;
 
     g_doc_fail_sec_text = 3;
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(sec_line, &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_sec_text = 0;
   }
 
@@ -884,15 +892,15 @@ TEST test_doc_parser_extra_branches(void) {
         " * @infoDescription MyDesc\n"
         " * @termsOfService https://example.com/tos\n"
         " */";
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom(doc_oom1, &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom(doc_oom2, &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom(doc_oom3, &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* 7. Test skip_ws failure across directive lines */
@@ -902,111 +910,122 @@ TEST test_doc_parser_extra_branches(void) {
 
     for (k = 1; k <= 4; ++k) {
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @securityScheme auth1 [type:apiKey]\n */",
-                        &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @securityScheme auth1 [type:apiKey]\n */",
+                            &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @param id [in:path]\n */", &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @param id [in:path]\n */", &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @return 200 [summary:OK]\n */", &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @return 200 [summary:OK]\n */", &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @responseHeader 200 X-Hdr [required]\n */",
-                        &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @responseHeader 200 X-Hdr [required]\n */",
+                            &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @link myLink [operationId:op1]\n */", &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @link myLink [operationId:op1]\n */",
+                            &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @requestBody [required:true]\n */", &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @requestBody [required:true]\n */", &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       g_doc_fail_skip_ws = k;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @tagmeta mytag [summary:sum]\n */", &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @tagmeta mytag [summary:sum]\n */", &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 4;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @link myLink op1 [operationId:op1]\n */", &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @link myLink op1 [operationId:op1]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 3;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @requestBody [contentType:app/json] "
-                      "[example:mybody] [required:true]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @requestBody [contentType:app/json] "
+                          "[example:mybody] [required:true]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
   }
 
   /* 8. Single-line OOM across directives */
   {
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @return 200 [summary:OK]\n */", &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @responseHeader 200 X-Hdr\n */", &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @link myLink op1\n */", &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @securityScheme auth1\n */", &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @requestBody [required:true]\n */",
                              &meta);
-    doc_metadata_free(&meta);
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     doc_parse_block_with_oom("/**\n * @tags a,b,c\n */", &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* 9. Incomplete / malformed directive lines (empty fields) */
   {
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @return\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @responseHeader\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @responseHeader 200\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @link\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @link myLink\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @securityScheme\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* 10. Tags error percolation */
@@ -1017,168 +1036,189 @@ TEST test_doc_parser_extra_branches(void) {
     int j;
 
     g_doc_fail_find_key_token = 1;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @server http://localhost name=srv\n */", &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @server http://localhost name=srv\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_find_key_token = 0;
 
     g_doc_fail_find_key_token = 2;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @server http://localhost name=srv description=desc\n */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = (doc_parse_block)("/**\n * @server http://localhost "
+                                             "name=srv description=desc\n */",
+                                             &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_find_key_token = 0;
 
     g_doc_fail_skip_ws = 2;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar v1 "
+                          "[default:d]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 3;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar v1 "
+                          "[default:d]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 1;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 2;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 3;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     /* Duplicate attributes */
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n"
-        " * @tagmeta t1 [summary:s1] [summary:s2] [description:d1] "
-        "[description:d2] [parent:p1] [parent:p2]\n"
-        " * @tagmeta t2 [kind:k1] [kind:k2] [externalDocs:u1] "
-        "[externalDocs:u2] [externalDocsDescription:e1] "
-        "[externalDocsDescription:e2]\n"
-        " * @contact [name:n1] [name:n2] [url:u1] [url:u2] [email:e1] "
-        "[email:e2]\n"
-        " * @contact [name:n3]\n"
-        " * @license [name:l1] [name:l2] [url:u1] [url:u2]\n"
-        " * @license [name:l3] [identifier:MIT]\n"
-        " */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n"
+                          " * @tagmeta t1 [summary:s1] [summary:s2] "
+                          "[description:d1] "
+                          "[description:d2] [parent:p1] [parent:p2]\n"
+                          " * @tagmeta t2 [kind:k1] [kind:k2] "
+                          "[externalDocs:u1] "
+                          "[externalDocs:u2] [externalDocsDescription:e1] "
+                          "[externalDocsDescription:e2]\n"
+                          " * @contact [name:n1] [name:n2] [url:u1] [url:u2] "
+                          "[email:e1] "
+                          "[email:e2]\n"
+                          " * @contact [name:n3]\n"
+                          " * @license [name:l1] [name:l2] [url:u1] [url:u2]\n"
+                          " * @license [name:l3] [identifier:MIT]\n"
+                          " */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     for (j = 1; j <= 6; ++j) {
       g_cdd_strdup_fail = j;
-      doc_metadata_init(&meta);
-      (doc_parse_block)(
-          "/**\n * @tagmeta mytag [summary:s] [description:d] [parent:p] "
-          "[kind:k] [externalDocs:http://ex] [externalDocsDescription:ed]\n */",
-          &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @tagmeta mytag [summary:s] "
+                            "[description:d] [parent:p] "
+                            "[kind:k] [externalDocs:http://ex] "
+                            "[externalDocsDescription:ed]\n */",
+                            &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
     g_cdd_strdup_fail = 0;
 
     for (j = 1; j <= 4; ++j) {
       g_cdd_strdup_fail = j;
-      doc_metadata_init(&meta);
-      (doc_parse_block)(
-          "/**\n * @contact [name:Owner] [url:http://ex] [email:o@ex]\n */",
-          &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @contact [name:Owner] [url:http://ex] "
+                            "[email:o@ex]\n */",
+                            &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
     g_cdd_strdup_fail = 0;
 
     for (j = 1; j <= 4; ++j) {
       g_cdd_strdup_fail = j;
-      doc_metadata_init(&meta);
-      (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar v1 "
-                        "[default:d] [enum:a] [description:desc]\n */",
-                        &meta);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
+      g_cdd_last_alloc_err =
+          (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar "
+                            "v1 "
+                            "[default:d] [enum:a] [description:desc]\n */",
+                            &meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
     g_cdd_strdup_fail = 0;
 
     g_cdd_strdup_fail = 1;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_cdd_strdup_fail = 0;
 
     /* Test contact name strdup failures with url & email present */
     g_cdd_strdup_fail = 3;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @contact [url:http://ex] [email:o@ex] [name:Owner]\n */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = (doc_parse_block)("/**\n * @contact [url:http://ex] "
+                                             "[email:o@ex] [name:Owner]\n */",
+                                             &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_cdd_strdup_fail = 0;
 
     g_cdd_strdup_fail = 3;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @contact [url:http://ex] [email:o@ex] Owner\n */", &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = (doc_parse_block)("/**\n * @contact [url:http://ex] "
+                                             "[email:o@ex] Owner\n */",
+                                             &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_cdd_strdup_fail = 0;
 
     /* Test serverVar skip_ws failure */
     g_doc_fail_skip_ws = 4;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar v1 "
+                          "[default:d]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 5;
-    doc_metadata_init(&meta);
-    (doc_parse_block)(
-        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
-        &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar v1 "
+                          "[default:d]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     /* Test encoding skip_ws failure */
     g_doc_fail_skip_ws = 1;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     g_doc_fail_skip_ws = 4;
-    doc_metadata_init(&meta);
-    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
-                      &meta);
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
+    g_cdd_last_alloc_err =
+        (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                          &meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
     g_doc_fail_skip_ws = 0;
 
     /* Test tags trim_segment failure on line 83 */
     {
       const char *s_tags = " t1";
       g_doc_fail_trim_segment = 1;
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 doc_parse_tags_line(s_tags, s_tags + strlen(s_tags), &meta));
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
       g_doc_fail_trim_segment = 0;
     }
 
@@ -1186,44 +1226,44 @@ TEST test_doc_parser_extra_branches(void) {
     {
       const char *s_srv = " http://localhost";
       const char *s_var = " v1 [description:d] [default:val]";
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = doc_parse_server_line(s_srv, s_srv + strlen(s_srv), &meta);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       ASSERT_EQ(1, meta.n_servers);
       g_doc_fail_skip_ws = 3;
       rc = doc_parse_server_var_line(s_var, s_var + strlen(s_var), &meta);
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
       g_doc_fail_skip_ws = 0;
     }
 
     /* Test encoding bracket skip_ws failure on line 878 */
     {
       const char *s_enc = " prop1 [contentType:app/json]";
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_skip_ws = 5;
       ASSERT_EQ(
           CDD_C_ERROR_MEMORY,
           doc_parse_encoding_line(s_enc, s_enc + strlen(s_enc), &meta, 0));
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
       g_doc_fail_skip_ws = 0;
     }
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_ERROR_INVALID_ARGUMENT,
         (doc_parse_block)("/**\n * @license [url:http://ex]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_ERROR_INVALID_ARGUMENT,
         (doc_parse_block)("/**\n * @license [identifier:MIT]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     /* Empty attributes and multiple content_type attributes for
      * doc_operations.c */
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n"
                                 " * @param p [format:] [format=uuid] int\n"
@@ -1235,9 +1275,9 @@ TEST test_doc_parser_extra_branches(void) {
                                 "[content:application/json] hdesc\n"
                                 " */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n"
                                 " * @link L [operationId:] [operationRef:] "
@@ -1249,29 +1289,29 @@ TEST test_doc_parser_extra_branches(void) {
                                 "[content:application/json] btype\n"
                                 " */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     /* Test memory error in body example attribute parsing */
     {
       const char *s_body = " [example=val] type";
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
       ASSERT_EQ(
           CDD_C_ERROR_MEMORY,
           doc_parse_request_body_line(s_body, s_body + strlen(s_body), &meta));
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
 
     /* Test trim_segment failure on link operationId */
     {
       const char *s_link = " L op1 [operationId:op1]";
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 doc_parse_link_line(s_link, s_link + strlen(s_link), &meta));
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
 
     /* Test trim_segment failure on requestBody contentType and content */
@@ -1280,33 +1320,33 @@ TEST test_doc_parser_extra_branches(void) {
       const char *s_body_ct2 =
           " [contentType:text/plain] [contentType:app/json] type";
       const char *s_body_c = " [content:app/json] type";
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 doc_parse_request_body_line(
                     s_body_ct, s_body_ct + strlen(s_body_ct), &meta));
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 2;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 doc_parse_request_body_line(
                     s_body_ct2, s_body_ct2 + strlen(s_body_ct2), &meta));
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 doc_parse_request_body_line(
                     s_body_c, s_body_c + strlen(s_body_c), &meta));
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
 
     /* Test content: with no prior contentType: set */
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         (doc_parse_block)("/**\n"
@@ -1315,47 +1355,52 @@ TEST test_doc_parser_extra_branches(void) {
                           " * @requestBody [content:application/json] btype1\n"
                           " */",
                           &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     /* Test trim_segment failure across operation attributes */
     {
       int t;
       for (t = 1; t <= 12; ++t) {
         g_doc_fail_trim_segment = t;
-        doc_metadata_init(&meta);
-        (doc_parse_block)(
-            "/**\n"
-            " * @param p [format:uuid] int\n"
-            " * @return 200 [contentType:app/json] [summary:OK] desc\n"
-            " * @responseHeader 200 X-H [format:uuid] [contentType:text/plain] "
-            "[content:application/json] hdesc\n"
-            " */",
-            &meta);
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
+        g_cdd_last_alloc_err =
+            (doc_parse_block)("/**\n"
+                              " * @param p [format:uuid] int\n"
+                              " * @return 200 [contentType:app/json] "
+                              "[summary:OK] desc\n"
+                              " * @responseHeader 200 X-H [format:uuid] "
+                              "[contentType:text/plain] "
+                              "[content:application/json] hdesc\n"
+                              " */",
+                              &meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
       for (t = 1; t <= 20; ++t) {
         g_doc_fail_trim_segment = t;
-        doc_metadata_init(&meta);
-        (doc_parse_block)(
-            "/**\n"
-            " * @link L [operationId:op1] [operationRef:ref1] "
-            "[parameters:p1] [requestBody:rb1] "
-            "[summary:sum] [serverUrl:url1] [serverName:name1] "
-            "[serverDescription:sdesc] [description:ldesc] ldesc\n"
-            " * @requestBody [contentType:text/plain] "
-            "[content:application/json] btype\n"
-            " */",
-            &meta);
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
+        g_cdd_last_alloc_err =
+            (doc_parse_block)("/**\n"
+                              " * @link L [operationId:op1] "
+                              "[operationRef:ref1] "
+                              "[parameters:p1] [requestBody:rb1] "
+                              "[summary:sum] [serverUrl:url1] "
+                              "[serverName:name1] "
+                              "[serverDescription:sdesc] [description:ldesc] "
+                              "ldesc\n"
+                              " * @requestBody [contentType:text/plain] "
+                              "[content:application/json] btype\n"
+                              " */",
+                              &meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
       g_doc_fail_trim_segment = 0;
     }
 
     /* Security empty line and branches */
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @security\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     {
       const char *s_sec =
@@ -1376,24 +1421,25 @@ TEST test_doc_parser_extra_branches(void) {
       int t;
 
       for (t = 1; t <= 15; ++t) {
-        doc_metadata_init(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_security_scheme_line(s_sec, s_sec + strlen(s_sec), &meta);
+        g_cdd_last_alloc_err =
+            doc_parse_security_scheme_line(s_sec, s_sec + strlen(s_sec), &meta);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       ASSERT_EQ(CDD_C_SUCCESS,
                 doc_parse_security_scheme_line(
                     s_sec_empty, s_sec_empty + strlen(s_sec_empty), &meta));
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       ASSERT_EQ(CDD_C_SUCCESS,
                 doc_parse_security_scheme_line(
                     s_sec_noflow, s_sec_noflow + strlen(s_sec_noflow), &meta));
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
     }
 
     /* doc_tags.c branch coverage */
@@ -1411,79 +1457,87 @@ TEST test_doc_parser_extra_branches(void) {
       int t;
 
       for (t = 1; t <= 10; ++t) {
-        doc_metadata_init(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_tag_meta_line(s_tag, s_tag + strlen(s_tag), &meta);
+        g_cdd_last_alloc_err =
+            doc_parse_tag_meta_line(s_tag, s_tag + strlen(s_tag), &meta);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
       for (t = 1; t <= 10; ++t) {
-        doc_metadata_init(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_contact_line(s_con, s_con + strlen(s_con), &meta);
+        g_cdd_last_alloc_err =
+            doc_parse_contact_line(s_con, s_con + strlen(s_con), &meta);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
-      doc_parse_contact_line(s_con_rest, s_con_rest + strlen(s_con_rest),
-                             &meta);
+      g_cdd_last_alloc_err = doc_parse_contact_line(
+          s_con_rest, s_con_rest + strlen(s_con_rest), &meta);
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       for (t = 1; t <= 10; ++t) {
-        doc_metadata_init(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_license_line(s_lic, s_lic + strlen(s_lic), &meta);
+        g_cdd_last_alloc_err =
+            doc_parse_license_line(s_lic, s_lic + strlen(s_lic), &meta);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
-      doc_parse_license_line(s_lic_rest, s_lic_rest + strlen(s_lic_rest),
-                             &meta);
+      g_cdd_last_alloc_err = doc_parse_license_line(
+          s_lic_rest, s_lic_rest + strlen(s_lic_rest), &meta);
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       for (t = 1; t <= 3; ++t) {
-        doc_metadata_init(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_server_line(s_srv1, s_srv1 + strlen(s_srv1), &meta);
+        g_cdd_last_alloc_err =
+            doc_parse_server_line(s_srv1, s_srv1 + strlen(s_srv1), &meta);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       g_doc_fail_trim_segment = 1;
-      doc_parse_server_line(s_srv2, s_srv2 + strlen(s_srv2), &meta);
+      g_cdd_last_alloc_err =
+          doc_parse_server_line(s_srv2, s_srv2 + strlen(s_srv2), &meta);
       g_doc_fail_trim_segment = 0;
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
       for (t = 1; t <= 5; ++t) {
-        doc_metadata_init(&meta);
-        (doc_parse_block)("/**\n * @server http://ex\n */", &meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
+        g_cdd_last_alloc_err =
+            (doc_parse_block)("/**\n * @server http://ex\n */", &meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_server_var_line(s_svar, s_svar + strlen(s_svar), &meta);
+        g_cdd_last_alloc_err =
+            doc_parse_server_var_line(s_svar, s_svar + strlen(s_svar), &meta);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
       for (t = 1; t <= 5; ++t) {
-        doc_metadata_init(&meta);
+        g_cdd_last_alloc_err = doc_metadata_init(&meta);
         g_doc_fail_trim_segment = t;
-        doc_parse_encoding_line(s_enc, s_enc + strlen(s_enc), &meta, 0);
+        g_cdd_last_alloc_err =
+            doc_parse_encoding_line(s_enc, s_enc + strlen(s_enc), &meta, 0);
         g_doc_fail_trim_segment = 0;
-        doc_metadata_free(&meta);
+        g_cdd_last_alloc_err = doc_metadata_free(&meta);
       }
     }
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @contact\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @license\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         (doc_parse_block)("/**\n"
@@ -1497,72 +1551,72 @@ TEST test_doc_parser_extra_branches(void) {
                           "[externalDocsDescription:ed2]\n"
                           " */",
                           &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         (doc_parse_block)("/**\n * @contact [] [name:] [url:] [email:]\n */",
                           &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @contact [url:http://u] John Doe\n */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @contact [url:http://u]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @contact [name:n1] "
                                                "[name:n2] [url:u1] [url:u2] "
                                                "[email:e1] [email:e2]\n */",
                                                &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @license [] [name:] "
                                                "[identifier:] [url:] MIT\n */",
                                                &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @license [url:http://u] Apache\n */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @license [name:n1] "
                                                "[name:n2] [identifier:i1] "
                                                "[identifier:i2]\n */",
                                                &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @license [name:n1] [name:n2] [url:u1] "
                                 "[url:u2]\n */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               (doc_parse_block)("/**\n * @license [name:n1] [identifier:i1] "
                                 "[url:u1]\n */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               (doc_parse_block)("/**\n * @license [url:http://u]\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_ERROR_INVALID_ARGUMENT,
         (doc_parse_block)("/**\n"
@@ -1570,9 +1624,9 @@ TEST test_doc_parser_extra_branches(void) {
                           " * @serverVar v1 [default:] [enum:] [description:]\n"
                           " */",
                           &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(
         CDD_C_SUCCESS,
         (doc_parse_block)("/**\n"
@@ -1583,40 +1637,40 @@ TEST test_doc_parser_extra_branches(void) {
                           "[enum:e2] [description:desc1] [description:desc2]\n"
                           " */",
                           &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n"
                                 " * @encoding prop []\n"
                                 " * @encoding prop [contentType:] [style:]\n"
                                 " */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @externalDocs\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @route GET\n * @route GET /p1\n * "
                                 "@route GET /p2\n */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
     /* Error cases: @serverVar with no server and with no name */
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               (doc_parse_block)("/**\n * @serverVar v\n */", &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     ASSERT_EQ(CDD_C_SUCCESS,
               (doc_parse_block)("/**\n * @server http://ex\n * @serverVar\n */",
                                 &meta));
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   PASS();

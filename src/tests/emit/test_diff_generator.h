@@ -44,7 +44,7 @@ TEST test_diff_generation_basic(void) {
   struct PatchList patch_list3;
   az_span span;
 
-  patch_list_init(&patch_list);
+  g_cdd_last_alloc_err = patch_list_init(&patch_list);
   span = az_span_create_from_str(src);
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
@@ -83,7 +83,7 @@ TEST test_diff_generation_basic(void) {
   ASSERT(strstr(diff, "+void"));
 
   free(diff);
-  patch_list_free(&patch_list);
+  g_cdd_last_alloc_err = patch_list_free(&patch_list);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -100,8 +100,8 @@ TEST test_diff_generation_basic(void) {
   memset(huge_str, 'x', 4999);
   huge_str[4999] = '\0';
 
-  patch_list_init(&patch_list2);
-  patch_list_add(&patch_list2, 0, 1, strdup(huge_str));
+  g_cdd_last_alloc_err = patch_list_init(&patch_list2);
+  g_cdd_last_alloc_err = patch_list_add(&patch_list2, 0, 1, strdup(huge_str));
 
   /* Trigger realloc success */
   ASSERT_EQ(0, patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3));
@@ -123,10 +123,11 @@ TEST test_diff_generation_basic(void) {
 
     /* Trigger realloc failure in the other branch */
     /* For the other branch, we need a huge token! */
-    tokenize(az_span_create_from_str(huge_str), &tokens2);
+    g_cdd_last_alloc_err =
+        tokenize(az_span_create_from_str(huge_str), &tokens2);
 
-    patch_list_init(&patch_list3);
-    patch_list_add(&patch_list3, 0, 1, strdup("small"));
+    g_cdd_last_alloc_err = patch_list_init(&patch_list3);
+    g_cdd_last_alloc_err = patch_list_add(&patch_list3, 0, 1, strdup("small"));
 
     diff3 = NULL;
     g_cdd_fail_alloc = 6666;
@@ -143,13 +144,13 @@ TEST test_diff_generation_basic(void) {
     ASSERT(diff3 != NULL);
     free(diff3);
 
-    patch_list_free(&patch_list3);
-    free_token_list(tokens2);
+    g_cdd_last_alloc_err = patch_list_free(&patch_list3);
+    g_cdd_last_alloc_err = free_token_list(tokens2);
   }
 #endif
 
-  patch_list_free(&patch_list2);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = patch_list_free(&patch_list2);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }

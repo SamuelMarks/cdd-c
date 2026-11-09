@@ -59,14 +59,14 @@ static void test_helper_run_io_client_body(const struct OpenAPI_Operation *op,
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  codegen_client_write_body(fp, op, spec, path, NULL);
+  g_cdd_last_alloc_err = codegen_client_write_body(fp, op, spec, path, NULL);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    codegen_client_write_body(fp, op, spec, path, NULL);
+    g_cdd_last_alloc_err = codegen_client_write_body(fp, op, spec, path, NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -85,14 +85,14 @@ static void test_helper_run_io_hdr(const struct OpenAPI_Operation *op) {
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_header_param_logic(fp, op);
+  g_cdd_last_alloc_err = client_body_write_header_param_logic(fp, op);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_header_param_logic(fp, op);
+    g_cdd_last_alloc_err = client_body_write_header_param_logic(fp, op);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -111,14 +111,14 @@ static void test_helper_run_io_cookie(const struct OpenAPI_Operation *op) {
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_cookie_param_logic(fp, op);
+  g_cdd_last_alloc_err = client_body_write_cookie_param_logic(fp, op);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_cookie_param_logic(fp, op);
+    g_cdd_last_alloc_err = client_body_write_cookie_param_logic(fp, op);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -139,14 +139,14 @@ static void test_helper_run_io_form(const struct OpenAPI_Operation *op,
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_form_urlencoded_body(fp, op, spec);
+  g_cdd_last_alloc_err = client_body_write_form_urlencoded_body(fp, op, spec);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_form_urlencoded_body(fp, op, spec);
+    g_cdd_last_alloc_err = client_body_write_form_urlencoded_body(fp, op, spec);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -167,14 +167,14 @@ static void test_helper_run_io_multipart(const struct OpenAPI_Operation *op,
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_multipart_body(fp, op, spec);
+  g_cdd_last_alloc_err = client_body_write_multipart_body(fp, op, spec);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_multipart_body(fp, op, spec);
+    g_cdd_last_alloc_err = client_body_write_multipart_body(fp, op, spec);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -194,14 +194,14 @@ test_helper_run_io_part_headers(const struct OpenAPI_Encoding *enc) {
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_multipart_part_headers(fp, enc);
+  g_cdd_last_alloc_err = client_body_write_multipart_part_headers(fp, enc);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_multipart_part_headers(fp, enc);
+    g_cdd_last_alloc_err = client_body_write_multipart_part_headers(fp, enc);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -228,16 +228,18 @@ static void test_helper_run_io_joined_form_array(
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_joined_form_array(fp, field, len_field, items_type, delim,
-                                      encode_fn, add_encoded, is_object);
+  g_cdd_last_alloc_err = client_body_write_joined_form_array(
+      fp, field, len_field, items_type, delim, encode_fn, add_encoded,
+      is_object);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_joined_form_array(fp, field, len_field, items_type, delim,
-                                        encode_fn, add_encoded, is_object);
+    g_cdd_last_alloc_err = client_body_write_joined_form_array(
+        fp, field, len_field, items_type, delim, encode_fn, add_encoded,
+        is_object);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -262,14 +264,14 @@ test_helper_run_io_inline_json_parse(const struct OpenAPI_SchemaRef *schema) {
   fp = cdd_test_tmpfile_global();
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  client_body_write_inline_json_parse(fp, schema);
+  g_cdd_last_alloc_err = client_body_write_inline_json_parse(fp, schema);
   total_calls = g_io_calls;
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = i;
-    client_body_write_inline_json_parse(fp, schema);
+    g_cdd_last_alloc_err = client_body_write_inline_json_parse(fp, schema);
     g_fail_io_after = -1;
     fclose(fp);
   }

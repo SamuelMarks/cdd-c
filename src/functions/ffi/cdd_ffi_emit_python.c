@@ -101,7 +101,7 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
     fprintf(f, "ctypes.POINTER(");
     sub_type = *type;
     sub_type.pointer_depth--;
-    emit_type(f, &sub_type);
+    g_cdd_last_alloc_err = emit_type(f, &sub_type);
     fprintf(f, ")");
     return CDD_C_SUCCESS;
   }
@@ -116,7 +116,7 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
     return CDD_C_SUCCESS;
   }
 
-  get_ctypes_primitive(type->kind, &prim);
+  g_cdd_last_alloc_err = get_ctypes_primitive(type->kind, &prim);
   fprintf(f, "%s", prim);
   return CDD_C_SUCCESS;
 }
@@ -249,7 +249,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "    _fields_ = [\n");
         for (j = 0; j < node->fields_count; j++) {
           fprintf(f, "        (\"%s\", ", node->fields[j].name);
-          emit_type(f, &node->fields[j].type);
+          g_cdd_last_alloc_err = emit_type(f, &node->fields[j].type);
           fprintf(f, "),\n");
         }
         fprintf(f, "    ]\n");
@@ -312,14 +312,14 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
       /* args */
       fprintf(f, "    _%s.argtypes = [", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        emit_type(f, &node->fields[j].type);
+        g_cdd_last_alloc_err = emit_type(f, &node->fields[j].type);
         fprintf(f, ", ");
       }
       fprintf(f, "ctypes.POINTER(CddFfiError)]\n");
 
       /* return type */
       fprintf(f, "    _%s.restype = ", node->name);
-      emit_type(f, &node->return_or_base_type);
+      g_cdd_last_alloc_err = emit_type(f, &node->return_or_base_type);
       fprintf(f, "\n");
 
       if (node->is_variadic) {
@@ -343,7 +343,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
             base_t = node->fields[j].type;
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
-            emit_type(f, &base_t);
+            g_cdd_last_alloc_err = emit_type(f, &base_t);
             fprintf(f, "()\n");
           }
         }
@@ -388,7 +388,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
-              emit_type(f, &base_t);
+              g_cdd_last_alloc_err = emit_type(f, &base_t);
               fprintf(f, " * %s)()\n", node->fields[j].array_length_ref);
             } else {
               cdd_ffi_type_t base_t;
@@ -396,7 +396,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
-              emit_type(f, &base_t);
+              g_cdd_last_alloc_err = emit_type(f, &base_t);
               fprintf(f, "()\n");
             }
             if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {

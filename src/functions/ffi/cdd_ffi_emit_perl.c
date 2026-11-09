@@ -349,7 +349,8 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
                    "pointer\n");
       } else {
         for (j = 0; j < node->fields_count; j++) {
-          map_perl_type(&node->fields[j].type, type_str, sizeof(type_str));
+          g_cdd_last_alloc_err =
+              map_perl_type(&node->fields[j].type, type_str, sizeof(type_str));
           fprintf(f, "  '%s' => '%s'%s\n", type_str, node->fields[j].name,
                   j + 1 < node->fields_count ? "," : "");
         }
@@ -359,7 +360,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
       fprintf(f, "$ffi->type('record(%s::%s)' => '%s');\n\n", module_name,
               node->name, node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       /* Map enum variants to constants */
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -371,7 +372,8 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "$ffi->type('sint32' => '%s');\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      map_perl_type(&node->return_or_base_type, type_str, sizeof(type_str));
+      g_cdd_last_alloc_err =
+          map_perl_type(&node->return_or_base_type, type_str, sizeof(type_str));
       fprintf(f, "$ffi->type('%s' => '%s');\n\n", type_str, node->name);
     }
   }
@@ -380,12 +382,13 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      map_perl_type(&node->return_or_base_type, ret_type_str,
-                    sizeof(ret_type_str));
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = map_perl_type(&node->return_or_base_type,
+                                           ret_type_str, sizeof(ret_type_str));
       fprintf(f, "$ffi->attach('%s' => [", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        map_perl_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            map_perl_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(f, "'%s'%s", type_str, j + 1 < node->fields_count ? ", " : "");
       }
       fprintf(f, "] => '%s');\n", ret_type_str);
@@ -436,9 +439,9 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(xs_f, node->leading_trivia);
-      map_xs_type(&node->return_or_base_type, ret_type_str,
-                  sizeof(ret_type_str));
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(xs_f, node->leading_trivia);
+      g_cdd_last_alloc_err = map_xs_type(&node->return_or_base_type,
+                                         ret_type_str, sizeof(ret_type_str));
       fprintf(xs_f, "%s\n", ret_type_str);
       fprintf(xs_f, "%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
@@ -447,7 +450,8 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
       }
       fprintf(xs_f, ")\n");
       for (j = 0; j < node->fields_count; j++) {
-        map_xs_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            map_xs_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(xs_f, "    %s %s\n", type_str, node->fields[j].name);
       }
       fprintf(xs_f, "\n");

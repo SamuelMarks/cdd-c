@@ -37,16 +37,20 @@ TEST test_client_body_verb_enum_indirect(void) {
   op.operation_id = cdd_test_mut_str("testVerb");
 
   op.verb = OA_VERB_PUT;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.verb = OA_VERB_DELETE;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.verb = OA_VERB_HEAD;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.verb = OA_VERB_PATCH;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
     fclose(fp);
@@ -83,7 +87,8 @@ TEST test_client_body_header_formatting_indirect(void) {
   /* Set up global schemas to bypass properties missing error */
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaHdr", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaHdr", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -140,7 +145,8 @@ TEST test_client_body_header_formatting_indirect(void) {
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -181,7 +187,8 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaTxtBin", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaTxtBin", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -232,31 +239,38 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
   /* text/html */
   enc.content_type = cdd_test_mut_str("text/html");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/xml */
   enc.content_type = cdd_test_mut_str("application/xml");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/rss+xml */
   enc.content_type = cdd_test_mut_str("application/rss+xml");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* image/png (binary) */
   enc.content_type = cdd_test_mut_str("image/png");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* audio/mp3 (binary) */
   enc.content_type = cdd_test_mut_str("audio/mp3");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* video/mp4 (binary) */
   enc.content_type = cdd_test_mut_str("video/mp4");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/pdf (binary) */
   enc.content_type = cdd_test_mut_str("application/pdf");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -299,7 +313,8 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaMissing", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaMissing", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -350,11 +365,13 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 
   /* text/css (textual prefix) */
   enc.content_type = cdd_test_mut_str("text/css");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/atom+xml (textual suffix) */
   enc.content_type = cdd_test_mut_str("application/atom+xml");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -395,7 +412,8 @@ TEST test_client_body_media_type_caps_indirect(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaCaps", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaCaps", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -446,7 +464,8 @@ TEST test_client_body_media_type_caps_indirect(void) {
 
   /* text/plain in caps */
   enc.content_type = cdd_test_mut_str("TEXT/PLAIN");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -487,7 +506,8 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaPrefixCaps", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaPrefixCaps", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -538,7 +558,8 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 
   /* text/plain in mixed caps to hit prefix */
   enc.content_type = cdd_test_mut_str("TeXt/PlaIN");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -579,7 +600,8 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  c_cdd_strdup("MockSchemaShort", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MockSchemaShort", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -629,11 +651,13 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 
   /* text/ (len < pre_len = 5) -> e.g. "tex" */
   enc.content_type = cdd_test_mut_str("tex");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* +xml (len < suf_len = 4) -> e.g. "xm" */
   enc.content_type = cdd_test_mut_str("xm");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -687,34 +711,41 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   resp.content_media_types[0].schema.is_array = 1;
   op.responses = &resp;
 
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test array of integer */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("integer");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test array of number */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("number");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test array of boolean */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("boolean");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test raw boolean */
   resp.content_media_types[0].schema.is_array = 0;
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("boolean");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test unhandled / unknown (e.g., fallback) */
   resp.content_media_types[0].schema.inline_type =
       cdd_test_mut_str("unknown_type_test");
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Add missing branch from write_response_read (raw array of non-json) */
   resp.content_media_types[0].name = cdd_test_mut_str("text/plain");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
   if (fp)
@@ -760,39 +791,46 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   /* array of string */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("string");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of int */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("integer");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("number");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("boolean");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback/unknown */
   resp.content_media_types[0].schema.inline_type =
       cdd_test_mut_str("unknown_test");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* raw boolean */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("boolean");
   resp.content_media_types[0].schema.is_array = 0;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of string (non-json) */
   resp.content_media_types[0].name = cdd_test_mut_str("text/plain");
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("string");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
   if (fp)
@@ -845,33 +883,39 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   /* the array codegen! No, write_inline_json_parse writes code! We just need it
    */
   /* to emit the C code blocks! */
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of int */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("integer");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("number");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("boolean");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback/unknown */
   resp.content_media_types[0].schema.inline_type =
       cdd_test_mut_str("unknown_test");
   resp.content_media_types[0].schema.is_array = 1;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* raw boolean */
   resp.content_media_types[0].schema.inline_type = cdd_test_mut_str("boolean");
   resp.content_media_types[0].schema.is_array = 0;
-  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  g_cdd_last_alloc_err =
+      codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
   if (fp)

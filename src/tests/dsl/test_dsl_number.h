@@ -51,8 +51,8 @@ TEST test_dsl_parser_number(void) {
   ASSERT_EQ_FMT(1, ir->nodes[0].variants[2].number_details->has_separators,
                 "%d");
 
-  cdd_dsl_token_list_free(&list);
-  cdd_ffi_ir_free(ir);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);
   PASS();
 }

@@ -60,6 +60,17 @@ extern "C" {
 #define NO_DISCARD
 #endif
 
+#if defined(__cplusplus) && __cplusplus >= 201703L
+/** @brief Type-level nodiscard attribute for C++17+. */
+#define NO_DISCARD_TYPE [[nodiscard]]
+#elif defined(__clang__)
+/** @brief Type-level nodiscard attribute for Clang. */
+#define NO_DISCARD_TYPE __attribute__((warn_unused_result))
+#else
+/** @brief Fallback type-level nodiscard attribute for GCC C mode and MSVC. */
+#define NO_DISCARD_TYPE
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

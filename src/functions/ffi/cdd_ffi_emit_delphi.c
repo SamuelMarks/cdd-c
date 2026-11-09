@@ -165,13 +165,14 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
         /* Real variant records would require mapping C unions closely */
       } else {
         for (j = 0; j < node->fields_count; j++) {
-          map_delphi_type(&node->fields[j].type, type_str, sizeof(type_str));
+          g_cdd_last_alloc_err = map_delphi_type(&node->fields[j].type,
+                                                 type_str, sizeof(type_str));
           fprintf(f, "    %s: %s;\n", node->fields[j].name, type_str);
         }
       }
       fprintf(f, "  end;\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  %s = (\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -180,7 +181,8 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "  );\n\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      map_delphi_type(&node->return_or_base_type, type_str, sizeof(type_str));
+      g_cdd_last_alloc_err = map_delphi_type(&node->return_or_base_type,
+                                             type_str, sizeof(type_str));
       fprintf(f, "  %s = %s;\n\n", node->name, type_str);
     }
   }
@@ -189,7 +191,7 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
       if (is_void) {
@@ -198,15 +200,16 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
         fprintf(f, "function %s(", node->name);
       }
       for (j = 0; j < node->fields_count; j++) {
-        map_delphi_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            map_delphi_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(f, "%s%s: %s", j > 0 ? "; " : "", node->fields[j].name,
                 type_str);
       }
       if (is_void) {
         fprintf(f, "); cdecl; external LIB_NAME;\n");
       } else {
-        map_delphi_type(&node->return_or_base_type, ret_type_str,
-                        sizeof(ret_type_str));
+        g_cdd_last_alloc_err = map_delphi_type(
+            &node->return_or_base_type, ret_type_str, sizeof(ret_type_str));
         fprintf(f, "): %s; cdecl; external LIB_NAME;\n", ret_type_str);
       }
     }

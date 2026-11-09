@@ -7,6 +7,9 @@
 #include <stddef.h>
 /* clang-format on */
 
+/** @brief Scratch error code storing the status of the most recent operation */
+C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err = CDD_C_SUCCESS;
+
 /*
  * @brief Converts an error code to a human-readable string.
  *

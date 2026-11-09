@@ -109,7 +109,7 @@ static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
     sub_type = *type;
     sub_type.pointer_depth = 0;
     sub_type.is_const = 0;
-    emit_rust_sys_type(f, &sub_type, 0);
+    g_cdd_last_alloc_err = emit_rust_sys_type(f, &sub_type, 0);
     return CDD_C_SUCCESS;
   }
 
@@ -118,7 +118,7 @@ static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
     return CDD_C_SUCCESS;
   }
 
-  get_rust_primitive(type->kind, &prim);
+  g_cdd_last_alloc_err = get_rust_primitive(type->kind, &prim);
   fprintf(f, "%s", prim);
   return CDD_C_SUCCESS;
 }
@@ -178,7 +178,7 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "    pub %s: ",
                 node->fields[j].name ? node->fields[j].name : "field");
-        emit_rust_sys_type(f, &node->fields[j].type, 0);
+        g_cdd_last_alloc_err = emit_rust_sys_type(f, &node->fields[j].type, 0);
         fprintf(f, ",\n");
       }
       fprintf(f, "}\n\n");
@@ -192,7 +192,8 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
       fprintf(f, "pub type %s = ", node->name);
-      emit_rust_sys_type(f, &node->return_or_base_type, 0);
+      g_cdd_last_alloc_err =
+          emit_rust_sys_type(f, &node->return_or_base_type, 0);
       fprintf(f, ";\n\n");
     }
   }
@@ -205,14 +206,15 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       fprintf(f, "    pub fn %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "%s: ", node->fields[j].name ? node->fields[j].name : "arg");
-        emit_rust_sys_type(f, &node->fields[j].type, 0);
+        g_cdd_last_alloc_err = emit_rust_sys_type(f, &node->fields[j].type, 0);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
       if (node->fields_count > 0)
         fprintf(f, ", ");
       fprintf(f, "err: *mut CddFfiError) -> ");
-      emit_rust_sys_type(f, &node->return_or_base_type, 1);
+      g_cdd_last_alloc_err =
+          emit_rust_sys_type(f, &node->return_or_base_type, 1);
       fprintf(f, ";\n");
     }
   }
@@ -302,13 +304,15 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
              node->fields[j].type.kind == CDD_FFI_KIND_UINT8)) {
           fprintf(f, "&std::ffi::CStr");
         } else {
-          emit_rust_sys_type(f, &node->fields[j].type, 0);
+          g_cdd_last_alloc_err =
+              emit_rust_sys_type(f, &node->fields[j].type, 0);
         }
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
       fprintf(f, ") -> Result<");
-      emit_rust_sys_type(f, &node->return_or_base_type, 1);
+      g_cdd_last_alloc_err =
+          emit_rust_sys_type(f, &node->return_or_base_type, 1);
       fprintf(f, ", FfiError> {\n");
 
       fprintf(f, "        let mut err = sys::CddFfiError {\n");

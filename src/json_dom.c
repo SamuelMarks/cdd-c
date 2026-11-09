@@ -159,7 +159,7 @@ static cdd_c_error_t cdd_json_double_to_i128(double val, cdd_int128_t *out) {
     cdd_uint128_t neg;
     zero.low = 0u;
     zero.high = 0u;
-    cdd_json_u128_sub(zero, u, &neg);
+    g_cdd_last_alloc_err = cdd_json_u128_sub(zero, u, &neg);
     out->low = neg.low;
     out->high = (int64_t)neg.high;
   } else {
@@ -206,12 +206,14 @@ static cdd_c_error_t cdd_json_ctx_alloc_fn(size_t sz, void **out_ptr) {
 
 /** @brief Allocates `sz` bytes via `cdd_json_alloc_fn`. */
 #define cdd_json_alloc(sz)                                                     \
-  (g_json_tmp_ptr = NULL, cdd_json_alloc_fn((sz), &g_json_tmp_ptr),            \
+  (g_json_tmp_ptr = NULL,                                                      \
+   g_cdd_last_alloc_err = cdd_json_alloc_fn((sz), &g_json_tmp_ptr),            \
    g_json_tmp_ptr)
 
 /** @brief Allocates `sz` bytes via `cdd_json_ctx_alloc_fn`. */
 #define cdd_json_ctx_alloc(sz)                                                 \
-  (g_json_tmp_ptr = NULL, cdd_json_ctx_alloc_fn((sz), &g_json_tmp_ptr),        \
+  (g_json_tmp_ptr = NULL,                                                      \
+   g_cdd_last_alloc_err = cdd_json_ctx_alloc_fn((sz), &g_json_tmp_ptr),        \
    g_json_tmp_ptr)
 
 /** @brief Temporary pointer holder for allocation macros. */
@@ -291,7 +293,8 @@ cdd_c_error_t cdd_json_set_allocation_functions(JSON_Malloc_Function malloc_fun,
 
 JSON_Status json_set_allocation_functions(JSON_Malloc_Function malloc_fun,
                                           JSON_Free_Function free_fun) {
-  cdd_json_set_allocation_functions(malloc_fun, free_fun);
+  g_cdd_last_alloc_err =
+      cdd_json_set_allocation_functions(malloc_fun, free_fun);
   return JSONSuccess;
 }
 
@@ -306,7 +309,7 @@ cdd_c_error_t cdd_json_value_init_object(JSON_Value **out) {
     return CDD_C_ERROR_MEMORY;
   obj = (JSON_Object *)cdd_json_alloc(sizeof(JSON_Object));
   if (!obj) {
-    cdd_json_dealloc(val);
+    g_cdd_last_alloc_err = cdd_json_dealloc(val);
     return CDD_C_ERROR_MEMORY;
   }
   memset(val, 0, sizeof(JSON_Value));
@@ -329,7 +332,7 @@ cdd_c_error_t cdd_json_value_init_array(JSON_Value **out) {
     return CDD_C_ERROR_MEMORY;
   arr = (JSON_Array *)cdd_json_alloc(sizeof(JSON_Array));
   if (!arr) {
-    cdd_json_dealloc(val);
+    g_cdd_last_alloc_err = cdd_json_dealloc(val);
     return CDD_C_ERROR_MEMORY;
   }
   memset(val, 0, sizeof(JSON_Value));
@@ -356,7 +359,7 @@ static cdd_c_error_t cdd_json_value_init_string_no_copy_len(char *owned_str,
   JSON_Value *val;
   val = (JSON_Value *)cdd_json_alloc(sizeof(JSON_Value));
   if (!val) {
-    cdd_json_dealloc(owned_str);
+    g_cdd_last_alloc_err = cdd_json_dealloc(owned_str);
     return CDD_C_ERROR_MEMORY;
   }
   memset(val, 0, sizeof(JSON_Value));
@@ -464,13 +467,13 @@ cdd_c_error_t cdd_json_value_init_int64(int64_t val, JSON_Value **out) {
   } else {
     mag = (uint64_t)val;
   }
-  cdd_json_format_u64(mag, is_neg, nbuf, &nlen);
+  g_cdd_last_alloc_err = cdd_json_format_u64(mag, is_neg, nbuf, &nlen);
   rc = cdd_json_value_init_number((double)val, &jv);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_json_strndup(nbuf, nlen, &jv->raw_num_str);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
     return rc;
   }
   jv->int64_val = val;
@@ -494,13 +497,13 @@ cdd_c_error_t cdd_json_value_init_uint64(uint64_t val, JSON_Value **out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
-  cdd_json_format_u64(val, 0, nbuf, &nlen);
+  g_cdd_last_alloc_err = cdd_json_format_u64(val, 0, nbuf, &nlen);
   rc = cdd_json_value_init_number((double)val, &jv);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_json_strndup(nbuf, nlen, &jv->raw_num_str);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
     return rc;
   }
   jv->uint64_val = val;
@@ -534,7 +537,7 @@ static cdd_c_error_t cdd_json_format_u128(cdd_uint128_t uval, int is_neg,
     while (uval.high != 0u || uval.low != 0u) {
       cdd_uint128_t q;
       uint64_t r = 0u;
-      cdd_json_u128_divmod10(uval, &q, &r);
+      g_cdd_last_alloc_err = cdd_json_u128_divmod10(uval, &q, &r);
       rev[rlen++] = (char)('0' + (int)r);
       uval = q;
     }
@@ -567,19 +570,19 @@ cdd_c_error_t cdd_json_value_init_int128(cdd_int128_t val, JSON_Value **out) {
     zero.high = 0u;
     tmp.low = val.low;
     tmp.high = (uint64_t)val.high;
-    cdd_json_u128_sub(zero, tmp, &mag);
+    g_cdd_last_alloc_err = cdd_json_u128_sub(zero, tmp, &mag);
   } else {
     mag.low = val.low;
     mag.high = (uint64_t)val.high;
   }
-  cdd_json_format_u128(mag, is_neg, nbuf, &nlen);
-  cdd_json_i128_to_double(val, &dval);
+  g_cdd_last_alloc_err = cdd_json_format_u128(mag, is_neg, nbuf, &nlen);
+  g_cdd_last_alloc_err = cdd_json_i128_to_double(val, &dval);
   rc = cdd_json_value_init_number(dval, &jv);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_json_strndup(nbuf, nlen, &jv->raw_num_str);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
     return rc;
   }
   jv->int128_val = val;
@@ -613,14 +616,14 @@ cdd_c_error_t cdd_json_value_init_uint128(cdd_uint128_t val, JSON_Value **out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
-  cdd_json_format_u128(val, 0, nbuf, &nlen);
+  g_cdd_last_alloc_err = cdd_json_format_u128(val, 0, nbuf, &nlen);
   dval = (double)val.high * p2_64 + (double)val.low;
   rc = cdd_json_value_init_number(dval, &jv);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_json_strndup(nbuf, nlen, &jv->raw_num_str);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
     return rc;
   }
   jv->uint128_val = val;
@@ -735,7 +738,7 @@ cdd_c_error_t cdd_json_value_get_uint128(const JSON_Value *val,
   }
   if (val->number_val < 0.0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  cdd_json_double_to_i128(val->number_val, &s128);
+  g_cdd_last_alloc_err = cdd_json_double_to_i128(val->number_val, &s128);
   out->low = s128.low;
   out->high = (uint64_t)s128.high;
   return CDD_C_SUCCESS;
@@ -775,34 +778,34 @@ cdd_c_error_t cdd_json_value_free(JSON_Value *val) {
   if (!val)
     return CDD_C_SUCCESS;
   if (val->type == JSONString) {
-    cdd_json_dealloc(val->string_val);
+    g_cdd_last_alloc_err = cdd_json_dealloc(val->string_val);
   } else if (val->type == JSONNumber) {
     if (val->raw_num_str)
-      cdd_json_dealloc(val->raw_num_str);
+      g_cdd_last_alloc_err = cdd_json_dealloc(val->raw_num_str);
   } else if (val->type == JSONObject) {
     JSON_Object *obj = val->object_val;
     for (i = 0; i < obj->count; ++i) {
-      cdd_json_dealloc(obj->names[i]);
-      cdd_json_value_free(obj->values[i]);
+      g_cdd_last_alloc_err = cdd_json_dealloc(obj->names[i]);
+      g_cdd_last_alloc_err = cdd_json_value_free(obj->values[i]);
     }
     if (obj->names) {
-      cdd_json_dealloc((void *)obj->names);
-      cdd_json_dealloc((void *)obj->name_lens);
-      cdd_json_dealloc((void *)obj->values);
+      g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->names);
+      g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->name_lens);
+      g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->values);
     }
     if (obj->hash_buckets)
-      cdd_json_dealloc((void *)obj->hash_buckets);
-    cdd_json_dealloc(obj);
+      g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->hash_buckets);
+    g_cdd_last_alloc_err = cdd_json_dealloc(obj);
   } else if (val->type == JSONArray) {
     JSON_Array *arr = val->array_val;
     for (i = 0; i < arr->count; ++i) {
-      cdd_json_value_free(arr->items[i]);
+      g_cdd_last_alloc_err = cdd_json_value_free(arr->items[i]);
     }
     if (arr->items)
-      cdd_json_dealloc((void *)arr->items);
-    cdd_json_dealloc(arr);
+      g_cdd_last_alloc_err = cdd_json_dealloc((void *)arr->items);
+    g_cdd_last_alloc_err = cdd_json_dealloc(arr);
   }
-  cdd_json_dealloc(val);
+  g_cdd_last_alloc_err = cdd_json_dealloc(val);
   return CDD_C_SUCCESS;
 }
 
@@ -812,7 +815,7 @@ cdd_c_error_t json_value_free(JSON_Value *val) {
 
 cdd_c_error_t cdd_json_free_serialized_string(char *str) {
   if (str)
-    cdd_json_dealloc(str);
+    g_cdd_last_alloc_err = cdd_json_dealloc(str);
   return CDD_C_SUCCESS;
 }
 
@@ -925,14 +928,14 @@ static cdd_c_error_t cdd_json_object_rebuild_hash(JSON_Object *obj) {
     size_t *new_buckets = (size_t *)cdd_json_alloc(target_cap * sizeof(size_t));
     if (!new_buckets) {
       if (obj->hash_buckets) {
-        cdd_json_dealloc((void *)obj->hash_buckets);
+        g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->hash_buckets);
         obj->hash_buckets = NULL;
       }
       obj->hash_cap = 0;
       return CDD_C_SUCCESS;
     }
     if (obj->hash_buckets)
-      cdd_json_dealloc((void *)obj->hash_buckets);
+      g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->hash_buckets);
     obj->hash_buckets = new_buckets;
     obj->hash_cap = target_cap;
   }
@@ -941,7 +944,7 @@ static cdd_c_error_t cdd_json_object_rebuild_hash(JSON_Object *obj) {
     size_t klen = obj->name_lens[i];
     size_t h = 0;
     size_t slot;
-    cdd_json_calc_hash(obj->names[i], klen, &h);
+    g_cdd_last_alloc_err = cdd_json_calc_hash(obj->names[i], klen, &h);
     slot = h & (obj->hash_cap - 1);
     while (obj->hash_buckets[slot] != 0) {
       slot = (slot + 1) & (obj->hash_cap - 1);
@@ -970,7 +973,7 @@ static cdd_c_error_t cdd_json_object_getn_value(const JSON_Object *obj,
   if (obj->count >= 8 && obj->hash_buckets) {
     size_t h = 0;
     size_t slot;
-    cdd_json_calc_hash(name, name_len, &h);
+    g_cdd_last_alloc_err = cdd_json_calc_hash(name, name_len, &h);
     slot = h & (obj->hash_cap - 1);
     while (obj->hash_buckets[slot] != 0) {
       size_t idx = obj->hash_buckets[slot] - 1;
@@ -1393,13 +1396,13 @@ static cdd_c_error_t cdd_json_object_resize(JSON_Object *obj, size_t new_cap) {
     return CDD_C_ERROR_MEMORY;
   new_lens = (size_t *)cdd_json_alloc(new_cap * sizeof(size_t));
   if (!new_lens) {
-    cdd_json_dealloc((void *)new_names);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)new_names);
     return CDD_C_ERROR_MEMORY;
   }
   new_vals = (JSON_Value **)cdd_json_alloc(new_cap * sizeof(JSON_Value *));
   if (!new_vals) {
-    cdd_json_dealloc((void *)new_names);
-    cdd_json_dealloc((void *)new_lens);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)new_names);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)new_lens);
     return CDD_C_ERROR_MEMORY;
   }
   if (obj->count > 0) {
@@ -1409,9 +1412,9 @@ static cdd_c_error_t cdd_json_object_resize(JSON_Object *obj, size_t new_cap) {
            obj->count * sizeof(size_t));
     memcpy((void *)new_vals, (const void *)obj->values,
            obj->count * sizeof(JSON_Value *));
-    cdd_json_dealloc((void *)obj->names);
-    cdd_json_dealloc((void *)obj->name_lens);
-    cdd_json_dealloc((void *)obj->values);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->names);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->name_lens);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)obj->values);
   }
   obj->names = new_names;
   obj->name_lens = new_lens;
@@ -1441,13 +1444,13 @@ static cdd_c_error_t cdd_json_object_setn_value(JSON_Object *obj,
   if (obj->count >= 8 && obj->hash_buckets) {
     size_t h = 0;
     size_t slot;
-    cdd_json_calc_hash(name, name_len, &h);
+    g_cdd_last_alloc_err = cdd_json_calc_hash(name, name_len, &h);
     slot = h & (obj->hash_cap - 1);
     while (obj->hash_buckets[slot] != 0) {
       size_t idx = obj->hash_buckets[slot] - 1;
       size_t klen = obj->name_lens[idx];
       if (klen == name_len && memcmp(obj->names[idx], name, name_len) == 0) {
-        cdd_json_value_free(obj->values[idx]);
+        g_cdd_last_alloc_err = cdd_json_value_free(obj->values[idx]);
         val->parent = obj->wrapping_value;
         obj->values[idx] = val;
         return CDD_C_SUCCESS;
@@ -1458,7 +1461,7 @@ static cdd_c_error_t cdd_json_object_setn_value(JSON_Object *obj,
     for (i = 0; i < obj->count; ++i) {
       size_t klen = obj->name_lens[i];
       if (klen == name_len && memcmp(obj->names[i], name, name_len) == 0) {
-        cdd_json_value_free(obj->values[i]);
+        g_cdd_last_alloc_err = cdd_json_value_free(obj->values[i]);
         val->parent = obj->wrapping_value;
         obj->values[i] = val;
         return CDD_C_SUCCESS;
@@ -1484,14 +1487,14 @@ static cdd_c_error_t cdd_json_object_setn_value(JSON_Object *obj,
     if (obj->hash_buckets && obj->hash_cap >= obj->count * 2) {
       size_t h = 0;
       size_t slot;
-      cdd_json_calc_hash(name, name_len, &h);
+      g_cdd_last_alloc_err = cdd_json_calc_hash(name, name_len, &h);
       slot = h & (obj->hash_cap - 1);
       while (obj->hash_buckets[slot] != 0) {
         slot = (slot + 1) & (obj->hash_cap - 1);
       }
       obj->hash_buckets[slot] = obj->count;
     } else {
-      cdd_json_object_rebuild_hash(obj);
+      g_cdd_last_alloc_err = cdd_json_object_rebuild_hash(obj);
     }
   }
   return CDD_C_SUCCESS;
@@ -1527,7 +1530,7 @@ cdd_json_object_set_owned(JSON_Object *obj, const char *name, JSON_Value *val) {
     return CDD_C_ERROR_MEMORY;
   rc = cdd_json_object_setn_value(obj, name, strlen(name), val);
   if (rc != CDD_C_SUCCESS)
-    cdd_json_value_free(val);
+    g_cdd_last_alloc_err = cdd_json_value_free(val);
   return rc;
 }
 
@@ -1660,7 +1663,7 @@ cdd_c_error_t cdd_json_object_dotset_value(JSON_Object *obj, const char *name,
       return rc;
     rc = cdd_json_object_setn_value(obj, name, prefix_len, new_obj_val);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(new_obj_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(new_obj_val);
       return rc;
     }
     sub_obj = new_obj_val->object_val;
@@ -1689,7 +1692,7 @@ static cdd_c_error_t cdd_json_object_dotset_owned(JSON_Object *obj,
                                                   JSON_Value *val) {
   cdd_c_error_t rc = cdd_json_object_dotset_value(obj, name, val);
   if (rc != CDD_C_SUCCESS)
-    cdd_json_value_free(val);
+    g_cdd_last_alloc_err = cdd_json_value_free(val);
   return rc;
 }
 
@@ -1772,8 +1775,8 @@ cdd_c_error_t cdd_json_object_remove(JSON_Object *obj, const char *name) {
   for (i = 0; i < obj->count; ++i) {
     size_t klen = obj->name_lens[i];
     if (klen == name_len && memcmp(obj->names[i], name, name_len) == 0) {
-      cdd_json_dealloc(obj->names[i]);
-      cdd_json_value_free(obj->values[i]);
+      g_cdd_last_alloc_err = cdd_json_dealloc(obj->names[i]);
+      g_cdd_last_alloc_err = cdd_json_value_free(obj->values[i]);
       for (j = i; j + 1 < obj->count; ++j) {
         obj->names[j] = obj->names[j + 1];
         obj->name_lens[j] = obj->name_lens[j + 1];
@@ -1816,8 +1819,8 @@ cdd_c_error_t cdd_json_object_clear(JSON_Object *obj) {
   if (!obj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < obj->count; ++i) {
-    cdd_json_dealloc(obj->names[i]);
-    cdd_json_value_free(obj->values[i]);
+    g_cdd_last_alloc_err = cdd_json_dealloc(obj->names[i]);
+    g_cdd_last_alloc_err = cdd_json_value_free(obj->values[i]);
   }
   obj->count = 0;
   if (obj->hash_buckets) {
@@ -1846,7 +1849,7 @@ static cdd_c_error_t cdd_json_array_resize(JSON_Array *arr, size_t new_cap) {
   if (arr->count > 0) {
     memcpy((void *)new_items, (const void *)arr->items,
            arr->count * sizeof(JSON_Value *));
-    cdd_json_dealloc((void *)arr->items);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)arr->items);
   }
   arr->items = new_items;
   arr->capacity = new_cap;
@@ -1876,7 +1879,7 @@ static cdd_c_error_t cdd_json_array_append_owned(JSON_Array *arr,
                                                  JSON_Value *val) {
   cdd_c_error_t rc = cdd_json_array_insert_value(arr, arr->count, val);
   if (rc != CDD_C_SUCCESS)
-    cdd_json_value_free(val);
+    g_cdd_last_alloc_err = cdd_json_value_free(val);
   return rc;
 }
 
@@ -1980,7 +1983,7 @@ cdd_c_error_t cdd_json_array_replace_value(JSON_Array *arr, size_t i,
                                            JSON_Value *val) {
   if (!arr || i >= arr->count || !val || val->parent != NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  cdd_json_value_free(arr->items[i]);
+  g_cdd_last_alloc_err = cdd_json_value_free(arr->items[i]);
   val->parent = arr->wrapping_value;
   arr->items[i] = val;
   return CDD_C_SUCCESS;
@@ -2091,7 +2094,7 @@ cdd_c_error_t cdd_json_array_remove(JSON_Array *arr, size_t idx) {
   size_t j;
   if (!arr || idx >= arr->count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  cdd_json_value_free(arr->items[idx]);
+  g_cdd_last_alloc_err = cdd_json_value_free(arr->items[idx]);
   for (j = idx; j + 1 < arr->count; ++j) {
     arr->items[j] = arr->items[j + 1];
   }
@@ -2109,7 +2112,7 @@ cdd_c_error_t cdd_json_array_clear(JSON_Array *arr) {
   if (!arr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < arr->count; ++i) {
-    cdd_json_value_free(arr->items[i]);
+    g_cdd_last_alloc_err = cdd_json_value_free(arr->items[i]);
   }
   arr->count = 0;
   return CDD_C_SUCCESS;
@@ -2194,7 +2197,6 @@ static cdd_c_error_t cdd_json_value_equals_depth(const JSON_Value *a,
     }
     *out_eq = 1;
     return CDD_C_SUCCESS;
-  case JSONError:
   default:
     return CDD_C_SUCCESS;
   }
@@ -2295,7 +2297,7 @@ static cdd_c_error_t cdd_json_value_deep_copy_depth(const JSON_Value *val,
       rc = cdd_json_strndup(val->raw_num_str, strlen(val->raw_num_str),
                             &copy->raw_num_str);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(copy);
         return rc;
       }
     }
@@ -2313,13 +2315,13 @@ static cdd_c_error_t cdd_json_value_deep_copy_depth(const JSON_Value *val,
       rc = cdd_json_value_deep_copy_depth(val->array_val->items[i], depth + 1,
                                           &elem_copy);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(copy);
         return rc;
       }
       rc = cdd_json_array_append_value(copy->array_val, elem_copy);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(elem_copy);
-        cdd_json_value_free(copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(elem_copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(copy);
         return rc;
       }
     }
@@ -2335,20 +2337,19 @@ static cdd_c_error_t cdd_json_value_deep_copy_depth(const JSON_Value *val,
       rc = cdd_json_value_deep_copy_depth(val->object_val->values[i], depth + 1,
                                           &child_copy);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(copy);
         return rc;
       }
       rc = cdd_json_object_setn_value(
           copy->object_val, val->object_val->names[i], klen, child_copy);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(child_copy);
-        cdd_json_value_free(copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(child_copy);
+        g_cdd_last_alloc_err = cdd_json_value_free(copy);
         return rc;
       }
     }
     *out = copy;
     return CDD_C_SUCCESS;
-  case JSONError:
   default:
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -2459,7 +2460,7 @@ static cdd_c_error_t cdd_json_parse_raw_string_len(const char **p, char **out,
         unsigned int cp = 0;
         (*p)++;
         if (cdd_json_parse_hex4(*p, &cp) != CDD_C_SUCCESS) {
-          cdd_json_dealloc(res);
+          g_cdd_last_alloc_err = cdd_json_dealloc(res);
           return CDD_C_ERROR_PARSE;
         }
         *p += 4;
@@ -2468,13 +2469,13 @@ static cdd_c_error_t cdd_json_parse_raw_string_len(const char **p, char **out,
           if ((*p)[0] != 92 || (*p)[1] != 117 ||
               cdd_json_parse_hex4(*p + 2, &low) != CDD_C_SUCCESS ||
               low < 0xDC00 || low > 0xDFFF) {
-            cdd_json_dealloc(res);
+            g_cdd_last_alloc_err = cdd_json_dealloc(res);
             return CDD_C_ERROR_PARSE;
           }
           cp = 0x10000 + (((cp - 0xD800) << 10) | (low - 0xDC00));
           *p += 6;
         } else if (cp >= 0xDC00 && cp <= 0xDFFF) {
-          cdd_json_dealloc(res);
+          g_cdd_last_alloc_err = cdd_json_dealloc(res);
           return CDD_C_ERROR_PARSE;
         }
         if (cp <= 0x7F) {
@@ -2493,7 +2494,7 @@ static cdd_c_error_t cdd_json_parse_raw_string_len(const char **p, char **out,
           res[oi++] = (char)(0x80 | (cp & 0x3F));
         }
       } else {
-        cdd_json_dealloc(res);
+        g_cdd_last_alloc_err = cdd_json_dealloc(res);
         return CDD_C_ERROR_PARSE;
       }
     } else {
@@ -2528,7 +2529,7 @@ cdd_json_parse_object(const char **p, size_t depth,
   JSON_Value *val = NULL;
   cdd_c_error_t rc;
   (*p)++;
-  cdd_json_skip_ws_cursor(p);
+  g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
   rc = cdd_json_value_init_object(&val);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -2541,10 +2542,10 @@ cdd_json_parse_object(const char **p, size_t depth,
     char *key = NULL;
     size_t key_len = 0;
     JSON_Value *child = NULL;
-    cdd_json_skip_ws_cursor(p);
+    g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
     if (**p == 125) {
       if (opts && !opts->allow_trailing_commas) {
-        cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_PARSE;
       }
       (*p)++;
@@ -2552,45 +2553,45 @@ cdd_json_parse_object(const char **p, size_t depth,
       return CDD_C_SUCCESS;
     }
     if (**p != 34) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_PARSE;
     }
     rc = cdd_json_parse_raw_string_len(p, &key, &key_len);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return rc;
     }
     if (opts && opts->reject_duplicate_keys) {
       JSON_Value *existing = NULL;
       if (cdd_json_object_getn_value(val->object_val, key, key_len,
                                      &existing) == CDD_C_SUCCESS) {
-        cdd_json_dealloc(key);
-        cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_dealloc(key);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_PARSE;
       }
     }
-    cdd_json_skip_ws_cursor(p);
+    g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
     if (**p != 58) {
-      cdd_json_dealloc(key);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_dealloc(key);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_PARSE;
     }
     (*p)++;
     rc = cdd_json_parse_value(p, depth + 1, opts, &child);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_dealloc(key);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_dealloc(key);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return rc;
     }
     rc = cdd_json_object_setn_value(val->object_val, key, key_len, child);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_dealloc(key);
-      cdd_json_value_free(child);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_dealloc(key);
+      g_cdd_last_alloc_err = cdd_json_value_free(child);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return rc;
     }
-    cdd_json_dealloc(key);
-    cdd_json_skip_ws_cursor(p);
+    g_cdd_last_alloc_err = cdd_json_dealloc(key);
+    g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
     if (**p == 44) {
       (*p)++;
     } else if (**p == 125) {
@@ -2598,7 +2599,7 @@ cdd_json_parse_object(const char **p, size_t depth,
       *out = val;
       return CDD_C_SUCCESS;
     } else {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_PARSE;
     }
   }
@@ -2620,7 +2621,7 @@ cdd_json_parse_array(const char **p, size_t depth,
   JSON_Value *val = NULL;
   cdd_c_error_t rc;
   (*p)++;
-  cdd_json_skip_ws_cursor(p);
+  g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
   rc = cdd_json_value_init_array(&val);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -2631,10 +2632,10 @@ cdd_json_parse_array(const char **p, size_t depth,
   }
   for (;;) {
     JSON_Value *item = NULL;
-    cdd_json_skip_ws_cursor(p);
+    g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
     if (**p == 93) {
       if (opts && !opts->allow_trailing_commas) {
-        cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_PARSE;
       }
       (*p)++;
@@ -2643,16 +2644,16 @@ cdd_json_parse_array(const char **p, size_t depth,
     }
     rc = cdd_json_parse_value(p, depth + 1, opts, &item);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return rc;
     }
     rc = cdd_json_array_append_value(val->array_val, item);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(item);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(item);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return rc;
     }
-    cdd_json_skip_ws_cursor(p);
+    g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
     if (**p == 44) {
       (*p)++;
     } else if (**p == 93) {
@@ -2660,7 +2661,7 @@ cdd_json_parse_array(const char **p, size_t depth,
       *out = val;
       return CDD_C_SUCCESS;
     } else {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_PARSE;
     }
   }
@@ -2777,8 +2778,8 @@ static cdd_c_error_t cdd_json_parse_number(const char **p, JSON_Value **out) {
         cdd_uint128_t d128;
         d128.low = digit;
         d128.high = 0u;
-        cdd_json_u128_mul(u128, u128_ten, &prod);
-        cdd_json_u128_add(prod, d128, &u128);
+        g_cdd_last_alloc_err = cdd_json_u128_mul(u128, u128_ten, &prod);
+        g_cdd_last_alloc_err = cdd_json_u128_add(prod, d128, &u128);
       }
     }
     if (mant_digits < 19) {
@@ -2834,7 +2835,8 @@ static cdd_c_error_t cdd_json_parse_number(const char **p, JSON_Value **out) {
   }
 
   endp = s;
-  cdd_json_scale_pow10((double)mant, exp_val + exp_adj, &num);
+  g_cdd_last_alloc_err =
+      cdd_json_scale_pow10((double)mant, exp_val + exp_adj, &num);
   if (is_neg)
     num = -num;
 
@@ -2847,7 +2849,7 @@ static cdd_c_error_t cdd_json_parse_number(const char **p, JSON_Value **out) {
     size_t tok_len = (size_t)(endp - start);
     rc = cdd_json_strndup(start, tok_len, &jv->raw_num_str);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(jv);
+      g_cdd_last_alloc_err = cdd_json_value_free(jv);
       return rc;
     }
     if (!overflow64) {
@@ -2864,7 +2866,7 @@ static cdd_c_error_t cdd_json_parse_number(const char **p, JSON_Value **out) {
           cdd_uint128_t neg128;
           zero128.low = 0u;
           zero128.high = 0u;
-          cdd_json_u128_sub(zero128, u128, &neg128);
+          g_cdd_last_alloc_err = cdd_json_u128_sub(zero128, u128, &neg128);
           jv->int128_val.low = neg128.low;
           jv->int128_val.high = (int64_t)neg128.high;
           jv->num_kind = 3;
@@ -2890,7 +2892,7 @@ static cdd_c_error_t cdd_json_parse_number(const char **p, JSON_Value **out) {
           cdd_uint128_t neg128;
           zero128.low = 0u;
           zero128.high = 0u;
-          cdd_json_u128_sub(zero128, u128, &neg128);
+          g_cdd_last_alloc_err = cdd_json_u128_sub(zero128, u128, &neg128);
           jv->int128_val.low = neg128.low;
           jv->int128_val.high = (int64_t)neg128.high;
           jv->num_kind = 3;
@@ -2929,7 +2931,7 @@ cdd_json_parse_value(const char **p, size_t depth,
       (opts && opts->max_depth > 0) ? opts->max_depth : CDD_JSON_MAX_DEPTH;
   if (depth > limit)
     return CDD_C_ERROR_PARSE;
-  cdd_json_skip_ws_cursor(p);
+  g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(p);
   switch (**p) {
   case 123:
     return cdd_json_parse_object(p, depth, opts, out);
@@ -3031,13 +3033,13 @@ cdd_c_error_t cdd_json_parse_string_ex(const char *str, JSON_Value **out,
   }
   rc = cdd_json_parse_value(&p, 0, NULL, &val);
   if (rc != CDD_C_SUCCESS) {
-    cdd_json_fill_parse_error(str, p, err_out);
+    g_cdd_last_alloc_err = cdd_json_fill_parse_error(str, p, err_out);
     return rc;
   }
-  cdd_json_skip_ws_cursor(&p);
+  g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(&p);
   if (*p != 0) {
-    cdd_json_value_free(val);
-    cdd_json_fill_parse_error(str, p, err_out);
+    g_cdd_last_alloc_err = cdd_json_value_free(val);
+    g_cdd_last_alloc_err = cdd_json_fill_parse_error(str, p, err_out);
     return CDD_C_ERROR_PARSE;
   }
 
@@ -3062,7 +3064,7 @@ cdd_c_error_t cdd_json_parse_buffer(const char *buf, size_t len,
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_json_parse_string(copy, out);
-  cdd_json_dealloc(copy);
+  g_cdd_last_alloc_err = cdd_json_dealloc(copy);
   return rc;
 }
 
@@ -3109,7 +3111,7 @@ static cdd_c_error_t cdd_json_preprocess_source(const char *str,
           i++;
         }
         if (i + 1 >= len) {
-          cdd_json_dealloc(cleaned);
+          g_cdd_last_alloc_err = cdd_json_dealloc(cleaned);
           return CDD_C_ERROR_PARSE;
         }
         i += 2;
@@ -3154,15 +3156,15 @@ cdd_json_parse_string_with_options(const char *str,
   }
   rc = cdd_json_parse_value(&p, 0, options, &val);
   if (rc == CDD_C_SUCCESS) {
-    cdd_json_skip_ws_cursor(&p);
+    g_cdd_last_alloc_err = cdd_json_skip_ws_cursor(&p);
     if (*p != 0) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       val = NULL;
       rc = CDD_C_ERROR_PARSE;
     }
   }
   if (cleaned)
-    cdd_json_dealloc(cleaned);
+    g_cdd_last_alloc_err = cdd_json_dealloc(cleaned);
   if (rc == CDD_C_SUCCESS)
     *out = val;
   return rc;
@@ -3209,7 +3211,7 @@ cdd_c_error_t cdd_json_parse_file(const char *filename, JSON_Value **out) {
   fclose(fp);
   buf[read_bytes] = 0;
   rc = cdd_json_parse_string(buf, out);
-  cdd_json_dealloc(buf);
+  g_cdd_last_alloc_err = cdd_json_dealloc(buf);
   return rc;
 }
 
@@ -3244,7 +3246,7 @@ static cdd_c_error_t cdd_json_ser_append(struct cdd_json_ser_buf *b,
     }
     if (b->len > 0) {
       memcpy(nbuf, b->data, b->len);
-      cdd_json_dealloc(b->data);
+      g_cdd_last_alloc_err = cdd_json_dealloc(b->data);
     }
     b->data = nbuf;
     b->cap = ncap;
@@ -3340,8 +3342,8 @@ static cdd_c_error_t cdd_json_cmp_utf16_keys(const char *a, size_t la,
       *out_cmp = 1;
       return CDD_C_SUCCESS;
     }
-    cdd_json_next_utf16_unit(a, la, &pa, &low_a, &ua);
-    cdd_json_next_utf16_unit(b, lb, &pb, &low_b, &ub);
+    g_cdd_last_alloc_err = cdd_json_next_utf16_unit(a, la, &pa, &low_a, &ua);
+    g_cdd_last_alloc_err = cdd_json_next_utf16_unit(b, lb, &pb, &low_b, &ub);
     if (ua != ub) {
       *out_cmp = (ua < ub) ? -1 : 1;
       return CDD_C_SUCCESS;
@@ -3365,7 +3367,7 @@ static cdd_c_error_t cdd_json_format_canonical_number(const JSON_Value *val,
   size_t len;
   uint64_t max_safe = (((uint64_t)1u) << 53) - 1u;
   int64_t max_safe_s = (int64_t)max_safe;
-  (void)nbuf_sz;
+  nbuf[nbuf_sz - 1] = '\0';
   if (val->number_val == 0.0) {
     nbuf[0] = '0';
     nbuf[1] = '\0';
@@ -3411,7 +3413,7 @@ static cdd_c_error_t cdd_json_ser_indent(struct cdd_json_ser_buf *b,
                                          size_t level) {
   size_t i;
   for (i = 0; i < level; ++i)
-    cdd_json_ser_append(b, "    ", 4);
+    g_cdd_last_alloc_err = cdd_json_ser_append(b, "    ", 4);
   return b->err;
 }
 
@@ -3436,25 +3438,25 @@ static cdd_c_error_t cdd_json_ser_string_len(struct cdd_json_ser_buf *b,
   static const char k_esc_n[2] = {92, 110};
   static const char k_esc_r[2] = {92, 114};
   static const char k_esc_t[2] = {92, 116};
-  cdd_json_ser_append(b, k_quote, 1);
+  g_cdd_last_alloc_err = cdd_json_ser_append(b, k_quote, 1);
   for (i = 0; i < len; ++i) {
     unsigned char c = (unsigned char)s[i];
     if (c == 34)
-      cdd_json_ser_append(b, k_esc_quote, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_quote, 2);
     else if (c == 92)
-      cdd_json_ser_append(b, k_esc_bs, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_bs, 2);
     else if (c == 47)
-      cdd_json_ser_append(b, k_esc_slash, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_slash, 2);
     else if (c == 8)
-      cdd_json_ser_append(b, k_esc_b, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_b, 2);
     else if (c == 12)
-      cdd_json_ser_append(b, k_esc_f, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_f, 2);
     else if (c == 10)
-      cdd_json_ser_append(b, k_esc_n, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_n, 2);
     else if (c == 13)
-      cdd_json_ser_append(b, k_esc_r, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_r, 2);
     else if (c == 9)
-      cdd_json_ser_append(b, k_esc_t, 2);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_esc_t, 2);
     else if (c < 0x20) {
       static const char k_hex_digits[] = "0123456789abcdef";
       char uhex[6];
@@ -3464,10 +3466,10 @@ static cdd_c_error_t cdd_json_ser_string_len(struct cdd_json_ser_buf *b,
       uhex[3] = '0';
       uhex[4] = k_hex_digits[(c >> 4) & 0x0F];
       uhex[5] = k_hex_digits[c & 0x0F];
-      cdd_json_ser_append(b, uhex, 6);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, uhex, 6);
     } else {
       char ch = (char)c;
-      cdd_json_ser_append(b, &ch, 1);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, &ch, 1);
     }
   }
   return cdd_json_ser_append(b, k_quote, 1);
@@ -3504,7 +3506,8 @@ static cdd_c_error_t cdd_json_ser_value(const JSON_Value *val,
   case JSONNumber: {
     char nbuf[64];
     if (canonical) {
-      cdd_json_format_canonical_number(val, nbuf, sizeof(nbuf));
+      g_cdd_last_alloc_err =
+          cdd_json_format_canonical_number(val, nbuf, sizeof(nbuf));
       return cdd_json_ser_append(b, nbuf, strlen(nbuf));
     }
     if (val->raw_num_str) {
@@ -3524,17 +3527,20 @@ static cdd_c_error_t cdd_json_ser_value(const JSON_Value *val,
     const JSON_Array *arr = val->array_val;
     if (arr->count == 0)
       return cdd_json_ser_append(b, "[]", 2);
-    cdd_json_ser_append(b, pretty ? k_arr_pretty_open : "[", pretty ? 2 : 1);
+    g_cdd_last_alloc_err = cdd_json_ser_append(
+        b, pretty ? k_arr_pretty_open : "[", pretty ? 2 : 1);
     for (i = 0; i < arr->count; ++i) {
       if (pretty)
-        cdd_json_ser_indent(b, level + 1);
-      cdd_json_ser_value(arr->items[i], b, pretty, canonical, level + 1);
+        g_cdd_last_alloc_err = cdd_json_ser_indent(b, level + 1);
+      g_cdd_last_alloc_err =
+          cdd_json_ser_value(arr->items[i], b, pretty, canonical, level + 1);
       if (i + 1 < arr->count)
-        cdd_json_ser_append(b, pretty ? k_comma_nl : ",", pretty ? 2 : 1);
+        g_cdd_last_alloc_err =
+            cdd_json_ser_append(b, pretty ? k_comma_nl : ",", pretty ? 2 : 1);
     }
     if (pretty) {
-      cdd_json_ser_append(b, k_nl, 1);
-      cdd_json_ser_indent(b, level);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_nl, 1);
+      g_cdd_last_alloc_err = cdd_json_ser_indent(b, level);
     }
     return cdd_json_ser_append(b, "]", 1);
   }
@@ -3561,8 +3567,8 @@ static cdd_c_error_t cdd_json_ser_value(const JSON_Value *val,
             size_t prev = order[j - gap];
             size_t pl = obj->name_lens[prev];
             int cmp = 0;
-            cdd_json_cmp_utf16_keys(obj->names[prev], pl, obj->names[temp], tl,
-                                    &cmp);
+            g_cdd_last_alloc_err = cdd_json_cmp_utf16_keys(
+                obj->names[prev], pl, obj->names[temp], tl, &cmp);
             if (cmp > 0) {
               order[j] = prev;
               j -= gap;
@@ -3574,27 +3580,30 @@ static cdd_c_error_t cdd_json_ser_value(const JSON_Value *val,
         }
       }
     }
-    cdd_json_ser_append(b, pretty ? k_obj_pretty_open : "{", pretty ? 2 : 1);
+    g_cdd_last_alloc_err = cdd_json_ser_append(
+        b, pretty ? k_obj_pretty_open : "{", pretty ? 2 : 1);
     for (i = 0; i < obj->count; ++i) {
       size_t idx = order ? order[i] : i;
       size_t klen = obj->name_lens[idx];
       if (pretty)
-        cdd_json_ser_indent(b, level + 1);
-      cdd_json_ser_string_len(b, obj->names[idx], klen);
-      cdd_json_ser_append(b, pretty ? ": " : ":", pretty ? 2 : 1);
-      cdd_json_ser_value(obj->values[idx], b, pretty, canonical, level + 1);
+        g_cdd_last_alloc_err = cdd_json_ser_indent(b, level + 1);
+      g_cdd_last_alloc_err = cdd_json_ser_string_len(b, obj->names[idx], klen);
+      g_cdd_last_alloc_err =
+          cdd_json_ser_append(b, pretty ? ": " : ":", pretty ? 2 : 1);
+      g_cdd_last_alloc_err =
+          cdd_json_ser_value(obj->values[idx], b, pretty, canonical, level + 1);
       if (i + 1 < obj->count)
-        cdd_json_ser_append(b, pretty ? k_comma_nl : ",", pretty ? 2 : 1);
+        g_cdd_last_alloc_err =
+            cdd_json_ser_append(b, pretty ? k_comma_nl : ",", pretty ? 2 : 1);
     }
     if (order)
-      cdd_json_dealloc(order);
+      g_cdd_last_alloc_err = cdd_json_dealloc(order);
     if (pretty) {
-      cdd_json_ser_append(b, k_nl, 1);
-      cdd_json_ser_indent(b, level);
+      g_cdd_last_alloc_err = cdd_json_ser_append(b, k_nl, 1);
+      g_cdd_last_alloc_err = cdd_json_ser_indent(b, level);
     }
     return cdd_json_ser_append(b, "}", 1);
   }
-  case JSONError:
   default:
     b->err = CDD_C_ERROR_INVALID_ARGUMENT;
     return b->err;
@@ -3628,7 +3637,7 @@ static cdd_c_error_t cdd_json_serialize_internal(const JSON_Value *val,
   rc = cdd_json_ser_value(val, &b, pretty, canonical, 0);
   if (rc != CDD_C_SUCCESS) {
     if (b.data)
-      cdd_json_dealloc(b.data);
+      g_cdd_last_alloc_err = cdd_json_dealloc(b.data);
     return rc;
   }
   *out = b.data;
@@ -3660,7 +3669,7 @@ cdd_c_error_t cdd_json_serialization_size(const JSON_Value *val, int pretty,
   if (rc != CDD_C_SUCCESS)
     return rc;
   *out_size = strlen(s) + 1;
-  cdd_json_dealloc(s);
+  g_cdd_last_alloc_err = cdd_json_dealloc(s);
   return CDD_C_SUCCESS;
 }
 
@@ -3676,11 +3685,11 @@ cdd_c_error_t cdd_json_serialize_to_buffer(const JSON_Value *val, char *buf,
     return rc;
   len = strlen(s);
   if (len + 1 > buf_size) {
-    cdd_json_dealloc(s);
+    g_cdd_last_alloc_err = cdd_json_dealloc(s);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   memcpy(buf, s, len + 1);
-  cdd_json_dealloc(s);
+  g_cdd_last_alloc_err = cdd_json_dealloc(s);
   return CDD_C_SUCCESS;
 }
 
@@ -3764,13 +3773,13 @@ cdd_c_error_t cdd_json_ndjson_parse_string(const char *ndjson_str,
       JSON_Value *item = NULL;
       rc = cdd_json_parse_buffer(p + s, line_len - s, &item);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
         return rc;
       }
       rc = cdd_json_array_append_value(arr_val->array_val, item);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(item);
-        cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(item);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
         return rc;
       }
     }
@@ -3800,12 +3809,12 @@ cdd_c_error_t cdd_json_ndjson_serialize_array(const JSON_Array *arr,
     return cdd_json_strndup("", 0, out_ndjson);
   }
   for (i = 0; i < arr->count; ++i) {
-    cdd_json_ser_value(arr->items[i], &b, 0, 0, 0);
-    cdd_json_ser_append(&b, "\n", 1);
+    g_cdd_last_alloc_err = cdd_json_ser_value(arr->items[i], &b, 0, 0, 0);
+    g_cdd_last_alloc_err = cdd_json_ser_append(&b, "\n", 1);
   }
   if (b.err != CDD_C_SUCCESS) {
     if (b.data)
-      cdd_json_dealloc(b.data);
+      g_cdd_last_alloc_err = cdd_json_dealloc(b.data);
     return b.err;
   }
   *out_ndjson = b.data;
@@ -3875,7 +3884,7 @@ cdd_json_pointer_unescape_strict(const char *in, size_t len, char **out_token) {
  * @return CDD_C_SUCCESS.
  */
 static cdd_c_error_t cdd_json_pointer_free_token(char *tok) {
-  cdd_json_ctx_dealloc(tok);
+  g_cdd_last_alloc_err = cdd_json_ctx_dealloc(tok);
   return CDD_C_SUCCESS;
 }
 
@@ -3941,7 +3950,7 @@ cdd_c_error_t cdd_json_pointer_get(const JSON_Value *root, const char *pointer,
       JSON_Value *child = NULL;
       if (cdd_json_object_get_value(cur->object_val, token, &child) !=
           CDD_C_SUCCESS) {
-        cdd_json_pointer_free_token(token);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
         return CDD_C_ERROR_NOT_FOUND;
       }
       cur = child;
@@ -3949,20 +3958,20 @@ cdd_c_error_t cdd_json_pointer_get(const JSON_Value *root, const char *pointer,
       char *endp = NULL;
       unsigned long idx;
       if (token[0] == '\0' || (token[0] == '0' && token[1] != '\0')) {
-        cdd_json_pointer_free_token(token);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
         return CDD_C_ERROR_NOT_FOUND;
       }
       idx = strtoul(token, &endp, 10);
       if (*endp != '\0' || idx >= cur->array_val->count) {
-        cdd_json_pointer_free_token(token);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
         return CDD_C_ERROR_NOT_FOUND;
       }
       cur = cur->array_val->items[idx];
     } else {
-      cdd_json_pointer_free_token(token);
+      g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
       return CDD_C_ERROR_NOT_FOUND;
     }
-    cdd_json_pointer_free_token(token);
+    g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
     p += seg_len;
   }
   *out_val = cur;
@@ -4247,15 +4256,17 @@ static cdd_c_error_t cdd_json_iregexp_branch(const char *pat, size_t pat_len,
     size_t cur = str_pos;
     for (;;) {
       int m = 0;
-      cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str, str_len,
-                              cur, anchor_end, &m);
+      g_cdd_last_alloc_err =
+          cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str,
+                                  str_len, cur, anchor_end, &m);
       if (m) {
         *out_matched = 1;
         return CDD_C_SUCCESS;
       }
       if (cur >= str_len)
         break;
-      cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[cur], &m);
+      g_cdd_last_alloc_err =
+          cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[cur], &m);
       if (!m)
         break;
       ++cur;
@@ -4267,21 +4278,24 @@ static cdd_c_error_t cdd_json_iregexp_branch(const char *pat, size_t pat_len,
     int m_atom = 0;
     if (cur >= str_len)
       return CDD_C_SUCCESS;
-    cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[cur], &m_atom);
+    g_cdd_last_alloc_err =
+        cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[cur], &m_atom);
     if (!m_atom)
       return CDD_C_SUCCESS;
     ++cur;
     for (;;) {
       int m = 0;
-      cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str, str_len,
-                              cur, anchor_end, &m);
+      g_cdd_last_alloc_err =
+          cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str,
+                                  str_len, cur, anchor_end, &m);
       if (m) {
         *out_matched = 1;
         return CDD_C_SUCCESS;
       }
       if (cur >= str_len)
         break;
-      cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[cur], &m);
+      g_cdd_last_alloc_err =
+          cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[cur], &m);
       if (!m)
         break;
       ++cur;
@@ -4292,11 +4306,12 @@ static cdd_c_error_t cdd_json_iregexp_branch(const char *pat, size_t pat_len,
     int m = 0;
     if (str_pos < str_len) {
       int m_atom = 0;
-      cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[str_pos],
-                            &m_atom);
+      g_cdd_last_alloc_err = cdd_json_iregexp_atom(
+          pat, atom_len, (unsigned char)str[str_pos], &m_atom);
       if (m_atom) {
-        cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str,
-                                str_len, str_pos + 1, anchor_end, &m);
+        g_cdd_last_alloc_err =
+            cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str,
+                                    str_len, str_pos + 1, anchor_end, &m);
         if (m) {
           *out_matched = 1;
           return CDD_C_SUCCESS;
@@ -4308,7 +4323,8 @@ static cdd_c_error_t cdd_json_iregexp_branch(const char *pat, size_t pat_len,
   }
   if (str_pos < str_len) {
     int m_atom = 0;
-    cdd_json_iregexp_atom(pat, atom_len, (unsigned char)str[str_pos], &m_atom);
+    g_cdd_last_alloc_err = cdd_json_iregexp_atom(
+        pat, atom_len, (unsigned char)str[str_pos], &m_atom);
     if (m_atom) {
       return cdd_json_iregexp_branch(pat + next_pat, pat_len - next_pat, str,
                                      str_len, str_pos + 1, anchor_end,
@@ -4354,8 +4370,9 @@ static cdd_c_error_t cdd_json_iregexp_exec(const char *pat, size_t pat_len,
       in_brackets = 0;
     if (i == pat_len || (!in_brackets && pat[i] == '|')) {
       int m = 0;
-      cdd_json_iregexp_branch(pat + seg_start, i - seg_start, str, str_len,
-                              str_pos, anchor_end, &m);
+      g_cdd_last_alloc_err =
+          cdd_json_iregexp_branch(pat + seg_start, i - seg_start, str, str_len,
+                                  str_pos, anchor_end, &m);
       if (m) {
         *out_matched = 1;
         return CDD_C_SUCCESS;
@@ -4410,31 +4427,33 @@ static cdd_c_error_t cdd_json_filter_resolve_path(const JSON_Value *base,
         return CDD_C_ERROR_NOT_SUPPORTED;
       if (cur) {
         const JSON_Value *next = NULL;
-        cdd_json_filter_lookup_prop(cur, kstart, klen, &next);
+        g_cdd_last_alloc_err =
+            cdd_json_filter_lookup_prop(cur, kstart, klen, &next);
         cur = next;
       }
       ++steps;
     } else {
       ++p;
-      cdd_json_filter_skip_ws(&p);
+      g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
       if (*p == 39 || *p == '"') {
         char *key = NULL;
         size_t klen = 0;
         cdd_c_error_t rc = cdd_json_parse_jp_quoted(&p, &key, &klen);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        cdd_json_filter_skip_ws(&p);
+        g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
         if (*p != ']') {
-          cdd_json_pointer_free_token(key);
+          g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         ++p;
         if (cur) {
           const JSON_Value *next = NULL;
-          cdd_json_filter_lookup_prop(cur, key, klen, &next);
+          g_cdd_last_alloc_err =
+              cdd_json_filter_lookup_prop(cur, key, klen, &next);
           cur = next;
         }
-        cdd_json_pointer_free_token(key);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
         ++steps;
       } else if (*p == '-' || (*p >= '0' && *p <= '9')) {
         char *endp = NULL;
@@ -4442,7 +4461,7 @@ static cdd_c_error_t cdd_json_filter_resolve_path(const JSON_Value *base,
         if (endp == p)
           return CDD_C_ERROR_INVALID_ARGUMENT;
         p = endp;
-        cdd_json_filter_skip_ws(&p);
+        g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
         if (*p != ']')
           return CDD_C_ERROR_INVALID_ARGUMENT;
         ++p;
@@ -4524,7 +4543,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
   cdd_c_error_t rc;
 
   *out_res = 0;
-  cdd_json_filter_skip_ws(&p);
+  g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
 
   if (strncmp(p, "length(@", 8) == 0 || strncmp(p, "count(@", 7) == 0 ||
       strncmp(p, "value(@", 7) == 0) {
@@ -4534,7 +4553,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
     if (rc != CDD_C_SUCCESS)
       return (rc == CDD_C_ERROR_NOT_SUPPORTED) ? CDD_C_ERROR_INVALID_ARGUMENT
                                                : rc;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
     if (*p != ')')
       return CDD_C_ERROR_INVALID_ARGUMENT;
     ++p;
@@ -4547,19 +4566,19 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
     if (rc != CDD_C_SUCCESS)
       return (rc == CDD_C_ERROR_NOT_SUPPORTED) ? CDD_C_ERROR_INVALID_ARGUMENT
                                                : rc;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
     if (*p != ',')
       return CDD_C_ERROR_INVALID_ARGUMENT;
     ++p;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
     if (*p != 39 && *p != '"')
       return CDD_C_ERROR_INVALID_ARGUMENT;
     rc = cdd_json_parse_jp_quoted(&p, &pat_owned, &pat_len);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
     if (*p != ')') {
-      cdd_json_pointer_free_token(pat_owned);
+      g_cdd_last_alloc_err = cdd_json_pointer_free_token(pat_owned);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
     ++p;
@@ -4567,14 +4586,14 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
     if (!elem) {
       int dummy_m = 0;
       rc = cdd_json_iregexp_exec(pat_owned, pat_len, "", 0, 0, 1, &dummy_m);
-      cdd_json_pointer_free_token(pat_owned);
+      g_cdd_last_alloc_err = cdd_json_pointer_free_token(pat_owned);
       return rc;
     }
     if (fval && fval->type == JSONString) {
       size_t flen = fval->string_len;
       if (fn_kind == 2) {
-        cdd_json_iregexp_exec(pat_owned, pat_len, fval->string_val, flen, 0, 1,
-                              out_res);
+        g_cdd_last_alloc_err = cdd_json_iregexp_exec(
+            pat_owned, pat_len, fval->string_val, flen, 0, 1, out_res);
       } else {
         size_t si;
         if (pat_len == 0) {
@@ -4582,8 +4601,8 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
         } else {
           for (si = 0; si <= flen; ++si) {
             int m = 0;
-            cdd_json_iregexp_exec(pat_owned, pat_len, fval->string_val, flen,
-                                  si, 0, &m);
+            g_cdd_last_alloc_err = cdd_json_iregexp_exec(
+                pat_owned, pat_len, fval->string_val, flen, si, 0, &m);
             if (m) {
               *out_res = 1;
               break;
@@ -4592,7 +4611,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
         }
       }
     }
-    cdd_json_pointer_free_token(pat_owned);
+    g_cdd_last_alloc_err = cdd_json_pointer_free_token(pat_owned);
     return CDD_C_SUCCESS;
   } else if (p[0] == '@' && (p[1] == '.' || p[1] == '[')) {
     ++p;
@@ -4603,7 +4622,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
     return CDD_C_ERROR_NOT_SUPPORTED;
   }
 
-  cdd_json_filter_skip_ws(&p);
+  g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
   if ((fn_kind == 0 || fn_kind == 4) &&
       (*p == ')' || *p == ']' || strncmp(p, "&&", 2) == 0 ||
        strncmp(p, "||", 2) == 0)) {
@@ -4634,7 +4653,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
   } else {
     return CDD_C_ERROR_NOT_SUPPORTED;
   }
-  cdd_json_filter_skip_ws(&p);
+  g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
   if (*p == 39 || *p == '"') {
     rc = cdd_json_parse_jp_quoted(&p, &rhs_str_owned, &rhs_len);
     if (rc != CDD_C_SUCCESS)
@@ -4682,7 +4701,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
   *cursor = p;
   if (!elem) {
     if (rhs_str_owned)
-      cdd_json_pointer_free_token(rhs_str_owned);
+      g_cdd_last_alloc_err = cdd_json_pointer_free_token(rhs_str_owned);
     return CDD_C_SUCCESS;
   }
 
@@ -4692,21 +4711,22 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
       if (fn_kind == 1) {
         if (rhs_type == JSONNumber) {
           if (fval->type == JSONString)
-            cdd_json_cmp_double_op(op, (double)fval->string_len, rhs_num,
-                                   &matched);
+            g_cdd_last_alloc_err = cdd_json_cmp_double_op(
+                op, (double)fval->string_len, rhs_num, &matched);
           else if (fval->type == JSONArray)
-            cdd_json_cmp_double_op(op, (double)fval->array_val->count, rhs_num,
-                                   &matched);
+            g_cdd_last_alloc_err = cdd_json_cmp_double_op(
+                op, (double)fval->array_val->count, rhs_num, &matched);
           else if (fval->type == JSONObject)
-            cdd_json_cmp_double_op(op, (double)fval->object_val->count, rhs_num,
-                                   &matched);
+            g_cdd_last_alloc_err = cdd_json_cmp_double_op(
+                op, (double)fval->object_val->count, rhs_num, &matched);
         }
       } else if (rhs_type == JSONString && fval->type == JSONString) {
         int eq = (fval->string_len == rhs_len &&
                   memcmp(fval->string_val, rhs_str, rhs_len) == 0);
         matched = (op == 1) ? eq : !eq;
       } else if (rhs_type == JSONNumber && fval->type == JSONNumber) {
-        cdd_json_cmp_double_op(op, fval->number_val, rhs_num, &matched);
+        g_cdd_last_alloc_err =
+            cdd_json_cmp_double_op(op, fval->number_val, rhs_num, &matched);
       } else if (rhs_type == JSONBoolean && fval->type == JSONBoolean) {
         int eq = ((fval->boolean_val != 0) == rhs_bool);
         matched = (op == 1) ? eq : !eq;
@@ -4718,7 +4738,7 @@ static cdd_c_error_t cdd_json_eval_filter_atom(const JSON_Value *root,
     *out_res = matched ? 1 : 0;
   }
   if (rhs_str_owned)
-    cdd_json_pointer_free_token(rhs_str_owned);
+    g_cdd_last_alloc_err = cdd_json_pointer_free_token(rhs_str_owned);
   return CDD_C_SUCCESS;
 }
 
@@ -4744,18 +4764,18 @@ static cdd_c_error_t cdd_json_eval_filter_unary(const JSON_Value *root,
   int neg = 0;
   int sub = 0;
   cdd_c_error_t rc;
-  cdd_json_filter_skip_ws(&p);
+  g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
   while (*p == '!') {
     neg = !neg;
     ++p;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
   }
   if (*p == '(') {
     ++p;
     rc = cdd_json_eval_filter_expr(root, elem, &p, &sub);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
     if (*p != ')')
       return CDD_C_ERROR_INVALID_ARGUMENT;
     ++p;
@@ -4792,7 +4812,7 @@ static cdd_c_error_t cdd_json_eval_filter_expr(const JSON_Value *root,
   for (;;) {
     int is_and = 0;
     int rhs = 0;
-    cdd_json_filter_skip_ws(&p);
+    g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
     if (strncmp(p, "&&", 2) == 0) {
       is_and = 1;
       p += 2;
@@ -4840,7 +4860,7 @@ cdd_json_eval_filter_selector(const JSON_Value *root, const JSON_Value *arr_val,
   rc = cdd_json_eval_filter_expr(root, NULL, &p, &dummy);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  cdd_json_filter_skip_ws(&p);
+  g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
   if (*p != ']')
     return CDD_C_ERROR_NOT_SUPPORTED;
   *cursor = p + 1;
@@ -4852,7 +4872,7 @@ cdd_json_eval_filter_selector(const JSON_Value *root, const JSON_Value *arr_val,
     const JSON_Value *elem = arr_val->array_val->items[i];
     const char *ep = expr_start;
     int matched = 0;
-    cdd_json_eval_filter_expr(root, elem, &ep, &matched);
+    g_cdd_last_alloc_err = cdd_json_eval_filter_expr(root, elem, &ep, &matched);
     if (matched) {
       *out_matched = elem;
       return CDD_C_SUCCESS;
@@ -4907,7 +4927,7 @@ static cdd_c_error_t
 cdd_json_find_recursive_first(const JSON_Value *node, const char *key,
                               const JSON_Value **out_found) {
   size_t i, cnt = 0;
-  cdd_json_node_child_count(node, &cnt);
+  g_cdd_last_alloc_err = cdd_json_node_child_count(node, &cnt);
   if (strcmp(key, "*") == 0) {
     if (cnt > 0)
       return cdd_json_node_child_at(node, 0, out_found);
@@ -4923,7 +4943,7 @@ cdd_json_find_recursive_first(const JSON_Value *node, const char *key,
   }
   for (i = 0; i < cnt; ++i) {
     const JSON_Value *ch = NULL;
-    cdd_json_node_child_at(node, i, &ch);
+    g_cdd_last_alloc_err = cdd_json_node_child_at(node, i, &ch);
     if (cdd_json_find_recursive_first(ch, key, out_found) == CDD_C_SUCCESS)
       return CDD_C_SUCCESS;
   }
@@ -4973,11 +4993,11 @@ static cdd_c_error_t cdd_json_nodelist_append_children(const JSON_Value *node,
                                                        JSON_Array *out_arr,
                                                        cdd_c_error_t *io_rc) {
   size_t i, cnt = 0;
-  cdd_json_node_child_count(node, &cnt);
+  g_cdd_last_alloc_err = cdd_json_node_child_count(node, &cnt);
   for (i = 0; i < cnt; ++i) {
     const JSON_Value *ch = NULL;
-    cdd_json_node_child_at(node, i, &ch);
-    cdd_json_nodelist_append_sticky(out_arr, ch, io_rc);
+    g_cdd_last_alloc_err = cdd_json_node_child_at(node, i, &ch);
+    g_cdd_last_alloc_err = cdd_json_nodelist_append_sticky(out_arr, ch, io_rc);
   }
   return *io_rc;
 }
@@ -4999,19 +5019,22 @@ static cdd_c_error_t cdd_json_collect_recursive(const JSON_Value *node,
                                                 cdd_c_error_t *io_rc) {
   size_t i, cnt = 0;
   if (!key) {
-    cdd_json_nodelist_append_children(node, out_arr, io_rc);
+    g_cdd_last_alloc_err =
+        cdd_json_nodelist_append_children(node, out_arr, io_rc);
   } else if (node->type == JSONObject) {
     JSON_Value *child = NULL;
     if (cdd_json_object_getn_value(node->object_val, key, key_len, &child) ==
         CDD_C_SUCCESS) {
-      cdd_json_nodelist_append_sticky(out_arr, child, io_rc);
+      g_cdd_last_alloc_err =
+          cdd_json_nodelist_append_sticky(out_arr, child, io_rc);
     }
   }
-  cdd_json_node_child_count(node, &cnt);
+  g_cdd_last_alloc_err = cdd_json_node_child_count(node, &cnt);
   for (i = 0; i < cnt; ++i) {
     const JSON_Value *ch = NULL;
-    cdd_json_node_child_at(node, i, &ch);
-    cdd_json_collect_recursive(ch, key, key_len, out_arr, io_rc);
+    g_cdd_last_alloc_err = cdd_json_node_child_at(node, i, &ch);
+    g_cdd_last_alloc_err =
+        cdd_json_collect_recursive(ch, key, key_len, out_arr, io_rc);
   }
   return *io_rc;
 }
@@ -5121,23 +5144,23 @@ cdd_c_error_t cdd_json_jsonpath_get(const JSON_Value *root,
       if (is_rec) {
         const JSON_Value *found = NULL;
         if (cdd_json_find_recursive_first(cur, key, &found) != CDD_C_SUCCESS) {
-          cdd_json_pointer_free_token(key);
+          g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
           return CDD_C_ERROR_NOT_FOUND;
         }
-        cdd_json_pointer_free_token(key);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
         cur = found;
         continue;
       }
       if (cur->type != JSONObject) {
-        cdd_json_pointer_free_token(key);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
         return CDD_C_ERROR_NOT_FOUND;
       }
       if (cdd_json_object_get_value(cur->object_val, key, &child) !=
           CDD_C_SUCCESS) {
-        cdd_json_pointer_free_token(key);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
         return CDD_C_ERROR_NOT_FOUND;
       }
-      cdd_json_pointer_free_token(key);
+      g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
       cur = child;
     } else if (*p == '[') {
       ++p;
@@ -5169,20 +5192,20 @@ cdd_c_error_t cdd_json_jsonpath_get(const JSON_Value *root,
         if (rc != CDD_C_SUCCESS)
           return rc;
         if (*p != ']') {
-          cdd_json_pointer_free_token(key);
+          g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         ++p;
         if (cur->type != JSONObject) {
-          cdd_json_pointer_free_token(key);
+          g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
           return CDD_C_ERROR_NOT_FOUND;
         }
         if (cdd_json_object_getn_value(cur->object_val, key, klen, &child) !=
             CDD_C_SUCCESS) {
-          cdd_json_pointer_free_token(key);
+          g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
           return CDD_C_ERROR_NOT_FOUND;
         }
-        cdd_json_pointer_free_token(key);
+        g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
         cur = child;
       } else {
         char *endp = NULL;
@@ -5269,7 +5292,7 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
     return rc;
   rc = cdd_json_nodelist_append(cur_list->array_val, root);
   if (rc != CDD_C_SUCCESS) {
-    cdd_json_value_free(cur_list);
+    g_cdd_last_alloc_err = cdd_json_value_free(cur_list);
     return rc;
   }
 
@@ -5294,9 +5317,11 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
         for (ni = 0; ni < cur_list->array_val->count; ++ni) {
           const JSON_Value *node = cur_list->array_val->items[ni];
           if (is_rec)
-            cdd_json_collect_recursive(node, NULL, 0, &next_arr, &rc);
+            g_cdd_last_alloc_err =
+                cdd_json_collect_recursive(node, NULL, 0, &next_arr, &rc);
           else
-            cdd_json_nodelist_append_children(node, &next_arr, &rc);
+            g_cdd_last_alloc_err =
+                cdd_json_nodelist_append_children(node, &next_arr, &rc);
         }
       } else {
         start = p;
@@ -5310,12 +5335,15 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
           for (ni = 0; ni < cur_list->array_val->count; ++ni) {
             const JSON_Value *node = cur_list->array_val->items[ni];
             if (is_rec) {
-              cdd_json_collect_recursive(node, start, len, &next_arr, &rc);
+              g_cdd_last_alloc_err =
+                  cdd_json_collect_recursive(node, start, len, &next_arr, &rc);
             } else {
               const JSON_Value *child = NULL;
-              cdd_json_filter_lookup_prop(node, start, len, &child);
+              g_cdd_last_alloc_err =
+                  cdd_json_filter_lookup_prop(node, start, len, &child);
               if (child)
-                cdd_json_nodelist_append_sticky(&next_arr, child, &rc);
+                g_cdd_last_alloc_err =
+                    cdd_json_nodelist_append_sticky(&next_arr, child, &rc);
             }
           }
         }
@@ -5329,7 +5357,7 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
         expr_start = p;
         rc = cdd_json_eval_filter_expr(root, NULL, &p, &dummy);
         if (rc == CDD_C_SUCCESS) {
-          cdd_json_filter_skip_ws(&p);
+          g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
           if (*p != ']') {
             rc = CDD_C_ERROR_NOT_SUPPORTED;
           } else {
@@ -5342,9 +5370,11 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
                   const JSON_Value *elem = node->array_val->items[j];
                   const char *ep = expr_start;
                   int matched = 0;
-                  cdd_json_eval_filter_expr(root, elem, &ep, &matched);
+                  g_cdd_last_alloc_err =
+                      cdd_json_eval_filter_expr(root, elem, &ep, &matched);
                   if (matched)
-                    cdd_json_nodelist_append_sticky(&next_arr, elem, &rc);
+                    g_cdd_last_alloc_err =
+                        cdd_json_nodelist_append_sticky(&next_arr, elem, &rc);
                 }
               }
             }
@@ -5353,13 +5383,13 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
       } else if (strncmp(p, "*]", 2) == 0) {
         p += 2;
         for (ni = 0; ni < cur_list->array_val->count; ++ni) {
-          cdd_json_nodelist_append_children(cur_list->array_val->items[ni],
-                                            &next_arr, &rc);
+          g_cdd_last_alloc_err = cdd_json_nodelist_append_children(
+              cur_list->array_val->items[ni], &next_arr, &rc);
         }
       } else {
         /* Union of quoted keys or integer indices/slices `[a, b, ...]` */
         while (rc == CDD_C_SUCCESS && *p != ']') {
-          cdd_json_filter_skip_ws(&p);
+          g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
           if (*p == 39 || *p == '"') {
             size_t klen = 0;
             char *key = NULL;
@@ -5367,12 +5397,13 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
             if (rc == CDD_C_SUCCESS) {
               for (ni = 0; ni < cur_list->array_val->count; ++ni) {
                 const JSON_Value *child = NULL;
-                cdd_json_filter_lookup_prop(cur_list->array_val->items[ni], key,
-                                            klen, &child);
+                g_cdd_last_alloc_err = cdd_json_filter_lookup_prop(
+                    cur_list->array_val->items[ni], key, klen, &child);
                 if (child)
-                  cdd_json_nodelist_append_sticky(&next_arr, child, &rc);
+                  g_cdd_last_alloc_err =
+                      cdd_json_nodelist_append_sticky(&next_arr, child, &rc);
               }
-              cdd_json_pointer_free_token(key);
+              g_cdd_last_alloc_err = cdd_json_pointer_free_token(key);
             }
           } else {
             char *endp = NULL;
@@ -5404,7 +5435,7 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
                     if (e > cnt)
                       e = cnt;
                     for (k = s; k < e; k += step) {
-                      cdd_json_nodelist_append_sticky(
+                      g_cdd_last_alloc_err = cdd_json_nodelist_append_sticky(
                           &next_arr, node->array_val->items[(size_t)k], &rc);
                     }
                   }
@@ -5417,7 +5448,7 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
                   long cnt = (long)node->array_val->count;
                   long eff = idx_val < 0 ? cnt + idx_val : idx_val;
                   if (eff >= 0 && eff < cnt) {
-                    cdd_json_nodelist_append_sticky(
+                    g_cdd_last_alloc_err = cdd_json_nodelist_append_sticky(
                         &next_arr, node->array_val->items[(size_t)eff], &rc);
                   }
                 }
@@ -5425,7 +5456,7 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
             }
           }
           if (rc == CDD_C_SUCCESS) {
-            cdd_json_filter_skip_ws(&p);
+            g_cdd_last_alloc_err = cdd_json_filter_skip_ws(&p);
             if (*p == ',')
               ++p;
             else if (*p != ']')
@@ -5439,11 +5470,11 @@ cdd_c_error_t cdd_json_jsonpath_query(const JSON_Value *root,
       rc = CDD_C_ERROR_INVALID_ARGUMENT;
     }
 
-    cdd_json_array_clear(cur_list->array_val);
-    cdd_json_dealloc((void *)cur_list->array_val->items);
+    g_cdd_last_alloc_err = cdd_json_array_clear(cur_list->array_val);
+    g_cdd_last_alloc_err = cdd_json_dealloc((void *)cur_list->array_val->items);
     *cur_list->array_val = next_arr;
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(cur_list);
+      g_cdd_last_alloc_err = cdd_json_value_free(cur_list);
       return rc;
     }
   }
@@ -5475,15 +5506,17 @@ cdd_c_error_t cdd_json_merge_patch(const JSON_Value *target,
     const char *key = patch->object_val->names[i];
     const JSON_Value *pval = patch->object_val->values[i];
     if (pval->type == JSONNull) {
-      cdd_json_object_remove(result->object_val, key);
+      g_cdd_last_alloc_err = cdd_json_object_remove(result->object_val, key);
     } else {
       JSON_Value *orig_child = NULL;
       JSON_Value *merged_child = NULL;
-      cdd_json_object_get_value(result->object_val, key, &orig_child);
-      cdd_json_merge_patch(orig_child, pval, &merged_child);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_value(result->object_val, key, &orig_child);
+      g_cdd_last_alloc_err =
+          cdd_json_merge_patch(orig_child, pval, &merged_child);
       rc = cdd_json_object_set_owned(result->object_val, key, merged_child);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(result);
+        g_cdd_last_alloc_err = cdd_json_value_free(result);
         return rc;
       }
     }
@@ -5520,7 +5553,7 @@ static cdd_c_error_t cdd_json_patch_resolve_parent(JSON_Value *root,
     if (rc != CDD_C_SUCCESS)
       return rc;
     rc = cdd_json_pointer_get(root, parent_ptr, &cparent);
-    cdd_json_dealloc(parent_ptr);
+    g_cdd_last_alloc_err = cdd_json_dealloc(parent_ptr);
     if (rc != CDD_C_SUCCESS)
       return rc;
     *out_parent = (JSON_Value *)(size_t)cparent;
@@ -5579,7 +5612,7 @@ static cdd_c_error_t cdd_json_pointer_set_internal(JSON_Value *root,
   } else {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  cdd_json_pointer_free_token(token);
+  g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
   return rc;
 }
 
@@ -5609,15 +5642,15 @@ static cdd_c_error_t cdd_json_patch_add_path(JSON_Value **root_ptr,
   if (rc != CDD_C_SUCCESS)
     return rc;
   if (remove_from)
-    cdd_json_pointer_remove(*root_ptr, remove_from);
+    g_cdd_last_alloc_err = cdd_json_pointer_remove(*root_ptr, remove_from);
   if (path[0] == '\0') {
-    cdd_json_value_free(*root_ptr);
+    g_cdd_last_alloc_err = cdd_json_value_free(*root_ptr);
     *root_ptr = v_copy;
     return CDD_C_SUCCESS;
   }
   rc = cdd_json_pointer_set_internal(*root_ptr, path, v_copy, 0);
   if (rc != CDD_C_SUCCESS)
-    cdd_json_value_free(v_copy);
+    g_cdd_last_alloc_err = cdd_json_value_free(v_copy);
   return rc;
 }
 
@@ -5653,7 +5686,7 @@ cdd_c_error_t cdd_json_pointer_remove(JSON_Value *root, const char *pointer) {
   } else {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  cdd_json_pointer_free_token(token);
+  g_cdd_last_alloc_err = cdd_json_pointer_free_token(token);
   return rc;
 }
 
@@ -5689,7 +5722,8 @@ cdd_c_error_t cdd_json_apply_patch(const JSON_Value *doc,
           cdd_json_pointer_get(cur, path, &target_val) != CDD_C_SUCCESS) {
         rc = CDD_C_ERROR_INVALID_ARGUMENT;
       } else {
-        cdd_json_value_equals(target_val, expected_val, &eq);
+        g_cdd_last_alloc_err =
+            cdd_json_value_equals(target_val, expected_val, &eq);
         if (!eq)
           rc = CDD_C_ERROR_INVALID_ARGUMENT;
       }
@@ -5726,7 +5760,7 @@ cdd_c_error_t cdd_json_apply_patch(const JSON_Value *doc,
     }
   }
   if (rc != CDD_C_SUCCESS) {
-    cdd_json_value_free(cur);
+    g_cdd_last_alloc_err = cdd_json_value_free(cur);
     return rc;
   }
   *out = cur;

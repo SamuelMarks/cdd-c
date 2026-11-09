@@ -221,11 +221,11 @@ TEST test_serve_json_rpc_listen_once(void) {
 
   {
     cdd_context_t mock_ctx;
-    cdd_context_init_default(&mock_ctx);
+    g_cdd_last_alloc_err = cdd_context_init_default(&mock_ctx);
     mock_ctx.socket_vt.accept_fn = mock_rpc_accept_fail;
-    cdd_context_set_global(&mock_ctx);
+    g_cdd_last_alloc_err = cdd_context_set_global(&mock_ctx);
     rc = serve_json_rpc_main(argc, argv_accept_fail);
-    cdd_context_set_global(NULL);
+    g_cdd_last_alloc_err = cdd_context_set_global(NULL);
   }
   ASSERT_EQ(0, rc);
 
@@ -291,10 +291,10 @@ TEST test_serve_json_rpc_bad_port(void) {
   cdd_context_t mock_sock_ctx;
   cdd_context_t mock_listen_ctx;
 
-  cdd_context_init_default(&mock_sock_ctx);
+  g_cdd_last_alloc_err = cdd_context_init_default(&mock_sock_ctx);
   mock_sock_ctx.socket_vt.socket_fn = mock_rpc_socket_fail;
 
-  cdd_context_init_default(&mock_listen_ctx);
+  g_cdd_last_alloc_err = cdd_context_init_default(&mock_listen_ctx);
   mock_listen_ctx.socket_vt.listen_fn = mock_rpc_listen_fail;
 
   /* Test environment variables CDD_PORT and CDD_LISTEN */
@@ -312,7 +312,7 @@ TEST test_serve_json_rpc_bad_port(void) {
   argv_p_missing[1] = cdd_test_mut_str("-p");
   argv_listen_missing[0] = cdd_test_mut_str("serve_json_rpc_main");
   argv_listen_missing[1] = cdd_test_mut_str("--listen");
-  cdd_context_set_global(&mock_sock_ctx);
+  g_cdd_last_alloc_err = cdd_context_set_global(&mock_sock_ctx);
 #if defined(_WIN32)
   _putenv("CDD_PORT=19999");
   _putenv("CDD_LISTEN=1");
@@ -329,7 +329,7 @@ TEST test_serve_json_rpc_bad_port(void) {
   unsetenv("CDD_PORT");
   unsetenv("CDD_LISTEN");
 #endif
-  cdd_context_set_global(NULL);
+  g_cdd_last_alloc_err = cdd_context_set_global(NULL);
 
   rc = serve_json_rpc_main(1, argv);
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
@@ -347,20 +347,39 @@ TEST test_serve_json_rpc_bad_port(void) {
   rc = serve_json_rpc_main(2, argv_p_missing);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  cdd_context_set_global(&mock_sock_ctx);
+  g_cdd_last_alloc_err = cdd_context_set_global(&mock_sock_ctx);
   rc = serve_json_rpc_main(2, argv_listen_missing);
-  cdd_context_set_global(NULL);
+  g_cdd_last_alloc_err = cdd_context_set_global(NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+
+  {
+    char *argv_ip[3];
+    char *argv_listen_long_missing[2];
+    argv_ip[0] = cdd_test_mut_str("serve_json_rpc_main");
+    argv_ip[1] = cdd_test_mut_str("--listen");
+    argv_ip[2] = cdd_test_mut_str("127.0.0.1");
+    g_cdd_last_alloc_err = cdd_context_set_global(&mock_sock_ctx);
+    rc = serve_json_rpc_main(3, argv_ip);
+    g_cdd_last_alloc_err = cdd_context_set_global(NULL);
+    ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+
+    argv_listen_long_missing[0] = cdd_test_mut_str("serve_json_rpc_main");
+    argv_listen_long_missing[1] = cdd_test_mut_str("-l");
+    g_cdd_last_alloc_err = cdd_context_set_global(&mock_sock_ctx);
+    rc = serve_json_rpc_main(2, argv_listen_long_missing);
+    g_cdd_last_alloc_err = cdd_context_set_global(NULL);
+    ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  }
 
   rc = serve_json_rpc_main(2, argv_unknown);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  cdd_context_set_global(&mock_sock_ctx);
+  g_cdd_last_alloc_err = cdd_context_set_global(&mock_sock_ctx);
   rc = serve_json_rpc_main(1, argv);
-  cdd_context_set_global(NULL);
+  g_cdd_last_alloc_err = cdd_context_set_global(NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
-  cdd_context_set_global(&mock_listen_ctx);
+  g_cdd_last_alloc_err = cdd_context_set_global(&mock_listen_ctx);
   {
     char *argv_listen_fail[3];
     argv_listen_fail[0] = cdd_test_mut_str("serve_json_rpc_main");
@@ -368,7 +387,7 @@ TEST test_serve_json_rpc_bad_port(void) {
     argv_listen_fail[2] = cdd_test_mut_str("12352");
     rc = serve_json_rpc_main(3, argv_listen_fail);
   }
-  cdd_context_set_global(NULL);
+  g_cdd_last_alloc_err = cdd_context_set_global(NULL);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
   g_fail_io_after = -1;
@@ -405,7 +424,7 @@ TEST test_serve_mcp_stdio_main(void) {
           "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}");
       fclose(f_oas);
     }
-    makedirs("build/my_empty_dir");
+    g_cdd_last_alloc_err = makedirs("build/my_empty_dir");
   }
 
 #if defined(_MSC_VER)
@@ -689,7 +708,7 @@ static void *rpc_server_http_thread_func(void *arg) {
   argv[4] = cdd_test_mut_str("68");
   if (arg == (void *)1)
     return NULL;
-  serve_json_rpc_main(5, argv);
+  g_cdd_last_alloc_err = serve_json_rpc_main(5, argv);
   return NULL;
 }
 #endif
@@ -915,7 +934,7 @@ TEST test_serve_json_rpc_http_requests(void) {
           "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}");
       fclose(f_oas);
     }
-    makedirs("build/my_empty_dir");
+    g_cdd_last_alloc_err = makedirs("build/my_empty_dir");
   }
 
   ASSERT_EQ(0, CDD_TEST_THREAD_CREATE(&th, rpc_server_http_thread_func, NULL));
@@ -939,9 +958,9 @@ TEST test_serve_json_rpc_http_requests(void) {
     if (connect(s, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
       cdd_context_t mock_send_ctx;
       if (i == 1) {
-        cdd_context_init_default(&mock_send_ctx);
+        g_cdd_last_alloc_err = cdd_context_init_default(&mock_send_ctx);
         mock_send_ctx.socket_vt.send_fn = mock_rpc_send_fail;
-        cdd_context_set_global(&mock_send_ctx);
+        g_cdd_last_alloc_err = cdd_context_set_global(&mock_send_ctx);
       }
 #if defined(_WIN32)
       send(s, http_reqs[i], (int)strlen(http_reqs[i]), 0);
@@ -961,7 +980,7 @@ TEST test_serve_json_rpc_http_requests(void) {
           buf[n] = '\0';
       }
       if (i == 1) {
-        cdd_context_set_global(NULL);
+        g_cdd_last_alloc_err = cdd_context_set_global(NULL);
       }
 #if defined(_WIN32)
       closesocket(s);

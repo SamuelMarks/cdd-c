@@ -20,7 +20,7 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
   size_t i, count = 0;
   if (!enum_arr || !em)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  cdd_json_array_get_count(enum_arr, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(enum_arr, &count);
   for (i = 0; i < count; i++) {
     const char *s = NULL;
     char *clean = NULL;
@@ -29,10 +29,10 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
     int dup = 0;
     int needs_san = 0;
     const char *wire_override = NULL;
-    cdd_json_array_get_string(enum_arr, i, &s);
+    g_cdd_last_alloc_err = cdd_json_array_get_string(enum_arr, i, &s);
     if (!s)
       continue;
-    c2s_needs_identifier_sanitization(s, &needs_san);
+    g_cdd_last_alloc_err = c2s_needs_identifier_sanitization(s, &needs_san);
     if (needs_san) {
       if (sanitize_identifier(s, &clean) != CDD_C_SUCCESS) {
         return CDD_C_ERROR_MEMORY;
@@ -104,21 +104,22 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
   if (!schema_obj)
     return CDD_C_SUCCESS;
 
-  cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
   if (!enum_arr)
     return CDD_C_SUCCESS;
 
-  cdd_json_array_get_count(enum_arr, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(enum_arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  cdd_json_object_get_string(schema_obj, "type", &type);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(schema_obj, "type", &type);
   if (type && strcmp(type, "string") != 0)
     return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
     const char *s = NULL;
-    cdd_json_array_get_string(enum_arr, i, &s);
+    g_cdd_last_alloc_err = cdd_json_array_get_string(enum_arr, i, &s);
     if (!s)
       return CDD_C_SUCCESS;
   }
@@ -156,7 +157,7 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
   }
   if (!*name)
     return CDD_C_SUCCESS;
-  cdd_json_object_get_object(root, name, &schema_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(root, name, &schema_obj);
   if (!schema_obj)
     return CDD_C_SUCCESS;
   return schema_object_is_string_enum(schema_obj, NULL, out_points_to_enum);
@@ -180,10 +181,10 @@ cdd_c_error_t required_name_in_list(const JSON_Array *required,
   *out_in_list = 0;
   if (!required || !name)
     return CDD_C_SUCCESS;
-  cdd_json_array_get_count(required, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(required, &count);
   for (i = 0; i < count; ++i) {
     const char *req_name = NULL;
-    cdd_json_array_get_string(required, i, &req_name);
+    g_cdd_last_alloc_err = cdd_json_array_get_string(required, i, &req_name);
     if (req_name && strcmp(req_name, name) == 0) {
       *out_in_list = 1;
       return CDD_C_SUCCESS;
@@ -222,7 +223,7 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  cdd_json_object_get_object(root, name, &found_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(root, name, &found_obj);
   *_out_val = found_obj;
   return CDD_C_SUCCESS;
 }

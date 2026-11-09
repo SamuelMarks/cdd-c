@@ -663,7 +663,7 @@ TEST test_fs_coverage_filename_and_ptr(void) {
   ASSERT(fap.fh == NULL);
 
   memset(&fap, 0, sizeof(fap));
-  fs_write_to_file(tmp_file, "test");
+  g_cdd_last_alloc_err = fs_write_to_file(tmp_file, "test");
   fap.filename = (char *)C_CDD_MALLOC(128);
   CDD_STRCPY(fap.filename, 128, tmp_file);
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_delete_and_cleanup(&fap));
@@ -715,7 +715,7 @@ TEST test_fs_coverage_mktmpfile(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             mktmpfilegetnameandfile("collide_", ".tmp", "w+", &fap));
   g_fail_io_after = -1;
-  FilenameAndPtr_delete_and_cleanup(&fap);
+  g_cdd_last_alloc_err = FilenameAndPtr_delete_and_cleanup(&fap);
 
   /* Exhaust iterations */
   g_fail_io_after = 45;
@@ -727,7 +727,7 @@ TEST test_fs_coverage_mktmpfile(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             mktmpfilegetnameandfile("fopen_fail_", ".tmp", "w+", &fap));
   g_fail_io_after = -1;
-  FilenameAndPtr_delete_and_cleanup(&fap);
+  g_cdd_last_alloc_err = FilenameAndPtr_delete_and_cleanup(&fap);
 
   PASS();
 }
@@ -755,9 +755,9 @@ TEST test_fs_coverage_walk_directory(void) {
             walk_directory("nonexistent_dir_never_exists", mock_walk_count_cb,
                            &count));
 
-  makedirs(sub_dir);
-  fs_write_to_file(f1, "1");
-  fs_write_to_file(f2, "2");
+  g_cdd_last_alloc_err = makedirs(sub_dir);
+  g_cdd_last_alloc_err = fs_write_to_file(f1, "1");
+  g_cdd_last_alloc_err = fs_write_to_file(f2, "2");
 
   /* Test walking single file */
   count = 0;

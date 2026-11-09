@@ -47,7 +47,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(4, config.indent_width); /* "    " is 4 spaces */
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   ASSERT_EQ(0, cdd_cst_detect_format_config(&tree2, &config));
 
@@ -59,7 +59,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(2, config.indent_width); /* "  " is 2 spaces */
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   /* Test fallback to 4 spaces */
   tree = NULL;
@@ -70,7 +70,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(4, config.indent_width);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   /* Test spaces > 8 ignored from sum */
   tree = NULL;
@@ -81,7 +81,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(2, config.indent_width); /* default if no space counts added */
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
 
   PASS();
@@ -103,7 +103,7 @@ TEST test_cdd_cst_trivia_detect_tabs(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, config.use_tabs);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -166,7 +166,7 @@ TEST test_cdd_cst_trivia_generate(void) {
   free(t->next);
   free(t);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
 
   PASS();
@@ -213,7 +213,7 @@ TEST test_cdd_cst_trivia_oom(void) {
             cdd_cst_generate_indent_trivia(tree, &config, 1, &out));
   g_cdd_alloc_fail = 0;
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -245,7 +245,7 @@ TEST test_trivia_branches(void) {
   t2.next = &t3;
   lst.tokens[0].leading_trivia = &t1;
 
-  cdd_cst_detect_format_config(&tree, &config);
+  g_cdd_last_alloc_err = cdd_cst_detect_format_config(&tree, &config);
 
   free(lst.tokens);
   g_fail_io_after = -1;

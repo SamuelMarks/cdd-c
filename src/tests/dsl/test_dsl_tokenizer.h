@@ -40,7 +40,7 @@ TEST test_dsl_tokenizer_basic(void) {
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_WHITESPACE, list.tokens[9].kind, "%d");
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_RAW_START, list.tokens[10].kind, "%d");
 
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
   PASS();
 }
 
@@ -58,7 +58,7 @@ TEST test_dsl_tokenizer_oom(void) {
   rc = cdd_dsl_tokenize(source, &list);
   g_fail_io_after = 0;
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   PASS();
 }
@@ -90,27 +90,27 @@ TEST test_dsl_tokenizer_exhaustive(void) {
 
   rc = cdd_dsl_tokenize(source1, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(source2, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(source3, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(source4, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(edge_cases, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(edge_case_eof_quote, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(NULL, &list);
   ASSERT_EQ_FMT(CDD_C_ERROR_INVALID_ARGUMENT, rc, "%d");
@@ -120,23 +120,23 @@ TEST test_dsl_tokenizer_exhaustive(void) {
 
   rc = cdd_dsl_tokenize(s2, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(s3, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize(s4, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize("/* unclosed", &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   rc = cdd_dsl_tokenize("* *invalid", &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
 
   PASS();
 }
@@ -164,7 +164,7 @@ TEST test_dsl_tokenizer_oom_loop(void) {
     rc = cdd_dsl_tokenize(source, &list);
     g_ffi_extractor_alloc_fail = 0;
     if (rc == CDD_C_SUCCESS) {
-      cdd_dsl_token_list_free(&list);
+      g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
       break;
     }
   }
@@ -181,8 +181,8 @@ TEST test_dsl_tokenizer_free_null(void) {
   list.capacity = 1;
   list.tokens = calloc(1, sizeof(cdd_dsl_token_t));
   list.tokens[0].text_copy = NULL;
-  cdd_dsl_token_list_free(&list);
-  cdd_dsl_token_list_free(NULL);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(NULL);
   PASS();
 }
 

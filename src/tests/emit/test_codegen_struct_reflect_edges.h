@@ -328,7 +328,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
     sf_bw.fields[2].unique_items = 1;
     ASSERT_EQ(CDD_C_SUCCESS,
               write_struct_reflect_func(tmp_bw, "BwStruct", &sf_bw, NULL));
-    struct_fields_free(&sf_bw);
+    g_cdd_last_alloc_err = struct_fields_free(&sf_bw);
     fclose(tmp_bw);
   }
 
@@ -393,6 +393,12 @@ TEST test_reflection_edge_cases_and_oom(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_to_json(p_def, &parent_ti, &json_out));
     ASSERT(json_out != NULL);
     C_CDD_FREE(json_out);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_to_json_object(NULL, &parent_ti, (void *)1));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_to_json_object(p_def, NULL, (void *)1));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_reflect_to_json_object(p_def, &parent_ti, NULL));
     p_def->eval = 10;
     p_def->enum_arr[0] = 10;
 
@@ -503,9 +509,20 @@ TEST test_reflection_edge_cases_and_oom(void) {
       g_cdd_alloc_fail = 2;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 cdd_reflect_struct_deepcopy(p_def, &oom_out, &parent_ti));
-      g_cdd_alloc_fail = 1;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY,
-                cdd_reflect_to_json(p_def, &parent_ti, &oom_str));
+      {
+        int oom_k;
+        struct AdvChild c_oom;
+        memset(&c_oom, 0, sizeof(c_oom));
+        for (oom_k = 1; oom_k <= 20; ++oom_k) {
+          g_cdd_alloc_fail = oom_k;
+          if (cdd_reflect_to_json(&c_oom, &child_ti, &oom_str) == CDD_C_SUCCESS)
+            C_CDD_FREE(oom_str);
+        }
+        g_cdd_alloc_fail = 1;
+        ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                  cdd_reflect_to_json(p_def, &parent_ti, &oom_str));
+        g_cdd_alloc_fail = 0;
+      }
       g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 cdd_reflect_merge_patch(p_def, p_copy, &parent_ti, &oom_str));
@@ -707,34 +724,42 @@ TEST test_reflection_edge_cases_and_oom(void) {
       ASSERT_EQ(CDD_C_SUCCESS,
                 struct_field_add_cli_required_unless(&sf_cli.fields[0], "ru1"));
 
-      c_cdd_strdup("{}", &sf_cli.fields[0].schema_extra_json);
-      c_cdd_strdup("{}", &sf_cli.fields[0].items_extra_json);
-      c_cdd_strdup("help", &sf_cli.fields[0].cli_long_help);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("{}", &sf_cli.fields[0].schema_extra_json);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("{}", &sf_cli.fields[0].items_extra_json);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("help", &sf_cli.fields[0].cli_long_help);
       sf_cli.fields[0].n_type_union = 1;
       sf_cli.fields[0].type_union = (char **)C_CDD_CALLOC(1, sizeof(char *));
-      c_cdd_strdup("string", &sf_cli.fields[0].type_union[0]);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("string", &sf_cli.fields[0].type_union[0]);
       sf_cli.fields[0].n_items_type_union = 1;
       sf_cli.fields[0].items_type_union =
           (char **)C_CDD_CALLOC(1, sizeof(char *));
-      c_cdd_strdup("integer", &sf_cli.fields[0].items_type_union[0]);
-      c_cdd_strdup("{}", &sf_cli.schema_extra_json);
-      c_cdd_strdup("about", &sf_cli.cli_long_about);
-      c_cdd_strdup("before", &sf_cli.cli_before_help);
-      c_cdd_strdup("after", &sf_cli.cli_after_help);
-      c_cdd_strdup("type", &sf_cli.union_discriminator);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("integer", &sf_cli.fields[0].items_type_union[0]);
+      g_cdd_last_alloc_err = c_cdd_strdup("{}", &sf_cli.schema_extra_json);
+      g_cdd_last_alloc_err = c_cdd_strdup("about", &sf_cli.cli_long_about);
+      g_cdd_last_alloc_err = c_cdd_strdup("before", &sf_cli.cli_before_help);
+      g_cdd_last_alloc_err = c_cdd_strdup("after", &sf_cli.cli_after_help);
+      g_cdd_last_alloc_err = c_cdd_strdup("type", &sf_cli.union_discriminator);
       sf_cli.n_union_variants = 1;
       sf_cli.union_variants = (struct UnionVariantMeta *)C_CDD_CALLOC(
           1, sizeof(struct UnionVariantMeta));
-      c_cdd_strdup("v1", &sf_cli.union_variants[0].disc_value);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("v1", &sf_cli.union_variants[0].disc_value);
       sf_cli.union_variants[0].n_required_props = 1;
       sf_cli.union_variants[0].required_props =
           (char **)C_CDD_CALLOC(1, sizeof(char *));
-      c_cdd_strdup("id", &sf_cli.union_variants[0].required_props[0]);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("id", &sf_cli.union_variants[0].required_props[0]);
       sf_cli.union_variants[0].n_property_names = 1;
       sf_cli.union_variants[0].property_names =
           (char **)C_CDD_CALLOC(1, sizeof(char *));
-      c_cdd_strdup("id", &sf_cli.union_variants[0].property_names[0]);
-      struct_fields_free(&sf_cli);
+      g_cdd_last_alloc_err =
+          c_cdd_strdup("id", &sf_cli.union_variants[0].property_names[0]);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_cli);
     }
 
     /* Exercise write_struct_cleanup_func & write_struct_default_func
@@ -778,7 +803,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
                                   "#/components/schemas/SubObj", NULL, NULL));
       ASSERT_EQ(CDD_C_SUCCESS,
                 write_struct_deepcopy_func(tmp_cg, "CgStruct2", &sf_cg, NULL));
-      struct_fields_free(&sf_cg);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_cg);
       fclose(tmp_cg);
     }
 
@@ -851,8 +876,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
       extra_ti.n_fields = 4;
 
       extra_inst.pu64 = &u64_target;
-      c_cdd_strdup("s0", &extra_inst.fix_strs[0]);
-      c_cdd_strdup("s1", &extra_inst.fix_strs[1]);
+      g_cdd_last_alloc_err = c_cdd_strdup("s0", &extra_inst.fix_strs[0]);
+      g_cdd_last_alloc_err = c_cdd_strdup("s1", &extra_inst.fix_strs[1]);
       {
         void *ec_ptr = NULL;
         struct TwoChildWrap {
@@ -862,7 +887,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
         struct cdd_field_info tcw_f[2];
         struct cdd_type_info tcw_ti;
         memset(&tcw, 0, sizeof(tcw));
-        c_cdd_strdup("l1", &tcw.c1.label);
+        g_cdd_last_alloc_err = c_cdd_strdup("l1", &tcw.c1.label);
         memset(tcw_f, 0, sizeof(tcw_f));
         tcw_f[0].name = "c1";
         tcw_f[0].kind = CDD_FIELD_KIND_OBJECT;
@@ -1026,7 +1051,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
         C_CDD_FREE(p_def->str_arr[0]);
         p_def->str_arr[0] = NULL;
         C_CDD_FREE(p_def->str_arr[1]);
-        c_cdd_strdup("hi", &p_def->str_arr[1]);
+        g_cdd_last_alloc_err = c_cdd_strdup("hi", &p_def->str_arr[1]);
         ASSERT_EQ(CDD_C_SUCCESS,
                   cdd_reflect_array_resize(p_def, &parent_fields[19], 1));
         ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_deepcopy(
@@ -1036,12 +1061,12 @@ TEST test_reflection_edge_cases_and_oom(void) {
         ASSERT_EQ(1, is_eq);
 
         C_CDD_FREE(p_cmp->str_arr[1]);
-        c_cdd_strdup("diff_str", &p_cmp->str_arr[1]);
+        g_cdd_last_alloc_err = c_cdd_strdup("diff_str", &p_cmp->str_arr[1]);
         ASSERT_EQ(CDD_C_SUCCESS,
                   cdd_reflect_struct_eq(p_def, p_cmp, &parent_ti, &is_eq));
         ASSERT_EQ(0, is_eq);
         C_CDD_FREE(p_cmp->str_arr[1]);
-        c_cdd_strdup("hi", &p_cmp->str_arr[1]);
+        g_cdd_last_alloc_err = c_cdd_strdup("hi", &p_cmp->str_arr[1]);
 
         p_cmp->val_obj_arr[0].id = 99999;
         ASSERT_EQ(CDD_C_SUCCESS,
@@ -1184,7 +1209,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
                       cdd_reflect_struct_eq(&u0_a, &u0_b, &union_ti, &is_eq));
             ASSERT_EQ(1, is_eq);
             u0_a.tag = 2;
-            c_cdd_strdup("ustr", &u0_a.data.str_branch);
+            g_cdd_last_alloc_err = c_cdd_strdup("ustr", &u0_a.data.str_branch);
             ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_struct_deepcopy(
                                          &u0_a, (void **)&u_dc, &union_ti));
             ASSERT_EQ(CDD_C_SUCCESS,
@@ -1213,8 +1238,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
             parent_fields[6].default_val = "100";
 
             memset(&fsw, 0, sizeof(fsw));
-            c_cdd_strdup("old0", &fsw.arr[0]);
-            c_cdd_strdup("old1", &fsw.arr[1]);
+            g_cdd_last_alloc_err = c_cdd_strdup("old0", &fsw.arr[0]);
+            g_cdd_last_alloc_err = c_cdd_strdup("old1", &fsw.arr[1]);
             memset(&fsw_f, 0, sizeof(fsw_f));
             fsw_f.name = "arr";
             fsw_f.wire_name = "arr";
@@ -1318,10 +1343,10 @@ TEST test_reflection_edge_cases_and_oom(void) {
             for (lim = 1; lim <= 30; ++lim) {
               int c1 = 100 - lim;
               int c2 = 100 - lim;
-              cdd_reflect_visit_deep(p_def, &parent_ti, test_reflect_visitor_cb,
-                                     &c1);
-              cdd_reflect_visit_deep_mut(p_def, &parent_ti,
-                                         test_reflect_mut_visitor_cb, &c2);
+              g_cdd_last_alloc_err = cdd_reflect_visit_deep(
+                  p_def, &parent_ti, test_reflect_visitor_cb, &c1);
+              g_cdd_last_alloc_err = cdd_reflect_visit_deep_mut(
+                  p_def, &parent_ti, test_reflect_mut_visitor_cb, &c2);
             }
           }
 
@@ -1519,7 +1544,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
            */
           ASSERT_EQ(CDD_C_SUCCESS,
                     cdd_reflect_array_resize(p_def, &parent_fields[18], 1));
-          c_cdd_strdup("vo_lbl", &p_def->val_obj_arr[0].label);
+          g_cdd_last_alloc_err =
+              c_cdd_strdup("vo_lbl", &p_def->val_obj_arr[0].label);
           p_def->opt_int = (int *)C_CDD_MALLOC(sizeof(int));
           *p_def->opt_int = 55;
           for (oom_step = 1; oom_step <= 25; ++oom_step) {
@@ -1527,7 +1553,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
             g_cdd_alloc_fail = oom_step;
             if (cdd_reflect_struct_deepcopy(p_def, &d_out, &parent_ti) ==
                 CDD_C_SUCCESS) {
-              cdd_reflect_struct_cleanup(d_out, &parent_ti);
+              g_cdd_last_alloc_err =
+                  cdd_reflect_struct_cleanup(d_out, &parent_ti);
               C_CDD_FREE(d_out);
               break;
             }
@@ -1539,7 +1566,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
                                       "\"int_arr\":[1],\"str_arr\":[\"s\"],"
                                       "\"ptr_obj_arr\":[{\"id\":2}]}",
                                       &parent_ti, &j_out) == CDD_C_SUCCESS) {
-              cdd_reflect_struct_cleanup(j_out, &parent_ti);
+              g_cdd_last_alloc_err =
+                  cdd_reflect_struct_cleanup(j_out, &parent_ti);
               C_CDD_FREE(j_out);
               break;
             }
@@ -1550,14 +1578,16 @@ TEST test_reflection_edge_cases_and_oom(void) {
             g_cdd_alloc_fail = oom_step;
             if (cdd_reflect_from_json("{\"id\":1}", &parent_ti, &j_out) ==
                 CDD_C_SUCCESS) {
-              cdd_reflect_struct_cleanup(j_out, &parent_ti);
+              g_cdd_last_alloc_err =
+                  cdd_reflect_struct_cleanup(j_out, &parent_ti);
               C_CDD_FREE(j_out);
               break;
             }
           }
           parent_fields[12].flatten = 0;
           if (p_cmp->ptr_child) {
-            cdd_reflect_struct_cleanup(p_cmp->ptr_child, &child_ti);
+            g_cdd_last_alloc_err =
+                cdd_reflect_struct_cleanup(p_cmp->ptr_child, &child_ti);
             C_CDD_FREE(p_cmp->ptr_child);
             p_cmp->ptr_child = NULL;
           }
@@ -2243,7 +2273,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
             ASSERT_EQ(CDD_C_SUCCESS, write_struct_reflect_func(
                                          fp_ref, "RefEdge", &sf_ref, NULL));
             sf_ref.fields[0].n_serde_aliases = 0;
-            struct_fields_free(&sf_ref);
+            g_cdd_last_alloc_err = struct_fields_free(&sf_ref);
 
             memset(&cfg_empty, 0, sizeof(cfg_empty));
             memset(&fsig, 0, sizeof(fsig));
@@ -2610,7 +2640,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
                                                                 &sf_ex, NULL));
             ASSERT_EQ(CDD_C_SUCCESS,
                       write_struct_reflect_func(fp_extra, "ExS", &sf_ex, NULL));
-            struct_fields_free(&sf_ex);
+            g_cdd_last_alloc_err = struct_fields_free(&sf_ex);
 
             memset(&fsig_ex, 0, sizeof(fsig_ex));
             memset(&fparam_ex, 0, sizeof(fparam_ex));
@@ -2950,15 +2980,15 @@ TEST test_reflection_edge_cases_and_oom(void) {
                       cdd_reflect_array_resize(p_def, &parent_fields[17], 2));
             ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                       cdd_reflect_validate_field(p_def, &parent_fields[17]));
-            c_cdd_strdup("s2", &p_def->str_arr[1]);
+            g_cdd_last_alloc_err = c_cdd_strdup("s2", &p_def->str_arr[1]);
             ASSERT_EQ(CDD_C_SUCCESS,
                       cdd_reflect_validate_field(p_def, &parent_fields[17]));
             C_CDD_FREE(p_def->str_arr[1]);
             p_def->str_arr[1] = NULL;
-            c_cdd_strdup("s1", &p_def->str_arr[0]);
+            g_cdd_last_alloc_err = c_cdd_strdup("s1", &p_def->str_arr[0]);
             ASSERT_EQ(CDD_C_SUCCESS,
                       cdd_reflect_validate_field(p_def, &parent_fields[17]));
-            c_cdd_strdup("s2", &p_def->str_arr[1]);
+            g_cdd_last_alloc_err = c_cdd_strdup("s2", &p_def->str_arr[1]);
             ASSERT_EQ(CDD_C_SUCCESS,
                       cdd_reflect_validate_field(p_def, &parent_fields[17]));
             ASSERT_EQ(CDD_C_SUCCESS,
@@ -3225,14 +3255,14 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 ASSERT_EQ(CDD_C_SUCCESS,
                           cdd_json_parse_string(
                               "{\"id\":77,\"ptr_child\":{\"id\":78}}", &jv_p));
-                cdd_json_value_get_object(jv_p, &jo_p);
+                g_cdd_last_alloc_err = cdd_json_value_get_object(jv_p, &jo_p);
                 parent_fields[12].flatten = 1;
                 ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_json_object(
                                              jo_p, &parent_ti, p_def));
                 parent_fields[12].flatten = 0;
                 ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_json_object(
                                              jo_p, &parent_ti, p_def));
-                cdd_json_value_free(jv_p);
+                g_cdd_last_alloc_err = cdd_json_value_free(jv_p);
               }
               {
                 char big_cli[160];

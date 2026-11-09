@@ -57,7 +57,7 @@ TEST test_scrape_makefile_basic(void) {
          NULL);
 
   free(cmake_str);
-  build_info_free(&info);
+  g_cdd_last_alloc_err = build_info_free(&info);
 
   /* Test empty cmake generation */
   ASSERT_EQ(CDD_C_SUCCESS, build_info_init(&info));
@@ -65,7 +65,7 @@ TEST test_scrape_makefile_basic(void) {
   ASSERT_EQ(0, build_info_to_cmake(&info, "my_proj_empty", &cmake_str));
   ASSERT(cmake_str != NULL);
   free(cmake_str);
-  build_info_free(&info);
+  g_cdd_last_alloc_err = build_info_free(&info);
 
   g_fail_io_after = -1;
   PASS();
@@ -86,7 +86,7 @@ TEST test_scrape_errors(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, build_info_init(&info));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, build_info_init(NULL));
-  build_info_free(NULL);
+  g_cdd_last_alloc_err = build_info_free(NULL);
 
 #ifdef CDD_BUILD_TESTS
   ASSERT_EQ(CDD_C_SUCCESS, test_my_strdup_errors());
@@ -106,7 +106,7 @@ TEST test_scrape_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             build_info_to_cmake(&info, "proj", NULL));
 
-  build_info_free(&info);
+  g_cdd_last_alloc_err = build_info_free(&info);
   g_fail_io_after = -1;
   PASS();
 }
@@ -133,7 +133,7 @@ TEST test_scrape_configure_ac_basic(void) {
   ASSERT_EQ(1, info.compile_defs_n);
   ASSERT_STR_EQ("TEST", info.compile_defs[0]);
 
-  build_info_free(&info);
+  g_cdd_last_alloc_err = build_info_free(&info);
   g_fail_io_after = -1;
   PASS();
 }
@@ -155,17 +155,17 @@ TEST test_scrape_makefile_oom(void) {
                          "SRCS=main.c util.c";
   int i;
   for (i = 1; i < 20; i++) {
-    build_info_init(&info);
+    g_cdd_last_alloc_err = build_info_init(&info);
     g_cdd_alloc_fail = i;
     {
       int rc = scrape_makefile(&info, makefile);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        build_info_free(&info);
+        g_cdd_last_alloc_err = build_info_free(&info);
         break;
       }
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      build_info_free(&info);
+      g_cdd_last_alloc_err = build_info_free(&info);
     }
   }
 #endif
@@ -184,17 +184,17 @@ TEST test_scrape_configure_ac_oom(void) {
                        "CFLAGS=\"-Iinc -DTEST\"\n";
   int i;
   for (i = 1; i < 20; i++) {
-    build_info_init(&info);
+    g_cdd_last_alloc_err = build_info_init(&info);
     g_cdd_alloc_fail = i;
     {
       int rc = scrape_configure_ac(&info, config);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        build_info_free(&info);
+        g_cdd_last_alloc_err = build_info_free(&info);
         break;
       }
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      build_info_free(&info);
+      g_cdd_last_alloc_err = build_info_free(&info);
     }
   }
 #endif
@@ -212,8 +212,8 @@ TEST test_build_info_to_cmake_oom(void) {
   const char *makefile = "CC=gcc\n"
                          "CFLAGS=-I./include -DDEBUG=1\n"
                          "SRCS=main.c util.c";
-  build_info_init(&info);
-  scrape_makefile(&info, makefile);
+  g_cdd_last_alloc_err = build_info_init(&info);
+  g_cdd_last_alloc_err = scrape_makefile(&info, makefile);
 
   {
     int i;
@@ -230,7 +230,7 @@ TEST test_build_info_to_cmake_oom(void) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
     }
-    build_info_free(&info);
+    g_cdd_last_alloc_err = build_info_free(&info);
 #endif
     PASS();
   }

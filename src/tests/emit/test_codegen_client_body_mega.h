@@ -39,11 +39,16 @@ TEST test_client_body_form_mega(void) {
 
     spec.n_defined_schemas = 5;
     spec.defined_schema_names = calloc(5, sizeof(char *));
-    c_cdd_strdup("MockFormSchema", &spec.defined_schema_names[0]);
-    c_cdd_strdup("ObjType1", &spec.defined_schema_names[1]);
-    c_cdd_strdup("ObjType2", &spec.defined_schema_names[2]);
-    c_cdd_strdup("ObjType3", &spec.defined_schema_names[3]);
-    c_cdd_strdup("ObjType4", &spec.defined_schema_names[4]);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("MockFormSchema", &spec.defined_schema_names[0]);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("ObjType1", &spec.defined_schema_names[1]);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("ObjType2", &spec.defined_schema_names[2]);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("ObjType3", &spec.defined_schema_names[3]);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("ObjType4", &spec.defined_schema_names[4]);
 
     spec.defined_schemas = calloc(5, sizeof(struct StructFields));
 

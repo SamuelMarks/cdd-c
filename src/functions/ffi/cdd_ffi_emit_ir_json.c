@@ -5,10 +5,10 @@
 /* clang-format off */
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include "../../include/cdd_c_error.h"
-#include "../../include/c_cdd/json_dom.h"
 #include "../../include/c_cdd/memory.h"
 #include "../../include/c_cdd/safe_crt.h"
 #include "../../src/cdd_api.h"
+#include "../parse/fs.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,7 +27,6 @@ cdd_ffi_emit_ir_json(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {
   char *json_str = NULL;
   char path[1024];
-  JSON_Value *root_val = NULL;
   cdd_c_error_t rc;
 
   if (!ir || !config || !config->output_dir) {
@@ -39,15 +38,9 @@ cdd_ffi_emit_ir_json(cdd_ffi_ir_t *ir,
     return rc;
   }
 
-  rc = cdd_json_parse_string(json_str, &root_val);
-  C_CDD_FREE(json_str);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-
   CDD_SNPRINTF(path, sizeof(path), "%s/ir_dump.json", config->output_dir);
 
-  rc = cdd_json_serialize_to_file_pretty(root_val, path);
-  cdd_json_value_free(root_val);
+  rc = fs_write_to_file(path, json_str);
+  C_CDD_FREE(json_str);
   return rc;
 }

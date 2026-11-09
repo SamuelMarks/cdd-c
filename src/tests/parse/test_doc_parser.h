@@ -55,8 +55,8 @@ static int doc_parse_block_with_oom(const char *comment,
     struct DocMetadata tmp;
     g_cdd_alloc_fail = i;
     if (doc_metadata_init(&tmp) == 0) {
-      (doc_parse_block)(comment, &tmp);
-      doc_metadata_free(&tmp);
+      g_cdd_last_alloc_err = (doc_parse_block)(comment, &tmp);
+      g_cdd_last_alloc_err = doc_metadata_free(&tmp);
     }
   }
   g_cdd_alloc_fail = 0;
@@ -64,8 +64,8 @@ static int doc_parse_block_with_oom(const char *comment,
     struct DocMetadata tmp;
     g_cdd_strdup_fail = i;
     if (doc_metadata_init(&tmp) == 0) {
-      (doc_parse_block)(comment, &tmp);
-      doc_metadata_free(&tmp);
+      g_cdd_last_alloc_err = (doc_parse_block)(comment, &tmp);
+      g_cdd_last_alloc_err = doc_metadata_free(&tmp);
     }
   }
   g_cdd_strdup_fail = 0;
@@ -96,7 +96,7 @@ TEST test_doc_init_free(void) {
   ASSERT_EQ(0, meta.n_params);
 
   /* Ensure free is safe on empty */
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -111,13 +111,13 @@ TEST test_doc_parse_simple_route(void) {
                         " * @route GET /users/{id}\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("GET", meta.verb);
   ASSERT_STR_EQ("/users/{id}", meta.route);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -130,13 +130,13 @@ TEST test_doc_parse_route_no_verb(void) {
   struct DocMetadata meta;
   const char *comment = cdd_test_mut_str("/// @route /simple/path");
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(NULL, meta.verb);
   ASSERT_STR_EQ("/simple/path", meta.route);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -151,14 +151,14 @@ TEST test_doc_parse_webhook_route(void) {
                         " * @webhook POST /events\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("POST", meta.verb);
   ASSERT_STR_EQ("/events", meta.route);
   ASSERT_EQ(1, meta.is_webhook);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -175,7 +175,7 @@ TEST test_doc_parse_params(void) {
                         " * @param filter Optional filter\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(3, meta.n_params);
@@ -197,7 +197,7 @@ TEST test_doc_parse_params(void) {
   ASSERT_EQ(NULL, meta.params[2].in_loc);
   ASSERT_STR_EQ("Optional filter", meta.params[2].description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -215,7 +215,7 @@ TEST test_doc_parse_param_attributes_extended(void) {
                         "IDs list\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_params);
@@ -230,7 +230,7 @@ TEST test_doc_parse_param_attributes_extended(void) {
   ASSERT(meta.params[0].allow_empty_value_set);
   ASSERT_EQ(1, meta.params[0].allow_empty_value);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -250,7 +250,7 @@ TEST test_doc_parse_param_all_styles(void) {
                         " * @param p6 [style:cookie]\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(6, meta.n_params);
@@ -261,7 +261,7 @@ TEST test_doc_parse_param_all_styles(void) {
   ASSERT_EQ(DOC_PARAM_STYLE_DEEP_OBJECT, meta.params[4].style);
   ASSERT_EQ(DOC_PARAM_STYLE_COOKIE, meta.params[5].style);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -276,10 +276,10 @@ TEST test_doc_parse_invalid_style(void) {
                         " * @param p1 [style:unknownStyle]\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
   ASSERT_EQ(1, meta.n_params);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -294,14 +294,14 @@ TEST test_doc_parse_param_format(void) {
                         " * @param id [in:path] [format:int64] The user id\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_params);
   ASSERT_STR_EQ("id", meta.params[0].name);
   ASSERT_STR_EQ("int64", meta.params[0].format);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -317,7 +317,7 @@ TEST test_doc_parse_param_deprecated(void) {
       " * @param legacyId [deprecated:true] Legacy identifier\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_params);
@@ -325,7 +325,7 @@ TEST test_doc_parse_param_deprecated(void) {
   ASSERT(meta.params[0].deprecated_set);
   ASSERT_EQ(1, meta.params[0].deprecated);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -341,7 +341,7 @@ TEST test_doc_parse_param_content_type(void) {
                         "[contentType:application/json] JSON payload\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_params);
@@ -349,7 +349,7 @@ TEST test_doc_parse_param_content_type(void) {
   ASSERT_STR_EQ("query", meta.params[0].in_loc);
   ASSERT_STR_EQ("application/json", meta.params[0].content_type);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -365,7 +365,7 @@ TEST test_doc_parse_returns(void) {
                         " * @return 404 [summary:Missing] Not Found\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(2, meta.n_returns);
@@ -378,7 +378,7 @@ TEST test_doc_parse_returns(void) {
   ASSERT_STR_EQ("Missing", meta.returns[1].summary);
   ASSERT_STR_EQ("Not Found", meta.returns[1].description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -396,7 +396,7 @@ TEST test_doc_parse_response_headers(void) {
       " * @responseHeader 200 X-Request-Id [required] Request identifier\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(2, meta.n_response_headers);
@@ -413,7 +413,7 @@ TEST test_doc_parse_response_headers(void) {
   ASSERT(meta.response_headers[1].required_set);
   ASSERT_EQ(1, meta.response_headers[1].required);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -429,14 +429,14 @@ TEST test_doc_parse_response_header_format(void) {
                         "[format:int64] Rate limit\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_response_headers);
   ASSERT_STR_EQ("X-Rate", meta.response_headers[0].name);
   ASSERT_STR_EQ("int64", meta.response_headers[0].format);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -455,7 +455,7 @@ TEST test_doc_parse_link(void) {
       "[serverName:prod] [serverDescription:Primary server] Next link\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_links);
@@ -470,7 +470,7 @@ TEST test_doc_parse_link(void) {
   ASSERT_STR_EQ("Primary server", meta.links[0].server_description);
   ASSERT_STR_EQ("Next link", meta.links[0].description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -485,7 +485,7 @@ TEST test_doc_parse_return_content_type(void) {
                         " * @return 200 [contentType:text/plain] OK\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_returns);
@@ -493,7 +493,7 @@ TEST test_doc_parse_return_content_type(void) {
   ASSERT_STR_EQ("text/plain", meta.returns[0].content_type);
   ASSERT_STR_EQ("OK", meta.returns[0].description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -506,12 +506,12 @@ TEST test_doc_parse_summary(void) {
   struct DocMetadata meta;
   const char *comment = cdd_test_mut_str("/// @brief This is a summary");
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("This is a summary", meta.summary);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -524,12 +524,12 @@ TEST test_doc_parse_operation_id(void) {
   struct DocMetadata meta;
   const char *comment = cdd_test_mut_str("/// @operationId getUserById");
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("getUserById", meta.operation_id);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -545,14 +545,14 @@ TEST test_doc_parse_description_and_deprecated(void) {
                         " * @deprecated false\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("Long form description", meta.description);
   ASSERT_EQ(1, meta.deprecated_set);
   ASSERT_EQ(0, meta.deprecated);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -569,7 +569,7 @@ TEST test_doc_parse_tags_and_external_docs(void) {
                         " * @externalDocs https://example.com More docs\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(3, meta.n_tags);
@@ -580,7 +580,7 @@ TEST test_doc_parse_tags_and_external_docs(void) {
   ASSERT_STR_EQ("https://example.com", meta.external_docs_url);
   ASSERT_STR_EQ("More docs", meta.external_docs_description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -598,7 +598,7 @@ TEST test_doc_parse_tag_meta(void) {
       "[externalDocsDescription=More docs]\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
   ASSERT_EQ(1, meta.n_tag_meta);
   ASSERT_STR_EQ("users", meta.tag_meta[0].name);
@@ -609,7 +609,7 @@ TEST test_doc_parse_tag_meta(void) {
   ASSERT_STR_EQ("https://example.com/docs", meta.tag_meta[0].external_docs_url);
   ASSERT_STR_EQ("More docs", meta.tag_meta[0].external_docs_description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -625,7 +625,7 @@ TEST test_doc_parse_security(void) {
                         " * @security petstore_auth write:pets, read:pets\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(2, meta.n_security);
@@ -637,7 +637,7 @@ TEST test_doc_parse_security(void) {
   ASSERT_STR_EQ("write:pets", meta.security[1].scopes[0]);
   ASSERT_STR_EQ("read:pets", meta.security[1].scopes[1]);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -663,7 +663,7 @@ TEST test_doc_parse_security_scheme(void) {
       "[scopes:read:pets,write:pets]\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(4, meta.n_security_schemes);
@@ -695,7 +695,7 @@ TEST test_doc_parse_security_scheme(void) {
   ASSERT_STR_EQ("read:pets", meta.security_schemes[3].flows[0].scopes[0].name);
   ASSERT_STR_EQ("write:pets", meta.security_schemes[3].flows[0].scopes[1].name);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -711,13 +711,13 @@ TEST test_doc_parse_tag_meta_oom(void) {
       " * @tagMeta mytag [summary: A tag] [description: Desc]\n"
       " * @tagMeta \n"
       " */";
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   /* The macro expands to doc_parse_block_with_oom which sweeps g_cdd_alloc_fail
    */
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
   ASSERT_EQ(1, meta.n_tag_meta);
   ASSERT_STR_EQ("mytag", meta.tag_meta[0].name);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   PASS();
 }
 
@@ -730,10 +730,10 @@ TEST test_doc_parse_extract_rest_oom(void) {
   const char *comment = "/**\n"
                         " * @summary This is a test summary\n"
                         " */";
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
   ASSERT_STR_EQ("This is a test summary", meta.summary);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   PASS();
 }
 /**
@@ -749,7 +749,7 @@ TEST test_doc_parse_server_and_request_body(void) {
                         "[contentType:application/xml] Upload payload\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_servers);
@@ -762,7 +762,7 @@ TEST test_doc_parse_server_and_request_body(void) {
   ASSERT_STR_EQ("application/xml", meta.request_body_content_type);
   ASSERT_STR_EQ("Upload payload", meta.request_body_description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -781,7 +781,7 @@ TEST test_doc_parse_server_variables(void) {
       " * @serverVar region [default:us-east-1] [description:AWS region]\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_servers);
@@ -795,7 +795,7 @@ TEST test_doc_parse_server_variables(void) {
   ASSERT_STR_EQ("us-east-1", meta.servers[0].variables[1].default_value);
   ASSERT_STR_EQ("AWS region", meta.servers[0].variables[1].description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -814,7 +814,7 @@ TEST test_doc_parse_info_overrides(void) {
                         " * @termsOfService https://example.com/terms\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("Example API", meta.info_title);
@@ -823,7 +823,7 @@ TEST test_doc_parse_info_overrides(void) {
   ASSERT_STR_EQ("Full description", meta.info_description);
   ASSERT_STR_EQ("https://example.com/terms", meta.terms_of_service);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -841,7 +841,7 @@ TEST test_doc_parse_contact_license(void) {
       " * @license [name:Apache 2.0] [identifier:Apache-2.0]\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_STR_EQ("API Support", meta.contact_name);
@@ -851,7 +851,7 @@ TEST test_doc_parse_contact_license(void) {
   ASSERT_STR_EQ("Apache-2.0", meta.license_identifier);
   ASSERT_EQ(NULL, meta.license_url);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -868,7 +868,7 @@ TEST test_doc_parse_request_body_multi_content(void) {
       " * @requestBody [contentType:application/xml] XML body\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(2, meta.n_request_bodies);
@@ -877,7 +877,7 @@ TEST test_doc_parse_request_body_multi_content(void) {
   ASSERT_STR_EQ("application/xml", meta.request_bodies[1].content_type);
   ASSERT_STR_EQ("XML body", meta.request_bodies[1].description);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -897,7 +897,7 @@ TEST test_doc_parse_examples(void) {
       "Body\n"
       " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
   ASSERT_EQ(1, meta.n_params);
@@ -907,7 +907,7 @@ TEST test_doc_parse_examples(void) {
   ASSERT_EQ(1, meta.n_request_bodies);
   ASSERT_STR_EQ("{\"name\":\"x\"}", meta.request_bodies[0].example);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -924,7 +924,7 @@ TEST test_doc_parse_malformed_lines(void) {
                         " * @param\n"
                         " */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   /* Should succeed but parse nothing useful */
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
 
@@ -932,7 +932,7 @@ TEST test_doc_parse_malformed_lines(void) {
   /* Malformed param line is skipped, so n_params should be 0 */
   ASSERT_EQ(0, meta.n_params);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -949,7 +949,7 @@ TEST test_doc_parse_encodings(void) {
                         " * @itemEncoding [contentType: application/json]\n"
                         " */";
   struct DocMetadata meta;
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
   ASSERT_EQ(3, meta.n_encodings);
   ASSERT_STR_EQ("profileImage", meta.encodings[0].name);
@@ -966,7 +966,7 @@ TEST test_doc_parse_encodings(void) {
   ASSERT_STR_EQ("application/json", meta.encodings[2].content_type);
   ASSERT_EQ(2, meta.encodings[2].kind);
 
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
 }
@@ -980,11 +980,11 @@ TEST test_doc_parse_dupes_and_extras(void) {
   int rc = 0;
   const char comment[] = {0};
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);
   printf("rc = %d\n", rc);
   ASSERT_EQ(0, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   PASS();
 }
 
@@ -1007,11 +1007,11 @@ TEST test_doc_parse_equal_signs(void) {
       32, 32, 32, 32, 10, 32, 32, 32, 32, 32, 32, 10, 32, 32, 32, 32, 32,
       32, 10, 32, 32, 32, 32, 32, 32, 10, 32, 32, 32, 32, 32, 32, 0};
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);
   printf("test_doc_parse_equal_signs rc: %d\n", rc);
   ASSERT_EQ(0, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   PASS();
 }
 
@@ -1023,11 +1023,11 @@ TEST test_doc_parse_more_branches(void) {
   struct DocMetadata meta;
   int rc = 0;
   const char comment[] = {0};
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);
   printf("rc = %d\n", rc);
   ASSERT_EQ(0, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
   PASS();
 }
 

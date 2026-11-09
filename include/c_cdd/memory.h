@@ -34,6 +34,9 @@ extern C_CDD_EXPORT void *g_cdd_last_alloc_ptr;
 /** @brief Scratch pointer storing the result of the most recent string
  * duplication */
 extern C_CDD_EXPORT char *g_cdd_last_strdup_ptr;
+/** @brief Scratch error code storing the status of the most recent allocation
+ */
+extern C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err;
 
 #if defined(_MSC_VER)
 /** @brief Raw string duplication macro for MSVC */
@@ -101,22 +104,26 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_do_free(void *p);
 
 /** @brief Allocates sz bytes of memory with optional test fault injection */
 #define c_cdd_malloc(sz)                                                       \
-  (c_cdd_do_malloc((sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+  (g_cdd_last_alloc_err = c_cdd_do_malloc((sz), &g_cdd_last_alloc_ptr),        \
+   g_cdd_last_alloc_ptr)
 
 /** @brief Zero-allocates n elements of sz bytes with optional test fault
  * injection */
 #define c_cdd_calloc(n, sz)                                                    \
-  (c_cdd_do_calloc((n), (sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+  (g_cdd_last_alloc_err = c_cdd_do_calloc((n), (sz), &g_cdd_last_alloc_ptr),   \
+   g_cdd_last_alloc_ptr)
 
 /** @brief Reallocates pointer p to sz bytes with optional test fault injection
  */
 #define c_cdd_realloc(p, sz)                                                   \
-  (c_cdd_do_realloc((p), (sz), &g_cdd_last_alloc_ptr), g_cdd_last_alloc_ptr)
+  (g_cdd_last_alloc_err = c_cdd_do_realloc((p), (sz), &g_cdd_last_alloc_ptr),  \
+   g_cdd_last_alloc_ptr)
 
 /** @brief Duplicates null-terminated string s with optional test fault
  * injection */
 #define c_cdd_strdup_macro(s)                                                  \
-  (c_cdd_do_strdup((s), &g_cdd_last_strdup_ptr), g_cdd_last_strdup_ptr)
+  (g_cdd_last_alloc_err = c_cdd_do_strdup((s), &g_cdd_last_strdup_ptr),        \
+   g_cdd_last_strdup_ptr)
 
 /** @brief Allocates sz bytes of memory */
 #define C_CDD_MALLOC(sz) c_cdd_malloc(sz)
@@ -127,7 +134,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_do_free(void *p);
 /** @brief Duplicates null-terminated string s */
 #define C_CDD_STRDUP(s) c_cdd_strdup_macro(s)
 /** @brief Frees allocated pointer p */
-#define C_CDD_FREE(p) c_cdd_do_free(p)
+#define C_CDD_FREE(p) (g_cdd_last_alloc_err = c_cdd_do_free(p))
 
 #ifdef __cplusplus
 }

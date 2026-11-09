@@ -129,27 +129,28 @@ TEST test_client_body_exhaustive_remaining(void) {
     fclose(fp);
 
     /* Schema with all types */
-    struct_fields_init(&spec.defined_schemas[0]);
-    struct_fields_add(&spec.defined_schemas[0], "f_arr", "array", "string",
-                      NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_arr_unsupp", "array", "enum",
-                      NULL, NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_str", "string", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_int", "integer", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_num", "number", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_bool", "boolean", NULL, NULL,
-                      NULL);
-    struct_fields_add(&spec.defined_schemas[0], "f_obj", "object", "SubM", NULL,
-                      NULL);
-    c_cdd_strdup("MultiEmptyCT", &spec.defined_schema_names[0]);
+    g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_arr",
+                                             "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &spec.defined_schemas[0], "f_arr_unsupp", "array", "enum", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_str",
+                                             "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_int",
+                                             "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_num",
+                                             "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_bool",
+                                             "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_obj",
+                                             "object", "SubM", NULL, NULL);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("MultiEmptyCT", &spec.defined_schema_names[0]);
 
-    struct_fields_init(&spec.defined_schemas[1]);
-    struct_fields_add(&spec.defined_schemas[1], "id", "integer", NULL, NULL,
-                      NULL);
-    c_cdd_strdup("SubM", &spec.defined_schema_names[1]);
+    g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "id",
+                                             "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = c_cdd_strdup("SubM", &spec.defined_schema_names[1]);
     spec.n_defined_schemas = 2;
 
     /* Encodings with empty string content_type */
@@ -179,7 +180,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     op.n_req_body_media_types = 1;
 
     test_helper_run_io_multipart(&op, &spec);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* Section 7: codegen_client_write_body all remaining branches */
@@ -204,14 +205,14 @@ TEST test_client_body_exhaustive_remaining(void) {
     memset(&sch_q, 0, sizeof(sch_q));
     sch_q.type = OA_SEC_APIKEY;
     sch_q.in = OA_SEC_IN_QUERY;
-    c_cdd_strdup("sec_query", &sch_q.name);
-    c_cdd_strdup("api_key", &sch_q.key_name);
+    g_cdd_last_alloc_err = c_cdd_strdup("sec_query", &sch_q.name);
+    g_cdd_last_alloc_err = c_cdd_strdup("api_key", &sch_q.key_name);
 
     memset(&sch_c, 0, sizeof(sch_c));
     sch_c.type = OA_SEC_APIKEY;
     sch_c.in = OA_SEC_IN_COOKIE;
-    c_cdd_strdup("sec_cookie", &sch_c.name);
-    c_cdd_strdup("session_id", &sch_c.key_name);
+    g_cdd_last_alloc_err = c_cdd_strdup("sec_cookie", &sch_c.name);
+    g_cdd_last_alloc_err = c_cdd_strdup("session_id", &sch_c.key_name);
 
     spec.security_schemes =
         (struct OpenAPI_SecurityScheme *)calloc(2, sizeof(sch_q));
@@ -252,7 +253,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     op.responses = responses;
     op.n_responses = 1;
 
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     /* 7c: Inline req_body JSON array & scalar types (string, integer, number,
      * boolean, custom) */
@@ -278,7 +279,7 @@ TEST test_client_body_exhaustive_remaining(void) {
 
         op.req_body.is_array = 0;
         test_helper_run_io_client_body(&op, &spec, "/inl_sc");
-        openapi_spec_free(&spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&spec);
       }
     }
 
@@ -293,7 +294,7 @@ TEST test_client_body_exhaustive_remaining(void) {
 
     op.method = C_CDD_STR_LIT("CUSTOM");
     test_helper_run_io_client_body(&op, &spec, "/custom_method");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     /* 7e: Default response mismatch checks and def_has_inline */
     ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
@@ -368,7 +369,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     responses[1].schema.is_array = 0;
     test_helper_run_io_client_body(&op, &spec, "/def_inline_success");
 
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
   /* 7f: Form body in codegen_client_write_body */
   {
@@ -379,10 +380,11 @@ TEST test_client_body_exhaustive_remaining(void) {
     spec.defined_schemas =
         (struct StructFields *)calloc(1, sizeof(struct StructFields));
     spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
-    struct_fields_init(&spec.defined_schemas[0]);
-    struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
-                      NULL);
-    c_cdd_strdup("FormModel", &spec.defined_schema_names[0]);
+    g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+    g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "title",
+                                             "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("FormModel", &spec.defined_schema_names[0]);
     spec.n_defined_schemas = 1;
 
     memset(&f_op, 0, sizeof(f_op));
@@ -397,7 +399,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     f_op.req_body_media_types = &f_mt;
     f_op.n_req_body_media_types = 1;
     test_helper_run_io_client_body(&f_op, &spec, "/form_body");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 7g: Text plain body in codegen_client_write_body */
@@ -411,7 +413,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     txt_op.method = C_CDD_STR_LIT("post");
     txt_op.req_body.content_type = C_CDD_STR_LIT("text/plain");
     test_helper_run_io_client_body(&txt_op, &spec, "/txt_body");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 7h: No success responses (only 404), hitting line 4351 success_schema ==
@@ -430,7 +432,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     no_succ_op.responses = &no_succ_res;
     no_succ_op.n_responses = 1;
     test_helper_run_io_client_body(&no_succ_op, &spec, "/no_success");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 7i: 2XX has inline type but 200 does not, hitting line 4659 */
@@ -451,7 +453,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     r2_op.responses = r2_res;
     r2_op.n_responses = 2;
     test_helper_run_io_client_body(&r2_op, &spec, "/r2_inline");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 7j: Default response has ref_name when success has matching ref_name,
@@ -478,7 +480,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     /* Also default response array with ref_name for line 4863 */
     def_ref_res[1].schema.is_array = 1;
     test_helper_run_io_client_body(&def_ref_op, &spec, "/def_ref_arr");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
   /* Binary request body (lines 4550-4552) */
   {
@@ -491,7 +493,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     bin_op.method = C_CDD_STR_LIT("post");
     bin_op.req_body.content_type = C_CDD_STR_LIT("application/octet-stream");
     test_helper_run_io_client_body(&bin_op, &spec, "/bin_body");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* Range 2XX empty schema (line 4786) and 2XX text/plain (lines 4778-4782) */
@@ -517,7 +519,7 @@ TEST test_client_body_exhaustive_remaining(void) {
     r_resps[0].content_type = NULL;
     r_resps[0].schema.ref_name = C_CDD_STR_LIT("CommonModel");
     test_helper_run_io_client_body(&r_empty_op, &spec, "/r_ref");
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   PASS();

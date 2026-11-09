@@ -47,18 +47,18 @@ TEST test_cdd_cst_cfg_basic(void) {
 
   {
     cdd_cst_node_t *dummy_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-    cdd_cst_append_child_node(func, dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(func, dummy_node);
     rc = cdd_cst_cfg_build(func, &cfg);
     func->num_children--;
-    cdd_cst_free_node_only(dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(dummy_node);
 
     ASSERT_EQ(0, rc);
     ASSERT(cfg != NULL);
 
-    cdd_cst_cfg_free(cfg);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
     cfg = NULL;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
     PASS();
@@ -107,8 +107,8 @@ TEST test_cdd_cst_cfg_oom(void) {
     ASSERT_EQ(0, rc);
     rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
     ASSERT_EQ(0, rc);
-    cdd_cst_cfg_free(cfg2);
-    cdd_cst_tree_free(t2);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg2);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t2);
   }
   {
     /* extern C_CDD_EXPORT int g_cdd_alloc_fail; (moved to global) */
@@ -116,57 +116,60 @@ TEST test_cdd_cst_cfg_oom(void) {
     const char *ret_src = cdd_test_mut_str("int f() { return 0; }");
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
-    cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
       g_cdd_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
       if (rc == 0) {
-        cdd_cst_cfg_free(ret_cfg);
+        g_cdd_last_alloc_err = cdd_cst_cfg_free(ret_cfg);
         break;
       }
     }
     g_cdd_alloc_fail = 0;
-    cdd_cst_tree_free(ret_t);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(ret_t);
 
     {
       const char *if_src = "int f() { if(1){} else{} }";
       cdd_cst_tree_t *if_t = NULL;
       cdd_cst_cfg_t *if_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
         if (if_cfg) {
-          cdd_cst_cfg_free(if_cfg);
+          g_cdd_last_alloc_err = cdd_cst_cfg_free(if_cfg);
           if_cfg = NULL;
         }
         if (rc == CDD_C_SUCCESS)
           break;
       }
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(if_t);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(if_t);
     }
     {
       const char *if2_src = "int f() { if(1){} }";
       cdd_cst_tree_t *if2_t = NULL;
       cdd_cst_cfg_t *if2_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
         if (if2_cfg) {
-          cdd_cst_cfg_free(if2_cfg);
+          g_cdd_last_alloc_err = cdd_cst_cfg_free(if2_cfg);
           if2_cfg = NULL;
         }
         if (rc == CDD_C_SUCCESS)
           break;
       }
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(if2_t);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(if2_t);
     }
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -181,7 +184,7 @@ TEST test_cdd_cst_cfg_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_cfg_build(NULL, &cfg));
 
   /* Freeing NULL */
-  cdd_cst_cfg_free(NULL);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(NULL);
   g_fail_io_after = -1;
 
   PASS();
@@ -214,17 +217,17 @@ TEST test_cdd_cst_cfg_empty(void) {
 
   {
     cdd_cst_node_t *dummy_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-    cdd_cst_append_child_node(func, dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(func, dummy_node);
     rc = cdd_cst_cfg_build(func, &cfg);
     func->num_children--;
-    cdd_cst_free_node_only(dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(dummy_node);
     ASSERT_EQ(0, rc);
     ASSERT(cfg != NULL);
 
-    cdd_cst_cfg_free(cfg);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
     cfg = NULL;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
     PASS();
@@ -258,17 +261,17 @@ TEST test_cdd_cst_cfg_no_return(void) {
 
   {
     cdd_cst_node_t *dummy_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-    cdd_cst_append_child_node(func, dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(func, dummy_node);
     rc = cdd_cst_cfg_build(func, &cfg);
     func->num_children--;
-    cdd_cst_free_node_only(dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(dummy_node);
     ASSERT_EQ(0, rc);
     ASSERT(cfg != NULL);
 
-    cdd_cst_cfg_free(cfg);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
     cfg = NULL;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
     PASS();
@@ -311,9 +314,9 @@ TEST test_cdd_cst_cfg_extra(void) {
         if (app_rc == CDD_C_SUCCESS) {
           func->num_children--;
         }
-        cdd_cst_free_node_only(dummy_node);
+        g_cdd_last_alloc_err = cdd_cst_free_node_only(dummy_node);
         if (rc == 0) {
-          cdd_cst_cfg_free(cfg);
+          g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
           cfg = NULL;
           break;
         }
@@ -335,8 +338,8 @@ TEST test_cdd_cst_cfg_extra(void) {
     ASSERT_EQ(0, rc);
     rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
     ASSERT_EQ(0, rc);
-    cdd_cst_cfg_free(cfg2);
-    cdd_cst_tree_free(t2);
+    g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg2);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t2);
   }
   {
     /* extern C_CDD_EXPORT int g_cdd_alloc_fail; (moved to global) */
@@ -344,57 +347,60 @@ TEST test_cdd_cst_cfg_extra(void) {
     const char *ret_src = cdd_test_mut_str("int f() { return 0; }");
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
-    cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
       g_cdd_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
       if (rc == 0) {
-        cdd_cst_cfg_free(ret_cfg);
+        g_cdd_last_alloc_err = cdd_cst_cfg_free(ret_cfg);
         break;
       }
     }
     g_cdd_alloc_fail = 0;
-    cdd_cst_tree_free(ret_t);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(ret_t);
 
     {
       const char *if_src = "int f() { if(1){} else{} }";
       cdd_cst_tree_t *if_t = NULL;
       cdd_cst_cfg_t *if_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(if_src), &if_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if_t->root->children[0].val.node, &if_cfg);
         if (if_cfg) {
-          cdd_cst_cfg_free(if_cfg);
+          g_cdd_last_alloc_err = cdd_cst_cfg_free(if_cfg);
           if_cfg = NULL;
         }
         if (rc == CDD_C_SUCCESS)
           break;
       }
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(if_t);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(if_t);
     }
     {
       const char *if2_src = "int f() { if(1){} }";
       cdd_cst_tree_t *if2_t = NULL;
       cdd_cst_cfg_t *if2_cfg = NULL;
-      cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(if2_src), &if2_t);
       for (i = 1; i < 150; ++i) {
         g_cdd_alloc_fail = i;
         rc = cdd_cst_cfg_build(if2_t->root->children[0].val.node, &if2_cfg);
         if (if2_cfg) {
-          cdd_cst_cfg_free(if2_cfg);
+          g_cdd_last_alloc_err = cdd_cst_cfg_free(if2_cfg);
           if2_cfg = NULL;
         }
         if (rc == CDD_C_SUCCESS)
           break;
       }
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(if2_t);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(if2_t);
     }
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -418,28 +424,28 @@ TEST test_cdd_cst_cfg_if_else(void) {
   child_tok.kind = CDD_CST_CHILD_TOKEN;
   child_tok.val.token = &ret_tok;
 
-  cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
-  cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &then_stmt);
 
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &else_stmt);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &extra_stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &else_stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &extra_stmt);
 
   then_stmt->num_children = 1;
   then_stmt->children = &child_tok;
   else_stmt->num_children = 1;
   else_stmt->children = &child_tok;
 
-  cdd_cst_append_child_node(func, blk);
-  cdd_cst_append_child_node(blk, stmt);
-  cdd_cst_append_child_node(stmt, then_stmt);
-  cdd_cst_append_child_node(stmt, else_stmt);
-  cdd_cst_append_child_node(stmt, extra_stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(func, blk);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(blk, stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, else_stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, extra_stmt);
 
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  cdd_cst_cfg_free(cfg);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
   cfg = NULL;
 
 #ifdef CDD_BUILD_TESTS
@@ -449,7 +455,7 @@ TEST test_cdd_cst_cfg_if_else(void) {
       g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
-        cdd_cst_cfg_free(cfg);
+        g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
         cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
@@ -462,7 +468,7 @@ TEST test_cdd_cst_cfg_if_else(void) {
   then_stmt->children = NULL;
   else_stmt->num_children = 0;
   else_stmt->children = NULL;
-  cdd_cst_free_node(func);
+  g_cdd_last_alloc_err = cdd_cst_free_node(func);
 
   PASS();
 }
@@ -475,16 +481,16 @@ TEST test_cdd_cst_cfg_if_only(void) {
   cdd_c_error_t rc;
   cdd_cst_cfg_t *cfg = NULL;
   cdd_cst_node_t *func = NULL, *blk = NULL, *stmt = NULL, *then_stmt = NULL;
-  cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
-  cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &then_stmt);
-  cdd_cst_append_child_node(func, blk);
-  cdd_cst_append_child_node(blk, stmt);
-  cdd_cst_append_child_node(stmt, then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(func, blk);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(blk, stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, then_stmt);
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  cdd_cst_cfg_free(cfg);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
   cfg = NULL;
 
 #ifdef CDD_BUILD_TESTS
@@ -494,7 +500,7 @@ TEST test_cdd_cst_cfg_if_only(void) {
       g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
-        cdd_cst_cfg_free(cfg);
+        g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
         cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
@@ -503,7 +509,7 @@ TEST test_cdd_cst_cfg_if_only(void) {
     g_cdd_alloc_fail = 0;
   }
 #endif
-  cdd_cst_free_node(func);
+  g_cdd_last_alloc_err = cdd_cst_free_node(func);
 
   PASS();
 }
@@ -526,9 +532,9 @@ TEST test_cdd_cst_cfg_dead_code(void) {
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  cdd_cst_cfg_free(cfg);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
   cfg = NULL;
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   PASS();
 }
@@ -561,7 +567,7 @@ TEST test_cdd_cst_cfg_if_returns(void) {
   ASSERT_EQ(0, rc);
   ASSERT(cfg != NULL);
 
-  cdd_cst_cfg_free(cfg);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
   cfg = NULL;
 
 #ifdef CDD_BUILD_TESTS
@@ -571,7 +577,7 @@ TEST test_cdd_cst_cfg_if_returns(void) {
       g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
-        cdd_cst_cfg_free(cfg);
+        g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
         cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
@@ -580,7 +586,7 @@ TEST test_cdd_cst_cfg_if_returns(void) {
     g_cdd_alloc_fail = 0;
   }
 #endif
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -598,26 +604,26 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
   memset(&ret_tok, 0, sizeof(ret_tok));
   ret_tok.kind = CDD_TOKEN_KEYWORD_RETURN;
 
-  cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
-  cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &then_stmt);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &else_stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &else_stmt);
 
-  cdd_cst_append_child_token(then_stmt, &ret_tok);
-  cdd_cst_append_child_token(else_stmt, &ret_tok);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(then_stmt, &ret_tok);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(else_stmt, &ret_tok);
 
-  cdd_cst_append_child_node(stmt, then_stmt);
-  cdd_cst_append_child_node(stmt, else_stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, else_stmt);
 
-  cdd_cst_append_child_node(func, blk);
-  cdd_cst_append_child_node(blk, stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(func, blk);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(blk, stmt);
 
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(0, rc);
   ASSERT(cfg != NULL);
 
-  cdd_cst_cfg_free(cfg);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
   cfg = NULL;
 
 #ifdef CDD_BUILD_TESTS
@@ -627,7 +633,7 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
       g_cdd_alloc_fail = j;
       rc = cdd_cst_cfg_build(func, &cfg);
       if (cfg) {
-        cdd_cst_cfg_free(cfg);
+        g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
         cfg = NULL;
       }
       if (rc == CDD_C_SUCCESS)
@@ -636,11 +642,11 @@ TEST test_cdd_cst_cfg_if_returns_manual(void) {
     g_cdd_alloc_fail = 0;
   }
 #endif
-  cdd_cst_free_node_only(stmt);
-  cdd_cst_free_node_only(then_stmt);
-  cdd_cst_free_node_only(else_stmt);
-  cdd_cst_free_node_only(blk);
-  cdd_cst_free_node_only(func);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(stmt);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(then_stmt);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(else_stmt);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(blk);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(func);
   PASS();
 }
 
@@ -658,25 +664,25 @@ TEST test_cdd_cst_cfg_loop(void) {
   memset(&for_tok, 0, sizeof(for_tok));
   for_tok.kind = CDD_TOKEN_KEYWORD_GOTO;
 
-  cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
-  cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &cond);
-  cdd_cst_alloc_node(CDD_CST_BLOCK, &body);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_BLOCK, &blk);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &stmt);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &cond);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_BLOCK, &body);
 
-  cdd_cst_append_child_node(func, blk);
-  cdd_cst_append_child_node(blk, stmt);
-  cdd_cst_append_child_token(stmt, &for_tok);
-  cdd_cst_append_child_node(stmt, cond);
-  cdd_cst_append_child_node(stmt, body);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(func, blk);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(blk, stmt);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(stmt, &for_tok);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, cond);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(stmt, body);
 
   rc = cdd_cst_cfg_build(func, &cfg);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  cdd_cst_cfg_free(cfg);
+  g_cdd_last_alloc_err = cdd_cst_cfg_free(cfg);
   cfg = NULL;
 
-  cdd_cst_free_node(func);
+  g_cdd_last_alloc_err = cdd_cst_free_node(func);
   PASS();
 }
 

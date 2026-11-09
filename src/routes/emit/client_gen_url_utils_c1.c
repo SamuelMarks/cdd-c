@@ -25,8 +25,8 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
   if (uc) {
     cdd_c_error_t rc = CDD_C_SUCCESS;
     cdd_code_writer_t w;
-    cdd_code_writer_init_stream(&w, uc);
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_init_stream(&w, uc);
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "/**\n"
             " * @file url.c\n"
             " * @brief Implementation of RFC 3986 URL encoding and Query "
@@ -44,7 +44,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "#include <string.h>\n"
             "\n"
             "#include \"url_utils.h\"\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "#ifndef C_CDD_LOG_DEBUG\n#define C_CDD_LOG_DEBUG(fmt) "
             "(void)0\n#endif\n"
             "static void c_cdd_strdup(const char *s, char **out) { "
@@ -57,7 +57,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "#define sprintf_s_chk(buf, size, fmt, arg) sprintf_s(buf, size, "
             "fmt, arg)\n"
             "#else\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "#if defined(_MSC_VER)\n#define CDD_SNPRINTF _snprintf\n#else\n"
             "#define CDD_SNPRINTF snprintf\n#endif\n"
             "#define sprintf_s_chk(buf, size, fmt, arg) CDD_SNPRINTF(buf, "
@@ -74,7 +74,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "static cdd_c_error_t is_unreserved(unsigned char c) {\n"
             "  if (isalnum(c))\n"
             "    return CDD_C_ERROR_UNKNOWN;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  if (c == '-' || c == '.' || c == '_' || c == '~')\n"
             "    return CDD_C_ERROR_UNKNOWN;\n"
             "  return CDD_C_SUCCESS;\n"
@@ -93,29 +93,30 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "  case '[':\n"
             "  case ']':\n"
             "  case '@':\n");
-    cdd_code_writer_write(&w, "  case '!':\n"
-                              "  case '$':\n"
-                              "  case '&':\n"
-                              "  case '\\'':\n"
-                              "  case '(':\n"
-                              "  case ')':\n"
-                              "  case '*':\n"
-                              "  case '+':\n"
-                              "  case ',':\n"
-                              "  case ';':\n"
-                              "  case '=':\n"
-                              "    return CDD_C_ERROR_UNKNOWN;\n"
-                              "  default:\n"
-                              "    return CDD_C_SUCCESS;\n"
-                              "  }\n"
-                              "}\n"
-                              "\n"
-                              "static cdd_c_error_t is_hex(unsigned char c) {\n"
-                              "  return isxdigit(c) ? 1 : 0;\n"
-                              "}\n"
-                              "\n"
-                              "static cdd_c_error_t\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "  case '!':\n"
+            "  case '$':\n"
+            "  case '&':\n"
+            "  case '\\'':\n"
+            "  case '(':\n"
+            "  case ')':\n"
+            "  case '*':\n"
+            "  case '+':\n"
+            "  case ',':\n"
+            "  case ';':\n"
+            "  case '=':\n"
+            "    return CDD_C_ERROR_UNKNOWN;\n"
+            "  default:\n"
+            "    return CDD_C_SUCCESS;\n"
+            "  }\n"
+            "}\n"
+            "\n"
+            "static cdd_c_error_t is_hex(unsigned char c) {\n"
+            "  return isxdigit(c) ? 1 : 0;\n"
+            "}\n"
+            "\n"
+            "static cdd_c_error_t\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    is_pct_encoded(const char *p) {\n"
             "  if (!p)\n"
             "    return CDD_C_SUCCESS;\n"
@@ -129,7 +130,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "static cdd_c_error_t to_hex(char code, char *_out_val) {\n"
             "  static const char hex[] = \"0123456789ABCDEF\";\n"
             "  {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    *_out_val = hex[code & 15];\n"
             "    return CDD_C_SUCCESS;\n"
             "  }\n"
@@ -147,7 +148,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             " * @brief Percent-encodes a string according to RFC 3986 "
             "unreserved character rules.\n"
             " */\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "cdd_c_error_t url_encode(const char *str, char **_out_val) {\n"
             "  char hex_hi;\n"
             "  char hex_lo;\n"
@@ -163,25 +164,26 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "\n"
             "  /* Pass 1: Calculate required length */\n"
             "  for (p = str; *p; p++) {\n");
-    cdd_code_writer_write(&w, "    if (is_unreserved((unsigned char)*p)) {\n"
-                              "      needed_len++;\n"
-                              "    } else {\n"
-                              "      needed_len += 3; /* %HH */\n"
-                              "    }\n"
-                              "  }\n"
-                              "\n"
-                              "  /* Alloc */\n"
-                              "  enc = (char *)malloc(needed_len + 1);\n"
-                              "  if (!enc) {\n"
-                              "    *_out_val = NULL;\n"
-                              "    return CDD_C_ERROR_MEMORY;\n"
-                              "  }\n"
-                              "\n"
-                              "  /* Pass 2: Encode */\n"
-                              "  e = enc;\n"
-                              "  for (p = str; *p; p++) {\n"
-                              "    unsigned char c = (unsigned char)*p;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "    if (is_unreserved((unsigned char)*p)) {\n"
+            "      needed_len++;\n"
+            "    } else {\n"
+            "      needed_len += 3; /* %HH */\n"
+            "    }\n"
+            "  }\n"
+            "\n"
+            "  /* Alloc */\n"
+            "  enc = (char *)malloc(needed_len + 1);\n"
+            "  if (!enc) {\n"
+            "    *_out_val = NULL;\n"
+            "    return CDD_C_ERROR_MEMORY;\n"
+            "  }\n"
+            "\n"
+            "  /* Pass 2: Encode */\n"
+            "  e = enc;\n"
+            "  for (p = str; *p; p++) {\n"
+            "    unsigned char c = (unsigned char)*p;\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    if (is_unreserved(c)) {\n"
             "      *e++ = *p;\n"
             "    } else {\n"
@@ -199,7 +201,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "}\n"
             "\n"
             "/**\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, " * @brief Percent-encodes a string while preserving RFC 3986 "
             "reserved characters and %HH triples.\n"
             " */\n"
@@ -217,7 +219,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "    return CDD_C_SUCCESS;\n"
             "  }\n"
             "\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  /* Pass 1: Calculate required length */\n"
             "  for (p = str; *p; p++) {\n"
             "    if (*p == '%' && is_pct_encoded(p)) {\n"
@@ -233,24 +235,24 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "    }\n"
             "  }\n"
             "\n");
-    cdd_code_writer_write(&w,
-                          "  enc = (char *)malloc(needed_len + 1);\n"
-                          "  if (!enc) {\n"
-                          "    *_out_val = NULL;\n"
-                          "    return CDD_C_ERROR_MEMORY;\n"
-                          "  }\n"
-                          "\n"
-                          "  e = enc;\n"
-                          "  for (p = str; *p; p++) {\n"
-                          "    unsigned char c = (unsigned char)*p;\n"
-                          "    if (*p == '%' && is_pct_encoded(p)) {\n"
-                          "      *e++ = *p++;\n"
-                          "      *e++ = *p++;\n"
-                          "      *e++ = *p;\n"
-                          "      continue;\n"
-                          "    }\n"
-                          "    if (is_unreserved(c) || is_reserved(c)) {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "  enc = (char *)malloc(needed_len + 1);\n"
+            "  if (!enc) {\n"
+            "    *_out_val = NULL;\n"
+            "    return CDD_C_ERROR_MEMORY;\n"
+            "  }\n"
+            "\n"
+            "  e = enc;\n"
+            "  for (p = str; *p; p++) {\n"
+            "    unsigned char c = (unsigned char)*p;\n"
+            "    if (*p == '%' && is_pct_encoded(p)) {\n"
+            "      *e++ = *p++;\n"
+            "      *e++ = *p++;\n"
+            "      *e++ = *p;\n"
+            "      continue;\n"
+            "    }\n"
+            "    if (is_unreserved(c) || is_reserved(c)) {\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      *e++ = *p;\n"
             "    } else {\n"
             "      *e++ = '%';\n"
@@ -269,7 +271,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             " * @brief Percent-encodes a string for "
             "application/x-www-form-urlencoded (spaces as +).\n"
             " */\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "cdd_c_error_t url_encode_form(const char *str, char **_out_val) "
             "{\n"
             "  char hex_hi;\n"
@@ -287,25 +289,26 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "  for (p = str; *p; p++) {\n"
             "    unsigned char c = (unsigned char)*p;\n"
             "    if (c == ' ') {\n");
-    cdd_code_writer_write(&w, "      needed_len++;\n"
-                              "    } else if (is_unreserved_form(c)) {\n"
-                              "      needed_len++;\n"
-                              "    } else {\n"
-                              "      needed_len += 3;\n"
-                              "    }\n"
-                              "  }\n"
-                              "\n"
-                              "  enc = (char *)malloc(needed_len + 1);\n"
-                              "  if (!enc) {\n"
-                              "    *_out_val = NULL;\n"
-                              "    return CDD_C_ERROR_MEMORY;\n"
-                              "  }\n"
-                              "\n"
-                              "  e = enc;\n"
-                              "  for (p = str; *p; p++) {\n"
-                              "    unsigned char c = (unsigned char)*p;\n"
-                              "    if (c == ' ') {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "      needed_len++;\n"
+                                  "    } else if (is_unreserved_form(c)) {\n"
+                                  "      needed_len++;\n"
+                                  "    } else {\n"
+                                  "      needed_len += 3;\n"
+                                  "    }\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  enc = (char *)malloc(needed_len + 1);\n"
+                                  "  if (!enc) {\n"
+                                  "    *_out_val = NULL;\n"
+                                  "    return CDD_C_ERROR_MEMORY;\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  e = enc;\n"
+                                  "  for (p = str; *p; p++) {\n"
+                                  "    unsigned char c = (unsigned char)*p;\n"
+                                  "    if (c == ' ') {\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      *e++ = '+';\n"
             "    } else if (is_unreserved_form(c)) {\n"
             "      *e++ = *p;\n"
@@ -323,7 +326,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "}\n"
             "\n"
             "/**\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, " * @brief Form-encodes a string while preserving non-delimiter "
             "reserved characters.\n"
             " */\n"
@@ -339,7 +342,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "\n"
             "  if (!str) {\n"
             "    *_out_val = NULL;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    return CDD_C_SUCCESS;\n"
             "  }\n"
             "\n"
@@ -354,26 +357,27 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "      if (c == '&' || c == '=' || c == '+') {\n"
             "        needed_len += 3;\n"
             "      } else {\n");
-    cdd_code_writer_write(&w, "        needed_len++;\n"
-                              "      }\n"
-                              "    } else {\n"
-                              "      needed_len += 3;\n"
-                              "    }\n"
-                              "  }\n"
-                              "\n"
-                              "  enc = (char *)malloc(needed_len + 1);\n"
-                              "  if (!enc) {\n"
-                              "    *_out_val = NULL;\n"
-                              "    return CDD_C_ERROR_MEMORY;\n"
-                              "  }\n"
-                              "\n"
-                              "  e = enc;\n"
-                              "  for (p = str; *p; p++) {\n"
-                              "    unsigned char c = (unsigned char)*p;\n"
-                              "    if (c == ' ') {\n"
-                              "      *e++ = '+';\n"
-                              "    } else if (is_pct_encoded(p)) {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "        needed_len++;\n"
+                                  "      }\n"
+                                  "    } else {\n"
+                                  "      needed_len += 3;\n"
+                                  "    }\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  enc = (char *)malloc(needed_len + 1);\n"
+                                  "  if (!enc) {\n"
+                                  "    *_out_val = NULL;\n"
+                                  "    return CDD_C_ERROR_MEMORY;\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  e = enc;\n"
+                                  "  for (p = str; *p; p++) {\n"
+                                  "    unsigned char c = (unsigned char)*p;\n"
+                                  "    if (c == ' ') {\n"
+                                  "      *e++ = '+';\n"
+                                  "    } else if (is_pct_encoded(p)) {\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      *e++ = *p++;\n"
             "      *e++ = *p++;\n"
             "      *e++ = *p;\n"
@@ -386,7 +390,7 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             "        *e++ = *p;\n"
             "      }\n"
             "    } else {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      *e++ = '%';\n"
             "      to_hex((char)(c >> 4), &hex_hi); *e++ = hex_hi;\n"
             "      to_hex((char)(c & 15), &hex_lo); *e++ = hex_lo;\n"
@@ -403,16 +407,17 @@ cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc) {
             " * @brief Initializes a UrlQueryParams container to empty state.\n"
             " */\n"
             "cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {\n");
-    cdd_code_writer_write(&w, "  if (!qp)\n"
-                              "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-                              "  qp->params = NULL;\n"
-                              "  qp->count = 0;\n"
-                              "  qp->capacity = 0;\n"
-                              "  return CDD_C_SUCCESS;\n"
-                              "}\n"
-                              "\n");
-    cdd_code_writer_check_error(&w, &rc);
-    cdd_code_writer_free(&w);
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "  if (!qp)\n"
+                                  "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                                  "  qp->params = NULL;\n"
+                                  "  qp->count = 0;\n"
+                                  "  qp->capacity = 0;\n"
+                                  "  return CDD_C_SUCCESS;\n"
+                                  "}\n"
+                                  "\n");
+    g_cdd_last_alloc_err = cdd_code_writer_check_error(&w, &rc);
+    g_cdd_last_alloc_err = cdd_code_writer_free(&w);
     return rc;
   }
   return CDD_C_SUCCESS;

@@ -142,28 +142,29 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
           rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (rc != CDD_C_SUCCESS)
             return rc;
-          cdd_cst_builder_init(&bld, tree, temp);
-          cdd_pool_string_safe_len(
+          g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, temp);
+          g_cdd_last_alloc_err = cdd_pool_string_safe_len(
               tree, (const char *)cleanups[num_cleanups - 1].func_name,
               cleanups[num_cleanups - 1].func_length, &pooled_fn);
-          cdd_cst_bld_ident(&bld, pooled_fn);
-          cdd_cst_bld_punct(&bld, "(");
-          cdd_cst_bld_punct(&bld, "&");
-          cdd_pool_string_safe_len(
+          g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_fn);
+          g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+          g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "&");
+          g_cdd_last_alloc_err = cdd_pool_string_safe_len(
               tree, (const char *)cleanups[num_cleanups - 1].var_name,
               cleanups[num_cleanups - 1].var_length, &pooled_var);
-          cdd_cst_bld_ident(&bld, pooled_var);
-          cdd_cst_bld_punct(&bld, ")");
-          cdd_cst_bld_punct(&bld, ";");
+          g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_var);
+          g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+          g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ";");
           if (bld.error_state != 0) {
-            cdd_cst_builder_free(&bld);
-            cdd_cst_free_node_only(temp);
+            g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+            g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
             return CDD_C_ERROR_MEMORY;
           }
-          cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                  temp->children, temp->num_children);
-          cdd_cst_builder_free(&bld);
-          cdd_cst_free_node_only(temp);
+          g_cdd_last_alloc_err =
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                      temp->children, temp->num_children);
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+          g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
           num_cleanups--;
           appended = 1;
         }
@@ -176,24 +177,25 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
             rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            cdd_cst_builder_init(&bld, tree, temp);
-            cdd_cst_bld_ident(&bld, "free");
-            cdd_cst_bld_punct(&bld, "(");
-            cdd_pool_string_safe_len(tree,
-                                     (const char *)vlas[num_vlas - 1].name,
-                                     vlas[num_vlas - 1].length, &pooled_vla);
-            cdd_cst_bld_ident(&bld, pooled_vla);
-            cdd_cst_bld_punct(&bld, ")");
-            cdd_cst_bld_punct(&bld, ";");
+            g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, temp);
+            g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "free");
+            g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+            g_cdd_last_alloc_err = cdd_pool_string_safe_len(
+                tree, (const char *)vlas[num_vlas - 1].name,
+                vlas[num_vlas - 1].length, &pooled_vla);
+            g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_vla);
+            g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+            g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ";");
             if (bld.error_state != 0) {
-              cdd_cst_builder_free(&bld);
-              cdd_cst_free_node_only(temp);
+              g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+              g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
               return CDD_C_ERROR_MEMORY;
             }
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                    temp->children, temp->num_children);
-            cdd_cst_builder_free(&bld);
-            cdd_cst_free_node_only(temp);
+            g_cdd_last_alloc_err =
+                cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                        temp->children, temp->num_children);
+            g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+            g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
             num_vlas--;
             appended = 1;
           }
@@ -507,40 +509,43 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
                   rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
                   if (rc != CDD_C_SUCCESS)
                     return rc;
-                  cdd_cst_builder_init(&bld, tree, temp);
-                  cdd_cst_bld_punct(&bld, "*");
-                  cdd_pool_string_safe_len(tree, (const char *)prev->start,
-                                           prev->length, &pooled_prev1);
-                  cdd_cst_bld_ident(&bld, pooled_prev1);
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_punct(&bld, "=");
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_ident(&bld, "malloc");
-                  cdd_cst_bld_punct(&bld, "(");
-                  cdd_cst_bld_punct(&bld, "(");
-                  cdd_cst_bld_snippet(&bld, size_expr);
-                  cdd_cst_bld_punct(&bld, ")");
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_punct(&bld, "*");
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_ident(&bld, "sizeof");
-                  cdd_cst_bld_punct(&bld, "(");
-                  cdd_cst_bld_punct(&bld, "*");
-                  cdd_pool_string_safe_len(tree, (const char *)prev->start,
-                                           prev->length, &pooled_prev2);
-                  cdd_cst_bld_ident(&bld, pooled_prev2);
-                  cdd_cst_bld_punct(&bld, ")");
-                  cdd_cst_bld_punct(&bld, ")");
-                  cdd_cst_bld_punct(&bld, ";");
+                  g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, temp);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "*");
+                  g_cdd_last_alloc_err =
+                      cdd_pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length, &pooled_prev1);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_prev1);
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "=");
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "malloc");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+                  g_cdd_last_alloc_err = cdd_cst_bld_snippet(&bld, size_expr);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "*");
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "sizeof");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "*");
+                  g_cdd_last_alloc_err =
+                      cdd_pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length, &pooled_prev2);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_prev2);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ";");
                   if (bld.error_state != 0) {
-                    cdd_cst_builder_free(&bld);
-                    cdd_cst_free_node_only(temp);
+                    g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+                    g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
                     return CDD_C_ERROR_MEMORY;
                   }
-                  cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                          temp->children, temp->num_children);
-                  cdd_cst_builder_free(&bld);
-                  cdd_cst_free_node_only(temp);
+                  g_cdd_last_alloc_err = cdd_cst_splice_children(
+                      tree, &owning_node, child_idx, 0, temp->children,
+                      temp->num_children);
+                  g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
                 }
               }
               if (num_vlas < MAX_VLAS) {
@@ -570,40 +575,43 @@ cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,
                   rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
                   if (rc != CDD_C_SUCCESS)
                     return rc;
-                  cdd_cst_builder_init(&bld, tree, temp);
-                  cdd_cst_bld_punct(&bld, "*");
-                  cdd_pool_string_safe_len(tree, (const char *)prev->start,
-                                           prev->length, &pooled_prev1);
-                  cdd_cst_bld_ident(&bld, pooled_prev1);
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_punct(&bld, "=");
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_ident(&bld, "alloca");
-                  cdd_cst_bld_punct(&bld, "(");
-                  cdd_cst_bld_punct(&bld, "(");
-                  cdd_cst_bld_snippet(&bld, size_expr);
-                  cdd_cst_bld_punct(&bld, ")");
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_punct(&bld, "*");
-                  cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_ident(&bld, "sizeof");
-                  cdd_cst_bld_punct(&bld, "(");
-                  cdd_cst_bld_punct(&bld, "*");
-                  cdd_pool_string_safe_len(tree, (const char *)prev->start,
-                                           prev->length, &pooled_prev2);
-                  cdd_cst_bld_ident(&bld, pooled_prev2);
-                  cdd_cst_bld_punct(&bld, ")");
-                  cdd_cst_bld_punct(&bld, ")");
-                  cdd_cst_bld_punct(&bld, ";");
+                  g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, temp);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "*");
+                  g_cdd_last_alloc_err =
+                      cdd_pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length, &pooled_prev1);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_prev1);
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "=");
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "alloca");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+                  g_cdd_last_alloc_err = cdd_cst_bld_snippet(&bld, size_expr);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "*");
+                  g_cdd_last_alloc_err = cdd_cst_bld_space(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, "sizeof");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "(");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, "*");
+                  g_cdd_last_alloc_err =
+                      cdd_pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length, &pooled_prev2);
+                  g_cdd_last_alloc_err = cdd_cst_bld_ident(&bld, pooled_prev2);
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ")");
+                  g_cdd_last_alloc_err = cdd_cst_bld_punct(&bld, ";");
                   if (bld.error_state != 0) {
-                    cdd_cst_builder_free(&bld);
-                    cdd_cst_free_node_only(temp);
+                    g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+                    g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
                     return CDD_C_ERROR_MEMORY;
                   }
-                  cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                          temp->children, temp->num_children);
-                  cdd_cst_builder_free(&bld);
-                  cdd_cst_free_node_only(temp);
+                  g_cdd_last_alloc_err = cdd_cst_splice_children(
+                      tree, &owning_node, child_idx, 0, temp->children,
+                      temp->num_children);
+                  g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+                  g_cdd_last_alloc_err = cdd_cst_free_node_only(temp);
                 }
                 rc = replace_token_with_text(tree, prev, prev->kind, "", 0);
                 if (rc != CDD_C_SUCCESS)

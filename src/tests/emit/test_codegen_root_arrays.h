@@ -143,8 +143,9 @@ static cdd_c_error_t generate_ra_code(
  */
 TEST test_root_int_array_from_json(void) {
   char *_ast_generate_ra_code_0 = NULL;
-  char *code = (generate_ra_code(write_root_array_from_json_func, "IntList",
-                                 "integer", NULL, &_ast_generate_ra_code_0),
+  char *code = (g_cdd_last_alloc_err =
+                    generate_ra_code(write_root_array_from_json_func, "IntList",
+                                     "integer", NULL, &_ast_generate_ra_code_0),
                 _ast_generate_ra_code_0);
   ASSERT(code);
   /* Check signature */
@@ -165,8 +166,9 @@ TEST test_root_int_array_from_json(void) {
  */
 TEST test_root_string_array_from_json(void) {
   char *_ast_generate_ra_code_1 = NULL;
-  char *code = (generate_ra_code(write_root_array_from_json_func, "StrList",
-                                 "string", NULL, &_ast_generate_ra_code_1),
+  char *code = (g_cdd_last_alloc_err =
+                    generate_ra_code(write_root_array_from_json_func, "StrList",
+                                     "string", NULL, &_ast_generate_ra_code_1),
                 _ast_generate_ra_code_1);
   ASSERT(code);
   /* Signature: char ***out */
@@ -189,8 +191,9 @@ TEST test_root_string_array_from_json(void) {
 TEST test_root_obj_array_from_json(void) {
   char *_ast_generate_ra_code_2 = NULL;
   /* Array of objects references "MyObj" */
-  char *code = (generate_ra_code(write_root_array_from_json_func, "ObjList",
-                                 "object", "MyObj", &_ast_generate_ra_code_2),
+  char *code = (g_cdd_last_alloc_err = generate_ra_code(
+                    write_root_array_from_json_func, "ObjList", "object",
+                    "MyObj", &_ast_generate_ra_code_2),
                 _ast_generate_ra_code_2);
   ASSERT(code);
   /* Signature: struct MyObj ***out */
@@ -212,8 +215,9 @@ TEST test_root_obj_array_from_json(void) {
  */
 TEST test_root_int_array_to_json(void) {
   char *_ast_generate_ra_code_3 = NULL;
-  char *code = (generate_ra_code(write_root_array_to_json_func, "IntList",
-                                 "integer", NULL, &_ast_generate_ra_code_3),
+  char *code = (g_cdd_last_alloc_err =
+                    generate_ra_code(write_root_array_to_json_func, "IntList",
+                                     "integer", NULL, &_ast_generate_ra_code_3),
                 _ast_generate_ra_code_3);
   ASSERT(code);
   ASSERT(strstr(code, "cdd_c_error_t IntList_to_json(const int *in, size_t "
@@ -231,8 +235,9 @@ TEST test_root_int_array_to_json(void) {
  */
 TEST test_root_obj_array_to_json(void) {
   char *_ast_generate_ra_code_4 = NULL;
-  char *code = (generate_ra_code(write_root_array_to_json_func, "ObjList",
-                                 "object", "MyObj", &_ast_generate_ra_code_4),
+  char *code = (g_cdd_last_alloc_err = generate_ra_code(
+                    write_root_array_to_json_func, "ObjList", "object", "MyObj",
+                    &_ast_generate_ra_code_4),
                 _ast_generate_ra_code_4);
   ASSERT(code);
   ASSERT(strstr(code,
@@ -252,8 +257,9 @@ TEST test_root_array_cleanup(void) {
   char *_ast_generate_ra_code_5 = NULL;
   char *_ast_generate_ra_code_6 = NULL;
   /* String cleanup */
-  char *code = (generate_ra_code(write_root_array_cleanup_func, "StrList",
-                                 "string", NULL, &_ast_generate_ra_code_5),
+  char *code = (g_cdd_last_alloc_err =
+                    generate_ra_code(write_root_array_cleanup_func, "StrList",
+                                     "string", NULL, &_ast_generate_ra_code_5),
                 _ast_generate_ra_code_5);
   ASSERT(code);
   ASSERT(strstr(code, "cdd_c_error_t StrList_cleanup(char **in, size_t len)"));
@@ -262,8 +268,9 @@ TEST test_root_array_cleanup(void) {
   free(code);
 
   /* Int cleanup (simple free) */
-  code = (generate_ra_code(write_root_array_cleanup_func, "IntList", "integer",
-                           NULL, &_ast_generate_ra_code_6),
+  code = (g_cdd_last_alloc_err =
+              generate_ra_code(write_root_array_cleanup_func, "IntList",
+                               "integer", NULL, &_ast_generate_ra_code_6),
           _ast_generate_ra_code_6);
   ASSERT(code);
   ASSERT(strstr(code, "free(in)"));

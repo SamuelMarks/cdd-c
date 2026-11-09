@@ -72,7 +72,7 @@ TEST test_cdd_transform_gnu(void) {
   ASSERT(strstr(out, "char _pad;") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -95,7 +95,7 @@ TEST test_gnu_standardizer_stmt_expr(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "int a =  int b = 1; b;") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -116,7 +116,7 @@ TEST test_gnu_standardizer_computed_goto(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "goto *ptr;") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -139,7 +139,7 @@ TEST test_gnu_standardizer_case_ranges(void) {
   ASSERT(strstr(out, "case 1: case 2: case 3: case 4: case 5") != NULL);
   ASSERT(strstr(out, "case -5: case -4: case -3: case -2: case -1") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -160,7 +160,7 @@ TEST test_gnu_standardizer_range_init(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "[2] = 1, [3] = 1, [4] = 1, [5] = 1") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -196,7 +196,7 @@ TEST test_gnu_standardizer_local_labels(void) {
   ASSERT(strstr(out, "__cdd_ll_other_label_2") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -234,7 +234,7 @@ TEST test_gnu_standardizer_vla_malloc(void) {
   }
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -262,7 +262,7 @@ TEST test_gnu_standardizer_vla_multidim(void) {
   ASSERT(strstr(out, "free(arr)") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -284,7 +284,7 @@ TEST test_gnu_standardizer_trailing_comma(void) {
   ASSERT(strstr(out, "A, B, C  }") != NULL || strstr(out, "A, B, C }") != NULL);
   ASSERT(strstr(out, "1, 2, 3  }") != NULL || strstr(out, "1, 2, 3 }") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -307,7 +307,7 @@ TEST test_gnu_standardizer_zero_length_array(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "int data[1];") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -330,7 +330,7 @@ TEST test_gnu_standardizer_empty_initializer(void) {
   ASSERT(strstr(out, "0 } }") != NULL || strstr(out, "0} }") != NULL ||
          strstr(out, "0 }") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -362,7 +362,7 @@ TEST test_gnu_standardizer_128_bit_literals(void) {
       NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -385,7 +385,7 @@ TEST test_gnu_standardizer_vla_params(void) {
   ASSERT(strstr(out, "void func(int n, int arr[])") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -407,7 +407,7 @@ TEST test_gnu_standardizer_return_void_expr(void) {
   ASSERT(strstr(out, "(void)0; return;") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -433,7 +433,7 @@ TEST test_gnu_standardizer_overlapping_case_ranges(void) {
   ASSERT(strstr(out, "case 4: case 5: case 6: case 7: case 8") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -459,7 +459,7 @@ TEST test_gnu_standardizer_empty_fallthrough_block(void) {
       strstr(out, "case 1: ;") != NULL || strstr(out, "case 1:\n   ;") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -491,7 +491,7 @@ TEST test_gnu_standardizer_attributes(void) {
   ASSERT(strstr(out, "/* mode(QI) -> int8_t */") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -523,7 +523,7 @@ TEST test_gnu_standardizer_magic_identifiers(void) {
   ASSERT(strstr(out, "__func__") == NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -545,7 +545,7 @@ TEST test_gnu_standardizer_trampoline(void) {
   memset(&config, 0, sizeof(config));
   ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -574,7 +574,7 @@ TEST test_gnu_standardizer_shuffle(void) {
   ASSERT(strstr(out, "cdd_builtin_shufflevector(a, b, 0, 1)") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -610,7 +610,7 @@ TEST test_gnu_standardizer_cleanup(void) {
   ASSERT(strstr(out, "return __cdd_ret;") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -651,7 +651,7 @@ TEST test_gnu_standardizer_typeof(void) {
   ASSERT(strstr(out, "int y = 0;") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -685,7 +685,7 @@ TEST test_gnu_standardizer_variadic_macros(void) {
   ASSERT(strstr(out, "#define LOG3(...) printf(__VA_ARGS__)") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -730,7 +730,7 @@ TEST test_cdd_transform_complex_numbers(void) {
          strstr(out, "z.imag  = 2.0f;") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -762,7 +762,7 @@ TEST test_gnu_standardizer_comment_preservation(void) {
   ASSERT(strstr(out, "/* block end */") != NULL);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -796,7 +796,7 @@ TEST test_gnu_standardizer_float_extensions(void) {
   ASSERT(strstr(out, "float g;") != NULL);
   ASSERT(strstr(out, "double h;") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -817,7 +817,7 @@ TEST test_gnu_standardizer_lvalue_cast(void) {
   printf("LVALUE OUT: %s\n", out);
   ASSERT(strstr(out, "*(char*)&x = 5;") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -844,7 +844,7 @@ TEST test_gnu_standardizer_omitted_conditional(void) {
   ASSERT(strstr(out, "(a + b) ? (a + b)  : 5") != NULL);
   ASSERT(strstr(out, "a || b ? a || b  : c") != NULL);
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }

@@ -16,4 +16,8 @@ QUIET                  = YES
 NUM_PROC_THREADS       = 1
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = NO_DISCARD_TYPE=
 ALIASES                = "cdd=@par cdd:" "serde=@par serde:" "cli=@par cli:"

@@ -28,7 +28,8 @@ TEST test_struct_fields_init_oom(void) {
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, struct_fields_init(&sf));
-  struct_fields_free(&sf); /* hit sf->fields == NULL branch */
+  g_cdd_last_alloc_err =
+      struct_fields_free(&sf); /* hit sf->fields == NULL branch */
   g_cdd_alloc_fail = 0;
 
   ASSERT_EQ(0, struct_fields_init(&sf));
@@ -43,7 +44,7 @@ TEST test_struct_fields_init_oom(void) {
             struct_fields_add(&sf, "c", "d", NULL, NULL, NULL));
   g_cdd_alloc_fail = 0;
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 #endif
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, struct_fields_init(NULL));
@@ -126,8 +127,8 @@ TEST test_struct_fields_init_oom(void) {
   g_cdd_alloc_fail = 0;
 #endif
 
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(NULL);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
 
   /* Test get_type_from_ref failure via g_cdd_fail_str_after_last */
@@ -411,7 +412,7 @@ TEST test_struct_fields_init_oom(void) {
           g_cdd_fail_str_after_last = 0;
         }
 #endif
-        struct_fields_free(&sf_dc);
+        g_cdd_last_alloc_err = struct_fields_free(&sf_dc);
       }
 
       /* Test serde_default_fn in write_struct_default_func and serde_skip in
@@ -441,16 +442,16 @@ TEST test_struct_fields_init_oom(void) {
           ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
         }
         g_fail_io_after = -1;
-        struct_fields_free(&sf_df);
+        g_cdd_last_alloc_err = struct_fields_free(&sf_df);
       }
 
-      struct_fields_free(&sf_ref);
-      struct_fields_free(&sf_arr);
-      struct_fields_free(&sf_arr_prim);
-      struct_fields_free(&sf_empty);
-      struct_fields_free(&sf_str);
-      struct_fields_free(&sf_obj);
-      struct_fields_free(&sf_enum);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_ref);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_arr);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_arr_prim);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_empty);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_str);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_obj);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_enum);
       fclose(tmp);
     }
   }

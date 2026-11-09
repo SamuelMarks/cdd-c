@@ -44,10 +44,14 @@ cdd_c_error_t write_query_json_param(FILE *fp,
                                      const struct OpenAPI_Parameter *p) {
   const char *name;
   const char *type;
+  int is_json = 0;
+  int is_prim = 0;
 
   if (!fp || !p)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (!p->content_type || !media_type_is_json_url(p->content_type))
+  if (p->content_type)
+    g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  if (!p->content_type || !is_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   name = p->name ? p->name : "param";
@@ -63,7 +67,8 @@ cdd_c_error_t write_query_json_param(FILE *fp,
           fprintf(fp, "  /* Unsupported JSON query array for %s */\n", name));
       return CDD_C_SUCCESS;
     }
-    if (is_primitive_type_url(item_type)) {
+    g_cdd_last_alloc_err = is_primitive_type_url(item_type, &is_prim);
+    if (is_prim) {
       CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
       CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
       CHECK_IO(fprintf(fp, "    JSON_Array *q_arr = NULL;\n"));
@@ -259,7 +264,9 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     return CDD_C_SUCCESS;
   }
 
-  if (type && is_primitive_type_url(type)) {
+  if (type)
+    g_cdd_last_alloc_err = is_primitive_type_url(type, &is_prim);
+  if (type && is_prim) {
     if (strcmp(type, "string") == 0) {
       CHECK_IO(fprintf(fp, "  if (%s) {\n", name));
     } else {

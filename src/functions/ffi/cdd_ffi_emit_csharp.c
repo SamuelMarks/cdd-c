@@ -119,7 +119,7 @@ static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
     return CDD_C_SUCCESS;
   }
 
-  get_csharp_primitive(type->kind, &prim);
+  g_cdd_last_alloc_err = get_csharp_primitive(type->kind, &prim);
   fprintf(f, "%s", prim);
   return CDD_C_SUCCESS;
 }
@@ -191,7 +191,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "    public enum %s : int\n    {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         fprintf(f, "        %s = %s,\n", node->variants[j].name,
@@ -208,7 +208,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -251,7 +251,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
           fprintf(f, "        [FieldOffset(0)]\n");
         }
         fprintf(f, "        public ");
-        emit_csharp_type(f, &node->fields[j].type, 0);
+        g_cdd_last_alloc_err = emit_csharp_type(f, &node->fields[j].type, 0);
         fprintf(f, " %s;\n", node->fields[j].name);
       }
       fprintf(f, "    }\n\n");
@@ -264,7 +264,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "        [DllImport(LibraryName, CallingConvention = "
                  "CallingConvention.Cdecl)]\n");
 
@@ -276,7 +276,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
       }
 
       fprintf(f, "        public static extern ");
-      emit_csharp_type(f, &node->return_or_base_type, 1);
+      g_cdd_last_alloc_err = emit_csharp_type(f, &node->return_or_base_type, 1);
       fprintf(f, " %s(", node->name);
 
       for (j = 0; j < node->fields_count; j++) {
@@ -297,7 +297,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
           }
-          emit_csharp_type(f, &base_t, 0);
+          g_cdd_last_alloc_err = emit_csharp_type(f, &base_t, 0);
           fprintf(f, " ");
         }
         fprintf(f, "%s", node->fields[j].name ? node->fields[j].name : "arg");

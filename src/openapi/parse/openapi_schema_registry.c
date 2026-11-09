@@ -151,22 +151,30 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
  *
  * @param[in] spec OpenAPI specification to inspect.
  * @param[in] name Schema name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if in use, CDD_C_SUCCESS (0) if free.
+ * @param[out] out_in_use Set to 1 if in use, 0 if free.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t schema_name_in_use(const struct OpenAPI_Spec *spec,
-                                 const char *name) {
+                                 const char *name, int *out_in_use) {
   size_t i;
+  if (!out_in_use)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_in_use = 0;
   if (!spec || !name)
     return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_defined_schemas; ++i) {
     if (spec->defined_schema_names && spec->defined_schema_names[i] &&
-        strcmp(spec->defined_schema_names[i], name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+        strcmp(spec->defined_schema_names[i], name) == 0) {
+      *out_in_use = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   for (i = 0; i < spec->n_raw_schemas; ++i) {
     if (spec->raw_schema_names && spec->raw_schema_names[i] &&
-        strcmp(spec->raw_schema_names[i], name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+        strcmp(spec->raw_schema_names[i], name) == 0) {
+      *out_in_use = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -221,6 +229,7 @@ cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
 cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
                                       const char *base, char **_out_val) {
   size_t attempt = 0;
+  int in_use = 0;
   cdd_c_error_t rc;
 
   if (!_out_val)
@@ -230,7 +239,8 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
     *_out_val = NULL;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  if (schema_name_in_use(spec, base) == CDD_C_SUCCESS) {
+  g_cdd_last_alloc_err = schema_name_in_use(spec, base, &in_use);
+  if (!in_use) {
     rc = c_cdd_strdup(base, _out_val);
     return rc;
   }
@@ -241,7 +251,8 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
 #else
     CDD_SNPRINTF(buf, sizeof(buf), "%s_%lu", base, (unsigned long)attempt);
 #endif
-    if (schema_name_in_use(spec, buf) == CDD_C_SUCCESS) {
+    g_cdd_last_alloc_err = schema_name_in_use(spec, buf, &in_use);
+    if (!in_use) {
       rc = c_cdd_strdup(buf, _out_val);
       return rc;
     }
@@ -255,20 +266,25 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
  *
  * @param[in] arr JSON array of type strings.
  * @param[in] type Target type string to find.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if present, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_includes Set to 1 if present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
-                                         const char *type) {
+                                         const char *type, int *out_includes) {
   size_t i, count = 0;
+  if (!out_includes)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_includes = 0;
   if (!arr || !type)
     return CDD_C_SUCCESS;
-  cdd_json_array_get_count(arr, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &count);
   for (i = 0; i < count; ++i) {
     const char *val = NULL;
-    cdd_json_array_get_string(arr, i, &val);
-    if (val && strcmp(val, type) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    g_cdd_last_alloc_err = cdd_json_array_get_string(arr, i, &val);
+    if (val && strcmp(val, type) == 0) {
+      *out_includes = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -277,30 +293,49 @@ cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
  * @brief Checks if a JSON schema object represents an object-like structure.
  *
  * @param[in] schema_obj JSON object representing the schema.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if object-like, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_is_obj Set to 1 if object-like, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj) {
+cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj,
+                                           int *out_is_obj) {
   const char *type = NULL;
   JSON_Array *type_arr = NULL;
   JSON_Object *props_obj = NULL;
   JSON_Array *all_of = NULL, *any_of = NULL, *one_of = NULL;
+  int inc = 0;
+  if (!out_is_obj)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_obj = 0;
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  cdd_json_object_get_string(schema_obj, "type", &type);
-  if (type && strcmp(type, "object") == 0)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_get_array(schema_obj, "type", &type_arr);
-  if (schema_type_array_includes(type_arr, "object") != CDD_C_SUCCESS)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_get_object(schema_obj, "properties", &props_obj);
-  if (props_obj)
-    return CDD_C_ERROR_UNKNOWN;
-  cdd_json_object_get_array(schema_obj, "allOf", &all_of);
-  cdd_json_object_get_array(schema_obj, "anyOf", &any_of);
-  cdd_json_object_get_array(schema_obj, "oneOf", &one_of);
-  if (all_of || any_of || one_of)
-    return CDD_C_ERROR_UNKNOWN;
+  g_cdd_last_alloc_err = cdd_json_object_get_string(schema_obj, "type", &type);
+  if (type && strcmp(type, "object") == 0) {
+    *out_is_obj = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(schema_obj, "type", &type_arr);
+  g_cdd_last_alloc_err = schema_type_array_includes(type_arr, "object", &inc);
+  if (inc) {
+    *out_is_obj = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(schema_obj, "properties", &props_obj);
+  if (props_obj) {
+    *out_is_obj = 1;
+    return CDD_C_SUCCESS;
+  }
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(schema_obj, "allOf", &all_of);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(schema_obj, "anyOf", &any_of);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_array(schema_obj, "oneOf", &one_of);
+  if (all_of || any_of || one_of) {
+    *out_is_obj = 1;
+    return CDD_C_SUCCESS;
+  }
   return CDD_C_SUCCESS;
 }
 
@@ -391,18 +426,23 @@ cdd_c_error_t append_defined_schema(struct OpenAPI_Spec *spec,
  *
  * @param[in] spec OpenAPI specification to inspect.
  * @param[in] name Schema name to check.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if exists, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_exists Set to 1 if exists, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t raw_schema_name_exists(const struct OpenAPI_Spec *spec,
-                                     const char *name) {
+                                     const char *name, int *out_exists) {
   size_t i;
+  if (!out_exists)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_exists = 0;
   if (!spec || !name)
     return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_raw_schemas; ++i) {
     if (spec->raw_schema_names && spec->raw_schema_names[i] &&
-        strcmp(spec->raw_schema_names[i], name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+        strcmp(spec->raw_schema_names[i], name) == 0) {
+      *out_exists = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -425,12 +465,14 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   char *dup_name = NULL;
   char *dup_json = NULL;
   char *raw_json = NULL;
+  int exists = 0;
   cdd_c_error_t rc;
 
   if (!spec || !name || !schema_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (raw_schema_name_exists(spec, name) != CDD_C_SUCCESS)
+  g_cdd_last_alloc_err = raw_schema_name_exists(spec, name, &exists);
+  if (exists)
     return CDD_C_SUCCESS;
 
 #ifdef CDD_BUILD_TESTS
@@ -440,7 +482,8 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
         --g_cdd_fail_raw_schema_serialize == 0)
       raw_json = NULL;
     else
-      cdd_json_serialize_to_string(schema_val, &raw_json);
+      g_cdd_last_alloc_err =
+          cdd_json_serialize_to_string(schema_val, &raw_json);
   }
 #else
   cdd_json_serialize_to_string(schema_val, &raw_json);
@@ -448,7 +491,7 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   if (!raw_json)
     return CDD_C_ERROR_MEMORY;
   rc = c_cdd_strdup(raw_json, &dup_json);
-  cdd_json_free_serialized_string(raw_json);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(raw_json);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -519,35 +562,39 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
 
   rc = json_object_to_struct_fields_ex(schema_obj, &tmp, NULL, base_name);
   if (rc != CDD_C_SUCCESS) {
-    struct_fields_free(&tmp);
+    g_cdd_last_alloc_err = struct_fields_free(&tmp);
     return rc;
   }
 
   rc = sanitize_component_name(base_name, &sanitized);
   if (rc != CDD_C_SUCCESS) {
-    struct_fields_free(&tmp);
+    g_cdd_last_alloc_err = struct_fields_free(&tmp);
     return rc;
   }
 
   rc = make_unique_schema_name(spec, sanitized, &unique);
   C_CDD_FREE(sanitized);
   if (rc != CDD_C_SUCCESS) {
-    struct_fields_free(&tmp);
+    g_cdd_last_alloc_err = struct_fields_free(&tmp);
     return rc;
   }
 
-  if (schema_has_composition(schema_obj) && schema_val) {
-    cdd_c_error_t raw_rc = append_raw_schema(spec, unique, schema_val);
-    if (raw_rc != CDD_C_SUCCESS) {
-      struct_fields_free(&tmp);
-      C_CDD_FREE(unique);
-      return raw_rc;
+  {
+    int has_comp = 0;
+    g_cdd_last_alloc_err = schema_has_composition(schema_obj, &has_comp);
+    if (has_comp && schema_val) {
+      cdd_c_error_t raw_rc = append_raw_schema(spec, unique, schema_val);
+      if (raw_rc != CDD_C_SUCCESS) {
+        g_cdd_last_alloc_err = struct_fields_free(&tmp);
+        C_CDD_FREE(unique);
+        return raw_rc;
+      }
     }
   }
 
   rc = append_defined_schema(spec, unique, &tmp);
   if (rc != CDD_C_SUCCESS) {
-    struct_fields_free(&tmp);
+    g_cdd_last_alloc_err = struct_fields_free(&tmp);
     C_CDD_FREE(unique);
     return rc;
   }

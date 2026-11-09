@@ -109,8 +109,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (!h_name || !c_name || !mh_name || !mc_name) {
     rc = CDD_C_ERROR_MEMORY;
     {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }
@@ -127,15 +128,16 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   CDD_SNPRINTF(mc_name, strlen(actual_base) + 10, "%s_models.c", actual_base);
 #endif
 
-  cdd_vfs_fopen(h_name, "w", &hfile);
-  cdd_vfs_fopen(c_name, "w", &cfile);
-  cdd_vfs_fopen(mh_name, "w", &mhfile);
-  cdd_vfs_fopen(mc_name, "w", &mcfile);
+  g_cdd_last_alloc_err = cdd_vfs_fopen(h_name, "w", &hfile);
+  g_cdd_last_alloc_err = cdd_vfs_fopen(c_name, "w", &cfile);
+  g_cdd_last_alloc_err = cdd_vfs_fopen(mh_name, "w", &mhfile);
+  g_cdd_last_alloc_err = cdd_vfs_fopen(mc_name, "w", &mcfile);
   if (!hfile || !cfile || !mhfile || !mcfile) {
     rc = CDD_C_ERROR_IO;
     {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }
@@ -144,12 +146,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (config->header_guard)
     guard = C_CDD_STRDUP(config->header_guard);
   else
-    generate_guard(config->filename_base, &guard);
+    g_cdd_last_alloc_err = generate_guard(config->filename_base, &guard);
 
   if (config->model_header)
     model_h = C_CDD_STRDUP(config->model_header);
   else
-    derive_model_header(base_name, &model_h);
+    g_cdd_last_alloc_err = derive_model_header(base_name, &model_h);
 
   if (config->func_prefix)
     prefix = config->func_prefix;
@@ -157,8 +159,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (!guard || !model_h) {
     rc = CDD_C_ERROR_MEMORY;
     {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }
@@ -167,8 +170,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (!model_guard) {
     rc = CDD_C_ERROR_MEMORY;
     {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }
@@ -182,15 +186,16 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   /* --- Write Models Header and Source --- */
   rc = client_gen_emit_models(mhfile, mcfile, model_guard, mh_name, spec);
   if (rc != CDD_C_SUCCESS) {
-    fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);
+    g_cdd_last_alloc_err =
+        fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);
     goto cleanup;
   }
 
   /* --- Write Client Preamble --- */
   rc = write_header_preamble(hfile, guard, model_h);
   if (rc != 0) {
-    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-            __LINE__);
+    g_cdd_last_alloc_err = fprintf(
+        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
     goto cleanup;
   }
 
@@ -203,8 +208,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     rc = write_source_preamble(cfile, base);
     C_CDD_FREE(base);
     if (rc != CDD_C_SUCCESS) {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }
@@ -212,8 +218,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   /* --- Write Lifecycle --- */
   rc = write_lifecycle_funcs(hfile, cfile, prefix, spec);
   if (rc != 0) {
-    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-            __LINE__);
+    g_cdd_last_alloc_err = fprintf(
+        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
     goto cleanup;
   }
 
@@ -224,8 +230,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       struct OpenAPI_Operation *op = &path->operations[j];
       rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
       if (rc != CDD_C_SUCCESS) {
-        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                __LINE__);
+        g_cdd_last_alloc_err =
+            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                    __LINE__);
         goto cleanup;
       }
     }
@@ -233,8 +240,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       struct OpenAPI_Operation *op = &path->additional_operations[j];
       rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
       if (rc != CDD_C_SUCCESS) {
-        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                __LINE__);
+        g_cdd_last_alloc_err =
+            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                    __LINE__);
         goto cleanup;
       }
     }
@@ -243,7 +251,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   /* --- Write MCP Adapters --- */
   rc = client_gen_emit_mcp(hfile, cfile, guard, prefix, spec);
   if (rc != CDD_C_SUCCESS) {
-    fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);
+    g_cdd_last_alloc_err =
+        fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);
     goto cleanup;
   }
 
@@ -257,7 +266,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
 
     CDD_SNPRINTF(cpath, 512, "%s/src/url_utils.c", dir_name);
-    cdd_vfs_fopen(cpath, "w", &uc);
+    g_cdd_last_alloc_err = cdd_vfs_fopen(cpath, "w", &uc);
     if (uc) {
       rc = (cdd_c_error_t)((int)client_gen_emit_url_utils_c1(uc) |
                            (int)client_gen_emit_url_utils_c2(uc));
@@ -279,8 +288,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     rc = generate_cmake_project(dir_name, base_name,
                                 config->create_tests_and_mocks);
     if (rc != CDD_C_SUCCESS) {
-      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+      g_cdd_last_alloc_err =
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
       goto cleanup;
     }
   }

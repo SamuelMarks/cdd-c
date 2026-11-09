@@ -79,8 +79,8 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   /* If cdd_cst_eval_sizeof expects a TYPE node, it might fail. Let's see what
    * happens. */
 
-  cdd_cst_tree_free(tree);
-  cdd_cst_scope_env_free(env);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
   g_fail_io_after = -1;
   PASS();
 }
@@ -138,7 +138,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   rc = cdd_cst_eval_alignof(env, decl2, CDD_CST_ABI_LP64, &align);
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
 
-  cdd_cst_tree_free(tree2);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree2);
 
   /* What if extract_type_name has multiple spaces? */
   {
@@ -164,7 +164,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
 
     rc = cdd_cst_eval_alignof(env, decl3, CDD_CST_ABI_LP64, &align);
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
-    cdd_cst_tree_free(tree3);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree3);
   }
 
   /* What if extract_type_name buffer overflows? (256 bytes) */
@@ -188,18 +188,18 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     ASSERT(decl4 != NULL);
     rc = cdd_cst_eval_sizeof(env, decl4, CDD_CST_ABI_LP64, &size);
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
-    cdd_cst_tree_free(tree4);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree4);
   }
 
   /* removed assert */
 
   /* Fallback testing (e.g. unsupported type or empty declaration) */
-  cdd_cst_alloc_node(CDD_CST_ASM_STATEMENT, &empty_node);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_ASM_STATEMENT, &empty_node);
   rc = cdd_cst_eval_sizeof(env, empty_node, CDD_CST_ABI_LP64, &size);
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
   rc = cdd_cst_eval_alignof(env, empty_node, CDD_CST_ABI_LP64, &align);
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
-  cdd_cst_free_node(empty_node);
+  g_cdd_last_alloc_err = cdd_cst_free_node(empty_node);
 
   /* Error paths */
 
@@ -214,8 +214,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_eval_alignof(NULL, decl, CDD_CST_ABI_LP64, &align));
 
-  cdd_cst_tree_free(tree);
-  cdd_cst_scope_env_free(env);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
   g_fail_io_after = -1;
   PASS();
 }
@@ -337,28 +337,28 @@ TEST test_type_eval_branches(void) {
   int rc = 0;
 #endif
 
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
   tok.kind = CDD_TOKEN_KEYWORD___INT128;
   tok.start = (const uint8_t *)"__int128";
   tok.length = 8;
-  cdd_cst_append_child_token(decl, &tok);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(decl, &tok);
 
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &dummy_child);
-  cdd_cst_append_child_node(decl, dummy_child);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &dummy_child);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl, dummy_child);
 
-  cdd_cst_scope_env_init(&env);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_init(&env);
 
   ASSERT_EQ(0, cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz));
   ASSERT_EQ(16, sz);
 
   /* Very long type name */
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl2);
   tok2.kind = CDD_TOKEN_IDENTIFIER;
   for (i = 0; i < 50; i++)
     buf[i] = 'a';
   tok2.start = (const uint8_t *)buf;
   tok2.length = 290;
-  cdd_cst_append_child_token(decl2, &tok2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(decl2, &tok2);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &sz));
@@ -382,25 +382,25 @@ TEST test_type_eval_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_eval_alignof(env, decl, CDD_CST_ABI_LP64, NULL));
 
-  cdd_cst_free_node_only(decl);
-  cdd_cst_free_node_only(decl2);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(decl);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(decl2);
 
   /* Two long tokens to hit buf_len + 1 < sizeof(buf) */
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl3);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl3);
   tok3.kind = CDD_TOKEN_IDENTIFIER;
   for (i = 0; i < 50; i++)
     buf2[i] = 'b';
   tok3.start = (const uint8_t *)buf2;
   tok3.length = 255;
-  cdd_cst_append_child_token(decl3, &tok3);
-  cdd_cst_append_child_token(decl3, &tok3);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(decl3, &tok3);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(decl3, &tok3);
 
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &sz));
-  cdd_cst_free_node_only(decl3);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(decl3);
 
-  cdd_cst_free_node_only(dummy_child);
-  cdd_cst_scope_env_free(env);
+  g_cdd_last_alloc_err = cdd_cst_free_node_only(dummy_child);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
   g_fail_io_after = -1;
   PASS();
 }
@@ -411,23 +411,25 @@ TEST test_type_eval_branches(void) {
  */
 TEST test_cdd_cst_eval_ptr_fail(void) {
   cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_scope_env_init(&env);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_init(&env);
   {
     size_t sz = 0;
 
     cdd_cst_node_t *spec3 = NULL;
-    cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &spec3);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &spec3);
     {
       cdd_cst_tree_t *tree = calloc(1, sizeof(*tree));
       tree->root = spec3;
       {
         cdd_token_t *tok3 = NULL;
-        cdd_cst_create_token_len(tree, CDD_TOKEN_STAR, "*", 1, &tok3);
-        cdd_cst_append_child_token(spec3, tok3);
+        g_cdd_last_alloc_err =
+            cdd_cst_create_token_len(tree, CDD_TOKEN_STAR, "*", 1, &tok3);
+        g_cdd_last_alloc_err = cdd_cst_append_child_token(spec3, tok3);
         {
           cdd_token_t *tok4 = NULL;
-          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "int", 3, &tok4);
-          cdd_cst_append_child_token(spec3, tok4);
+          g_cdd_last_alloc_err = cdd_cst_create_token_len(
+              tree, CDD_TOKEN_IDENTIFIER, "int", 3, &tok4);
+          g_cdd_last_alloc_err = cdd_cst_append_child_token(spec3, tok4);
 
           {
             int rc1 = cdd_cst_eval_sizeof(env, spec3, CDD_CST_ABI_LP64, &sz);
@@ -436,8 +438,8 @@ TEST test_cdd_cst_eval_ptr_fail(void) {
             ASSERT_EQ(CDD_C_SUCCESS, rc1);
             ASSERT_EQ(CDD_C_SUCCESS, rc2);
 
-            cdd_cst_tree_free(tree);
-            cdd_cst_scope_env_free(env);
+            g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+            g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
             PASS();
           }
         }
@@ -452,7 +454,7 @@ TEST test_cdd_cst_eval_ptr_fail(void) {
  */
 TEST test_cdd_cst_type_eval_branches(void) {
   cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_scope_env_init(&env);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_init(&env);
   {
     cdd_c_error_t rc = 0;
     {
@@ -489,7 +491,7 @@ TEST test_cdd_cst_type_eval_branches(void) {
                 cdd_cst_eval_sizeof(env, &dummy_node, abi, &sz));
       ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
                 cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
-      cdd_cst_scope_env_free(env);
+      g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
       PASS();
     }
   }

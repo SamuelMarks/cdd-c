@@ -55,25 +55,25 @@ TEST test_operation_any_from_json_value_oom_and_types(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("\"str\"", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("\"str\"", &_cdd_jv_1);
     jv_str = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv_str);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(jv_str, &out));
   g_cdd_strdup_fail = 0;
-  json_value_free(jv_str);
+  g_cdd_last_alloc_err = json_value_free(jv_str);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"k\": 1}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{\"k\": 1}", &_cdd_jv_1);
     jv_obj = _cdd_jv_1;
   }
   ASSERT_NEQ(NULL, jv_obj);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(jv_obj, &out));
   g_cdd_strdup_fail = 0;
-  json_value_free(jv_obj);
+  g_cdd_last_alloc_err = json_value_free(jv_obj);
 
   PASS();
 }
@@ -216,7 +216,7 @@ TEST test_operation_copy_any_value_local_nulls(void) {
   ASSERT_EQ(CDD_C_SUCCESS, copy_any_value_local(&dst, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, copy_any_value_local(NULL, NULL));
 
-  free_any_value_local(NULL);
+  g_cdd_last_alloc_err = free_any_value_local(NULL);
   PASS();
 }
 
@@ -322,7 +322,7 @@ TEST test_operation_doc_server_variables_enum_calloc_oom(void) {
   src.variables = &var;
   src.n_variables = 1;
   ASSERT_EQ(CDD_C_SUCCESS, copy_doc_server_variables_op(&dst, &src));
-  free_openapi_server_variables_op(&dst);
+  g_cdd_last_alloc_err = free_openapi_server_variables_op(&dst);
 
   PASS();
 }

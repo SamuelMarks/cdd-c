@@ -74,7 +74,7 @@ TEST test_HazE_to_json_and_from_json(void) {
 
   ASSERT(HazE_eq(&haz, haz_out) == 0);
 
-  HazE_cleanup(haz_out);
+  g_cdd_last_alloc_err = HazE_cleanup(haz_out);
   free(json_str);
   g_fail_io_after = -1;
 
@@ -109,7 +109,7 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
 
   ASSERT(FooE_eq(&foo, foo_out) == 0);
 
-  FooE_cleanup(foo_out);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_out);
   free(json_str);
   g_fail_io_after = -1;
 
@@ -150,7 +150,7 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
 
   ASSERT(FooE_eq(&foo_in, foo_out) == 0);
 
-  FooE_cleanup(foo_out);
+  g_cdd_last_alloc_err = FooE_cleanup(foo_out);
   free(json_str);
   g_fail_io_after = -1;
 

@@ -73,10 +73,17 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
     const char *qs_json_item = NULL;
     const char *qs_json_obj = NULL;
     const char *qs_json_prim = NULL;
-    querystring_param_json_array_item_type(querystring_param, &qs_json_item);
-    querystring_param_json_array_item_ref(querystring_param, &qs_json_obj);
-    querystring_param_json_primitive_type(querystring_param, &qs_json_prim);
-    if (querystring_param_is_form_object(querystring_param)) {
+    int is_form_obj = 0;
+    int is_json_ref = 0;
+    g_cdd_last_alloc_err = querystring_param_json_array_item_type(
+        querystring_param, &qs_json_item);
+    g_cdd_last_alloc_err =
+        querystring_param_json_array_item_ref(querystring_param, &qs_json_obj);
+    g_cdd_last_alloc_err =
+        querystring_param_json_primitive_type(querystring_param, &qs_json_prim);
+    g_cdd_last_alloc_err =
+        querystring_param_is_form_object(querystring_param, &is_form_obj);
+    if (is_form_obj) {
       CHECK_IO(fprintf(fp, "  /* Querystring Parameter (form object): %s */\n",
                        qs_name));
       CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", qs_name, qs_name));
@@ -319,7 +326,9 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       }
       return CDD_C_SUCCESS;
     }
-    if (querystring_param_is_json_ref(querystring_param)) {
+    g_cdd_last_alloc_err =
+        querystring_param_is_json_ref(querystring_param, &is_json_ref);
+    if (is_json_ref) {
       CHECK_IO(
           fprintf(fp, "  /* Querystring Parameter (json): %s */\n", qs_name));
       CHECK_IO(fprintf(fp, "  if (%s) {\n", qs_name));
@@ -346,7 +355,8 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
     }
     {
       const char *qs_raw = NULL;
-      querystring_param_raw_primitive_type(querystring_param, &qs_raw);
+      g_cdd_last_alloc_err =
+          querystring_param_raw_primitive_type(querystring_param, &qs_raw);
       if (qs_raw) {
         CHECK_IO(
             fprintf(fp, "  /* Querystring Parameter (raw): %s */\n", qs_name));
@@ -470,18 +480,26 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
 
       CHECK_IO(fprintf(fp, "  /* Query Parameter: %s */\n", p->name));
 
-      if (p->content_type && media_type_is_json_url(p->content_type)) {
-        cdd_c_error_t rc2 = write_query_json_param(fp, p);
-        if (rc2 != 0)
-          return rc2;
-        continue;
-      }
+      {
+        int is_json = 0;
+        int is_kv = 0;
+        if (p->content_type)
+          g_cdd_last_alloc_err =
+              media_type_is_json_url(p->content_type, &is_json);
+        if (p->content_type && is_json) {
+          cdd_c_error_t rc2 = write_query_json_param(fp, p);
+          if (rc2 != 0)
+            return rc2;
+          continue;
+        }
 
-      if (param_is_object_kv_url(p)) {
-        cdd_c_error_t rc2 = write_query_object_param(fp, p);
-        if (rc2 != 0)
-          return rc2;
-        continue;
+        g_cdd_last_alloc_err = param_is_object_kv_url(p, &is_kv);
+        if (is_kv) {
+          cdd_c_error_t rc2 = write_query_object_param(fp, p);
+          if (rc2 != 0)
+            return rc2;
+          continue;
+        }
       }
 
       if (p->is_array) {

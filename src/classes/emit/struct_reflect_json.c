@@ -115,7 +115,7 @@ static cdd_c_error_t serialize_field_to_json(const void *obj,
       rc = cdd_json_value_get_object(sub_val, &sub_obj);
       rc = serialize_struct_to_json_obj(child_obj, child_ti, sub_obj);
       if (rc != CDD_C_SUCCESS) {
-        cdd_json_value_free(sub_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(sub_val);
         return rc;
       }
       return cdd_json_object_set_value(parent_jobj, key, sub_val);
@@ -188,7 +188,7 @@ static cdd_c_error_t serialize_field_to_json(const void *obj,
         JSON_Object *ev_jobj = NULL;
         rc = cdd_reflect_type_by_name(f->ref_name, &elem_ti);
         if (rc != CDD_C_SUCCESS) {
-          cdd_json_value_free(arr_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
           return rc;
         }
         elem_obj = (f->elem_size == sizeof(void *))
@@ -202,8 +202,8 @@ static cdd_c_error_t serialize_field_to_json(const void *obj,
         rc = cdd_json_value_get_object(ev_obj, &ev_jobj);
         rc = serialize_struct_to_json_obj(elem_obj, elem_ti, ev_jobj);
         if (rc != CDD_C_SUCCESS) {
-          cdd_json_value_free(ev_obj);
-          cdd_json_value_free(arr_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(ev_obj);
+          g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
           return rc;
         }
         rc = cdd_json_array_append_value(jarr, ev_obj);
@@ -269,30 +269,43 @@ cdd_c_error_t cdd_reflect_to_json(const void *obj,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_json = NULL;
 
-  rc = cdd_json_value_init_object(&root);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  cdd_json_value_get_object(root, &root_obj);
+  g_cdd_last_alloc_err = cdd_json_value_init_object(&root);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
   rc = serialize_struct_to_json_obj(obj, ti, root_obj);
   if (rc != CDD_C_SUCCESS) {
-    cdd_json_value_free(root);
+    g_cdd_last_alloc_err = cdd_json_value_free(root);
     return rc;
   }
 
-  rc = cdd_json_serialize_to_string(root, &parson_str);
-  cdd_json_value_free(root);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  g_cdd_last_alloc_err = cdd_json_serialize_to_string(root, &parson_str);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   slen = strlen(parson_str);
   dup_str = (char *)C_CDD_MALLOC(slen + 1);
   if (!dup_str) {
-    cdd_json_free_serialized_string(parson_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(parson_str);
     return CDD_C_ERROR_MEMORY;
   }
   memcpy(dup_str, parson_str, slen + 1);
-  cdd_json_free_serialized_string(parson_str);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(parson_str);
   *out_json = dup_str;
   return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Populates an existing `JSON_Object` in-place from a struct instance
+ * `obj` driven purely by its runtime `cdd_type_info` table.
+ *
+ * @param[in] obj Pointer to struct instance.
+ * @param[in] ti Runtime type descriptor for `obj`.
+ * @param[in,out] jobj Target JSON object (as `void *` for header decoupling).
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t cdd_reflect_to_json_object(const void *obj,
+                                         const struct cdd_type_info *ti,
+                                         void *jobj) {
+  if (!obj || !ti || !jobj)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  return serialize_struct_to_json_obj(obj, ti, (JSON_Object *)jobj);
 }
 
 /**
@@ -310,14 +323,14 @@ static cdd_c_error_t find_field_json_value(const JSON_Object *jobj,
   size_t k;
   JSON_Value *v = NULL;
   if (f->de_wire_name)
-    cdd_json_object_get_value(jobj, f->de_wire_name, &v);
+    g_cdd_last_alloc_err = cdd_json_object_get_value(jobj, f->de_wire_name, &v);
   if (!v && f->wire_name)
-    cdd_json_object_get_value(jobj, f->wire_name, &v);
+    g_cdd_last_alloc_err = cdd_json_object_get_value(jobj, f->wire_name, &v);
   if (!v)
-    cdd_json_object_get_value(jobj, f->name, &v);
+    g_cdd_last_alloc_err = cdd_json_object_get_value(jobj, f->name, &v);
   if (!v && f->aliases) {
     for (k = 0; k < f->n_aliases && !v; ++k) {
-      cdd_json_object_get_value(jobj, f->aliases[k], &v);
+      g_cdd_last_alloc_err = cdd_json_object_get_value(jobj, f->aliases[k], &v);
     }
   }
   *out_jval = v;
@@ -399,7 +412,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
     double dnum = 0.0;
     if (jtype != JSONNumber)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    cdd_json_value_get_number(jval, &dnum);
+    g_cdd_last_alloc_err = cdd_json_value_get_number(jval, &dnum);
     rc = cdd_reflect_resolve_field_scalar_width(f, &width, &is_unsigned);
     if (width == 8 && is_unsigned) {
       if (dnum < 0.0)
@@ -412,21 +425,21 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
     double dnum = 0.0;
     if (jtype != JSONNumber)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    cdd_json_value_get_number(jval, &dnum);
+    g_cdd_last_alloc_err = cdd_json_value_get_number(jval, &dnum);
     return cdd_reflect_set_double(obj, f, dnum);
   }
   if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
     int bval = 0;
     if (jtype != JSONBoolean)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    cdd_json_value_get_boolean(jval, &bval);
+    g_cdd_last_alloc_err = cdd_json_value_get_boolean(jval, &bval);
     return cdd_reflect_set_bool(obj, f, bval);
   }
   if (f->kind == CDD_FIELD_KIND_STRING) {
     const char *sval = NULL;
     if (jtype != JSONString)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    cdd_json_value_get_string(jval, &sval);
+    g_cdd_last_alloc_err = cdd_json_value_get_string(jval, &sval);
     return cdd_reflect_set_string(obj, f, sval);
   }
   if (f->kind == CDD_FIELD_KIND_ENUM) {
@@ -434,7 +447,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
       const char *es = NULL;
       const struct cdd_enum_info *ei = NULL;
       const struct cdd_enum_variant_info *var = NULL;
-      cdd_json_value_get_string(jval, &es);
+      g_cdd_last_alloc_err = cdd_json_value_get_string(jval, &es);
       rc = cdd_reflect_enum_by_name(f->ref_name, &ei);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -448,7 +461,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
       return CDD_C_ERROR_INVALID_ARGUMENT;
     } else if (jtype == JSONNumber) {
       double dnum = 0.0;
-      cdd_json_value_get_number(jval, &dnum);
+      g_cdd_last_alloc_err = cdd_json_value_get_number(jval, &dnum);
       return cdd_reflect_set_int64(obj, f, (int64_t)dnum);
     }
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -473,7 +486,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
     } else {
       child_obj = (void *)((unsigned char *)obj + f->offset);
     }
-    cdd_json_value_get_object(jval, &sub_jobj);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(jval, &sub_jobj);
     return deserialize_struct_from_json_obj(sub_jobj, child_ti, child_obj);
   }
   {
@@ -482,8 +495,8 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
     size_t k;
     if (jtype != JSONArray)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    cdd_json_value_get_array(jval, &jarr);
-    cdd_json_array_get_count(jarr, &count);
+    g_cdd_last_alloc_err = cdd_json_value_get_array(jval, &jarr);
+    g_cdd_last_alloc_err = cdd_json_array_get_count(jarr, &count);
     if (f->fixed_array_len > 0) {
       if (count > f->fixed_array_len)
         return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -496,7 +509,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
       JSON_Value *ev = NULL;
       JSON_Value_Type et;
       void *elem_ptr = NULL;
-      cdd_json_array_get_value(jarr, k, &ev);
+      g_cdd_last_alloc_err = cdd_json_array_get_value(jarr, k, &ev);
       et = json_value_get_type(ev);
       rc = cdd_reflect_array_at_mut(obj, f, k, &elem_ptr);
       if (f->elem_kind == CDD_FIELD_KIND_INTEGER) {
@@ -504,7 +517,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
         double dnum = 0.0;
         if (et != JSONNumber)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        cdd_json_value_get_number(ev, &dnum);
+        g_cdd_last_alloc_err = cdd_json_value_get_number(ev, &dnum);
         memset(&ef, 0, sizeof(ef));
         ef.kind = CDD_FIELD_KIND_INTEGER;
         ef.size = f->elem_size;
@@ -516,7 +529,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
         double dnum = 0.0;
         if (et != JSONNumber)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        cdd_json_value_get_number(ev, &dnum);
+        g_cdd_last_alloc_err = cdd_json_value_get_number(ev, &dnum);
         memset(&ef, 0, sizeof(ef));
         ef.kind = CDD_FIELD_KIND_NUMBER;
         ef.size = f->elem_size;
@@ -526,7 +539,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
         int bval = 0;
         if (et != JSONBoolean)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        cdd_json_value_get_boolean(ev, &bval);
+        g_cdd_last_alloc_err = cdd_json_value_get_boolean(ev, &bval);
         memset(&ef, 0, sizeof(ef));
         ef.kind = CDD_FIELD_KIND_BOOLEAN;
         ef.size = f->elem_size;
@@ -540,7 +553,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
           const struct cdd_enum_info *ei = NULL;
           const struct cdd_enum_variant_info *var = NULL;
           const char *es = NULL;
-          cdd_json_value_get_string(ev, &es);
+          g_cdd_last_alloc_err = cdd_json_value_get_string(ev, &es);
           rc = cdd_reflect_enum_by_name(f->ref_name, &ei);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -549,7 +562,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
           rc = cdd_reflect_set_int64(elem_ptr, &ef, (int64_t)var->value);
         } else if (et == JSONNumber) {
           double dnum = 0.0;
-          cdd_json_value_get_number(ev, &dnum);
+          g_cdd_last_alloc_err = cdd_json_value_get_number(ev, &dnum);
           rc = cdd_reflect_set_int64(elem_ptr, &ef, (int64_t)dnum);
         } else {
           return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -563,14 +576,11 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
           }
         } else if (et == JSONString) {
           const char *s = NULL;
-          size_t sl;
           char *dup;
-          cdd_json_value_get_string(ev, &s);
-          sl = strlen(s);
-          dup = (char *)C_CDD_MALLOC(sl + 1);
+          g_cdd_last_alloc_err = cdd_json_value_get_string(ev, &s);
+          dup = C_CDD_STRDUP(s);
           if (!dup)
             return CDD_C_ERROR_MEMORY;
-          memcpy(dup, s, sl + 1);
           if (*sp)
             C_CDD_FREE(*sp);
           *sp = dup;
@@ -594,7 +604,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
         }
         if (et != JSONObject)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        cdd_json_value_get_object(ev, &ev_jobj);
+        g_cdd_last_alloc_err = cdd_json_value_get_object(ev, &ev_jobj);
         if (f->elem_size == sizeof(void *)) {
           void **ep_ptr = (void **)elem_ptr;
           if (!*ep_ptr) {
@@ -684,14 +694,14 @@ cdd_c_error_t cdd_reflect_from_json(const char *json_str,
   if (cdd_json_parse_string(json_str, &root) != CDD_C_SUCCESS ||
       json_value_get_type(root) != JSONObject) {
     if (root)
-      cdd_json_value_free(root);
+      g_cdd_last_alloc_err = cdd_json_value_free(root);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   rc = cdd_reflect_struct_default(ti, &obj);
   if (rc == CDD_C_SUCCESS) {
     JSON_Object *jobj = NULL;
-    cdd_json_value_get_object(root, &jobj);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(root, &jobj);
     rc = deserialize_struct_from_json_obj(jobj, ti, obj);
     if (rc == CDD_C_SUCCESS) {
       *out_obj = obj;
@@ -700,7 +710,7 @@ cdd_c_error_t cdd_reflect_from_json(const char *json_str,
       C_CDD_FREE(obj);
     }
   }
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   return (cdd_c_error_t)((int)rc | (int)rc_c);
 }
 
@@ -740,7 +750,7 @@ static cdd_c_error_t build_merge_patch_obj(const void *source,
       JSON_Object *sub_jobj = NULL;
       rc = cdd_json_value_init_object(&sub_patch);
       rc = cdd_reflect_type_by_name(f->ref_name, &child_ti);
-      cdd_json_value_get_object(sub_patch, &sub_jobj);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(sub_patch, &sub_jobj);
       rc = build_merge_patch_obj(sa, ta, child_ti, sub_jobj);
       rc = cdd_json_object_set_value(patch_jobj, key, sub_patch);
     } else {
@@ -776,23 +786,23 @@ cdd_c_error_t cdd_reflect_merge_patch(const void *source, const void *target,
   *out_patch_json = NULL;
 
   rc = cdd_json_value_init_object(&root);
-  cdd_json_value_get_object(root, &root_obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
   rc = build_merge_patch_obj(source, target, ti, root_obj);
   if (rc != CDD_C_SUCCESS) {
-    cdd_json_value_free(root);
+    g_cdd_last_alloc_err = cdd_json_value_free(root);
     return rc;
   }
 
   rc = cdd_json_serialize_to_string(root, &parson_str);
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   slen = strlen(parson_str);
   dup_str = (char *)C_CDD_MALLOC(slen + 1);
   if (!dup_str) {
-    cdd_json_free_serialized_string(parson_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(parson_str);
     return CDD_C_ERROR_MEMORY;
   }
   memcpy(dup_str, parson_str, slen + 1);
-  cdd_json_free_serialized_string(parson_str);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(parson_str);
   *out_patch_json = dup_str;
   return CDD_C_SUCCESS;
 }
@@ -811,13 +821,13 @@ static cdd_c_error_t apply_merge_patch_obj(void *target,
   size_t count = 0;
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  cdd_json_object_get_count(patch_jobj, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(patch_jobj, &count);
   for (i = 0; i < count && rc == CDD_C_SUCCESS; ++i) {
     const char *key = NULL;
     JSON_Value *val = NULL;
     const struct cdd_field_info *f = NULL;
-    cdd_json_object_get_name(patch_jobj, i, &key);
-    cdd_json_object_get_value_at(patch_jobj, i, &val);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(patch_jobj, i, &key);
+    g_cdd_last_alloc_err = cdd_json_object_get_value_at(patch_jobj, i, &val);
     if (cdd_reflect_find_field(ti, key, &f) != CDD_C_SUCCESS)
       continue;
     if (f->kind == CDD_FIELD_KIND_OBJECT &&
@@ -825,7 +835,7 @@ static cdd_c_error_t apply_merge_patch_obj(void *target,
       const struct cdd_type_info *child_ti = NULL;
       void *child_obj = (void *)((unsigned char *)target + f->offset);
       JSON_Object *sub_jobj = NULL;
-      cdd_json_value_get_object(val, &sub_jobj);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(val, &sub_jobj);
       rc = cdd_reflect_type_by_name(f->ref_name, &child_ti);
       if (rc == CDD_C_SUCCESS && f->is_pointer) {
         void **pptr = (void **)child_obj;
@@ -863,13 +873,13 @@ cdd_c_error_t cdd_reflect_apply_merge_patch(void *target,
   if (cdd_json_parse_string(patch_json, &root) != CDD_C_SUCCESS ||
       json_value_get_type(root) != JSONObject) {
     if (root)
-      cdd_json_value_free(root);
+      g_cdd_last_alloc_err = cdd_json_value_free(root);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  cdd_json_value_get_object(root, &root_obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
   rc = apply_merge_patch_obj(target, ti, root_obj);
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   return rc;
 }
 
@@ -907,8 +917,8 @@ static cdd_c_error_t build_field_schema_obj(const struct cdd_field_info *f,
       JSON_Value *ev_arr_val = NULL;
       JSON_Array *ev_arr = NULL;
       size_t k;
-      cdd_json_value_init_array(&ev_arr_val);
-      cdd_json_value_get_array(ev_arr_val, &ev_arr);
+      g_cdd_last_alloc_err = cdd_json_value_init_array(&ev_arr_val);
+      g_cdd_last_alloc_err = cdd_json_value_get_array(ev_arr_val, &ev_arr);
       for (k = 0; k < ei->n_variants; ++k) {
         if (!ei->variants[k].skip) {
           rc = cdd_json_array_append_string(ev_arr, ei->variants[k].name);
@@ -924,8 +934,8 @@ static cdd_c_error_t build_field_schema_obj(const struct cdd_field_info *f,
   } else {
     JSON_Value *items_val = NULL;
     JSON_Object *items_obj = NULL;
-    cdd_json_value_init_object(&items_val);
-    cdd_json_value_get_object(items_val, &items_obj);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&items_val);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(items_val, &items_obj);
     rc = cdd_json_object_set_string(prop_obj, "type", "array");
     if (f->has_min_len)
       rc = cdd_json_object_set_number(prop_obj, "minItems", (double)f->min_len);
@@ -1001,13 +1011,13 @@ cdd_c_error_t cdd_reflect_to_json_schema(const struct cdd_type_info *ti,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_schema_json = NULL;
 
-  cdd_json_value_init_object(&root);
-  cdd_json_value_get_object(root, &root_obj);
+  g_cdd_last_alloc_err = cdd_json_value_init_object(&root);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
   rc = cdd_json_object_set_string(root_obj, "title", ti->name);
   rc = cdd_json_object_set_string(root_obj, "type", "object");
 
-  cdd_json_value_init_object(&props_val);
-  cdd_json_value_get_object(props_val, &props_obj);
+  g_cdd_last_alloc_err = cdd_json_value_init_object(&props_val);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(props_val, &props_obj);
 
   for (i = 0; i < ti->n_fields; ++i) {
     const struct cdd_field_info *f = &ti->fields[i];
@@ -1016,14 +1026,14 @@ cdd_c_error_t cdd_reflect_to_json_schema(const struct cdd_type_info *ti,
     JSON_Object *f_obj = NULL;
     if (f->skip)
       continue;
-    cdd_json_value_init_object(&f_val);
-    cdd_json_value_get_object(f_val, &f_obj);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&f_val);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(f_val, &f_obj);
     rc = build_field_schema_obj(f, f_obj);
     rc = cdd_json_object_set_value(props_obj, key, f_val);
     if (f->required) {
       if (!req_val) {
-        cdd_json_value_init_array(&req_val);
-        cdd_json_value_get_array(req_val, &req_arr);
+        g_cdd_last_alloc_err = cdd_json_value_init_array(&req_val);
+        g_cdd_last_alloc_err = cdd_json_value_get_array(req_val, &req_arr);
       }
       rc = cdd_json_array_append_string(req_arr, key);
     }
@@ -1034,16 +1044,16 @@ cdd_c_error_t cdd_reflect_to_json_schema(const struct cdd_type_info *ti,
     rc = cdd_json_object_set_value(root_obj, "required", req_val);
   }
 
-  cdd_json_serialize_to_string(root, &parson_str);
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_serialize_to_string(root, &parson_str);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   slen = strlen(parson_str);
   dup_str = (char *)C_CDD_MALLOC(slen + 1);
   if (!dup_str) {
-    cdd_json_free_serialized_string(parson_str);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(parson_str);
     return CDD_C_ERROR_MEMORY;
   }
   memcpy(dup_str, parson_str, slen + 1);
-  cdd_json_free_serialized_string(parson_str);
+  g_cdd_last_alloc_err = cdd_json_free_serialized_string(parson_str);
   *out_schema_json = dup_str;
   return rc;
 }
@@ -1346,12 +1356,12 @@ cdd_c_error_t cdd_reflect_apply_json_patch(void *target,
   if (cdd_json_parse_string(patch_json, &root) != CDD_C_SUCCESS ||
       json_value_get_type(root) != JSONArray) {
     if (root)
-      cdd_json_value_free(root);
+      g_cdd_last_alloc_err = cdd_json_value_free(root);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  cdd_json_value_get_array(root, &ops);
-  cdd_json_array_get_count(ops, &count);
+  g_cdd_last_alloc_err = cdd_json_value_get_array(root, &ops);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(ops, &count);
   for (i = 0; i < count; ++i) {
     JSON_Object *op_obj = NULL;
     const char *op_name = NULL;
@@ -1361,31 +1371,31 @@ cdd_c_error_t cdd_reflect_apply_json_patch(void *target,
     const void *parent_obj = NULL;
     const void *field_ptr = NULL;
 
-    cdd_json_array_get_object(ops, i, &op_obj);
-    cdd_json_object_get_string(op_obj, "op", &op_name);
-    cdd_json_object_get_string(op_obj, "path", &path);
-    cdd_json_object_get_value(op_obj, "value", &val);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(ops, i, &op_obj);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(op_obj, "op", &op_name);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(op_obj, "path", &path);
+    g_cdd_last_alloc_err = cdd_json_object_get_value(op_obj, "value", &val);
 
     if (!op_name || !path) {
-      cdd_json_value_free(root);
+      g_cdd_last_alloc_err = cdd_json_value_free(root);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
 
     rc =
         cdd_reflect_resolve_path(target, ti, path, &f, &parent_obj, &field_ptr);
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(root);
+      g_cdd_last_alloc_err = cdd_json_value_free(root);
       return rc;
     }
 
     if (strcmp(op_name, "add") == 0 || strcmp(op_name, "replace") == 0) {
       if (!val) {
-        cdd_json_value_free(root);
+        g_cdd_last_alloc_err = cdd_json_value_free(root);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       if (json_value_get_type(val) == JSONNumber) {
         double dnum = 0.0;
-        cdd_json_value_get_number(val, &dnum);
+        g_cdd_last_alloc_err = cdd_json_value_get_number(val, &dnum);
         if (f->kind == CDD_FIELD_KIND_NUMBER ||
             f->elem_kind == CDD_FIELD_KIND_NUMBER) {
           rc = cdd_reflect_set_double_by_path(target, ti, path, dnum);
@@ -1394,11 +1404,11 @@ cdd_c_error_t cdd_reflect_apply_json_patch(void *target,
         }
       } else if (json_value_get_type(val) == JSONBoolean) {
         int bval = 0;
-        cdd_json_value_get_boolean(val, &bval);
+        g_cdd_last_alloc_err = cdd_json_value_get_boolean(val, &bval);
         rc = cdd_reflect_set_bool_by_path(target, ti, path, bval);
       } else if (json_value_get_type(val) == JSONString) {
         const char *sval = NULL;
-        cdd_json_value_get_string(val, &sval);
+        g_cdd_last_alloc_err = cdd_json_value_get_string(val, &sval);
         rc = cdd_reflect_set_string_by_path(target, ti, path, sval);
       } else {
         rc = CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1412,13 +1422,13 @@ cdd_c_error_t cdd_reflect_apply_json_patch(void *target,
       rc = cdd_reflect_cleanup_single_field(u_p.m_ptr, f);
     } else if (strcmp(op_name, "test") == 0) {
       if (!val) {
-        cdd_json_value_free(root);
+        g_cdd_last_alloc_err = cdd_json_value_free(root);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       if (json_value_get_type(val) == JSONNumber) {
         int64_t iv = 0;
         double dnum = 0.0;
-        cdd_json_value_get_number(val, &dnum);
+        g_cdd_last_alloc_err = cdd_json_value_get_number(val, &dnum);
         rc = cdd_reflect_get_int64_by_path(target, ti, path, &iv);
         if (iv != (int64_t)dnum)
           rc = CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1435,9 +1445,10 @@ cdd_c_error_t cdd_reflect_apply_json_patch(void *target,
       const struct cdd_field_info *from_f = NULL;
       const void *from_parent = NULL;
       const void *from_ptr = NULL;
-      cdd_json_object_get_string(op_obj, "from", &from_path);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(op_obj, "from", &from_path);
       if (!from_path) {
-        cdd_json_value_free(root);
+        g_cdd_last_alloc_err = cdd_json_value_free(root);
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       rc = cdd_reflect_resolve_path(target, ti, from_path, &from_f,
@@ -1466,11 +1477,11 @@ cdd_c_error_t cdd_reflect_apply_json_patch(void *target,
     }
 
     if (rc != CDD_C_SUCCESS) {
-      cdd_json_value_free(root);
+      g_cdd_last_alloc_err = cdd_json_value_free(root);
       return rc;
     }
   }
 
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   return rc;
 }

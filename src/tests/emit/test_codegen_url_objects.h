@@ -157,9 +157,9 @@ static void run_io_obj_loop(const struct OpenAPI_Operation *op,
     g_io_calls = 0;
     g_fail_io_after = i;
     if (op) {
-      gen_query_obj_code(op, &code);
+      g_cdd_last_alloc_err = gen_query_obj_code(op, &code);
     } else {
-      gen_url_obj_code(tmpl, params, n_params, &code);
+      g_cdd_last_alloc_err = gen_url_obj_code(tmpl, params, n_params, &code);
     }
     if (code) {
       free(code);
@@ -191,8 +191,9 @@ TEST test_query_gen_object_form_explode(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_19),
-          _ast_gen_query_code_19);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_19),
+       _ast_gen_query_code_19);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -228,8 +229,9 @@ TEST test_query_gen_object_form_explode_false(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_20),
-          _ast_gen_query_code_20);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_20),
+       _ast_gen_query_code_20);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -264,8 +266,9 @@ TEST test_query_gen_object_deep_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_21),
-          _ast_gen_query_code_21);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_21),
+       _ast_gen_query_code_21);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -298,8 +301,9 @@ TEST test_query_gen_object_space_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_22),
-          _ast_gen_query_code_22);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_22),
+       _ast_gen_query_code_22);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -332,8 +336,9 @@ TEST test_query_gen_object_pipe_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_23),
-          _ast_gen_query_code_23);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_23),
+       _ast_gen_query_code_23);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -368,8 +373,9 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_24),
-          _ast_gen_query_code_24);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_24),
+       _ast_gen_query_code_24);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -408,8 +414,9 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_25),
-          _ast_gen_query_code_25);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_25),
+       _ast_gen_query_code_25);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
 
@@ -438,7 +445,8 @@ TEST test_path_matrix_param_string(void) {
   param.style = OA_STYLE_MATRIX;
   param.explode = 0;
 
-  code = (gen_url_obj_code("/pets/{id}", &param, 1, &_ast_gen_url_code_26),
+  code = (g_cdd_last_alloc_err =
+              gen_url_obj_code("/pets/{id}", &param, 1, &_ast_gen_url_code_26),
           _ast_gen_url_code_26);
   ASSERT(code);
   ASSERT(strstr(code, "path_id") != NULL);
@@ -467,7 +475,8 @@ TEST test_path_label_array_explode(void) {
   param.style = OA_STYLE_LABEL;
   param.explode = 1;
 
-  code = (gen_url_obj_code("/tags/{tags}", &param, 1, &_ast_gen_url_code_27),
+  code = (g_cdd_last_alloc_err = gen_url_obj_code("/tags/{tags}", &param, 1,
+                                                  &_ast_gen_url_code_27),
           _ast_gen_url_code_27);
   ASSERT(code);
   ASSERT(strstr(code, "path_tags") != NULL);
@@ -495,7 +504,8 @@ TEST test_path_matrix_object_explode_false(void) {
   param.explode = 0;
   param.explode_set = 1;
 
-  code = (gen_url_obj_code("/pets/{color}", &param, 1, &_ast_gen_url_code_28),
+  code = (g_cdd_last_alloc_err = gen_url_obj_code("/pets/{color}", &param, 1,
+                                                  &_ast_gen_url_code_28),
           _ast_gen_url_code_28);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &color[i]") != NULL);
@@ -522,7 +532,8 @@ TEST test_path_simple_param_number(void) {
   param.type = cdd_test_mut_str("number");
   param.style = OA_STYLE_SIMPLE;
 
-  code = (gen_url_obj_code("/items/{id}", &param, 1, &_ast_gen_url_code_29),
+  code = (g_cdd_last_alloc_err =
+              gen_url_obj_code("/items/{id}", &param, 1, &_ast_gen_url_code_29),
           _ast_gen_url_code_29);
   ASSERT(code);
   ASSERT(strstr(code, "spr"
@@ -556,8 +567,9 @@ TEST test_query_gen_json_content_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_query_obj_code(&op, &_ast_gen_query_code_30),
-          _ast_gen_query_code_30);
+  code =
+      (g_cdd_last_alloc_err = gen_query_obj_code(&op, &_ast_gen_query_code_30),
+       _ast_gen_query_code_30);
   ASSERT(code);
   run_io_obj_loop(&op, NULL, NULL, 0);
   ASSERT(strstr(code, "Query Parameter (json): filter") != NULL);
@@ -574,21 +586,36 @@ TEST test_query_gen_json_content_ref(void) {
  * @return Greatest test result.
  */
 TEST test_media_type_is_json_url(void) {
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/json"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_json_url("application/vnd.api+json"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("APPLICATION/JSON"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/JSON"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_json_url("application/vnd.api+JSON"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_json_url("application/vnd.api+json; charset=utf-8"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/xml"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("text/plain"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/json+xml"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("json"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("+json"));
+  int bval = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/json", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_json_url("application/vnd.api+json", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("APPLICATION/JSON", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/JSON", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_json_url("application/vnd.api+JSON", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      media_type_is_json_url("application/vnd.api+json; charset=utf-8", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/xml", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("text/plain", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_json_url("application/json+xml", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("json", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("+json", &bval));
+  ASSERT_EQ(1, bval);
   g_fail_io_after = -1;
   PASS();
 }
@@ -600,16 +627,21 @@ TEST test_media_type_is_json_url(void) {
 TEST test_querystring_param_null_checks(void) {
   const char *out_val;
   struct OpenAPI_Parameter p;
-  ASSERT_EQ(0, querystring_param_is_form_object(NULL));
-  ASSERT_EQ(0, querystring_param_is_json_ref(NULL));
+  int bval = 0;
+  ASSERT_EQ(0, querystring_param_is_form_object(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(0, querystring_param_is_json_ref(NULL, &bval));
+  ASSERT_EQ(0, bval);
   ASSERT_EQ(0, querystring_param_json_primitive_type(NULL, &out_val));
   ASSERT_EQ(NULL, out_val);
 
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_HEADER; /* not query */
 
-  ASSERT_EQ(0, querystring_param_is_form_object(&p));
-  ASSERT_EQ(0, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(0, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(0, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(0, bval);
   ASSERT_EQ(0, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
   g_fail_io_after = -1;
@@ -622,13 +654,19 @@ TEST test_querystring_param_null_checks(void) {
  * @return Greatest test result.
  */
 TEST test_media_type_ieq_url_extra(void) {
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_form_url("APPLICATION/x-www-form-urlencoded"));
+  int bval = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json", &bval));
+  ASSERT_EQ(0, bval);
   ASSERT_EQ(CDD_C_SUCCESS,
-            media_type_is_form_url("application/x-www-form-urlencodex"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/jsox"));
+            media_type_is_form_url("APPLICATION/x-www-form-urlencoded", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_form_url("application/x-www-form-urlencodex", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/jsox", &bval));
+  ASSERT_EQ(0, bval);
 
   /* querystring_param_json_array_item_type */
   {
@@ -709,23 +747,23 @@ TEST test_media_type_ieq_url_extra(void) {
     p.type = cdd_test_mut_str("boolean");
     op.parameters = &p;
     op.n_parameters = 1;
-    gen_query_obj_code(&op, &out);
+    g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
     if (out)
       free(out);
 
     p.type = cdd_test_mut_str("invalid");
-    gen_query_obj_code(&op, &out);
+    g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
     if (out)
       free(out);
 
     p.type = NULL;
     p.schema.inline_type = cdd_test_mut_str("integer");
-    gen_query_obj_code(&op, &out);
+    g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
     if (out)
       free(out);
 
     p.content_type = cdd_test_mut_str("application/x-www-form-urlencoded");
-    gen_query_obj_code(&op, &out);
+    g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
     if (out)
       free(out);
   }
@@ -746,7 +784,7 @@ TEST test_codegen_url_coverage_extras(void) {
   memset(&p, 0, sizeof(p));
 
   /* media_type_base_len_url with NULL */
-  media_type_base_len_url(NULL, &len);
+  g_cdd_last_alloc_err = media_type_base_len_url(NULL, &len);
 
   /* querystring_param_json_array_item_ref with object */
   p.in = OA_PARAM_IN_QUERYSTRING;
@@ -755,7 +793,7 @@ TEST test_codegen_url_coverage_extras(void) {
   p.items_type = cdd_test_mut_str("object");
   {
     const char *out_str = NULL;
-    querystring_param_json_array_item_ref(&p, &out_str);
+    g_cdd_last_alloc_err = querystring_param_json_array_item_ref(&p, &out_str);
   }
 
   op.n_parameters = 1;
@@ -768,28 +806,28 @@ TEST test_codegen_url_coverage_extras(void) {
 
   p.schema.inline_type = NULL;
   p.type = cdd_test_mut_str("invalid_type");
-  gen_query_obj_code(&op, &out);
+  g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
   if (out) {
     free(out);
     out = NULL;
   }
 
   p.type = cdd_test_mut_str("number");
-  gen_query_obj_code(&op, &out);
+  g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
   if (out) {
     free(out);
     out = NULL;
   }
 
   p.type = cdd_test_mut_str("boolean");
-  gen_query_obj_code(&op, &out);
+  g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
   if (out) {
     free(out);
     out = NULL;
   }
 
   p.type = NULL;
-  gen_query_obj_code(&op, &out);
+  g_cdd_last_alloc_err = gen_query_obj_code(&op, &out);
   if (out) {
     free(out);
     out = NULL;
@@ -805,7 +843,8 @@ TEST test_codegen_url_coverage_extras(void) {
     fp = cdd_test_tmpfile_global();
 #endif
     if (fp) {
-      codegen_url_write_builder(fp, "/users/{id}", NULL, 0, NULL);
+      g_cdd_last_alloc_err =
+          codegen_url_write_builder(fp, "/users/{id}", NULL, 0, NULL);
       if (fp)
         fclose(fp);
     }
@@ -837,14 +876,14 @@ TEST test_codegen_url_io_errors(void) {
   for (i = 1; i < 15; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    gen_query_obj_code(&op, &code);
+    g_cdd_last_alloc_err = gen_query_obj_code(&op, &code);
     free(code);
   }
 
   /* Exercise builder failure */
   g_io_calls = 0;
   g_fail_io_after = 1;
-  gen_url_obj_code("/users/{page}", &param, 1, &code);
+  g_cdd_last_alloc_err = gen_url_obj_code("/users/{page}", &param, 1, &code);
   free(code);
 
   /* Exercise run_io_obj_loop with op and without op */
@@ -853,13 +892,13 @@ TEST test_codegen_url_io_errors(void) {
 
   /* Exercise g_url_obj_fail_tmpfile */
   g_url_obj_fail_tmpfile = 1;
-  gen_url_obj_code("/users/{page}", &param, 1, &code);
-  gen_query_obj_code(&op, &code);
+  g_cdd_last_alloc_err = gen_url_obj_code("/users/{page}", &param, 1, &code);
+  g_cdd_last_alloc_err = gen_query_obj_code(&op, &code);
   g_url_obj_fail_tmpfile = 0;
 
   /* Exercise codegen_url_write failure in helpers */
-  gen_url_obj_code(NULL, NULL, 0, &code);
-  gen_query_obj_code(NULL, &code);
+  g_cdd_last_alloc_err = gen_url_obj_code(NULL, NULL, 0, &code);
+  g_cdd_last_alloc_err = gen_query_obj_code(NULL, &code);
 
   g_fail_io_after = -1;
   PASS();

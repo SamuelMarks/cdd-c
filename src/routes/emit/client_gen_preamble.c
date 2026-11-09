@@ -162,9 +162,11 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   const char *default_url_literal = NULL;
 
   if (spec && spec->servers && spec->n_servers > 0 && spec->servers[0].url) {
-    render_server_url_default(&spec->servers[0], &default_url);
+    g_cdd_last_alloc_err =
+        render_server_url_default(&spec->servers[0], &default_url);
     if (default_url)
-      escape_c_string_literal(default_url, &default_url_escaped);
+      g_cdd_last_alloc_err =
+          escape_c_string_literal(default_url, &default_url_escaped);
     if (default_url_escaped)
       default_url_literal = default_url_escaped;
     else

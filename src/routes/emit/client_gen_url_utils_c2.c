@@ -25,19 +25,19 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
   if (uc) {
     cdd_c_error_t rc = CDD_C_SUCCESS;
     cdd_code_writer_t w;
-    cdd_code_writer_init_stream(&w, uc);
-    cdd_code_writer_write(&w,
-                          "/**\n"
-                          " * @brief Releases all key/value strings and "
-                          "storage in a UrlQueryParams container.\n"
-                          " */\n"
-                          "void url_query_free(struct UrlQueryParams *qp) {\n"
-                          "  size_t i;\n"
-                          "  if (!qp)\n"
-                          "    return;\n"
-                          "  if (qp->params) {\n"
-                          "    for (i = 0; i < qp->count; ++i) {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_init_stream(&w, uc);
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "/**\n"
+            " * @brief Releases all key/value strings and "
+            "storage in a UrlQueryParams container.\n"
+            " */\n"
+            "void url_query_free(struct UrlQueryParams *qp) {\n"
+            "  size_t i;\n"
+            "  if (!qp)\n"
+            "    return;\n"
+            "  if (qp->params) {\n"
+            "    for (i = 0; i < qp->count; ++i) {\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      if (qp->params[i].key)\n"
             "        free(qp->params[i].key);\n"
             "      if (qp->params[i].value)\n"
@@ -55,7 +55,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "UrlQueryParams container.\n"
             " */\n"
             "cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const ");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "char *key,\n"
             "                  const char *value) {\n"
             "  if (!qp || !key || !value)\n"
@@ -65,7 +65,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;\n"
             "    struct UrlQueryParam *new_arr = (struct UrlQueryParam "
             "*)realloc(\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "        qp->params, new_cap * sizeof(struct UrlQueryParam));\n"
             "    if (!new_arr) {\n"
             "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
@@ -77,7 +77,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "\n"
             "  c_cdd_strdup(key, &qp->params[qp->count].key);\n"
             "  if (!qp->params[qp->count].key)\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    return CDD_C_ERROR_MEMORY;\n"
             "\n"
             "  c_cdd_strdup(value, &qp->params[qp->count].value);\n"
@@ -92,7 +92,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "}\n"
             "\n"
             "/**\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, " * @brief Appends a pre-encoded value parameter pair to a "
             "UrlQueryParams container.\n"
             " */\n"
@@ -104,7 +104,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
             "\n"
             "  if (qp->count >= qp->capacity) {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;\n"
             "    struct UrlQueryParam *new_arr = (struct UrlQueryParam "
             "*)realloc(\n"
@@ -117,7 +117,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    qp->capacity = new_cap;\n"
             "  }\n"
             "\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  c_cdd_strdup(key, &qp->params[qp->count].key);\n"
             "  if (!qp->params[qp->count].key)\n"
             "    return CDD_C_ERROR_MEMORY;\n"
@@ -127,7 +127,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    free(qp->params[qp->count].key);\n"
             "    return CDD_C_ERROR_MEMORY;\n"
             "  }\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  qp->params[qp->count].value_is_encoded = 1;\n"
             "\n"
             "  qp->count++;\n"
@@ -141,17 +141,18 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, "
             "char "
             "**out_str) {\n");
-    cdd_code_writer_write(&w, "  size_t i;\n"
-                              "  size_t total_len = 0;\n"
-                              "  char *buf = NULL;\n"
-                              "  char *ptr = NULL;\n"
-                              "\n"
-                              "  if (!qp || !out_str)\n"
-                              "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-                              "\n"
-                              "  if (qp->count == 0) {\n"
-                              "    c_cdd_strdup(\"\", out_str);\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "  size_t i;\n"
+                                  "  size_t total_len = 0;\n"
+                                  "  char *buf = NULL;\n"
+                                  "  char *ptr = NULL;\n"
+                                  "\n"
+                                  "  if (!qp || !out_str)\n"
+                                  "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                                  "\n"
+                                  "  if (qp->count == 0) {\n"
+                                  "    c_cdd_strdup(\"\", out_str);\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w,
         "    return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;\n"
         "  }\n"
@@ -165,7 +166,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
         "  total_len = 1; /* '?' */\n"
         "\n"
         "  for (i = 0; i < qp->count; ++i) {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    char *e_key = NULL;\n"
             "    char *e_val = NULL;\n"
             "    const char *raw_val = qp->params[i].value;\n"
@@ -174,39 +175,41 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    if (qp->params[i].value_is_encoded) {\n"
             "      c_cdd_strdup(raw_val ? raw_val : \"\", &e_val);\n"
             "    } else {\n");
-    cdd_code_writer_write(&w, "      url_encode(raw_val, &e_val);\n"
-                              "    }\n"
-                              "\n"
-                              "    if (!e_key || !e_val) {\n"
-                              "      if (e_key)\n"
-                              "        free(e_key);\n"
-                              "      if (e_val)\n"
-                              "        free(e_val);\n"
-                              "      return CDD_C_ERROR_MEMORY;\n"
-                              "    }\n"
-                              "\n"
-                              "    total_len += strlen(e_key) + 1; /* key= */\n"
-                              "    total_len += strlen(e_val);\n"
-                              "    if (i < qp->count - 1)\n");
-    cdd_code_writer_write(&w, "      total_len += 1; /* & */\n"
-                              "\n"
-                              "    free(e_key);\n"
-                              "    free(e_val);\n"
-                              "  }\n"
-                              "\n"
-                              "  /* 2. Allocate */\n"
-                              "  buf = (char *)malloc(total_len + 1);\n"
-                              "  if (!buf) {\n"
-                              "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-                              "    return CDD_C_ERROR_MEMORY;\n"
-                              "  }\n"
-                              "\n"
-                              "  /* 3. Build */\n"
-                              "  ptr = buf;\n"
-                              "  *ptr++ = '?';\n"
-                              "\n"
-                              "  for (i = 0; i < qp->count; ++i) {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "      url_encode(raw_val, &e_val);\n"
+            "    }\n"
+            "\n"
+            "    if (!e_key || !e_val) {\n"
+            "      if (e_key)\n"
+            "        free(e_key);\n"
+            "      if (e_val)\n"
+            "        free(e_val);\n"
+            "      return CDD_C_ERROR_MEMORY;\n"
+            "    }\n"
+            "\n"
+            "    total_len += strlen(e_key) + 1; /* key= */\n"
+            "    total_len += strlen(e_val);\n"
+            "    if (i < qp->count - 1)\n");
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "      total_len += 1; /* & */\n"
+                                  "\n"
+                                  "    free(e_key);\n"
+                                  "    free(e_val);\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  /* 2. Allocate */\n"
+                                  "  buf = (char *)malloc(total_len + 1);\n"
+                                  "  if (!buf) {\n"
+                                  "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+                                  "    return CDD_C_ERROR_MEMORY;\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  /* 3. Build */\n"
+                                  "  ptr = buf;\n"
+                                  "  *ptr++ = '?';\n"
+                                  "\n"
+                                  "  for (i = 0; i < qp->count; ++i) {\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    char *e_key = NULL;\n"
             "    size_t kl, vl;\n"
             "    char *e_val = NULL;\n"
@@ -216,7 +219,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    if (qp->params[i].value_is_encoded) {\n"
             "      c_cdd_strdup(raw_val ? raw_val : \"\", &e_val);\n"
             "    } else {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      url_encode(raw_val, &e_val);\n"
             "    }\n"
             "\n"
@@ -233,62 +236,63 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    /* Copy Value */\n"
             "    {\n"
             "      vl = strlen(e_val);\n");
-    cdd_code_writer_write(&w,
-                          "      memcpy(ptr, e_val, vl);\n"
-                          "      ptr += vl;\n"
-                          "    }\n"
-                          "\n"
-                          "    /* Copy Sep */\n"
-                          "    if (i < qp->count - 1) {\n"
-                          "      *ptr++ = '&';\n"
-                          "    }\n"
-                          "\n"
-                          "    free(e_key);\n"
-                          "    free(e_val);\n"
-                          "  }\n"
-                          "  *ptr = '\\0';\n"
-                          "\n"
-                          "  *out_str = buf;\n"
-                          "  return CDD_C_SUCCESS;\n"
-                          "}\n"
-                          "\n"
-                          "/**\n"
-                          " * @brief Serializes a UrlQueryParams container "
-                          "into an application/x-www-form-urlencoded body.\n"
-                          " */\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "      memcpy(ptr, e_val, vl);\n"
+            "      ptr += vl;\n"
+            "    }\n"
+            "\n"
+            "    /* Copy Sep */\n"
+            "    if (i < qp->count - 1) {\n"
+            "      *ptr++ = '&';\n"
+            "    }\n"
+            "\n"
+            "    free(e_key);\n"
+            "    free(e_val);\n"
+            "  }\n"
+            "  *ptr = '\\0';\n"
+            "\n"
+            "  *out_str = buf;\n"
+            "  return CDD_C_SUCCESS;\n"
+            "}\n"
+            "\n"
+            "/**\n"
+            " * @brief Serializes a UrlQueryParams container "
+            "into an application/x-www-form-urlencoded body.\n"
+            " */\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "cdd_c_error_t url_query_build_form(const struct UrlQueryParams "
             "*qp, char "
             "**out_str) {\n"
             "  size_t i;\n"
             "  size_t total_len = 0;\n"
             "  char *buf;\n");
-    cdd_code_writer_write(&w, "  char *ptr;\n"
-                              "\n"
-                              "  if (!qp || !out_str)\n"
-                              "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-                              "\n"
-                              "  if (qp->count == 0) {\n"
-                              "    *out_str = (char *)calloc(1, 1);\n"
-                              "    if (!*out_str)\n"
-                              "      return CDD_C_ERROR_MEMORY;\n"
-                              "    return CDD_C_SUCCESS;\n"
-                              "  }\n"
-                              "\n"
-                              "  for (i = 0; i < qp->count; ++i) {\n"
-                              "    char *e_key = NULL;\n");
-    cdd_code_writer_write(&w,
-                          "    char *e_val = NULL;\n"
-                          "    size_t kl, vl;\n"
-                          "    url_encode_form(qp->params[i].key, &e_key);\n"
-                          "    if (!e_key) {\n"
-                          "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-                          "      return CDD_C_ERROR_MEMORY;\n"
-                          "    }\n"
-                          "    if (qp->params[i].value_is_encoded) {\n"
-                          "      c_cdd_strdup(qp->params[i].value, &e_val);\n"
-                          "    } else {\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "  char *ptr;\n"
+                                  "\n"
+                                  "  if (!qp || !out_str)\n"
+                                  "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                                  "\n"
+                                  "  if (qp->count == 0) {\n"
+                                  "    *out_str = (char *)calloc(1, 1);\n"
+                                  "    if (!*out_str)\n"
+                                  "      return CDD_C_ERROR_MEMORY;\n"
+                                  "    return CDD_C_SUCCESS;\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  for (i = 0; i < qp->count; ++i) {\n"
+                                  "    char *e_key = NULL;\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "    char *e_val = NULL;\n"
+            "    size_t kl, vl;\n"
+            "    url_encode_form(qp->params[i].key, &e_key);\n"
+            "    if (!e_key) {\n"
+            "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+            "      return CDD_C_ERROR_MEMORY;\n"
+            "    }\n"
+            "    if (qp->params[i].value_is_encoded) {\n"
+            "      c_cdd_strdup(qp->params[i].value, &e_val);\n"
+            "    } else {\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      url_encode_form(qp->params[i].value, &e_val);\n"
             "    }\n"
             "    if (!e_val) {\n"
@@ -301,20 +305,21 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    if (i + 1 < qp->count)\n"
             "      total_len += 1;\n"
             "    free(e_key);\n");
-    cdd_code_writer_write(&w, "    free(e_val);\n"
-                              "  }\n"
-                              "\n"
-                              "  buf = (char *)malloc(total_len + 1);\n"
-                              "  if (!buf) {\n"
-                              "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-                              "    return CDD_C_ERROR_MEMORY;\n"
-                              "  }\n"
-                              "  ptr = buf;\n"
-                              "\n"
-                              "  for (i = 0; i < qp->count; ++i) {\n"
-                              "    char *e_key = NULL;\n"
-                              "    char *e_val = NULL;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "    free(e_val);\n"
+                                  "  }\n"
+                                  "\n"
+                                  "  buf = (char *)malloc(total_len + 1);\n"
+                                  "  if (!buf) {\n"
+                                  "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+                                  "    return CDD_C_ERROR_MEMORY;\n"
+                                  "  }\n"
+                                  "  ptr = buf;\n"
+                                  "\n"
+                                  "  for (i = 0; i < qp->count; ++i) {\n"
+                                  "    char *e_key = NULL;\n"
+                                  "    char *e_val = NULL;\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    size_t kl, vl;\n"
             "    url_encode_form(qp->params[i].key, &e_key);\n"
             "    if (!e_key) {\n"
@@ -325,25 +330,26 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "      c_cdd_strdup(qp->params[i].value, &e_val);\n"
             "    } else {\n"
             "      url_encode_form(qp->params[i].value, &e_val);\n");
-    cdd_code_writer_write(&w, "    }\n"
-                              "    if (!e_val) {\n"
-                              "      free(e_key);\n"
-                              "      free(buf);\n"
-                              "      return CDD_C_ERROR_MEMORY;\n"
-                              "    }\n"
-                              "    kl = strlen(e_key);\n"
-                              "    vl = strlen(e_val);\n"
-                              "    memcpy(ptr, e_key, kl);\n"
-                              "    ptr += kl;\n"
-                              "    *ptr++ = '=';\n"
-                              "    memcpy(ptr, e_val, vl);\n"
-                              "    ptr += vl;\n"
-                              "    if (i + 1 < qp->count)\n"
-                              "      *ptr++ = '&';\n"
-                              "    free(e_key);\n"
-                              "    free(e_val);\n"
-                              "  }\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "    }\n"
+                                  "    if (!e_val) {\n"
+                                  "      free(e_key);\n"
+                                  "      free(buf);\n"
+                                  "      return CDD_C_ERROR_MEMORY;\n"
+                                  "    }\n"
+                                  "    kl = strlen(e_key);\n"
+                                  "    vl = strlen(e_val);\n"
+                                  "    memcpy(ptr, e_key, kl);\n"
+                                  "    ptr += kl;\n"
+                                  "    *ptr++ = '=';\n"
+                                  "    memcpy(ptr, e_val, vl);\n"
+                                  "    ptr += vl;\n"
+                                  "    if (i + 1 < qp->count)\n"
+                                  "      *ptr++ = '&';\n"
+                                  "    free(e_key);\n"
+                                  "    free(e_val);\n"
+                                  "  }\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w,
         "  *ptr = '\\0';\n"
         "  *out_str = buf;\n"
@@ -363,22 +369,22 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
         "  slen = strlen(s);\n"
         "  need = *len + slen + 1;\n"
         "  if (need > *cap) {\n");
-    cdd_code_writer_write(&w,
-                          "    size_t new_cap = (*cap == 0) ? 64 : *cap * 2;\n"
-                          "    while (new_cap < need)\n"
-                          "      new_cap *= 2;\n"
-                          "    tmp = (char *)realloc(*buf, new_cap);\n"
-                          "    if (!tmp) {\n"
-                          "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-                          "      return CDD_C_ERROR_MEMORY;\n"
-                          "    }\n"
-                          "    *buf = tmp;\n"
-                          "    *cap = new_cap;\n"
-                          "  }\n"
-                          "  memcpy(*buf + *len, s, slen);\n"
-                          "  *len += slen;\n"
-                          "  (*buf)[*len] = '\\0';\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
+        &w, "    size_t new_cap = (*cap == 0) ? 64 : *cap * 2;\n"
+            "    while (new_cap < need)\n"
+            "      new_cap *= 2;\n"
+            "    tmp = (char *)realloc(*buf, new_cap);\n"
+            "    if (!tmp) {\n"
+            "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+            "      return CDD_C_ERROR_MEMORY;\n"
+            "    }\n"
+            "    *buf = tmp;\n"
+            "    *cap = new_cap;\n"
+            "  }\n"
+            "  memcpy(*buf + *len, s, slen);\n"
+            "  *len += slen;\n"
+            "  (*buf)[*len] = '\\0';\n");
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  return CDD_C_SUCCESS;\n"
             "}\n"
             "\n"
@@ -393,7 +399,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "  switch (kv->type) {\n"
             "  case OA_KV_STRING: {\n"
             "    *_out_val = kv->value.s ? kv->value.s : NULL;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    return CDD_C_SUCCESS;\n"
             "  }\n"
             "  case OA_KV_INTEGER:\n"
@@ -409,7 +415,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "  case OA_KV_NUMBER:\n"
             "    if (!buf || buf_len == 0) {\n"
             "      *_out_val = NULL;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      return CDD_C_SUCCESS;\n"
             "    }\n"
             "    sprintf_s_chk(buf, buf_len, \"%g\", kv->value.n);\n"
@@ -429,7 +435,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "}\n"
             "\n"
             "/**\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, " * @brief Joins an array of OpenAPI_KV pairs using a delimiter "
             "and form encoding.\n"
             " */\n"
@@ -441,7 +447,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "  char *buf = NULL;\n"
             "  size_t len = 0;\n"
             "  size_t cap = 0;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  char num_buf[64];\n"
             "  char *enc_key = NULL;\n"
             "  char *enc_val = NULL;\n"
@@ -462,7 +468,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    }\n"
             "  }\n"
             "\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "  for (i = 0; i < n; ++i) {\n"
             "    const char *raw_val = NULL;\n"
             "    if (!kvs[i].key)\n"
@@ -473,7 +479,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "      continue;\n"
             "    enc_fn(kvs[i].key, &enc_key);\n"
             "    if (!enc_key)\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "      goto oom;\n"
             "    enc_fn(raw_val, &enc_val);\n"
             "    if (!enc_val)\n"
@@ -486,7 +492,7 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "      goto oom;\n"
             "    if (append_str(&buf, &len, &cap, delim) != 0)\n"
             "      goto oom;\n");
-    cdd_code_writer_write(
+    g_cdd_last_alloc_err = cdd_code_writer_write(
         &w, "    if (append_str(&buf, &len, &cap, enc_val) != 0)\n"
             "      goto oom;\n"
             "    free(enc_key);\n"
@@ -510,14 +516,15 @@ cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc) {
             "    free(enc_key);\n"
             "  if (enc_val)\n"
             "    free(enc_val);\n");
-    cdd_code_writer_write(&w, "  if (buf)\n"
-                              "    free(buf);\n"
-                              "  *_out_val = NULL;\n"
-                              "  return CDD_C_ERROR_MEMORY;\n"
-                              "}\n"
-                              "\n");
-    cdd_code_writer_check_error(&w, &rc);
-    cdd_code_writer_free(&w);
+    g_cdd_last_alloc_err =
+        cdd_code_writer_write(&w, "  if (buf)\n"
+                                  "    free(buf);\n"
+                                  "  *_out_val = NULL;\n"
+                                  "  return CDD_C_ERROR_MEMORY;\n"
+                                  "}\n"
+                                  "\n");
+    g_cdd_last_alloc_err = cdd_code_writer_check_error(&w, &rc);
+    g_cdd_last_alloc_err = cdd_code_writer_free(&w);
     return rc;
   }
   return CDD_C_SUCCESS;

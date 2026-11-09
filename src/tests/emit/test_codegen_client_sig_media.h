@@ -50,7 +50,8 @@ TEST test_sig_multipart_encoding_headers(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_9), _ast_gen_sig_9);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_9),
+          _ast_gen_sig_9);
   ASSERT(code);
   {
     int io_i;
@@ -107,7 +108,8 @@ TEST test_sig_text_plain_request_body(void) {
   op.req_body.content_type = cdd_test_mut_str("text/plain");
   op.req_body.inline_type = cdd_test_mut_str("string");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_10), _ast_gen_sig_10);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_10),
+          _ast_gen_sig_10);
   ASSERT(code);
   {
     int io_i;
@@ -160,7 +162,8 @@ TEST test_sig_textual_request_body_xml(void) {
   op.operation_id = cdd_test_mut_str("postXml");
   op.req_body.content_type = cdd_test_mut_str("application/xml");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_11), _ast_gen_sig_11);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_11),
+          _ast_gen_sig_11);
   ASSERT(code);
   {
     int io_i;
@@ -213,7 +216,8 @@ TEST test_sig_octet_stream_request_body(void) {
   op.operation_id = cdd_test_mut_str("postBinary");
   op.req_body.content_type = cdd_test_mut_str("application/octet-stream");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_12), _ast_gen_sig_12);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_12),
+          _ast_gen_sig_12);
   ASSERT(code);
   {
     int io_i;
@@ -266,7 +270,8 @@ TEST test_sig_binary_request_body_pdf(void) {
   op.operation_id = cdd_test_mut_str("postPdf");
   op.req_body.content_type = cdd_test_mut_str("application/pdf");
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_13), _ast_gen_sig_13);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_13),
+          _ast_gen_sig_13);
   ASSERT(code);
   {
     int io_i;
@@ -323,7 +328,8 @@ TEST test_sig_octet_stream_response_body(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_14), _ast_gen_sig_14);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_14),
+          _ast_gen_sig_14);
   ASSERT(code);
   {
     int io_i;
@@ -380,7 +386,8 @@ TEST test_sig_binary_response_body_pdf(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_15), _ast_gen_sig_15);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_15),
+          _ast_gen_sig_15);
   ASSERT(code);
   {
     int io_i;
@@ -443,7 +450,8 @@ TEST test_sig_querystring_form_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_16), _ast_gen_sig_16);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_16),
+          _ast_gen_sig_16);
   ASSERT(code);
   {
     int io_i;
@@ -505,7 +513,8 @@ TEST test_sig_querystring_json_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_17), _ast_gen_sig_17);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_17),
+          _ast_gen_sig_17);
   ASSERT(code);
   {
     int io_i;
@@ -567,7 +576,8 @@ TEST test_sig_querystring_json_primitive(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_18), _ast_gen_sig_18);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_18),
+          _ast_gen_sig_18);
   ASSERT(code);
   {
     int io_i;
@@ -630,7 +640,8 @@ TEST test_sig_querystring_json_array(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_19), _ast_gen_sig_19);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_19),
+          _ast_gen_sig_19);
   ASSERT(code);
   {
     int io_i;
@@ -696,7 +707,8 @@ TEST test_sig_querystring_json_array_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_20), _ast_gen_sig_20);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_20),
+          _ast_gen_sig_20);
   ASSERT(code);
   {
     int io_i;
@@ -761,7 +773,8 @@ TEST test_sig_querystring_raw_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_21), _ast_gen_sig_21);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_21),
+          _ast_gen_sig_21);
   ASSERT(code);
   {
     int io_i;
@@ -823,7 +836,8 @@ TEST test_sig_querystring_raw_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_22), _ast_gen_sig_22);
+  code = (g_cdd_last_alloc_err = gen_sig(&op, NULL, &_ast_gen_sig_22),
+          _ast_gen_sig_22);
   ASSERT(code);
   {
     int io_i;

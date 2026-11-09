@@ -180,52 +180,52 @@ TEST test_doc_100_percent_coverage(void) {
       "[itemSchema:true] [example:{\"key\":\"val\"}] Description text\n */";
   const char comment9d[] = "/**\n * @tags   \n * @tags tag1, , tag2\n */";
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment1, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment2, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment3, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment4a, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment4b, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment4_invalid, &meta);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment5, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment6, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment7, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment8, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   if (meta.n_security_schemes > 0 && meta.security_schemes[0].n_flows > 0 &&
@@ -235,30 +235,30 @@ TEST test_doc_100_percent_coverage(void) {
       CDD_STRCPY(meta.security_schemes[0].flows[0].scopes[0].description, 5,
                  "desc");
   }
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment9a, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment9b, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment9c, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(comment9d, &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
   /* Malformed brackets and edge cases */
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
   rc = doc_parse_block(
       "/** @contact [unclosed\n"
       " * @license MIT [unclosed\n"
@@ -277,7 +277,7 @@ TEST test_doc_100_percent_coverage(void) {
       " */",
       &meta);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  doc_metadata_free(&meta);
+  g_cdd_last_alloc_err = doc_metadata_free(&meta);
 
   /* Helper boundary tests */
   {
@@ -432,20 +432,20 @@ TEST test_doc_100_percent_coverage(void) {
         " * @requestBody [contentType:application/json] "
         "[example:{\"k\":\"v\"}] Desc\n"
         " */";
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     /* 1st alloc is new_request_bodies, 2nd is new_examples */
     g_cdd_alloc_fail = 2;
     rc = doc_parse_block(rb_ex_comment, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     g_cdd_alloc_fail = 0;
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* NULL safety */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(NULL, &meta));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block("/** */", NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_metadata_init(NULL));
-  doc_metadata_free(NULL);
+  g_cdd_last_alloc_err = doc_metadata_free(NULL);
 
   PASS();
 }
@@ -465,14 +465,14 @@ TEST test_doc_oom_and_edges(void) {
                            " * @return 200 ok\n"
                            " */";
 #ifdef CDD_BUILD_TESTS
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_cdd_strdup_fail = i;
     rc = doc_parse_block(comment, &meta);
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_strdup_fail = 0;
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 #endif
   }
   for (i = 1; i < 20; i++) {
@@ -483,14 +483,14 @@ TEST test_doc_oom_and_edges(void) {
                            " * @return 200 ok\n"
                            " */";
 #ifdef CDD_BUILD_TESTS
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     g_cdd_alloc_fail = i;
     rc = doc_parse_block(comment, &meta);
     if (rc != CDD_C_SUCCESS) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_alloc_fail = 0;
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
 #endif
   }
   g_fail_io_after = -1;

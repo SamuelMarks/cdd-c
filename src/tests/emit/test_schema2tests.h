@@ -210,7 +210,7 @@ TEST test_schema2tests_invalid_schema_root(void) {
   argv[0] = cdd_test_mut_str(schema_file);
   argv[1] = cdd_test_mut_str("header.h");
   argv[2] = cdd_test_mut_str("out.h");
-  write_to_file(schema_file, "[]");
+  g_cdd_last_alloc_err = write_to_file(schema_file, "[]");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
   g_fail_io_after = -1;
@@ -226,7 +226,7 @@ TEST test_schema2tests_no_schemas_object(void) {
   argv[0] = cdd_test_mut_str(schema_file);
   argv[1] = cdd_test_mut_str("header.h");
   argv[2] = cdd_test_mut_str("out.h");
-  write_to_file(schema_file, "{}");
+  g_cdd_last_alloc_err = write_to_file(schema_file, "{}");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
   g_fail_io_after = -1;
@@ -244,13 +244,14 @@ TEST test_schema2tests_malformed_schemas(void) {
   argv[1] = cdd_test_mut_str("header.h");
   argv[2] = cdd_test_mut_str("build" PATH_SEP "out.h");
   /* non-object schema, no type, non-string enum member, special char name */
-  write_to_file(schema_file, "{\"components\":{\"schemas\":{"
-                             "\"E1\":{\"type\":\"string\",\"enum\":[\"X\",1]},"
-                             "\"S1\":null,"
-                             "\"S2\":{\"properties\":{}},"
-                             "\"S3\":{\"type\":\"object\"},"
-                             "\"@#$\":{\"type\":\"object\"}"
-                             "}}}");
+  g_cdd_last_alloc_err = write_to_file(
+      schema_file, "{\"components\":{\"schemas\":{"
+                   "\"E1\":{\"type\":\"string\",\"enum\":[\"X\",1]},"
+                   "\"S1\":null,"
+                   "\"S2\":{\"properties\":{}},"
+                   "\"S3\":{\"type\":\"object\"},"
+                   "\"@#$\":{\"type\":\"object\"}"
+                   "}}}");
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed but generate empty/partial tests */
   remove(schema_file);
@@ -309,12 +310,12 @@ TEST test_schema2tests_generated_output(void) {
   err = makedirs(OUT_DIR);
   ASSERT_EQ(0, err);
 
-  write_to_file(schema_file,
-                "{\"components\":{\"schemas\":{"
-                "\"MyEnum\":{\"type\":\"string\",\"enum\":[\"VAL1\","
-                "\"VAL2\"]},"
-                "\"MyStruct\":{\"type\":\"object\",\"properties\":{"
-                "\"num\":{\"type\":\"integer\"}}}}}}");
+  g_cdd_last_alloc_err = write_to_file(
+      schema_file, "{\"components\":{\"schemas\":{"
+                   "\"MyEnum\":{\"type\":\"string\",\"enum\":[\"VAL1\","
+                   "\"VAL2\"]},"
+                   "\"MyStruct\":{\"type\":\"object\",\"properties\":{"
+                   "\"num\":{\"type\":\"integer\"}}}}}}");
 
   err = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, err);
@@ -350,9 +351,9 @@ TEST test_schema2tests_header_inclusion_logic(void) {
   err = makedirs(OUT_DIR);
   ASSERT_EQ(0, err);
 
-  write_to_file(argv[0], schema_content);
+  g_cdd_last_alloc_err = write_to_file(argv[0], schema_content);
   /* Create a mock header that should be included */
-  write_to_file(mock_header_path, "/* mock header */");
+  g_cdd_last_alloc_err = write_to_file(mock_header_path, "/* mock header */");
 
   err = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, err);
@@ -430,7 +431,7 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
   err = makedirs(OUT_DIR);
   ASSERT_EQ(0, err);
 
-  write_to_file(argv[0], schema_content);
+  g_cdd_last_alloc_err = write_to_file(argv[0], schema_content);
 
   /* Ensure the header does not exist */
   remove(non_existent_header_path);
@@ -470,7 +471,7 @@ TEST test_schema2tests_output_in_current_dir(void) {
   argv[0] = cdd_test_mut_str("schema_cur.json");
   argv[1] = cdd_test_mut_str("header.h");
   argv[2] = cdd_test_mut_str("test_cur.h");
-  write_to_file("MyStruct.h", "/* mock */");
+  g_cdd_last_alloc_err = write_to_file("MyStruct.h", "/* mock */");
   ASSERT_EQ(0, write_to_file(argv[0], schema_content));
   ASSERT_EQ(0, jsonschema2tests_main(3, argv));
 
@@ -505,13 +506,13 @@ TEST test_schema2tests_io_fails(void) {
   for (i = 0; i < 60; i++) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    jsonschema2tests_main(3, argv);
+    g_cdd_last_alloc_err = jsonschema2tests_main(3, argv);
   }
   g_fail_io_after = -1;
 
   for (i = 1; i < 120; i++) {
     g_cdd_alloc_fail = i;
-    jsonschema2tests_main(3, argv);
+    g_cdd_last_alloc_err = jsonschema2tests_main(3, argv);
   }
   g_cdd_alloc_fail = 0;
 

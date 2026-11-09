@@ -131,11 +131,11 @@ TEST test_parse_oct_int(void) {
 TEST test_parse_int_suffixes(void) {
   struct NumericValue nv;
 
-  parse_numeric_literal("1u", &nv);
+  g_cdd_last_alloc_err = parse_numeric_literal("1u", &nv);
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(!nv.data.integer.is_long);
 
-  parse_numeric_literal("1ul", &nv);
+  g_cdd_last_alloc_err = parse_numeric_literal("1ul", &nv);
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(nv.data.integer.is_long);
 
@@ -143,7 +143,7 @@ TEST test_parse_int_suffixes(void) {
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(nv.data.integer.is_long_long);
 
-  parse_numeric_literal("1lul", &nv);
+  g_cdd_last_alloc_err = parse_numeric_literal("1lul", &nv);
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(nv.data.integer.is_long_long);
   g_fail_io_after = -1;

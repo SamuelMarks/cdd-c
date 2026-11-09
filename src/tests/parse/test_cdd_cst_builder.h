@@ -188,8 +188,8 @@ TEST test_cdd_cst_builder_basic(void) {
 
     /* Manual tree free since we built it from scratch without a lexer list */
 
-    cdd_cst_free_node_only(NULL);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(NULL);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
 
     PASS();
@@ -280,8 +280,8 @@ TEST test_cdd_cst_builder_macros(void) {
     ASSERT_EQ(0, rc);
 
     free(out);
-    cdd_cst_builder_free(&b);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&b);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
     PASS();
   }
@@ -326,8 +326,8 @@ TEST test_cdd_cst_builder_quote(void) {
     ASSERT(strstr(out, "my_var") != NULL);
 
     free(out);
-    cdd_cst_builder_free(&b);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&b);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
     PASS();
   }
@@ -367,8 +367,8 @@ TEST test_cdd_cst_builder_snippet(void) {
     ASSERT_STR_EQ("void func() { return; }", out);
 
     free(out);
-    cdd_cst_builder_free(&b);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&b);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
     PASS();
   }
@@ -418,8 +418,8 @@ TEST test_cdd_cst_builder_comments(void) {
     ASSERT(strstr(out, "line") != NULL);
 
     free(out);
-    cdd_cst_builder_free(&b);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&b);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_fail_io_after = -1;
     PASS();
   }
@@ -478,13 +478,13 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
     cdd_trivia_t *lead;
 
     cdd_cst_tree_t *replacement_node_tree = NULL;
-    cdd_cst_parse(az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"),
-                  &tree);
+    g_cdd_last_alloc_err = cdd_cst_parse(
+        az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"), &tree);
     root = tree->root;
     target_node = root->children[0].val.node;
-    cdd_cst_builder_init(&b, tree, root);
+    g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, root);
 
-    cdd_cst_parse(
+    g_cdd_last_alloc_err = cdd_cst_parse(
         az_span_create_from_str("/* NL1 */ float y; /* NT1 */ /* NT2 */"),
         &replacement_node_tree);
     replacement_node = replacement_node_tree->root->children[0].val.node;
@@ -518,11 +518,11 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
     /* Also test the leak paths (lead without t_first) */
     {
       cdd_cst_node_t *empty_node = NULL;
-      cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
-      cdd_cst_transfer_trivia(
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
+      g_cdd_last_alloc_err = cdd_cst_transfer_trivia(
           replacement_node,
           empty_node); /* replacement_node has all the trivia now */
-      cdd_cst_free_node_only(empty_node);
+      g_cdd_last_alloc_err = cdd_cst_free_node_only(empty_node);
     }
 
     {
@@ -560,14 +560,14 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
     printf("rc = %d\n", rc);
     ASSERT_EQ(0, rc);
 
-    cdd_cst_builder_free(&b);
-    cdd_cst_free_node(target_node);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&b);
+    g_cdd_last_alloc_err = cdd_cst_free_node(target_node);
 
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     if (replacement_node_tree) {
       if (replacement_node_tree->root)
         replacement_node_tree->root->num_children = 0;
-      cdd_cst_tree_free(replacement_node_tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(replacement_node_tree);
     }
     g_fail_io_after = -1;
     PASS();
@@ -642,7 +642,7 @@ TEST test_cdd_cst_builder_extra(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_indent(&b, 1));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_snippet(&b, "snippet"));
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -658,9 +658,9 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   cdd_cst_builder_t b;
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
-  cdd_cst_builder_init(&b, tree, root);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, root);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_quote(NULL, "abc"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_quote(&b, NULL));
@@ -672,9 +672,9 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   /* buffer overflow */
   memset(buf, 'a', 2999);
   buf[2999] = '\0';
-  cdd_cst_quote(&b, "123%s", buf);
+  g_cdd_last_alloc_err = cdd_cst_quote(&b, "123%s", buf);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -688,13 +688,13 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
 
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(""), &tree);
   if (tree->root)
-    cdd_cst_free_node(tree->root);
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    g_cdd_last_alloc_err = cdd_cst_free_node(tree->root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
-  cdd_cst_builder_init(&b, tree, root);
+  g_cdd_last_alloc_err = cdd_cst_builder_init(&b, tree, root);
 
   /* NULL checks */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -717,18 +717,20 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   b.error_state = 0;
   ASSERT_EQ(0, cdd_cst_bld_line_comment(&b, "test2"));
 
-  cdd_cst_bld_newline(&b);
-  cdd_cst_bld_space(&b);
+  g_cdd_last_alloc_err = cdd_cst_bld_newline(&b);
+  g_cdd_last_alloc_err = cdd_cst_bld_space(&b);
 
-  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a");
-  cdd_cst_bld_newline(&b);
-  cdd_cst_bld_newline(&b); /* test trailing trivia append */
-  cdd_cst_bld_newline(&b); /* test trailing trivia loop */
+  g_cdd_last_alloc_err = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a");
+  g_cdd_last_alloc_err = cdd_cst_bld_newline(&b);
+  g_cdd_last_alloc_err =
+      cdd_cst_bld_newline(&b); /* test trailing trivia append */
+  g_cdd_last_alloc_err =
+      cdd_cst_bld_newline(&b); /* test trailing trivia loop */
 
   /* Trigger error in snippet lexing or pool by mocking error_state */
   ASSERT_EQ(0, cdd_cst_bld_snippet(&b, "int z = 1;"));
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   /* leak root intentionally */
   g_fail_io_after = -1;

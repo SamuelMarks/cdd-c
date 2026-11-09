@@ -54,9 +54,10 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"mapping\":{\"k1\":\"#/components/schemas/"
-                            "A\",\"k2\":\"B\",\"k3\":\"C\",\"k4\":123}}",
-                            &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"mapping\":{\"k1\":\"#/components/schemas/"
+                                "A\",\"k2\":\"B\",\"k3\":\"C\",\"k4\":123}}",
+                                &_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -105,7 +106,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT_EQ(NULL, out_val);
 
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 3. merge_struct_fields complete branches */
@@ -123,17 +124,20 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
 
     rc = struct_fields_add(&src, "field1", "string", NULL, NULL, NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    c_cdd_strdup("{\"x-custom\":1}", &src.fields[0].schema_extra_json);
-    c_cdd_strdup("{\"x-item-custom\":2}", &src.fields[0].items_extra_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("{\"x-custom\":1}", &src.fields[0].schema_extra_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("{\"x-item-custom\":2}", &src.fields[0].items_extra_json);
 
     types1[0] = C_CDD_STR_LIT("string");
     types1[1] = C_CDD_STR_LIT("null");
-    copy_string_array_code2schema(&src.fields[0].type_union,
-                                  &src.fields[0].n_type_union, types1, 2);
+    g_cdd_last_alloc_err = copy_string_array_code2schema(
+        &src.fields[0].type_union, &src.fields[0].n_type_union, types1, 2);
     types2[0] = C_CDD_STR_LIT("integer");
     types2[1] = C_CDD_STR_LIT("null");
-    copy_string_array_code2schema(&src.fields[0].items_type_union,
-                                  &src.fields[0].n_items_type_union, types2, 2);
+    g_cdd_last_alloc_err = copy_string_array_code2schema(
+        &src.fields[0].items_type_union, &src.fields[0].n_items_type_union,
+        types2, 2);
 
     /* First merge into empty dest (field added) */
     rc = merge_struct_fields(&dest, &src);
@@ -144,8 +148,8 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     rc = merge_struct_fields(&dest, &src);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    struct_fields_free(&src);
-    struct_fields_free(&dest);
+    g_cdd_last_alloc_err = struct_fields_free(&src);
+    g_cdd_last_alloc_err = struct_fields_free(&dest);
   }
 
   /* 4. apply_union_to_struct_fields_ex variant types */
@@ -158,7 +162,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "[42, {\"type\":\"null\"}, {\"type\":\"custom_unknown\"}, "
           "{\"type\":\"array\",\"items\":{\"properties\":{\"sub\":{\"type\":"
           "\"string\"}}}}, "
@@ -170,7 +174,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     arr = json_value_get_array(val);
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       root_val = _cdd_jv_1;
     }
     root = json_value_get_object(root_val);
@@ -183,7 +187,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
                                          1);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    struct_fields_free(&dest);
+    g_cdd_last_alloc_err = struct_fields_free(&dest);
 
     /* Test with allow_inline = 0 */
     rc = struct_fields_init(&dest);
@@ -192,9 +196,9 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
                                          0);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    struct_fields_free(&dest);
-    json_value_free(val);
-    json_value_free(root_val);
+    g_cdd_last_alloc_err = struct_fields_free(&dest);
+    g_cdd_last_alloc_err = json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(root_val);
   }
 
   /* 5. write_struct_to_json_schema all field attributes */
@@ -206,7 +210,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       root = _cdd_jv_1;
     }
     schemas_obj = json_value_get_object(root);
@@ -225,7 +229,8 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     CDD_STRCPY(sf.fields[0].description, sizeof(sf.fields[0].description),
                "Description text");
     CDD_STRCPY(sf.fields[0].format, sizeof(sf.fields[0].format), "date-time");
-    c_cdd_strdup("{\"x-fld\":1}", &sf.fields[0].schema_extra_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("{\"x-fld\":1}", &sf.fields[0].schema_extra_json);
 
     /* Array field with items_type_union and $ref */
     rc = struct_fields_add(&sf, "arr_ref_field", "array", "MyCustomModel", NULL,
@@ -233,23 +238,25 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     arr_types[0] = C_CDD_STR_LIT("string");
     arr_types[1] = C_CDD_STR_LIT("null");
-    copy_string_array_code2schema(&sf.fields[1].items_type_union,
-                                  &sf.fields[1].n_items_type_union, arr_types,
-                                  2);
-    c_cdd_strdup("{\"x-item\":2}", &sf.fields[1].items_extra_json);
+    g_cdd_last_alloc_err = copy_string_array_code2schema(
+        &sf.fields[1].items_type_union, &sf.fields[1].n_items_type_union,
+        arr_types, 2);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("{\"x-item\":2}", &sf.fields[1].items_extra_json);
 
     /* Enum field with direct ref */
     rc = struct_fields_add(&sf, "enum_field", "enum",
                            "#/components/schemas/MyEnum", NULL, NULL);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    c_cdd_strdup("{\"x-struct\":3}", &sf.schema_extra_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("{\"x-struct\":3}", &sf.schema_extra_json);
 
     rc = write_struct_to_json_schema(schemas_obj, "FullStruct", &sf);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    struct_fields_free(&sf);
-    json_value_free(root);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   /* 6. parse_struct_member_line formats & code2schema_main nested structs */
@@ -275,7 +282,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     ASSERT(sf.fields[1].items_extra_json != NULL);
     ASSERT(strstr(sf.fields[1].items_extra_json, "int64") != NULL);
 
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     /* Test code2schema_main with nested struct, union pointer member, and
      * leading spaces */
@@ -314,12 +321,13 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("[\"A\", \"B\"]", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("[\"A\", \"B\"]", &_cdd_jv_1);
       val = _cdd_jv_1;
     }
     arr = json_value_get_array(val);
 
-    enum_members_init(&em);
+    g_cdd_last_alloc_err = enum_members_init(&em);
 
     rc = json_array_to_enum_members(NULL, &em);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -327,8 +335,8 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     rc = json_array_to_enum_members(arr, NULL);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-    enum_members_free(&em);
-    json_value_free(val);
+    g_cdd_last_alloc_err = enum_members_free(&em);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 8. c2s_merge_schema_extras_object & strings edge cases */
@@ -339,7 +347,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_value_init_object(&_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
       val = _cdd_jv_1;
     }
     obj = json_value_get_object(val);
@@ -352,12 +360,12 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     /* dest is valid json, src is invalid */
-    c_cdd_strdup("{\"x\":1}", &dest);
+    g_cdd_last_alloc_err = c_cdd_strdup("{\"x\":1}", &dest);
     rc = c2s_merge_schema_extras_strings(&dest, "invalid_json");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     C_CDD_FREE(dest);
 
-    json_value_free(val);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 9. Union array in items */
@@ -368,7 +376,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(
+      g_cdd_last_alloc_err = cdd_json_parse_string(
           "{\"type\":\"object\",\"properties\":{\"tags\":{\"type\":\"array\","
           "\"items\":{\"type\":[\"string\",\"null\"]}}}}",
           &_cdd_jv_1);
@@ -388,8 +396,8 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     ASSERT(sf.fields[0].items_type_union != NULL);
     ASSERT_EQ(2, sf.fields[0].n_items_type_union);
 
-    struct_fields_free(&sf);
-    json_value_free(val);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
+    g_cdd_last_alloc_err = json_value_free(val);
   }
 
   /* 10. Null checks in helpers */
@@ -448,7 +456,8 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
       JSON_Array *arr = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("[\"A\", \"B\"]", &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string("[\"A\", \"B\"]", &_cdd_jv_1);
         arr_val = _cdd_jv_1;
       }
       arr = json_value_get_array(arr_val);
@@ -456,7 +465,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
       rc = c2s_collect_string_array(arr, &out_arr, &out_cnt);
       g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      json_value_free(arr_val);
+      g_cdd_last_alloc_err = json_value_free(arr_val);
     }
 
     /* c2s_collect_property_names invalid & OOM */
@@ -469,8 +478,8 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
       JSON_Object *p_obj = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("{\"properties\":{\"x\":{\"type\":\"int\"}}}",
-                              &_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_parse_string(
+            "{\"properties\":{\"x\":{\"type\":\"int\"}}}", &_cdd_jv_1);
         p_val = _cdd_jv_1;
       }
       p_obj = json_value_get_object(p_val);
@@ -478,7 +487,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
       rc = c2s_collect_property_names(p_obj, &out_arr, &out_cnt);
       g_cdd_alloc_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-      json_value_free(p_val);
+      g_cdd_last_alloc_err = json_value_free(p_val);
     }
 
     /* discriminator_value_for_variant invalid & failure */
@@ -490,7 +499,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
       JSON_Object *d_obj = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string(
+        g_cdd_last_alloc_err = cdd_json_parse_string(
             "{\"mapping\":{\"k1\":\"#/schemas/A\",\"k2\":\"B\",\"k3\":\"C\"}}",
             &_cdd_jv_1);
         d_val = _cdd_jv_1;
@@ -524,7 +533,7 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
-      json_value_free(d_val);
+      g_cdd_last_alloc_err = json_value_free(d_val);
     }
   }
 
@@ -534,26 +543,26 @@ TEST test_code2schema_exhaustive_100_percent_coverage_part1(void) {
     cdd_c_error_t rc = 0;
 
     /* dest_obj NULL */
-    c_cdd_strdup("[]", &dest);
+    g_cdd_last_alloc_err = c_cdd_strdup("[]", &dest);
     rc = c2s_merge_schema_extras_strings(&dest, "{}");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     C_CDD_FREE(dest);
 
     /* src_obj NULL */
-    c_cdd_strdup("{}", &dest);
+    g_cdd_last_alloc_err = c_cdd_strdup("{}", &dest);
     rc = c2s_merge_schema_extras_strings(&dest, "[]");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     C_CDD_FREE(dest);
 
     /* existing key replacement */
-    c_cdd_strdup("{\"key\":1,\"other\":2}", &dest);
+    g_cdd_last_alloc_err = c_cdd_strdup("{\"key\":1,\"other\":2}", &dest);
     rc = c2s_merge_schema_extras_strings(&dest, "{\"key\":3}");
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(strstr(dest, "\"key\"") != NULL);
     C_CDD_FREE(dest);
 
     /* OOM on c_cdd_strdup */
-    c_cdd_strdup("{\"a\":1}", &dest);
+    g_cdd_last_alloc_err = c_cdd_strdup("{\"a\":1}", &dest);
     g_cdd_strdup_fail = 1;
     rc = c2s_merge_schema_extras_strings(&dest, "{\"b\":2}");
     g_cdd_strdup_fail = 0;

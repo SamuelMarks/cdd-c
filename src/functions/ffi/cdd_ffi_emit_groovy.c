@@ -164,11 +164,11 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "class %s extends Structure {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *gt = NULL;
-        map_groovy_jna_type(&node->fields[j].type, &gt);
+        g_cdd_last_alloc_err = map_groovy_jna_type(&node->fields[j].type, &gt);
         fprintf(f, "    public %s %s\n", gt, node->fields[j].name);
       }
       fprintf(f, "\n    @Override\n");
@@ -191,12 +191,13 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_gt = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      map_groovy_jna_type(&node->return_or_base_type, &ret_gt);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err =
+          map_groovy_jna_type(&node->return_or_base_type, &ret_gt);
       fprintf(f, "    %s %s(", ret_gt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *gt = NULL;
-        map_groovy_jna_type(&node->fields[j].type, &gt);
+        g_cdd_last_alloc_err = map_groovy_jna_type(&node->fields[j].type, &gt);
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", gt, node->fields[j].name);
       }
       fprintf(f, ")\n");

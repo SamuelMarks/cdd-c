@@ -49,7 +49,7 @@ TEST test_enum_generation(void) {
 
     /* Invalid args */
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_init(NULL));
-    enum_members_free(NULL); /* Should not crash */
+    g_cdd_last_alloc_err = enum_members_free(NULL); /* Should not crash */
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(NULL, "VAL"));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(&em, NULL));
 
@@ -146,7 +146,7 @@ TEST test_enum_generation(void) {
     }
 
     free(content);
-    enum_members_free(&em);
+    g_cdd_last_alloc_err = enum_members_free(&em);
     if (tmp)
       if (tmp)
         fclose(tmp);
@@ -207,7 +207,7 @@ TEST test_enum_generation_oom(void) {
     }
   }
 
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   /* Test enum_members_init OOM on 2nd and 3rd calloc */
   g_cdd_alloc_fail = 2;
@@ -286,7 +286,7 @@ TEST test_enum_generation_oom(void) {
     }
     ASSERT_EQ(CDD_C_SUCCESS, enum_members_add_ex(&em, "C", NULL, 0));
   }
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
   /* Test capacity <= size branch in enum_member_set_cli_meta and
    * enum_member_add_alias, and enum_members_free with n_serde_aliases == NULL
@@ -301,7 +301,7 @@ TEST test_enum_generation_oom(void) {
   em.serde_aliases[0][0] = NULL;
   C_CDD_FREE(em.n_serde_aliases);
   em.n_serde_aliases = NULL;
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 #endif
   g_fail_io_after = -1;
   PASS();
@@ -318,11 +318,11 @@ TEST test_enum_exhaustive_io(void) {
   struct EnumMembers em;
   struct CodegenEnumConfig config = {"MY_GUARD"};
 
-  enum_members_init(&em);
-  enum_members_add(&em, "VAL1");
-  enum_members_add(&em, "VAL2");
-  enum_member_add_alias(&em, 0, "v1_alias");
-  enum_member_add_alias(&em, 0, "v1_null");
+  g_cdd_last_alloc_err = enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_add(&em, "VAL1");
+  g_cdd_last_alloc_err = enum_members_add(&em, "VAL2");
+  g_cdd_last_alloc_err = enum_member_add_alias(&em, 0, "v1_alias");
+  g_cdd_last_alloc_err = enum_member_add_alias(&em, 0, "v1_null");
   C_CDD_FREE(em.serde_aliases[0][1]);
   em.serde_aliases[0][1] = NULL;
   em.serde_other_idx = 1;
@@ -377,11 +377,11 @@ TEST test_enum_exhaustive_io(void) {
     if (tmp)
       fclose(tmp);
   }
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 
-  enum_members_init(&em);
-  enum_members_add(&em, "VAL1");
-  enum_members_add(&em, "VAL2");
+  g_cdd_last_alloc_err = enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_add(&em, "VAL1");
+  g_cdd_last_alloc_err = enum_members_add(&em, "VAL2");
 
   for (i = 0; i < 50; ++i) {
     FILE *tmp;
@@ -466,7 +466,7 @@ TEST test_enum_exhaustive_io(void) {
   }
 
   g_fail_io_after = -1;
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
 #endif
   g_fail_io_after = -1;
   PASS();
@@ -545,7 +545,7 @@ TEST test_enum_reflect_func(void) {
   g_fail_io_after = -1;
 #endif
 
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = enum_members_free(&em);
   fclose(tmp);
   PASS();
 }

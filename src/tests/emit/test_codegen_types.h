@@ -46,15 +46,23 @@ TEST test_write_union_to_json(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
-    struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
-    struct_fields_add(&sf, "obj", "object", "SomeObj", NULL, NULL);
-    struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-    struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
-    struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
-    struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
-    struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "obj", "object", "SomeObj", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
 
     /* Generate */
     ASSERT_EQ(0, write_union_to_json_func(tmp, "MyUnion", &sf, &config));
@@ -78,7 +86,7 @@ TEST test_write_union_to_json(void) {
     ASSERT(strstr(content, "case MyUnion_obj:"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -104,8 +112,9 @@ TEST test_write_union_from_json_object(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "pet", "object", "Pet", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "pet", "object", "Pet", NULL, NULL);
 
     /* Generate */
     ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "ObjU", &sf, NULL));
@@ -124,7 +133,7 @@ TEST test_write_union_from_json_object(void) {
     ASSERT(strstr(content, "Pet_from_jsonObject"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -150,14 +159,21 @@ TEST test_write_union_from_json(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
-    struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
-    struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-    struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
-    struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
-    struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
-    struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
 
     sf.union_is_anyof = 1;
 
@@ -178,7 +194,7 @@ TEST test_write_union_from_json(void) {
     ASSERT(strstr(content, "ret->data.i = (int)num;"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -204,8 +220,9 @@ TEST test_write_union_array_to_json(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
 
     ASSERT_EQ(0, write_union_to_json_func(tmp, "ArrU", &sf, NULL));
 
@@ -221,7 +238,7 @@ TEST test_write_union_array_to_json(void) {
     ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"[\")"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -247,8 +264,9 @@ TEST test_write_union_array_from_json(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
 
     ASSERT_EQ(0, write_union_from_json_func(tmp, "ArrU", &sf, NULL));
 
@@ -264,7 +282,7 @@ TEST test_write_union_array_from_json(void) {
     ASSERT(strstr(content, "ret->data.vals.n_vals"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -290,8 +308,9 @@ TEST test_write_union_array_cleanup(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
 
     ASSERT_EQ(0, write_union_cleanup_func(tmp, "ArrU", &sf, NULL));
 
@@ -307,7 +326,7 @@ TEST test_write_union_array_cleanup(void) {
     ASSERT(strstr(content, "free(obj->data.vals.vals)"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -332,9 +351,11 @@ TEST test_write_union_cleanup_switch(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "str", "string", NULL, NULL, NULL);
-    struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "str", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL);
 
     ASSERT_EQ(0, write_union_cleanup_func(tmp, "U", &sf, NULL));
 
@@ -351,7 +372,7 @@ TEST test_write_union_cleanup_switch(void) {
     ASSERT(strstr(content, "case U_str:\n      free((void*)obj->data.str);"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -499,8 +520,9 @@ TEST test_union_guards(void) {
     long sz;
 
     ASSERT(tmp);
-    struct_fields_init(&sf);
-    struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_init(&sf);
+    g_cdd_last_alloc_err =
+        struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
     cfg.json_guard = cdd_test_mut_str("JSON_G");
     cfg.utils_guard = NULL;
@@ -519,7 +541,7 @@ TEST test_union_guards(void) {
     ASSERT(strstr(content, "#endif /* JSON_G */"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;
@@ -613,8 +635,8 @@ TEST test_types_io_fail(void) {
 #endif
   g_fail_io_after = 0;
   g_io_calls = 0;
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "string", "t", "s", 0, 0);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err = struct_fields_add(&sf, "string", "t", "s", 0, 0);
 
   ASSERT(tmp);
   g_fail_io_after = 0;
@@ -677,7 +699,7 @@ TEST test_types_io_fail(void) {
   }
 #endif
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   if (tmp)
     fclose(tmp);
   g_fail_io_after = -1;
@@ -702,9 +724,11 @@ TEST test_types_edge_cases_no_io(void) {
 
   /* Cover sf.union_variants && i < sf->n_union_variants where i >=
    * n_union_variants */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "obj1", "object", "Obj1", NULL, NULL);
-  struct_fields_add(&sf, "obj2", "object", "Obj2", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "obj1", "object", "Obj1", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "obj2", "object", "Obj2", NULL, NULL);
 
   sf.union_discriminator = strdup("type");
   sf.union_variants =
@@ -713,44 +737,55 @@ TEST test_types_edge_cases_no_io(void) {
       1; /* sf.size is 2, so i=1 will fail i < sf->n_union_variants */
   sf.union_variants[0].disc_value = strdup("obj1");
 
-  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  g_cdd_last_alloc_err =
+      write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Cover jtype == UNION_JSON_UNKNOWN && t where t == NULL */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "null_type", NULL, NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "null_type", NULL, NULL, NULL, NULL);
   sf.union_is_anyof = 0;
-  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err =
+      write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Cover num_count > 1 when int_count <= 1 AND !union_is_anyof */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "n1", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "n2", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "n1", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "n2", "number", NULL, NULL, NULL);
   sf.union_is_anyof = 0;
-  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err =
+      write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Cover string_count > 1 false when !union_is_anyof */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "s1", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s1", "string", NULL, NULL, NULL);
   sf.union_is_anyof = 0;
-  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err =
+      write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Cover int_count == 0 && num_count == 0 fallback */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "b1", "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "b1", "boolean", NULL, NULL, NULL);
   sf.union_is_anyof = 0;
-  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err =
+      write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   /* Cover strcmp(type, "null") == 0 false branch */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "unk1", "unknown", NULL, NULL, NULL);
-  write_union_to_json_func(tmp, "Union1", &sf, &config);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "unk1", "unknown", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = write_union_to_json_func(tmp, "Union1", &sf, &config);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
 
   if (tmp)
     fclose(tmp);
@@ -955,7 +990,7 @@ TEST test_union_lifecycle_parity(void) {
   }
 #endif
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   fclose(tmp);
   PASS();
 }

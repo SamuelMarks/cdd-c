@@ -20,27 +20,28 @@ cdd_c_error_t copy_example_fields(struct OpenAPI_Example *dst,
   if (!dst || !src)
     return CDD_C_SUCCESS;
   if (src->name && !dst->name) {
-    c_cdd_strdup(src->name, &dst->name);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->name, &dst->name);
     if (!dst->name)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->ref && !dst->ref) {
-    c_cdd_strdup(src->ref, &dst->ref);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->ref, &dst->ref);
     if (!dst->ref)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->extensions_json && !dst->extensions_json) {
-    c_cdd_strdup(src->extensions_json, &dst->extensions_json);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->extensions_json, &dst->extensions_json);
     if (!dst->extensions_json)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->summary && !dst->summary) {
-    c_cdd_strdup(src->summary, &dst->summary);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->summary, &dst->summary);
     if (!dst->summary)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->description && !dst->description) {
-    c_cdd_strdup(src->description, &dst->description);
+    g_cdd_last_alloc_err = c_cdd_strdup(src->description, &dst->description);
     if (!dst->description)
       return CDD_C_ERROR_MEMORY;
   }
@@ -57,12 +58,14 @@ cdd_c_error_t copy_example_fields(struct OpenAPI_Example *dst,
     dst->value_set = 1;
   }
   if (src->serialized_value && !dst->serialized_value) {
-    c_cdd_strdup(src->serialized_value, &dst->serialized_value);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->serialized_value, &dst->serialized_value);
     if (!dst->serialized_value)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->external_value && !dst->external_value) {
-    c_cdd_strdup(src->external_value, &dst->external_value);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->external_value, &dst->external_value);
     if (!dst->external_value)
       return CDD_C_ERROR_MEMORY;
   }
@@ -85,17 +88,17 @@ cdd_c_error_t find_component_example(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Spec *target;
   const char *name_enc = NULL;
   char *name_dec = NULL;
-  resolve_ref_target(spec, ref, &resolved);
+  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  ref_name_from_prefix(target, resolved.ref, "#/components/examples/",
-                       &name_enc);
+  g_cdd_last_alloc_err = ref_name_from_prefix(
+      target, resolved.ref, "#/components/examples/", &name_enc);
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  json_pointer_unescape(name_enc, &name_dec);
+  g_cdd_last_alloc_err = json_pointer_unescape(name_enc, &name_dec);
   if (name_dec && target->component_example_names) {
     for (i = 0; i < target->n_component_examples; ++i) {
       if (target->component_example_names[i] &&
@@ -137,19 +140,19 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
     return CDD_C_SUCCESS;
 
   if (name) {
-    c_cdd_strdup(name, &out->name);
+    g_cdd_last_alloc_err = c_cdd_strdup(name, &out->name);
     if (!out->name)
       return CDD_C_ERROR_MEMORY;
   }
 
-  cdd_json_object_get_string(ex_obj, "$ref", &ref);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(ex_obj, "$ref", &ref);
   if (ref) {
-    c_cdd_strdup(ref, &out->ref);
+    g_cdd_last_alloc_err = c_cdd_strdup(ref, &out->ref);
     if (!out->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
       struct OpenAPI_Example *comp = NULL;
-      find_component_example(spec, ref, &comp);
+      g_cdd_last_alloc_err = find_component_example(spec, ref, &comp);
       if (comp) {
         rc = copy_example_fields(out, comp);
         if (rc != CDD_C_SUCCESS)
@@ -175,8 +178,12 @@ static cdd_c_error_t parse_example_object_inner(const JSON_Object *ex_obj,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (!out->ref && !example_fields_valid(out))
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!out->ref) {
+    int is_valid = 0;
+    g_cdd_last_alloc_err = example_fields_valid(out, &is_valid);
+    if (!is_valid)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
 
   return CDD_C_SUCCESS;
 }
@@ -198,7 +205,7 @@ cdd_c_error_t parse_example_object(const JSON_Object *ex_obj, const char *name,
   cdd_c_error_t rc =
       parse_example_object_inner(ex_obj, name, out, spec, resolve_refs);
   if (rc != CDD_C_SUCCESS)
-    free_example(out);
+    g_cdd_last_alloc_err = free_example(out);
   return rc;
 }
 
@@ -228,7 +235,7 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
   if (!examples)
     return CDD_C_SUCCESS;
 
-  cdd_json_object_get_count(examples, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(examples, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -242,16 +249,16 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
     const char *name = NULL;
     JSON_Value *val_at = NULL;
     JSON_Object *ex_obj = NULL;
-    cdd_json_object_get_name(examples, i, &name);
-    cdd_json_object_get_value_at(examples, i, &val_at);
-    cdd_json_value_get_object(val_at, &ex_obj);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(examples, i, &name);
+    g_cdd_last_alloc_err = cdd_json_object_get_value_at(examples, i, &val_at);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &ex_obj);
     if (ex_obj) {
       cdd_c_error_t rc =
           parse_example_object(ex_obj, name, &(*out)[i], spec, resolve_refs);
       if (rc != CDD_C_SUCCESS) {
         size_t j;
         for (j = 0; j < count; ++j)
-          free_example(&(*out)[j]);
+          g_cdd_last_alloc_err = free_example(&(*out)[j]);
         C_CDD_FREE(*out);
         *out = NULL;
         *out_count = 0;
@@ -284,17 +291,23 @@ parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
 
   if (!media_obj)
     return CDD_C_SUCCESS;
-  if (object_has_example_and_examples(media_obj))
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  {
+    int has_both = 0;
+    g_cdd_last_alloc_err =
+        object_has_example_and_examples(media_obj, &has_both);
+    if (has_both)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
 
-  cdd_json_object_get_object(media_obj, "examples", &examples_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(media_obj, "examples", &examples_obj);
   if (examples_obj) {
     return parse_examples_object(examples_obj, examples, n_examples, spec,
                                  resolve_refs);
   }
   rc = parse_any_field(media_obj, "example", example, example_set);
   if (rc != CDD_C_SUCCESS)
-    free_any_value(example);
+    g_cdd_last_alloc_err = free_any_value(example);
   return rc;
 }
 
@@ -316,7 +329,7 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
   *out_count = 0;
   if (!scopes_obj)
     return CDD_C_SUCCESS;
-  cdd_json_object_get_count(scopes_obj, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(scopes_obj, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
   *out = (struct OpenAPI_OAuthScope *)C_CDD_CALLOC(
@@ -327,9 +340,9 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
   for (i = 0; i < count; ++i) {
     const char *name = NULL;
     const char *desc = NULL;
-    cdd_json_object_get_name(scopes_obj, i, &name);
-    cdd_json_object_get_string(scopes_obj, name, &desc);
-    c_cdd_strdup(name, &(*out)[i].name);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(scopes_obj, i, &name);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(scopes_obj, name, &desc);
+    g_cdd_last_alloc_err = c_cdd_strdup(name, &(*out)[i].name);
     if (!(*out)[i].name) {
       size_t j;
       for (j = 0; j < count; ++j) {
@@ -342,7 +355,7 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
       return CDD_C_ERROR_MEMORY;
     }
     if (desc) {
-      c_cdd_strdup(desc, &(*out)[i].description);
+      g_cdd_last_alloc_err = c_cdd_strdup(desc, &(*out)[i].description);
       if (!(*out)[i].description) {
         size_t j;
         for (j = 0; j < count; ++j) {
@@ -372,7 +385,7 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
   size_t count = 0, i;
   if (!flows_obj || !out)
     return CDD_C_SUCCESS;
-  cdd_json_object_get_count(flows_obj, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(flows_obj, &count);
   if (count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out->flows = (struct OpenAPI_OAuthFlow *)C_CDD_CALLOC(
@@ -385,10 +398,10 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
     JSON_Value *val_at = NULL;
     JSON_Object *flow_obj = NULL;
     struct OpenAPI_OAuthFlow *flow = &out->flows[i];
-    cdd_json_object_get_name(flows_obj, i, &name);
-    cdd_json_object_get_value_at(flows_obj, i, &val_at);
-    cdd_json_value_get_object(val_at, &flow_obj);
-    parse_oauth_flow_type(name, &flow->type);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(flows_obj, i, &name);
+    g_cdd_last_alloc_err = cdd_json_object_get_value_at(flows_obj, i, &val_at);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &flow_obj);
+    g_cdd_last_alloc_err = parse_oauth_flow_type(name, &flow->type);
     if (!flow_obj)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     {
@@ -400,14 +413,18 @@ parse_oauth_flows_inner(const JSON_Object *flows_obj,
       JSON_Object *scopes_obj = NULL;
       cdd_c_error_t rc;
 
-      cdd_json_object_get_string(flow_obj, "authorizationUrl",
-                                 &authorization_url);
-      cdd_json_object_get_string(flow_obj, "tokenUrl", &token_url);
-      cdd_json_object_get_string(flow_obj, "refreshUrl", &refresh_url);
-      cdd_json_object_get_string(flow_obj, "deviceAuthorizationUrl",
-                                 &device_authorization_url);
-      cdd_json_object_has_value(flow_obj, "scopes", &scopes_present);
-      cdd_json_object_get_object(flow_obj, "scopes", &scopes_obj);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(
+          flow_obj, "authorizationUrl", &authorization_url);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(flow_obj, "tokenUrl", &token_url);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(flow_obj, "refreshUrl", &refresh_url);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(
+          flow_obj, "deviceAuthorizationUrl", &device_authorization_url);
+      g_cdd_last_alloc_err =
+          cdd_json_object_has_value(flow_obj, "scopes", &scopes_present);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(flow_obj, "scopes", &scopes_obj);
 
       if (!scopes_present || !scopes_obj)
         return CDD_C_ERROR_INVALID_ARGUMENT;

@@ -41,17 +41,33 @@ TEST test_openapi_response_codes_and_refs(void) {
             parse_responses((const JSON_Object *)(size_t)1, NULL, NULL, NULL));
 
   /* 2. is_valid_response_code_key tests */
-  ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key(""));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_valid_response_code_key("default"));
-  ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("20"));
-  ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("2000"));
-  ASSERT_EQ(1, is_valid_response_code_key("2XX"));
-  ASSERT_EQ(0, is_valid_response_code_key("6XX"));
-  ASSERT_EQ(0, is_valid_response_code_key("0XX"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, is_valid_response_code_key("200"));
-  ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("2a0"));
-  ASSERT_EQ(0, is_valid_response_code_key("2X0"));
+  {
+    int is_val = 0;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              is_valid_response_code_key("200", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key(NULL, &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("", &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("default", &is_val));
+    ASSERT_EQ(1, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("20", &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("2000", &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("2XX", &is_val));
+    ASSERT_EQ(1, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("6XX", &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("0XX", &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("200", &is_val));
+    ASSERT_EQ(1, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("2a0", &is_val));
+    ASSERT_EQ(0, is_val);
+    ASSERT_EQ(CDD_C_SUCCESS, is_valid_response_code_key("2X0", &is_val));
+    ASSERT_EQ(0, is_val);
+  }
 
   /* 6. Response ref resolution and overrides */
   memset(&spec, 0, sizeof(spec));
@@ -64,7 +80,7 @@ TEST test_openapi_response_codes_and_refs(void) {
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"$ref\":\"#/components/responses/"
         "MyResp\",\"summary\":\"sum\",\"description\":\"override\"}",
         &_cdd_jv_1);
@@ -77,25 +93,25 @@ TEST test_openapi_response_codes_and_refs(void) {
               parse_response_object(jo, &resp, &spec, 1, "op", "200"));
     ASSERT_STR_EQ("override", resp.description);
     ASSERT_STR_EQ("sum", resp.summary);
-    free_response(&resp);
+    g_cdd_last_alloc_err = free_response(&resp);
 
     /* ref with resolve_refs = 0 and spec = NULL */
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, NULL, 0, "op", "200"));
-    free_response(&resp);
+    g_cdd_last_alloc_err = free_response(&resp);
 
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, NULL, 1, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"$ref\":\"#/components/responses/NotFound\"}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"$ref\":\"#/components/responses/NotFound\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -103,17 +119,17 @@ TEST test_openapi_response_codes_and_refs(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 1, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 7. Response Swagger 2.0 schema and headers and links */
   memset(&spec, 0, sizeof(spec));
   spec.swagger_version = strdup("2.0");
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"schema\":{\"type\":\"string\"},"
         "\"headers\":{\"X-Rate\":{\"description\":\"rate\"}},"
         "\"links\":{\"GetItem\":{\"operationId\":\"getItem\"}},"
@@ -129,15 +145,15 @@ TEST test_openapi_response_codes_and_refs(void) {
     ASSERT_EQ(1, resp.schema_set);
     ASSERT_EQ(1, resp.n_headers);
     ASSERT_EQ(1, resp.n_links);
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Swagger 2.0 with boolean schema */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"description\":\"desc\",\"schema\":true}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"description\":\"desc\",\"schema\":true}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -145,14 +161,14 @@ TEST test_openapi_response_codes_and_refs(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Swagger 2.0 schema error */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"d\",\"schema\":{\"$ref\":\"#/definitions/Bad\"}}",
         &_cdd_jv_1);
     jv = _cdd_jv_1;
@@ -164,9 +180,9 @@ TEST test_openapi_response_codes_and_refs(void) {
               parse_response_object(json_value_get_object(jv), &resp, &spec, 0,
                                     "op", "200"));
     g_cdd_strdup_fail = 0;
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   PASS();
 }
@@ -188,7 +204,7 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
   memset(&spec, 0, sizeof(spec));
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"object\","
         "\"properties\":{\"k\":{\"type\":\"string\"}}}}}}}",
@@ -200,16 +216,17 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Array schema without items */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
-                          "json\":{\"schema\":{\"type\":\"array\"}}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"description\":\"d\",\"content\":{\"application/"
+        "json\":{\"schema\":{\"type\":\"array\"}}}}",
+        &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -217,14 +234,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Properties without type */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"d\",\"content\":{\"application/"
         "json\":{\"schema\":{\"properties\":{\"x\":{\"type\":\"string\"}}}}}}",
         &_cdd_jv_1);
@@ -235,14 +252,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
+    g_cdd_last_alloc_err = free_response(&resp);
 
     for (k = 1; k < 30; ++k) {
       cdd_c_error_t rc_resp;
       g_cdd_strdup_fail = k;
       memset(&resp, 0, sizeof(resp));
       rc_resp = parse_response_object(jo, &resp, &spec, 0, "op", "200");
-      free_response(&resp);
+      g_cdd_last_alloc_err = free_response(&resp);
       g_cdd_strdup_fail = 0;
       if (rc_resp == CDD_C_SUCCESS)
         break;
@@ -254,19 +271,20 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
       memset(&resp, 0, sizeof(resp));
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-      free_response(&resp);
+      g_cdd_last_alloc_err = free_response(&resp);
       g_cdd_fail_assign_ref_name = 0;
     }
 
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* itemSchema boolean true and itemSchema properties without type */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
-                          "json\":{\"itemSchema\":true}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"description\":\"d\",\"content\":{\"application/"
+        "json\":{\"itemSchema\":true}}}",
+        &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -274,16 +292,17 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"description\":\"d\",\"content\":{\"application/"
-                          "json\":{\"itemSchema\":{\"properties\":{\"x\":{"
-                          "\"type\":\"string\"}}}}}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"description\":\"d\",\"content\":{\"application/"
+        "json\":{\"itemSchema\":{\"properties\":{\"x\":{"
+        "\"type\":\"string\"}}}}}}",
+        &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
@@ -291,14 +310,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
+    g_cdd_last_alloc_err = free_response(&resp);
 
     for (k = 1; k < 30; ++k) {
       cdd_c_error_t rc_resp;
       g_cdd_strdup_fail = k;
       memset(&resp, 0, sizeof(resp));
       rc_resp = parse_response_object(jo, &resp, &spec, 0, "op", "200");
-      free_response(&resp);
+      g_cdd_last_alloc_err = free_response(&resp);
       g_cdd_strdup_fail = 0;
       if (rc_resp == CDD_C_SUCCESS)
         break;
@@ -310,17 +329,17 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
       memset(&resp, 0, sizeof(resp));
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-      free_response(&resp);
+      g_cdd_last_alloc_err = free_response(&resp);
       g_cdd_fail_assign_ref_name = 0;
     }
 
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Non-object schemas in response */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}}}}",
         &_cdd_jv_1);
@@ -331,13 +350,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"schema\":{\"type\":\"string\"}}}}",
         &_cdd_jv_1);
@@ -348,23 +367,23 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
+    g_cdd_last_alloc_err = free_response(&resp);
 
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, NULL, 0, "op", "200"));
-    free_response(&resp);
+    g_cdd_last_alloc_err = free_response(&resp);
 
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", NULL));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"itemSchema\":{\"type\":\"string\"}}}}",
         &_cdd_jv_1);
@@ -375,14 +394,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Response with boolean schema and invalid media content */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/"
         "json\":{\"schema\":true}}}",
         &_cdd_jv_1);
@@ -393,13 +412,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":123}}",
         &_cdd_jv_1);
     jv = _cdd_jv_1;
@@ -409,13 +428,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"schema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
         "\"string\"}}}}}}",
@@ -427,13 +446,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"itemSchema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
         "\"string\"}}}}}}",
@@ -445,13 +464,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/json\":"
         "{\"$ref\":\"#/components/mediaTypes/Mt\"}}}",
         &_cdd_jv_1);
@@ -462,14 +481,14 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Response with examples array and single example */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/"
         "json\":{\"schema\":{\"type\":\"string\"},"
         "\"examples\":{\"e1\":{\"value\":\"v1\"}}}}}",
@@ -481,13 +500,13 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"description\":\"desc\",\"content\":{\"application/"
         "json\":{\"schema\":{\"type\":\"string\"},"
         "\"example\":\"val\"}}}",
@@ -499,73 +518,76 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
     memset(&resp, 0, sizeof(resp));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_response_object(jo, &resp, &spec, 0, "op", "200"));
-    free_response(&resp);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_response(&resp);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 9. parse_responses error and success branches */
   memset(&op, 0, sizeof(op));
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"x-ext\":\"custom\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"x-ext\":\"custom\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"bad_code\":{\"description\":\"desc\"}}",
-                          &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"bad_code\":{\"description\":\"desc\"}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
-    json_value_free(jv);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Responses with non-object response value (resp_obj == NULL) */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"200\": 123, \"x-custom\": \"val\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"200\": 123, \"x-custom\": \"val\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     memset(&op, 0, sizeof(op));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
-    free_operation(&op);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_operation(&op);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   /* Responses without extensions */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"200\": {\"description\": \"OK\"}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"200\": {\"description\": \"OK\"}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   if (jv) {
     memset(&op, 0, sizeof(op));
     ASSERT_EQ(CDD_C_SUCCESS,
               parse_responses(json_value_get_object(jv), &op, NULL, "op"));
-    free_operation(&op);
-    json_value_free(jv);
+    g_cdd_last_alloc_err = free_operation(&op);
+    g_cdd_last_alloc_err = json_value_free(jv);
   }
 
   PASS();

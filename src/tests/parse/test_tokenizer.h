@@ -112,7 +112,7 @@ TEST tokenize_all_tokens(void) {
   ASSERT_GT(slash, 0);
   ASSERT_GT(brace, 0);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -142,21 +142,24 @@ TEST tokenize_c23_digit_separators(void) {
   ASSERT_EQ(5, tl->size); /* num WS num WS num */
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
-  ASSERT_STR_EQ("123'456", (token_to_cstr(buf, sizeof(buf), &tl->tokens[0],
-                                          &_ast_token_to_cstr_0),
-                            _ast_token_to_cstr_0));
+  ASSERT_STR_EQ("123'456",
+                (g_cdd_last_alloc_err = token_to_cstr(
+                     buf, sizeof(buf), &tl->tokens[0], &_ast_token_to_cstr_0),
+                 _ast_token_to_cstr_0));
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[2].kind);
-  ASSERT_STR_EQ("0xAB'CD", (token_to_cstr(buf, sizeof(buf), &tl->tokens[2],
-                                          &_ast_token_to_cstr_1),
-                            _ast_token_to_cstr_1));
+  ASSERT_STR_EQ("0xAB'CD",
+                (g_cdd_last_alloc_err = token_to_cstr(
+                     buf, sizeof(buf), &tl->tokens[2], &_ast_token_to_cstr_1),
+                 _ast_token_to_cstr_1));
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[4].kind);
-  ASSERT_STR_EQ("0b10'10", (token_to_cstr(buf, sizeof(buf), &tl->tokens[4],
-                                          &_ast_token_to_cstr_2),
-                            _ast_token_to_cstr_2));
+  ASSERT_STR_EQ("0b10'10",
+                (g_cdd_last_alloc_err = token_to_cstr(
+                     buf, sizeof(buf), &tl->tokens[4], &_ast_token_to_cstr_2),
+                 _ast_token_to_cstr_2));
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -238,9 +241,10 @@ TEST tokenize_digit_separator_edge_case(void) {
 
   /* 123 (num) */
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
-  ASSERT_STR_EQ("123", (token_to_cstr(buf, sizeof(buf), &tl->tokens[0],
-                                      &_ast_token_to_cstr_3),
-                        _ast_token_to_cstr_3));
+  ASSERT_STR_EQ("123",
+                (g_cdd_last_alloc_err = token_to_cstr(
+                     buf, sizeof(buf), &tl->tokens[0], &_ast_token_to_cstr_3),
+                 _ast_token_to_cstr_3));
 
   /* ' (char literal start, likely unterminated or just ' ) */
   /* Logic: c == '\'' -> consume until next ' */
@@ -253,7 +257,7 @@ TEST tokenize_digit_separator_edge_case(void) {
 
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl->tokens[1].kind);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -354,7 +358,7 @@ TEST test_tokenize_all_keywords(void) {
     ASSERT_EQ(expected_kinds, kw_idx);
   }
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -440,7 +444,7 @@ TEST test_tokenize_operators_and_digraphs(void) {
     ASSERT_EQ(expected_ops, op_idx);
   }
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -464,21 +468,21 @@ TEST test_tokenize_comments_and_ucn(void) {
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[2].kind);
   ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[3].kind);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[4].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* UCN at identifier start: \u0041 (A) */
   rc = tokenize(az_span_create_from_str("\\u0041bc"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* UCN \U00000041 at start */
   rc = tokenize(az_span_create_from_str("\\U00000041bc"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* \ followed by non-u/U -> TOKEN_OTHER */
   rc = tokenize(az_span_create_from_str("\\z"), &tl);
@@ -486,77 +490,77 @@ TEST test_tokenize_comments_and_ucn(void) {
   ASSERT(tl);
   ASSERT_EQ(TOKEN_OTHER, tl->tokens[0].kind);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[1].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* \u not followed by hex -> TOKEN_OTHER */
   rc = tokenize(az_span_create_from_str("\\uz"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_OTHER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* UCN inside identifier: abc\u0041def */
   rc = tokenize(az_span_create_from_str("abc\\u0041def"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* UCN inside identifier with non-hex after \u: abc\uz */
   rc = tokenize(az_span_create_from_str("abc\\uz"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Identifier with \non-u inside: abc\x */
   rc = tokenize(az_span_create_from_str("abc\\x"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* UCN inside identifier with U: abc\U00000041def */
   rc = tokenize(az_span_create_from_str("abc\\U00000041def"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* UCN inside identifier with U followed by non-hex: abc\Uz */
   rc = tokenize(az_span_create_from_str("abc\\Uz"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Line comment at EOF without newline */
   rc = tokenize(az_span_create_from_str("// at eof"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Block comment with star then EOF */
   rc = tokenize(az_span_create_from_str("/* at *"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Digraph %: followed by % but not : */
   rc = tokenize(az_span_create_from_str("%: %x"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_HASH, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Digraph %: followed immediately by % then non-colon */
   rc = tokenize(az_span_create_from_str("%:%a"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_HASH, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Dot dot followed by non-dot */
   rc = tokenize(az_span_create_from_str(".."), &tl);
@@ -564,7 +568,7 @@ TEST test_tokenize_comments_and_ucn(void) {
   ASSERT(tl);
   ASSERT_EQ(TOKEN_DOT, tl->tokens[0].kind);
   ASSERT_EQ(TOKEN_DOT, tl->tokens[1].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Identifier ending with splice at EOF */
   rc = tokenize(az_span_create_from_str(("id"
@@ -574,7 +578,7 @@ TEST test_tokenize_comments_and_ucn(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Line comment ending with splice at EOF */
   rc = tokenize(az_span_create_from_str(("// comm"
@@ -584,7 +588,7 @@ TEST test_tokenize_comments_and_ucn(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Block comment ending with splice at EOF */
   rc = tokenize(az_span_create_from_str(("/* comm"
@@ -594,7 +598,7 @@ TEST test_tokenize_comments_and_ucn(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_COMMENT, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -613,7 +617,7 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Spliced return, switch, if */
   rc = tokenize(az_span_create_from_str("re\\\nturn swi\\\ntch i\\\nf"), &tl);
@@ -624,7 +628,7 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   ASSERT_EQ(TOKEN_KEYWORD_SWITCH, tl->tokens[2].kind);
   ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[3].kind);
   ASSERT_EQ(TOKEN_KEYWORD_IF, tl->tokens[4].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Number starting with dot */
   rc = tokenize(az_span_create_from_str(".456 123.789"), &tl);
@@ -633,7 +637,7 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
   ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[1].kind);
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[2].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Dot not followed by digit */
   rc = tokenize(az_span_create_from_str(".foo ..."), &tl);
@@ -643,7 +647,7 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[1].kind);
   ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[2].kind);
   ASSERT_EQ(TOKEN_ELLIPSIS, tl->tokens[3].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* String and char literals with escape sequences */
   rc =
@@ -655,20 +659,20 @@ TEST test_tokenize_spliced_keywords_and_numbers(void) {
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl->tokens[2].kind);
   ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[3].kind);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl->tokens[4].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* Unterminated string and char at EOF */
   rc = tokenize(az_span_create_from_str("\"unterminated"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_STRING_LITERAL, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str("'unterminated"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl->tokens[0].kind);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();
@@ -747,8 +751,8 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, next_idx);
 
-  free_token_list(tl);
-  free_token_list(NULL);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(NULL);
 
   /* token_list_add with NULL */
   rc = token_list_add(NULL, TOKEN_IDENTIFIER, NULL, 0);
@@ -776,25 +780,25 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   rc = tokenize(az_span_create_from_str("   \\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* tokenize with number ending in splice */
   rc = tokenize(az_span_create_from_str("123\\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* tokenize with splice at start */
   rc = tokenize(az_span_create_from_str("\\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   /* tokenize with string ending in splice at EOF */
   rc = tokenize(az_span_create_from_str("\"hello\\\n"), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(tl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
 
   g_fail_io_after = -1;
   PASS();

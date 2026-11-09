@@ -71,10 +71,12 @@ TEST test_patch_init_free(void) {
   ASSERT_EQ(0, pl.size);
 
   /* Add one to test free logic */
-  patch_list_add(&pl, 0, 1,
-                 (c_cdd_strdup("test", &_ast_strdup_0), _ast_strdup_0));
+  g_cdd_last_alloc_err = patch_list_add(
+      &pl, 0, 1,
+      (g_cdd_last_alloc_err = c_cdd_strdup("test", &_ast_strdup_0),
+       _ast_strdup_0));
 
-  patch_list_free(&pl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
   ASSERT_EQ(0, pl.size);
   ASSERT(pl.patches == NULL);
   g_fail_io_after = -1;
@@ -92,22 +94,25 @@ TEST test_patch_basic_replacement(void) {
   /* Tokens: [int] [ ] [x] [ ] [=] [ ] [5] [;] */
   /* Indices: 0     1   2   3   4   5   6   7 */
   const char *code = cdd_test_mut_str("int x = 5;");
-  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_0),
+  struct TokenList *tl = (g_cdd_last_alloc_err = setup_patch_tokens(
+                              code, &_ast_setup_patch_tokens_0),
                           _ast_setup_patch_tokens_0);
   struct PatchList pl;
   char *result = NULL;
   int rc = 0;
 
   ASSERT(tl);
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
 
   /* Replace '5' (index 6, len 1) with '10' */
   /* "5" is at token index 6 because of whitespace tokens */
   /* Let's verify token indices first to be robust */
   ASSERT(tl->tokens[6].kind == TOKEN_NUMBER_LITERAL);
 
-  rc = patch_list_add(&pl, 6, 7,
-                      (c_cdd_strdup("10", &_ast_strdup_1), _ast_strdup_1));
+  rc =
+      patch_list_add(&pl, 6, 7,
+                     (g_cdd_last_alloc_err = c_cdd_strdup("10", &_ast_strdup_1),
+                      _ast_strdup_1));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -115,8 +120,8 @@ TEST test_patch_basic_replacement(void) {
   ASSERT_STR_EQ("int x = 10;", result);
 
   free(result);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -133,14 +138,15 @@ TEST test_patch_insertion(void) {
   /* Indices: 0     1   2   3   4   5   6 */
   const char *code = ""
                      "void f(){}";
-  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_1),
+  struct TokenList *tl = (g_cdd_last_alloc_err = setup_patch_tokens(
+                              code, &_ast_setup_patch_tokens_1),
                           _ast_setup_patch_tokens_1);
   struct PatchList pl;
   char *result = NULL;
   int rc = 0;
 
   ASSERT(tl);
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
 
   /* Insert "int x;" at the start of body (index 6 is '{', insert at 6? No,
    * insert inside '{' means after 6) */
@@ -149,7 +155,9 @@ TEST test_patch_insertion(void) {
   ASSERT(tl->tokens[6].kind == TOKEN_RBRACE);
 
   rc = patch_list_add(
-      &pl, 5, 7, (c_cdd_strdup("{ int x; }", &_ast_strdup_2), _ast_strdup_2));
+      &pl, 5, 7,
+      (g_cdd_last_alloc_err = c_cdd_strdup("{ int x; }", &_ast_strdup_2),
+       _ast_strdup_2));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -159,8 +167,8 @@ TEST test_patch_insertion(void) {
                 result);
 
   free(result);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -175,18 +183,20 @@ TEST test_patch_deletion(void) {
   /* Input: int x; */
   /* Tokens: [int] [ ] [x] [;] */
   const char *code = cdd_test_mut_str("int x;");
-  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_2),
+  struct TokenList *tl = (g_cdd_last_alloc_err = setup_patch_tokens(
+                              code, &_ast_setup_patch_tokens_2),
                           _ast_setup_patch_tokens_2);
   struct PatchList pl;
   char *result = NULL;
   int rc = 0;
 
   ASSERT(tl);
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
 
   /* Delete "int " tokens [0, 2) */
-  rc = patch_list_add(&pl, 0, 2,
-                      (c_cdd_strdup("", &_ast_strdup_3), _ast_strdup_3));
+  rc = patch_list_add(
+      &pl, 0, 2,
+      (g_cdd_last_alloc_err = c_cdd_strdup("", &_ast_strdup_3), _ast_strdup_3));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -194,8 +204,8 @@ TEST test_patch_deletion(void) {
   ASSERT_STR_EQ("x;", result);
 
   free(result);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -210,32 +220,33 @@ TEST test_patch_multiple_disjoint(void) {
   char *_ast_strdup_5 = NULL;
   /* Input: A B C */
   const char *code = cdd_test_mut_str("A B C");
-  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_3),
+  struct TokenList *tl = (g_cdd_last_alloc_err = setup_patch_tokens(
+                              code, &_ast_setup_patch_tokens_3),
                           _ast_setup_patch_tokens_3);
   struct PatchList pl;
   char *result = NULL;
   int rc = 0;
 
   ASSERT(tl);
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
 
   /* Replace A -> X */
-  rc = patch_list_add(
-      &pl, 0, 1,
-      (c_cdd_strdup("X", &_ast_strdup_4), _ast_strdup_4)); /* A at 0 */
+  rc = patch_list_add(&pl, 0, 1,
+                      (g_cdd_last_alloc_err = c_cdd_strdup("X", &_ast_strdup_4),
+                       _ast_strdup_4)); /* A at 0 */
   /* Replace C -> Z */
   /* [A] [ ] [B] [ ] [C] -> 0 1 2 3 4 */
-  rc = patch_list_add(
-      &pl, 4, 5,
-      (c_cdd_strdup("Z", &_ast_strdup_5), _ast_strdup_5)); /* C at 4 */
+  rc = patch_list_add(&pl, 4, 5,
+                      (g_cdd_last_alloc_err = c_cdd_strdup("Z", &_ast_strdup_5),
+                       _ast_strdup_5)); /* C at 4 */
 
   rc = patch_list_apply(&pl, tl, &result);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("X B Z", result);
 
   free(result);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -250,7 +261,8 @@ TEST test_patch_overlap_behavior(void) {
   char *_ast_strdup_7 = NULL;
   /* Input: A */
   const char *code = cdd_test_mut_str("A");
-  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_4),
+  struct TokenList *tl = (g_cdd_last_alloc_err = setup_patch_tokens(
+                              code, &_ast_setup_patch_tokens_4),
                           _ast_setup_patch_tokens_4);
   struct PatchList pl;
   char *result = NULL;
@@ -258,15 +270,17 @@ TEST test_patch_overlap_behavior(void) {
 
   /* Assert undefined behavior matches implementation (sorted, first wins) */
   ASSERT(tl);
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
 
   /* Replace A -> X */
   rc = patch_list_add(&pl, 0, 1,
-                      (c_cdd_strdup("X", &_ast_strdup_6), _ast_strdup_6));
+                      (g_cdd_last_alloc_err = c_cdd_strdup("X", &_ast_strdup_6),
+                       _ast_strdup_6));
   /* Replace A -> Y (Same range) -> Should be skipped or overwrite?
    * Implementation skips overlaps */
   rc = patch_list_add(&pl, 0, 1,
-                      (c_cdd_strdup("Y", &_ast_strdup_7), _ast_strdup_7));
+                      (g_cdd_last_alloc_err = c_cdd_strdup("Y", &_ast_strdup_7),
+                       _ast_strdup_7));
 
   rc = patch_list_apply(&pl, tl, &result);
   ASSERT_EQ(0, rc);
@@ -283,8 +297,8 @@ TEST test_patch_overlap_behavior(void) {
   ASSERT(strcmp(result, "X") == 0 || strcmp(result, "Y") == 0);
 
   free(result);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -297,7 +311,8 @@ TEST test_patch_append_end(void) {
   struct TokenList *_ast_setup_patch_tokens_5;
   char *_ast_strdup_8 = NULL;
   const char *code = cdd_test_mut_str("End");
-  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_5),
+  struct TokenList *tl = (g_cdd_last_alloc_err = setup_patch_tokens(
+                              code, &_ast_setup_patch_tokens_5),
                           _ast_setup_patch_tokens_5);
   struct PatchList pl;
   char *result = NULL;
@@ -305,14 +320,16 @@ TEST test_patch_append_end(void) {
   char huge_str[3000];
 
   ASSERT(tl);
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
 
   memset(huge_str, 'A', 2999);
   huge_str[2999] = '\0';
 
   /* Append after end. Token list size is 1. Insert at index 1 (end) */
-  rc = patch_list_add(&pl, 1, 1,
-                      (c_cdd_strdup(huge_str, &_ast_strdup_8), _ast_strdup_8));
+  rc = patch_list_add(
+      &pl, 1, 1,
+      (g_cdd_last_alloc_err = c_cdd_strdup(huge_str, &_ast_strdup_8),
+       _ast_strdup_8));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -320,8 +337,8 @@ TEST test_patch_append_end(void) {
   ASSERT_STR_EQ(huge_str, result + 3); /* End is 3 chars */
 
   free(result);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -335,7 +352,7 @@ TEST test_patch_bounds(void) {
   struct TokenList tl;
   char *res = NULL;
   memset(&tl, 0, sizeof(tl));
-  patch_list_init(&pl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_init(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             patch_list_add(NULL, 0, 1, strdup("X")));
@@ -343,8 +360,8 @@ TEST test_patch_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, NULL, &res));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, &tl, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, NULL, NULL));
-  patch_list_free(&pl);
-  patch_list_free(NULL); /* Should not crash */
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = patch_list_free(NULL); /* Should not crash */
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -374,7 +391,7 @@ TEST test_patch_bounds(void) {
     ASSERT_NEQ(0, patch_list_apply(&pl_test, &tl_test, &out_test));
     g_cdd_fail_patch_list_sort = 0;
 
-    patch_list_free(&pl_test);
+    g_cdd_last_alloc_err = patch_list_free(&pl_test);
   }
 #endif
 
@@ -403,23 +420,24 @@ TEST test_patcher_invalid(void) {
   /* Test patch_list_init allocation failure */
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&pl2));
-  patch_list_free(&pl2); /* This covers list->patches == NULL */
+  g_cdd_last_alloc_err =
+      patch_list_free(&pl2); /* This covers list->patches == NULL */
   g_cdd_alloc_fail = 0;
 
   /* Test patch_list_add with text == NULL */
-  patch_list_init(&pl2);
+  g_cdd_last_alloc_err = patch_list_init(&pl2);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_add(&pl2, 0, 1, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_add(NULL, 0, 1, NULL));
 
   /* Trigger capacity == 0 branch false in patch_list_add */
-  patch_list_add(&pl2, 0, 1, strdup("1"));
-  patch_list_add(&pl2, 0, 1, strdup("2"));
-  patch_list_add(&pl2, 0, 1, strdup("3"));
-  patch_list_add(&pl2, 0, 1, strdup("4"));
-  patch_list_add(&pl2, 0, 1, strdup("5"));
-  patch_list_add(&pl2, 0, 1, strdup("6"));
-  patch_list_add(&pl2, 0, 1, strdup("7"));
-  patch_list_add(&pl2, 0, 1, strdup("8"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("1"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("2"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("3"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("4"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("5"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("6"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("7"));
+  g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("8"));
 
   /* Trigger C_CDD_REALLOC failure when capacity > 0 */
   g_cdd_alloc_fail = 1;
@@ -431,14 +449,14 @@ TEST test_patcher_invalid(void) {
   ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(&pl2)); /* Size is 8 > 1 */
 
-  patch_list_free(&pl2);
-  patch_list_init(&pl2);
+  g_cdd_last_alloc_err = patch_list_free(&pl2);
+  g_cdd_last_alloc_err = patch_list_init(&pl2);
 
   memset(huge_str, 'x', 1999);
   huge_str[1999] = '\0';
 
   for (i = 0; i < 8; i++) {
-    patch_list_add(&pl2, 0, 1, strdup("test"));
+    g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup("test"));
   }
 
   g_cdd_alloc_fail = 1;
@@ -454,10 +472,10 @@ TEST test_patcher_invalid(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_alloc_fail = 0;
 
-    patch_list_add(&pl2, 0, 1, strdup(huge_str));
-    patch_list_add(&pl2, 2, 3, strdup(huge_str));
+    g_cdd_last_alloc_err = patch_list_add(&pl2, 0, 1, strdup(huge_str));
+    g_cdd_last_alloc_err = patch_list_add(&pl2, 2, 3, strdup(huge_str));
 
-    setup_patch_tokens(huge_str, &tl_huge);
+    g_cdd_last_alloc_err = setup_patch_tokens(huge_str, &tl_huge);
 
     for (i = 1; i <= 20; i++) {
       res_huge = NULL;
@@ -474,7 +492,7 @@ TEST test_patcher_invalid(void) {
     }
     g_cdd_alloc_fail = 0;
 
-    patch_list_init(&pl3);
+    g_cdd_last_alloc_err = patch_list_init(&pl3);
     res_huge = NULL;
     ASSERT_EQ(0, patch_list_apply(&pl3, tl_huge, &res_huge));
     if (res_huge) {
@@ -484,10 +502,10 @@ TEST test_patcher_invalid(void) {
 
     memset(&tl_empty, 0, sizeof(tl_empty));
 
-    patch_list_free(&pl2);
-    patch_list_free(&pl3);
+    g_cdd_last_alloc_err = patch_list_free(&pl2);
+    g_cdd_last_alloc_err = patch_list_free(&pl3);
     if (tl_huge) {
-      free_token_list(tl_huge);
+      g_cdd_last_alloc_err = free_token_list(tl_huge);
     }
     PASS();
   }
@@ -513,8 +531,8 @@ TEST test_patcher_cov(void) {
   ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(&pl));
 
   /* test patch_list_apply OOM in copy original token content loop */
-  patch_list_init(&pl);
-  tokenize(az_span_create_from_str("int a;"), &tl);
+  g_cdd_last_alloc_err = patch_list_init(&pl);
+  g_cdd_last_alloc_err = tokenize(az_span_create_from_str("int a;"), &tl);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -525,8 +543,8 @@ TEST test_patcher_cov(void) {
   }
 #endif
 
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -539,23 +557,24 @@ TEST test_patcher_cov_extra(void) {
   char *out = NULL;
   struct TokenList *tl = NULL;
 
-  patch_list_init(&pl);
-  tokenize(az_span_create_from_str("int"), &tl); /* 1 token */
+  g_cdd_last_alloc_err = patch_list_init(&pl);
+  g_cdd_last_alloc_err =
+      tokenize(az_span_create_from_str("int"), &tl); /* 1 token */
 
   /* Patch 0: replaces token 0 up to 3 (which exceeds size 1), making
    * current_token = 3 */
-  patch_list_add(&pl, 0, 3, strdup("replacement"));
+  g_cdd_last_alloc_err = patch_list_add(&pl, 0, 3, strdup("replacement"));
 
   /* Patch 1: starts at 0, overlaps, but since outer loop terminates it's
    * evaluated in the trailing loop */
-  patch_list_add(&pl, 0, 1, strdup("overlapped"));
+  g_cdd_last_alloc_err = patch_list_add(&pl, 0, 1, strdup("overlapped"));
 
   ASSERT_EQ(CDD_C_SUCCESS, patch_list_apply(&pl, tl, &out));
 
   if (out)
     free(out);
-  patch_list_free(&pl);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&pl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -578,7 +597,8 @@ TEST test_patcher_oom_original_token_copy(void) {
   ASSERT_EQ(CDD_C_SUCCESS, res);
 
   /* Add a patch so patch loop logic applies */
-  patch_list_add(&list, 2, 3, C_CDD_STRDUP("patched_value"));
+  g_cdd_last_alloc_err =
+      patch_list_add(&list, 2, 3, C_CDD_STRDUP("patched_value"));
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -596,8 +616,8 @@ TEST test_patcher_oom_original_token_copy(void) {
   }
 #endif
 
-  patch_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 
@@ -743,8 +763,8 @@ TEST test_patcher_oom_no_patches(void) {
   }
 #endif
 
-  patch_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   PASS();
 }
 

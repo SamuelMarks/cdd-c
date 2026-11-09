@@ -84,7 +84,7 @@ TEST test_cst_print_exact(void) {
 
   ASSERT_STR_EQ(src, buffer);
 
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
 }

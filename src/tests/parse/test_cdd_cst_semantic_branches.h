@@ -44,28 +44,28 @@ TEST test_cdd_cst_semantic_missing_branches(void) {
   cdd_cst_node_t *decl1 = NULL, *decl2 = NULL;
   cdd_cst_node_t *id_node1 = NULL, *id_node2 = NULL;
 
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
   /* Missing branch 17 (out_name == NULL) */
   /* Actually extract_identifier is static, we just need to hit it naturally */
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_append_child_node(root, decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   /* no child tokens, so extract_identifier fails but NOT_FOUND percolates */
-  cdd_cst_append_child_node(decl1, id_node1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, id_node1);
 
-  cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
-  cdd_cst_append_child_node(root, decl2);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
-  cdd_cst_append_child_node(decl2, id_node2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl2, id_node2);
 
   rc = cdd_cst_build_semantic_info(tree, &env);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  cdd_cst_scope_env_free(env);
+  g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
   env = NULL;
 
 #ifdef CDD_BUILD_TESTS
@@ -80,13 +80,13 @@ TEST test_cdd_cst_semantic_missing_branches(void) {
     tok->start = (const uint8_t *)"Struct1";
     tok->length = 7;
 
-    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &r2);
-    cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &ts);
-    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &r2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &ts);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id);
 
-    cdd_cst_append_child_token(id, tok);
-    cdd_cst_append_child_node(ts, id);
-    cdd_cst_append_child_node(r2, ts);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(id, tok);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(ts, id);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(r2, ts);
     t2->root = r2;
 
     g_cdd_alloc_fail = 4;
@@ -94,12 +94,12 @@ TEST test_cdd_cst_semantic_missing_branches(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_alloc_fail = 0;
 
-    cdd_cst_tree_free(t2);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t2);
     free(tok);
   }
 #endif
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -118,29 +118,29 @@ TEST test_cdd_cst_semantic_missing_branches_2(void) {
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
   cdd_token_t *tok2 = calloc(1, sizeof(cdd_token_t));
 
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
   /* Missing branch 17 (out_name == NULL) */
   /* Actually extract_identifier returns CDD_C_ERROR_MEMORY if malloc fails */
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_append_child_node(root, decl1);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
   tok1->start = (const uint8_t *)"Var1";
   tok1->length = 4;
-  cdd_cst_append_child_token(id_node1, tok1);
-  cdd_cst_append_child_node(decl1, id_node1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node1, tok1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, id_node1);
 
-  cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
-  cdd_cst_append_child_node(root, decl2);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
   tok2->kind = CDD_TOKEN_IDENTIFIER;
   tok2->start = (const uint8_t *)"Type1";
   tok2->length = 5;
-  cdd_cst_append_child_token(id_node2, tok2);
-  cdd_cst_append_child_node(decl2, id_node2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node2, tok2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl2, id_node2);
 
   /* g_cdd_alloc_fail = 1 will fail malloc in extract_identifier for
    * CDD_CST_DECLARATION */
@@ -158,17 +158,18 @@ TEST test_cdd_cst_semantic_missing_branches_2(void) {
   /* This hits branch 35 */
   {
     cdd_cst_node_t *decl3 = NULL, *id_node3 = NULL;
-    cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl3);
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &id_node3); /* NOT identifier */
-    cdd_cst_append_child_node(decl3, id_node3);
-    cdd_cst_append_child_node(root, decl3);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl3);
+    g_cdd_last_alloc_err =
+        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &id_node3); /* NOT identifier */
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl3, id_node3);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl3);
     rc = cdd_cst_build_semantic_info(tree, &env);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_scope_env_free(env);
+    g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
     env = NULL;
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   free(tok1);
   free(tok2);
   PASS();
@@ -189,33 +190,33 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
   cdd_token_t *tok2 = calloc(1, sizeof(cdd_token_t));
 
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
   /* Missing branch 17 (out_name == NULL) */
   /* Actually line 17 is: if (node->children[i].kind == CDD_CST_CHILD_TOKEN) */
   /* We need an IDENTIFIER node that has a CHILD_NODE to fail the if */
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_append_child_node(root, decl1);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   /* Append a node instead of token */
   {
     cdd_cst_node_t *dummy_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-    cdd_cst_append_child_node(id_node1, dummy_node);
-    cdd_cst_append_child_node(decl1, id_node1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(id_node1, dummy_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, id_node1);
 
     /* For TYPE_SPECIFIER, to hit branch 93/2 (if rc != CDD_C_SUCCESS inside
      * type specifier) */
-    cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
-    cdd_cst_append_child_node(root, decl2);
-    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl2);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
     tok2->kind = CDD_TOKEN_IDENTIFIER;
     tok2->start = (const uint8_t *)"Type1";
     tok2->length = 5;
-    cdd_cst_append_child_token(id_node2, tok2);
-    cdd_cst_append_child_node(decl2, id_node2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node2, tok2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl2, id_node2);
 
     /* Fail cdd_cst_scope_add_symbol inside TYPE_SPECIFIER */
     g_cdd_alloc_fail = 3;
@@ -229,19 +230,19 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
     /* Add another decl */
     {
       cdd_cst_node_t *decl3 = NULL, *id_node3 = NULL;
-      cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl3);
-      cdd_cst_append_child_node(root, decl3);
-      cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node3);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl3);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl3);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node3);
       tok1->kind = CDD_TOKEN_IDENTIFIER;
       tok1->start = (const uint8_t *)"Var2";
       tok1->length = 4;
-      cdd_cst_append_child_token(id_node3, tok1);
+      g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node3, tok1);
       /* Make a wrapper node so we recurse */
       {
         cdd_cst_node_t *wrap = NULL;
-        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &wrap);
-        cdd_cst_append_child_node(wrap, id_node3);
-        cdd_cst_append_child_node(decl3, wrap);
+        g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &wrap);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(wrap, id_node3);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(decl3, wrap);
 
         /* Now g_cdd_alloc_fail = 1 will fail inside extract_identifier of
          * id_node3 */
@@ -256,7 +257,7 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
           }
           g_cdd_alloc_fail = 0;
 
-          cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
           free(tok1);
           free(tok2);
           PASS();
@@ -280,17 +281,17 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
   cdd_cst_node_t *id_node1 = NULL;
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
 
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_append_child_node(root, decl1);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
   tok1->start = (const uint8_t *)"Var3";
   tok1->length = 4;
-  cdd_cst_append_child_token(id_node1, tok1);
-  cdd_cst_append_child_node(decl1, id_node1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node1, tok1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, id_node1);
 
   g_cdd_alloc_fail =
       3; /* to hit the exact malloc inside cdd_cst_scope_add_symbol */
@@ -309,7 +310,7 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
     }
     g_cdd_alloc_fail = 0;
 
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     free(tok1);
     PASS();
   }
@@ -329,23 +330,23 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
   cdd_cst_node_t *id_node1 = NULL, *id_node2 = NULL;
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
 
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_append_child_node(root, decl1);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
   tok1->start = (const uint8_t *)"Var3";
   tok1->length = 4;
-  cdd_cst_append_child_token(id_node1, tok1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node1, tok1);
 
   {
     cdd_cst_node_t *wrap = NULL;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &wrap);
-    cdd_cst_append_child_node(wrap, id_node1);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &wrap);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(wrap, id_node1);
 
-    cdd_cst_append_child_node(decl1, wrap);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, wrap);
 
     g_cdd_alloc_fail = 1;
     rc = cdd_cst_build_semantic_info(tree, &env);
@@ -361,16 +362,17 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
       }
       g_cdd_alloc_fail = 0;
 
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = calloc(1, sizeof(cdd_cst_tree_t));
-      cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+      g_cdd_last_alloc_err =
+          cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
       tree->root = root;
 
-      cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
-      cdd_cst_append_child_node(root, decl2);
-      cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
-      cdd_cst_append_child_token(id_node2, tok1);
-      cdd_cst_append_child_node(decl2, id_node2);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &decl2);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl2);
+      g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
+      g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node2, tok1);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(decl2, id_node2);
 
       for (i = 1; i < 6; ++i) {
         g_cdd_alloc_fail = i;
@@ -379,7 +381,7 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
       }
       g_cdd_alloc_fail = 0;
 
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       free(tok1);
       PASS();
     }
@@ -395,19 +397,19 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
   cdd_cst_node_t *decl1 = NULL, *id_node1 = NULL;
 
   /* Missing branch 35: extract_identifier recursion failure bubble up */
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
 
   /* Make child node fail extract_identifier with an error other than NOT_FOUND
    */
   /* e.g., MEMORY error */
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   {
     cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
     tok1->kind = CDD_TOKEN_IDENTIFIER;
     tok1->start = (const uint8_t *)"V";
     tok1->length = 1;
-    cdd_cst_append_child_token(id_node1, tok1);
-    cdd_cst_append_child_node(decl1, id_node1);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node1, tok1);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, id_node1);
 
     g_cdd_alloc_fail = 1;
     rc = cdd_cst_build_semantic_info(
@@ -418,9 +420,10 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
     {
       cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
       cdd_cst_node_t *root = NULL;
-      cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+      g_cdd_last_alloc_err =
+          cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
       tree->root = root;
-      cdd_cst_append_child_node(root, decl1);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
       {
         cdd_cst_scope_env_t *env = NULL;
@@ -429,7 +432,7 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
         g_cdd_alloc_fail = 0;
 
-        cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         free(tok1);
         PASS();
       }
@@ -449,19 +452,19 @@ TEST test_cdd_cst_semantic_missing_branches_7(void) {
   cdd_cst_node_t *id_node1 = NULL;
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
 
-  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_append_child_node(root, decl1);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
   tok1->start = (const uint8_t *)"V7";
   tok1->length = 2;
-  cdd_cst_append_child_token(id_node1, tok1);
-  cdd_cst_append_child_node(decl1, id_node1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node1, tok1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, id_node1);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   free(tok1);
   PASS();
 }
@@ -477,37 +480,37 @@ TEST test_cdd_cst_semantic_missing_branches_8(void) {
                  *id_node1 = NULL;
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
 
   /* Child 1 is unknown, has no identifier -> returns NOT_FOUND */
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
-  cdd_cst_append_child_node(decl1, child1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child1);
 
   /* Child 2 is unknown, but contains an identifier -> returns SUCCESS */
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
-  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
   tok1->start = (const uint8_t *)"V8";
   tok1->length = 2;
-  cdd_cst_append_child_token(id_node1, tok1);
-  cdd_cst_append_child_node(child2, id_node1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node1, tok1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(child2, id_node1);
 
-  cdd_cst_append_child_node(decl1, child2);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child2);
 
   {
     cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = NULL;
-    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
     tree->root = root;
-    cdd_cst_append_child_node(root, decl1);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
     {
       cdd_cst_scope_env_t *env = NULL;
       rc = cdd_cst_build_semantic_info(tree, &env);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-      cdd_cst_scope_env_free(env);
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       free(tok1);
       PASS();
     }
@@ -522,29 +525,30 @@ TEST test_cdd_cst_semantic_missing_branches_9(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
-  cdd_cst_append_child_node(decl1, child1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child1);
 
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
   {
     cdd_cst_node_t *id_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
     {
       cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
       tok->kind = CDD_TOKEN_IDENTIFIER;
       tok->start = (const uint8_t *)"V9";
       tok->length = 2;
-      cdd_cst_append_child_token(id_node, tok);
-      cdd_cst_append_child_node(child2, id_node);
-      cdd_cst_append_child_node(decl1, child2);
+      g_cdd_last_alloc_err = cdd_cst_append_child_token(id_node, tok);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(child2, id_node);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child2);
 
       {
         cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
         cdd_cst_node_t *root = NULL;
-        cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+        g_cdd_last_alloc_err =
+            cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
         tree->root = root;
-        cdd_cst_append_child_node(root, decl1);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
         {
           cdd_cst_scope_env_t *env = NULL;
@@ -560,8 +564,8 @@ TEST test_cdd_cst_semantic_missing_branches_9(void) {
           ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
           g_cdd_alloc_fail = 0;
 
-          cdd_cst_tree_free(tree);
-          cdd_cst_scope_env_free(env);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
           free(tok);
           PASS();
         }
@@ -578,32 +582,33 @@ TEST test_cdd_cst_semantic_missing_branches_10(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
-  cdd_cst_append_child_node(decl1, child1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child1);
 
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
   {
     cdd_cst_node_t *id_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
     /* no child tokens, so id_node returns NOT_FOUND */
-    cdd_cst_append_child_node(child2, id_node);
-    cdd_cst_append_child_node(decl1, child2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(child2, id_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child2);
 
     {
       cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
       cdd_cst_node_t *root = NULL;
-      cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+      g_cdd_last_alloc_err =
+          cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
       tree->root = root;
-      cdd_cst_append_child_node(root, decl1);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
       {
         cdd_cst_scope_env_t *env = NULL;
         rc = cdd_cst_build_semantic_info(tree, &env);
         ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-        cdd_cst_tree_free(tree);
-        cdd_cst_scope_env_free(env);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
         PASS();
       }
     }
@@ -618,24 +623,25 @@ TEST test_cdd_cst_semantic_missing_branches_11(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL, *child1 = NULL, *child2 = NULL;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
-  cdd_cst_append_child_node(decl1, child1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child1);
+  g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child1);
 
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
   {
     cdd_cst_node_t *id_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
+    g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
     /* no child tokens, so id_node returns NOT_FOUND */
-    cdd_cst_append_child_node(child2, id_node);
-    cdd_cst_append_child_node(decl1, child2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(child2, id_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(decl1, child2);
 
     {
       cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
       cdd_cst_node_t *root = NULL;
-      cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+      g_cdd_last_alloc_err =
+          cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
       tree->root = root;
-      cdd_cst_append_child_node(root, decl1);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
       {
         cdd_cst_scope_env_t *env = NULL;
@@ -651,8 +657,8 @@ TEST test_cdd_cst_semantic_missing_branches_11(void) {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
         g_cdd_alloc_fail = 0;
 
-        cdd_cst_tree_free(tree);
-        cdd_cst_scope_env_free(env);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
         PASS();
       }
     }
@@ -667,28 +673,29 @@ TEST test_cdd_cst_semantic_missing_branches_13(void) {
   cdd_c_error_t rc;
   cdd_cst_node_t *decl1 = NULL;
 
-  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
+  g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
   {
     cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
     tok->kind = CDD_TOKEN_OTHER;
     tok->start = (const uint8_t *)"V13";
     tok->length = 3;
-    cdd_cst_append_child_token(decl1, tok);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(decl1, tok);
 
     {
       cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
       cdd_cst_node_t *root = NULL;
-      cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+      g_cdd_last_alloc_err =
+          cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
       tree->root = root;
-      cdd_cst_append_child_node(root, decl1);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl1);
 
       {
         cdd_cst_scope_env_t *env = NULL;
         rc = cdd_cst_build_semantic_info(tree, &env);
         ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-        cdd_cst_tree_free(tree);
-        cdd_cst_scope_env_free(env);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
         free(tok);
         PASS();
       }
@@ -728,7 +735,7 @@ TEST test_cdd_cst_parser_oom_new(void) {
       int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        cdd_cst_tree_free(tree);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       } else {
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }

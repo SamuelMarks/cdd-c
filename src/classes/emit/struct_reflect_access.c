@@ -663,11 +663,9 @@ cdd_c_error_t cdd_reflect_set_string(void *obj,
     return CDD_C_SUCCESS;
   }
   if (val) {
-    size_t len = strlen(val);
-    dup_val = (char *)C_CDD_MALLOC(len + 1);
+    dup_val = C_CDD_STRDUP(val);
     if (!dup_val)
       return CDD_C_ERROR_MEMORY;
-    memcpy(dup_val, val, len + 1);
   }
   pptr = (char **)((void *)((unsigned char *)obj + field->offset));
   if (*pptr)

@@ -42,7 +42,7 @@ TEST test_lift_anonymous_struct(void) {
                     "  } coords;\n"
                     "};\n";
 
-  write_to_file("anon.h", src);
+  g_cdd_last_alloc_err = write_to_file("anon.h", src);
 
   {
     char *argv[2];

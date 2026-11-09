@@ -29,7 +29,7 @@ TEST test_dsl_tokenizer_unknown_slash(void) {
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_UNKNOWN, list.tokens[2].kind,
                 "%d"); /* Second / is index 2, due to WS */
 
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
   PASS();
 }
 

@@ -43,18 +43,18 @@ TEST test_c2o_cli_source_file_checks(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&txt_file, "%s%cnotes.txt", src_dir, PATH_SEP_C);
   asprintf(&no_ext_file, "%s%cREADME", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, "int foo(void);\n");
-  write_to_file(txt_file, "just some notes");
-  write_to_file(no_ext_file, "no extension here");
+  g_cdd_last_alloc_err = write_to_file(c_file, "int foo(void);\n");
+  g_cdd_last_alloc_err = write_to_file(txt_file, "just some notes");
+  g_cdd_last_alloc_err = write_to_file(no_ext_file, "no extension here");
 
   {
     char *argv[3]; /* ... */
@@ -134,10 +134,10 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   {
@@ -146,7 +146,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
       char *c_file = NULL;
       asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                (unsigned long)i);
-      write_to_file(c_file, snippets[i]);
+      g_cdd_last_alloc_err = write_to_file(c_file, snippets[i]);
       free(c_file);
     }
 
@@ -197,14 +197,14 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, src);
+  g_cdd_last_alloc_err = write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -270,14 +270,14 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, src);
+  g_cdd_last_alloc_err = write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -320,14 +320,14 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, src);
+  g_cdd_last_alloc_err = write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -372,14 +372,14 @@ TEST test_c2o_cli_server_variables(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, src);
+  g_cdd_last_alloc_err = write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -425,14 +425,14 @@ TEST test_c2o_cli_server_variables_validation(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, src);
+  g_cdd_last_alloc_err = write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -497,14 +497,14 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file(c_file, src);
+  g_cdd_last_alloc_err = write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -559,10 +559,10 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   {
@@ -571,7 +571,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
       char *c_file = NULL;
       asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                (unsigned long)i);
-      write_to_file(c_file, snippets[i]);
+      g_cdd_last_alloc_err = write_to_file(c_file, snippets[i]);
       free(c_file);
     }
 
@@ -641,10 +641,10 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   char *out_json = NULL;
 
   rc += 0;
-  tempdir((char **)&tmp_dir);
+  g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir(src_dir);
+  g_cdd_last_alloc_err = makedir(src_dir);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   {
@@ -653,7 +653,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
       char *c_file = NULL;
       asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
                (unsigned long)i);
-      write_to_file(c_file, snippets[i]);
+      g_cdd_last_alloc_err = write_to_file(c_file, snippets[i]);
       free(c_file);
     }
 

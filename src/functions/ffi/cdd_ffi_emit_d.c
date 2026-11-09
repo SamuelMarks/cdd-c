@@ -172,11 +172,11 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        map_d_type(&node->fields[j].type, &dt);
+        g_cdd_last_alloc_err = map_d_type(&node->fields[j].type, &dt);
         fprintf(f, "    %s %s;\n", dt, node->fields[j].name);
       }
       fprintf(f, "}\n\n");
@@ -184,12 +184,12 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
       fprintf(f, "union %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        map_d_type(&node->fields[j].type, &dt);
+        g_cdd_last_alloc_err = map_d_type(&node->fields[j].type, &dt);
         fprintf(f, "    %s %s;\n", dt, node->fields[j].name);
       }
       fprintf(f, "}\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "enum %s : int {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -208,12 +208,12 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_dt = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      map_d_type(&node->return_or_base_type, &ret_dt);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = map_d_type(&node->return_or_base_type, &ret_dt);
       fprintf(f, "%s %s(", ret_dt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        map_d_type(&node->fields[j].type, &dt);
+        g_cdd_last_alloc_err = map_d_type(&node->fields[j].type, &dt);
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", dt, node->fields[j].name);
       }
       fprintf(f, ");\n");

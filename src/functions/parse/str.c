@@ -42,7 +42,7 @@ cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
   }
-  cdd_context_get_global(&ctx);
+  g_cdd_last_alloc_err = cdd_context_get_global(&ctx);
   return ctx->allocator.strdup_fn(s, out_s);
 }
 

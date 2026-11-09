@@ -300,12 +300,12 @@ static cdd_c_error_t test_run_io_exhaustive_query(FILE *fp,
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  codegen_url_write_query_params(fp, op, qp_tracking);
+  g_cdd_last_alloc_err = codegen_url_write_query_params(fp, op, qp_tracking);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    codegen_url_write_query_params(fp, op, qp_tracking);
+    g_cdd_last_alloc_err = codegen_url_write_query_params(fp, op, qp_tracking);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -327,12 +327,14 @@ static cdd_c_error_t test_run_io_exhaustive_builder(
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  codegen_url_write_builder(fp, tmpl, params, n_params, cfg);
+  g_cdd_last_alloc_err =
+      codegen_url_write_builder(fp, tmpl, params, n_params, cfg);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    codegen_url_write_builder(fp, tmpl, params, n_params, cfg);
+    g_cdd_last_alloc_err =
+        codegen_url_write_builder(fp, tmpl, params, n_params, cfg);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -350,12 +352,12 @@ test_run_io_exhaustive_json(FILE *fp, const struct OpenAPI_Parameter *p) {
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  write_query_json_param(fp, p);
+  g_cdd_last_alloc_err = write_query_json_param(fp, p);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    write_query_json_param(fp, p);
+    g_cdd_last_alloc_err = write_query_json_param(fp, p);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -373,12 +375,12 @@ test_run_io_exhaustive_obj(FILE *fp, const struct OpenAPI_Parameter *p) {
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  write_query_object_param(fp, p);
+  g_cdd_last_alloc_err = write_query_object_param(fp, p);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    write_query_object_param(fp, p);
+    g_cdd_last_alloc_err = write_query_object_param(fp, p);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -396,12 +398,12 @@ test_run_io_exhaustive_path_obj(FILE *fp, const struct OpenAPI_Parameter *p) {
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  write_path_object_serialization(fp, p);
+  g_cdd_last_alloc_err = write_path_object_serialization(fp, p);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    write_path_object_serialization(fp, p);
+    g_cdd_last_alloc_err = write_path_object_serialization(fp, p);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -422,12 +424,12 @@ test_run_io_exhaustive_path_arr(FILE *fp, const struct OpenAPI_Parameter *p,
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  write_path_array_serialization(fp, p, prefix, delim);
+  g_cdd_last_alloc_err = write_path_array_serialization(fp, p, prefix, delim);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    write_path_array_serialization(fp, p, prefix, delim);
+    g_cdd_last_alloc_err = write_path_array_serialization(fp, p, prefix, delim);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -450,12 +452,14 @@ test_run_io_exhaustive_joined(FILE *fp, const struct OpenAPI_Parameter *p,
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  write_joined_query_array(fp, p, delim, encode_fn, encode_delim);
+  g_cdd_last_alloc_err =
+      write_joined_query_array(fp, p, delim, encode_fn, encode_delim);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    write_joined_query_array(fp, p, delim, encode_fn, encode_delim);
+    g_cdd_last_alloc_err =
+        write_joined_query_array(fp, p, delim, encode_fn, encode_delim);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;
@@ -478,12 +482,14 @@ test_run_io_exhaustive_joined_enc(FILE *fp, const struct OpenAPI_Parameter *p,
   int i;
   g_fail_io_after = 100000;
   g_io_calls = 0;
-  write_joined_query_array_encoded_delim(fp, p, delim_enc, encode_fn);
+  g_cdd_last_alloc_err =
+      write_joined_query_array_encoded_delim(fp, p, delim_enc, encode_fn);
   total_calls = g_io_calls;
   for (i = 0; i <= total_calls; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    write_joined_query_array_encoded_delim(fp, p, delim_enc, encode_fn);
+    g_cdd_last_alloc_err =
+        write_joined_query_array_encoded_delim(fp, p, delim_enc, encode_fn);
   }
   g_fail_io_after = -1;
   return CDD_C_SUCCESS;

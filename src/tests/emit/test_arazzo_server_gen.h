@@ -149,17 +149,17 @@ TEST test_arazzo_server_gen_and_api(void) {
     int f;
     for (f = 1; f <= 25; ++f) {
       g_cdd_alloc_fail = f;
-      arazzo_server_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
       g_cdd_alloc_fail = 0;
     }
     for (f = 1; f <= 10; ++f) {
       g_cdd_strdup_fail = f;
-      arazzo_server_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
       g_cdd_strdup_fail = 0;
     }
     for (f = 0; f <= 4; ++f) {
       g_fail_io_after = f;
-      arazzo_server_generate(&spec, NULL, &cfg);
+      g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
       g_fail_io_after = -1;
     }
   }
@@ -370,12 +370,12 @@ TEST test_arazzo_server_gen_and_api(void) {
     tcfg.self_uri = "https://example.com/self.json";
     for (f = 1; f <= 25; ++f) {
       g_cdd_alloc_fail = f;
-      cdd_generate_to_arazzo(&tcfg);
+      g_cdd_last_alloc_err = cdd_generate_to_arazzo(&tcfg);
       g_cdd_alloc_fail = 0;
     }
     for (f = 1; f <= 25; ++f) {
       g_cdd_strdup_fail = f;
-      cdd_generate_to_arazzo(&tcfg);
+      g_cdd_last_alloc_err = cdd_generate_to_arazzo(&tcfg);
       g_cdd_strdup_fail = 0;
     }
     ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_to_arazzo(&tcfg));
@@ -398,7 +398,7 @@ TEST test_arazzo_server_gen_and_api(void) {
   remove(spec_path);
   remove(oa_path);
   remove(out_spec_path);
-  arazzo_spec_free(&spec);
+  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
   PASS();
 }
 

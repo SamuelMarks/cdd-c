@@ -269,7 +269,7 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   /* Escape C89/C99/C11/C23/C++ reserved keywords */
   {
     int is_res = 0;
-    c2s_is_reserved_keyword(out, &is_res);
+    g_cdd_last_alloc_err = c2s_is_reserved_keyword(out, &is_res);
     if (is_res) {
       out[pos++] = '_';
       out[pos] = '\0';
@@ -313,7 +313,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
     if (rc_c2s != CDD_C_SUCCESS)
       return rc_c2s;
 
-    struct_fields_get(dest, sanitized, &tmp4);
+    g_cdd_last_alloc_err = struct_fields_get(dest, sanitized, &tmp4);
     if (!tmp4) {
       *_out_val = sanitized;
       return CDD_C_SUCCESS;
@@ -329,7 +329,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   }
   {
     struct StructField *tmp5 = NULL;
-    struct_fields_get(dest, out, &tmp5);
+    g_cdd_last_alloc_err = struct_fields_get(dest, out, &tmp5);
     if (!tmp5) {
       *_out_val = out;
       return CDD_C_SUCCESS;
@@ -409,7 +409,7 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
       return rc_c2s;
   }
 
-  cdd_json_object_has_value(root, name, &has_val);
+  g_cdd_last_alloc_err = cdd_json_object_has_value(root, name, &has_val);
   if (!has_val) {
     JSON_Value *copy = NULL;
     {
@@ -420,7 +420,7 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
       }
     }
     if (cdd_json_object_set_value(root, name, copy) != CDD_C_SUCCESS) {
-      cdd_json_value_free(copy);
+      g_cdd_last_alloc_err = cdd_json_value_free(copy);
       C_CDD_FREE(name);
       return CDD_C_ERROR_MEMORY;
     }
@@ -468,16 +468,17 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
   if (!disc_obj)
     goto fallback;
 
-  cdd_json_object_get_object(disc_obj, "mapping", &mapping);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(disc_obj, "mapping", &mapping);
   if (!mapping)
     goto fallback;
 
-  cdd_json_object_get_count(mapping, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(mapping, &count);
   for (i = 0; i < count; ++i) {
     const char *key = NULL;
     const char *val = NULL;
-    cdd_json_object_get_name(mapping, i, &key);
-    cdd_json_object_get_string(mapping, key, &val);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(mapping, i, &key);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(mapping, key, &val);
     if (!val)
       continue;
     if (ref && strcmp(val, ref) == 0) {

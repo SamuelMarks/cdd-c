@@ -106,19 +106,25 @@ TEST test_form_generation_basic(void) {
         f4.write_only = 1;
         sf.fields[sf.size++] = f4;
       }
-      struct_fields_add(&sf, "score", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "score", "number", NULL, NULL, NULL);
       sf.fields[sf.size - 1].serde_skip_if_kind = CDD_SERDE_SKIP_IF_ZERO;
-      struct_fields_add(&sf, "price", "number", NULL, NULL, NULL);
-      struct_fields_add(&sf, "status", "enum", "#/components/schemas/Status",
-                        NULL, NULL);
-      struct_field_add_alias(&sf.fields[sf.size - 1], "stat");
-      struct_fields_add(&sf, "extra", "object", "#/components/schemas/Extra",
-                        NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "price", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(
+          &sf, "status", "enum", "#/components/schemas/Status", NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_field_add_alias(&sf.fields[sf.size - 1], "stat");
+      g_cdd_last_alloc_err = struct_fields_add(
+          &sf, "extra", "object", "#/components/schemas/Extra", NULL, NULL);
       sf.fields[sf.size - 1].serde_flatten = 1;
-      struct_fields_add(&sf, "count", "integer", NULL, NULL, NULL);
-      struct_fields_add(&sf, "ro_field", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "count", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "ro_field", "string", NULL, NULL, NULL);
       sf.fields[sf.size - 1].read_only = 1;
-      struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
     }
 
     ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "AuthRequest", &sf));
@@ -152,22 +158,27 @@ TEST test_form_generation_basic(void) {
       ASSERT_EQ(
           CDD_C_ERROR_INVALID_ARGUMENT,
           write_struct_from_form_urlencoded_func(tmp, "BadForm", &sf_bad));
-      struct_fields_free(&sf_bad);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_bad);
     }
 
     {
       struct StructFields sf_no_flat;
       ASSERT_EQ(0, struct_fields_init(&sf_no_flat));
-      struct_fields_add(&sf_no_flat, "ro_f", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_no_flat, "ro_f", "string", NULL, NULL, NULL);
       sf_no_flat.fields[sf_no_flat.size - 1].read_only = 1;
-      struct_fields_add(&sf_no_flat, "skip_ser", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf_no_flat, "skip_ser",
+                                               "string", NULL, NULL, NULL);
       sf_no_flat.fields[sf_no_flat.size - 1].serde_skip_serializing = 1;
-      struct_fields_add(&sf_no_flat, "skip_f", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_no_flat, "skip_f", "string", NULL, NULL, NULL);
       sf_no_flat.fields[sf_no_flat.size - 1].serde_skip = 1;
-      struct_fields_add(&sf_no_flat, "skip_de", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_no_flat, "skip_de", "string", NULL, NULL, NULL);
       sf_no_flat.fields[sf_no_flat.size - 1].serde_skip_deserializing = 1;
-      struct_fields_add(&sf_no_flat, "nested", "object",
-                        "#/components/schemas/Nested", NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_no_flat, "nested", "object",
+                            "#/components/schemas/Nested", NULL, NULL);
       ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_form_urlencoded_func(
                                    tmp, "NoFlatForm", &sf_no_flat));
       ASSERT_EQ(CDD_C_SUCCESS, write_struct_from_form_urlencoded_func(
@@ -193,7 +204,7 @@ TEST test_form_generation_basic(void) {
         g_cdd_fail_str_after_last = 0;
       }
 #endif
-      struct_fields_free(&sf_no_flat);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_no_flat);
     }
 
     fseek(tmp, 0, SEEK_END);
@@ -211,7 +222,7 @@ TEST test_form_generation_basic(void) {
     ASSERT(strstr(content, "active"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;

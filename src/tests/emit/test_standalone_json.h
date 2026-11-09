@@ -187,7 +187,7 @@ TEST test_standalone_json_gen(void) {
     ASSERT(strstr(content, "my_int"));
 
     free(content);
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
 
     /* Test 1D and 2D arrays of all types */
     {
@@ -218,10 +218,11 @@ TEST test_standalone_json_gen(void) {
       for (k = 0; k < 30; ++k) {
         g_fail_io_after = k;
         g_io_calls = 0;
-        write_struct_to_json_standalone_func(tmp, "ArrS", &sf_arr);
+        g_cdd_last_alloc_err =
+            write_struct_to_json_standalone_func(tmp, "ArrS", &sf_arr);
         g_fail_io_after = -1;
       }
-      struct_fields_free(&sf_arr);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_arr);
     }
 
     {
@@ -255,10 +256,11 @@ TEST test_standalone_json_gen(void) {
       for (k = 0; k < 25; ++k) {
         g_fail_io_after = k;
         g_io_calls = 0;
-        write_struct_to_json_standalone_func(tmp, "RichS", &sf_rich);
+        g_cdd_last_alloc_err =
+            write_struct_to_json_standalone_func(tmp, "RichS", &sf_rich);
         g_fail_io_after = -1;
       }
-      struct_fields_free(&sf_rich);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_rich);
     }
 
     {
@@ -276,7 +278,7 @@ TEST test_standalone_json_gen(void) {
       sf_bool.fields[sf_bool.size++] = fb;
       ASSERT_EQ(
           0, write_struct_from_json_standalone_func(tmp, "BoolOnly", &sf_bool));
-      struct_fields_free(&sf_bool);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_bool);
     }
 
     {
@@ -336,48 +338,59 @@ TEST test_standalone_json_gen(void) {
       sf_edge.fields[1].n_serde_aliases = 0;
       sf_edge.fields[2].serde_aliases = NULL;
       sf_edge.fields[2].n_serde_aliases = 0;
-      struct_fields_free(&sf_edge);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_edge);
     }
 
     {
       struct StructFields sf_cov;
       int k;
       ASSERT_EQ(0, struct_fields_init(&sf_cov));
-      struct_fields_add(&sf_cov, "skip_f", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "skip_f", "string", NULL, NULL, NULL);
       sf_cov.fields[sf_cov.size - 1].serde_skip = 1;
-      struct_fields_add(&sf_cov, "skip_de", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "skip_de", "string", NULL, NULL, NULL);
       sf_cov.fields[sf_cov.size - 1].serde_skip_deserializing = 1;
-      struct_fields_add(&sf_cov, "skip_ser", "string", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "skip_ser", "string", NULL, NULL, NULL);
       sf_cov.fields[sf_cov.size - 1].serde_skip_serializing = 1;
-      struct_fields_add(&sf_cov, "custom_t", "custom", NULL, NULL, NULL);
-      struct_fields_add(&sf_cov, "obj_first", "object", "#/definitions/Sub",
-                        NULL, NULL);
-      struct_fields_add(&sf_cov, "fix_str_def", "string", NULL, "hi", NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "custom_t", "custom", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf_cov, "obj_first", "object",
+                                               "#/definitions/Sub", NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "fix_str_def", "string", NULL, "hi", NULL);
       sf_cov.fields[sf_cov.size - 1].fixed_array_len = 8;
-      struct_fields_add(&sf_cov, "enum_def", "enum", "#/definitions/E", "V1",
-                        NULL);
-      struct_fields_add(&sf_cov, "num_excl", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(&sf_cov, "enum_def", "enum",
+                                               "#/definitions/E", "V1", NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "num_excl", "number", NULL, NULL, NULL);
       sf_cov.fields[sf_cov.size - 1].has_min = 1;
       sf_cov.fields[sf_cov.size - 1].exclusive_min = 1;
       sf_cov.fields[sf_cov.size - 1].min_val = 0.0;
       sf_cov.fields[sf_cov.size - 1].has_max = 1;
       sf_cov.fields[sf_cov.size - 1].exclusive_max = 1;
       sf_cov.fields[sf_cov.size - 1].max_val = 100.0;
-      struct_fields_add(&sf_cov, "num_incl", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "num_incl", "number", NULL, NULL, NULL);
       sf_cov.fields[sf_cov.size - 1].has_min = 1;
       sf_cov.fields[sf_cov.size - 1].min_val = 0.0;
       sf_cov.fields[sf_cov.size - 1].has_max = 1;
       sf_cov.fields[sf_cov.size - 1].max_val = 100.0;
-      struct_fields_add(&sf_cov, "num_none", "number", NULL, NULL, NULL);
-      struct_fields_add(&sf_cov, "int_f", "integer", NULL, NULL, NULL);
-      struct_fields_add(&sf_cov, "bool_f", "boolean", NULL, NULL, NULL);
-      struct_fields_add(&sf_cov, "enum_arr_explicit", "array",
-                        "#/definitions/E", NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "num_none", "number", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "int_f", "integer", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "bool_f", "boolean", NULL, NULL, NULL);
+      g_cdd_last_alloc_err = struct_fields_add(
+          &sf_cov, "enum_arr_explicit", "array", "#/definitions/E", NULL, NULL);
       sf_cov.fields[sf_cov.size - 1].is_enum_array = 1;
       CDD_STRCPY(sf_cov.fields[sf_cov.size - 1].enum_array_ref,
                  sizeof(sf_cov.fields[sf_cov.size - 1].enum_array_ref),
                  "#/definitions/E");
-      struct_fields_add(&sf_cov, "empty_arr", "array", NULL, NULL, NULL);
+      g_cdd_last_alloc_err =
+          struct_fields_add(&sf_cov, "empty_arr", "array", NULL, NULL, NULL);
 
       ASSERT_EQ(CDD_C_SUCCESS,
                 write_struct_from_json_standalone_func(tmp, "CovS", &sf_cov));
@@ -401,8 +414,8 @@ TEST test_standalone_json_gen(void) {
         extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
         struct StructFields sf_sub_arr;
         ASSERT_EQ(0, struct_fields_init(&sf_sub_arr));
-        struct_fields_add(&sf_sub_arr, "subs", "array", "#/definitions/Sub",
-                          NULL, NULL);
+        g_cdd_last_alloc_err = struct_fields_add(
+            &sf_sub_arr, "subs", "array", "#/definitions/Sub", NULL, NULL);
         g_cdd_fail_str_after_last = 1;
         ASSERT_NEQ(CDD_C_SUCCESS, write_struct_from_json_standalone_func(
                                       tmp, "CovS", &sf_cov));
@@ -428,10 +441,10 @@ TEST test_standalone_json_gen(void) {
         ASSERT_NEQ(CDD_C_SUCCESS, write_struct_to_json_standalone_func(
                                       tmp, "SubArrS", &sf_sub_arr));
         g_cdd_fail_str_after_last = 0;
-        struct_fields_free(&sf_sub_arr);
+        g_cdd_last_alloc_err = struct_fields_free(&sf_sub_arr);
       }
 #endif
-      struct_fields_free(&sf_cov);
+      g_cdd_last_alloc_err = struct_fields_free(&sf_cov);
     }
 
     if (tmp)
@@ -523,7 +536,7 @@ TEST test_json_dom_comprehensive(void) {
     full_bom[35] = '\0';
     ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(full_bom, &v));
     ASSERT(v != NULL);
-    json_value_free(v);
+    g_cdd_last_alloc_err = json_value_free(v);
   }
 
   /* Invalid escapes, unpaired surrogates, leading zeros, trailing garbage */
@@ -1110,7 +1123,7 @@ TEST test_json_dom_comprehensive(void) {
   /* Object & Array mutators, dotset/dotget, clear, replace */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_object(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
     v = _cdd_jv_1;
   }
   o = json_value_get_object(v);
@@ -1140,14 +1153,14 @@ TEST test_json_dom_comprehensive(void) {
             cdd_json_object_get_array(o, "a", &a));
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_deep_copy(v, &copy));
-  json_value_free(copy);
+  g_cdd_last_alloc_err = json_value_free(copy);
   ASSERT_EQ(JSONSuccess, json_object_clear(o));
   ASSERT_EQ(0u, json_object_get_count(o));
-  json_value_free(v);
+  g_cdd_last_alloc_err = json_value_free(v);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_array(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_array(&_cdd_jv_1);
     v = _cdd_jv_1;
   }
   a = json_value_get_array(v);
@@ -1162,17 +1175,21 @@ TEST test_json_dom_comprehensive(void) {
   ASSERT_EQ(JSONFailure, json_array_replace_null(a, 99));
   ASSERT_EQ(CDD_JSON_TRUE, json_array_get_boolean(a, 2));
   ASSERT_EQ(CDD_JSON_ERR_BOOL, json_array_get_boolean(a, 99));
-  json_value_free(v);
+  g_cdd_last_alloc_err = json_value_free(v);
 
   PASS();
 }
 
+/** @brief Allocation index at which test_custom_malloc should fail. */
 static int g_custom_fail_at = -1;
+/** @brief Running allocation counter for test_custom_malloc. */
 static int g_custom_alloc_cnt = 0;
 
 /**
  * @brief Custom test allocator that fails when g_custom_alloc_cnt ==
  * g_custom_fail_at.
+ * @param[in] sz Number of bytes to allocate.
+ * @return Allocated pointer or NULL on simulated failure.
  */
 static void *test_custom_malloc(size_t sz) {
   if (g_custom_fail_at >= 0 && g_custom_alloc_cnt++ == g_custom_fail_at) {
@@ -1183,6 +1200,7 @@ static void *test_custom_malloc(size_t sz) {
 
 /**
  * @brief Custom test deallocator.
+ * @param[in] p Pointer to free.
  */
 static void test_custom_free(void *p) { free(p); }
 
@@ -2442,20 +2460,20 @@ TEST test_json_dom_exhaustive_edges(void) {
               "\"k4\":12345678901234567890}",
               &oom_v) == CDD_C_SUCCESS) {
         if (cdd_json_value_deep_copy(oom_v, &oom_v2) == CDD_C_SUCCESS) {
-          cdd_json_value_free(oom_v2);
+          g_cdd_last_alloc_err = cdd_json_value_free(oom_v2);
         }
         if (cdd_json_serialize_to_string_pretty(oom_v, &oom_s) ==
             CDD_C_SUCCESS) {
-          cdd_json_free_serialized_string(oom_s);
+          g_cdd_last_alloc_err = cdd_json_free_serialized_string(oom_s);
         }
         if (cdd_json_serialize_to_string_canonical(oom_v, &oom_s) ==
             CDD_C_SUCCESS) {
-          cdd_json_free_serialized_string(oom_s);
+          g_cdd_last_alloc_err = cdd_json_free_serialized_string(oom_s);
         }
         if (cdd_json_jsonpath_query(oom_v, "$..*", &oom_v2) == CDD_C_SUCCESS) {
-          cdd_json_value_free(oom_v2);
+          g_cdd_last_alloc_err = cdd_json_value_free(oom_v2);
         }
-        cdd_json_value_free(oom_v);
+        g_cdd_last_alloc_err = cdd_json_value_free(oom_v);
       }
     }
     /* Targeted OOM and edge sweep for remaining branches */
@@ -2471,31 +2489,31 @@ TEST test_json_dom_exhaustive_edges(void) {
       g_custom_alloc_cnt = 0;
       g_custom_fail_at = fi;
       if (cdd_json_value_init_int64(1, &tv) == CDD_C_SUCCESS)
-        cdd_json_value_free(tv);
+        g_cdd_last_alloc_err = cdd_json_value_free(tv);
       g_custom_alloc_cnt = 0;
       if (cdd_json_value_init_uint64(1u, &tv) == CDD_C_SUCCESS)
-        cdd_json_value_free(tv);
+        g_cdd_last_alloc_err = cdd_json_value_free(tv);
       g_custom_alloc_cnt = 0;
       i128.low = 1u;
       i128.high = 5;
       if (cdd_json_value_init_int128(i128, &tv) == CDD_C_SUCCESS)
-        cdd_json_value_free(tv);
+        g_cdd_last_alloc_err = cdd_json_value_free(tv);
       g_custom_alloc_cnt = 0;
       u128.low = 1u;
       u128.high = 5u;
       if (cdd_json_value_init_uint128(u128, &tv) == CDD_C_SUCCESS)
-        cdd_json_value_free(tv);
+        g_cdd_last_alloc_err = cdd_json_value_free(tv);
       g_custom_alloc_cnt = 0;
       if (cdd_json_parse_string_with_options("//c\n{}", &popts, &tv) ==
           CDD_C_SUCCESS)
-        cdd_json_value_free(tv);
+        g_cdd_last_alloc_err = cdd_json_value_free(tv);
       g_custom_alloc_cnt = 0;
       if (cdd_json_ndjson_parse_string("{\"a\":1}\n{\"b\":2}\n", &tv) ==
           CDD_C_SUCCESS) {
         if (cdd_json_ndjson_serialize_array(tv->array_val, &ts) ==
             CDD_C_SUCCESS)
-          cdd_json_free_serialized_string(ts);
-        cdd_json_value_free(tv);
+          g_cdd_last_alloc_err = cdd_json_free_serialized_string(ts);
+        g_cdd_last_alloc_err = cdd_json_value_free(tv);
       }
 
       /* Mutators with OOM at step fi */
@@ -2508,58 +2526,58 @@ TEST test_json_dom_exhaustive_edges(void) {
 
       g_custom_alloc_cnt = 0;
       g_custom_fail_at = fi;
-      cdd_json_object_set_string(to, "s", "v");
+      g_cdd_last_alloc_err = cdd_json_object_set_string(to, "s", "v");
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_number(to, "n", 1.0);
+      g_cdd_last_alloc_err = cdd_json_object_set_number(to, "n", 1.0);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_int64(to, "i", 1);
+      g_cdd_last_alloc_err = cdd_json_object_set_int64(to, "i", 1);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_uint64(to, "u", 1u);
+      g_cdd_last_alloc_err = cdd_json_object_set_uint64(to, "u", 1u);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_int128(to, "i128", i128);
+      g_cdd_last_alloc_err = cdd_json_object_set_int128(to, "i128", i128);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_uint128(to, "u128", u128);
+      g_cdd_last_alloc_err = cdd_json_object_set_uint128(to, "u128", u128);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_boolean(to, "b", 1);
+      g_cdd_last_alloc_err = cdd_json_object_set_boolean(to, "b", 1);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_set_null(to, "nil");
+      g_cdd_last_alloc_err = cdd_json_object_set_null(to, "nil");
       g_custom_alloc_cnt = 0;
-      cdd_json_object_dotset_string(to, "d.s", "v");
+      g_cdd_last_alloc_err = cdd_json_object_dotset_string(to, "d.s", "v");
       g_custom_alloc_cnt = 0;
-      cdd_json_object_dotset_number(to, "d.n", 1.0);
+      g_cdd_last_alloc_err = cdd_json_object_dotset_number(to, "d.n", 1.0);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_dotset_boolean(to, "d.b", 1);
+      g_cdd_last_alloc_err = cdd_json_object_dotset_boolean(to, "d.b", 1);
       g_custom_alloc_cnt = 0;
-      cdd_json_object_dotset_null(to, "d.nil");
+      g_cdd_last_alloc_err = cdd_json_object_dotset_null(to, "d.nil");
 
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_int64(ta, 1);
+      g_cdd_last_alloc_err = cdd_json_array_append_int64(ta, 1);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_uint64(ta, 1u);
+      g_cdd_last_alloc_err = cdd_json_array_append_uint64(ta, 1u);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_int128(ta, i128);
+      g_cdd_last_alloc_err = cdd_json_array_append_int128(ta, i128);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_uint128(ta, u128);
+      g_cdd_last_alloc_err = cdd_json_array_append_uint128(ta, u128);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_string(ta, "v");
+      g_cdd_last_alloc_err = cdd_json_array_append_string(ta, "v");
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_number(ta, 1.0);
+      g_cdd_last_alloc_err = cdd_json_array_append_number(ta, 1.0);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_boolean(ta, 1);
+      g_cdd_last_alloc_err = cdd_json_array_append_boolean(ta, 1);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_append_null(ta);
+      g_cdd_last_alloc_err = cdd_json_array_append_null(ta);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_replace_string(ta, 0, "v");
+      g_cdd_last_alloc_err = cdd_json_array_replace_string(ta, 0, "v");
       g_custom_alloc_cnt = 0;
-      cdd_json_array_replace_number(ta, 0, 1.0);
+      g_cdd_last_alloc_err = cdd_json_array_replace_number(ta, 0, 1.0);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_replace_boolean(ta, 0, 1);
+      g_cdd_last_alloc_err = cdd_json_array_replace_boolean(ta, 0, 1);
       g_custom_alloc_cnt = 0;
-      cdd_json_array_replace_null(ta, 0);
+      g_cdd_last_alloc_err = cdd_json_array_replace_null(ta, 0);
 
       g_custom_fail_at = -1;
-      cdd_json_value_free(tv2);
-      cdd_json_value_free(tv);
+      g_cdd_last_alloc_err = cdd_json_value_free(tv2);
+      g_cdd_last_alloc_err = cdd_json_value_free(tv);
     }
 
     /* OOM on merge_patch, apply_patch, pointer_set, jsonpath_get */
@@ -2587,22 +2605,23 @@ TEST test_json_dom_exhaustive_edges(void) {
         g_custom_alloc_cnt = 0;
         g_custom_fail_at = fi;
         if (cdd_json_merge_patch(base_doc, mp_doc, &out_doc) == CDD_C_SUCCESS)
-          cdd_json_value_free(out_doc);
+          g_cdd_last_alloc_err = cdd_json_value_free(out_doc);
         g_custom_alloc_cnt = 0;
         if (cdd_json_apply_patch(base_doc, jp_doc, &out_doc) == CDD_C_SUCCESS)
-          cdd_json_value_free(out_doc);
+          g_cdd_last_alloc_err = cdd_json_value_free(out_doc);
         g_custom_alloc_cnt = 0;
-        cdd_json_jsonpath_get(base_doc, "$.arr[?(@.k == 'v')].k", &found);
+        g_cdd_last_alloc_err =
+            cdd_json_jsonpath_get(base_doc, "$.arr[?(@.k == 'v')].k", &found);
         g_custom_alloc_cnt = 0;
         if (cdd_json_jsonpath_query(base_doc,
                                     "$.arr[?(match(@.k, '^v$'))]['k']",
                                     &out_doc) == CDD_C_SUCCESS)
-          cdd_json_value_free(out_doc);
+          g_cdd_last_alloc_err = cdd_json_value_free(out_doc);
       }
       g_custom_fail_at = -1;
-      cdd_json_value_free(jp_doc);
-      cdd_json_value_free(mp_doc);
-      cdd_json_value_free(base_doc);
+      g_cdd_last_alloc_err = cdd_json_value_free(jp_doc);
+      g_cdd_last_alloc_err = cdd_json_value_free(mp_doc);
+      g_cdd_last_alloc_err = cdd_json_value_free(base_doc);
     }
 
     g_custom_fail_at = -1;
@@ -3115,7 +3134,7 @@ TEST test_json_dom_exhaustive_edges(void) {
 #endif
           if (rfp) {
             /* Writing to a "rb" stream fails fwrite/fflush or triggers error */
-            cdd_json_serialize_to_fp(va, rfp, 0);
+            g_cdd_last_alloc_err = cdd_json_serialize_to_fp(va, rfp, 0);
             fclose(rfp);
           }
           remove(tmp_fn);
@@ -3361,12 +3380,12 @@ TEST test_json_dom_exhaustive_edges(void) {
             g_custom_fail_at = qi;
             if (cdd_json_jsonpath_query(va, "$.arr[?(@['k'] == 'a')].k", &nl) ==
                 CDD_C_SUCCESS)
-              cdd_json_value_free(nl);
+              g_cdd_last_alloc_err = cdd_json_value_free(nl);
             g_custom_alloc_cnt = 0;
             if (cdd_json_jsonpath_query(va, "$.arr['k']", &nl) == CDD_C_SUCCESS)
-              cdd_json_value_free(nl);
+              g_cdd_last_alloc_err = cdd_json_value_free(nl);
             g_custom_alloc_cnt = 0;
-            cdd_json_pointer_remove(va, "/arr/0/k");
+            g_cdd_last_alloc_err = cdd_json_pointer_remove(va, "/arr/0/k");
           }
           g_custom_fail_at = -1;
           ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
@@ -3498,10 +3517,10 @@ TEST test_json_dom_exhaustive_edges(void) {
               g_custom_alloc_cnt = 0;
               g_custom_fail_at = mi;
               if (cdd_json_merge_patch(va, mp_patch, &mp_res) == CDD_C_SUCCESS)
-                cdd_json_value_free(mp_res);
+                g_cdd_last_alloc_err = cdd_json_value_free(mp_res);
               g_custom_alloc_cnt = 0;
               if (cdd_json_jsonpath_query(va, "$..*", &mp_res) == CDD_C_SUCCESS)
-                cdd_json_value_free(mp_res);
+                g_cdd_last_alloc_err = cdd_json_value_free(mp_res);
             }
             g_custom_fail_at = -1;
             ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(mp_patch));
@@ -3578,11 +3597,22 @@ TEST test_json_dom_exhaustive_edges(void) {
               g_custom_alloc_cnt = 0;
               g_custom_fail_at = pi;
               if (cdd_json_apply_patch(va, add_patch, &vb) == CDD_C_SUCCESS)
-                cdd_json_value_free(vb);
+                g_cdd_last_alloc_err = cdd_json_value_free(vb);
             }
             g_custom_fail_at = -1;
             ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
             ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(add_patch));
+          }
+
+          /* 4) int128 < INT64_MIN (val.high == -1, high bit of val.low == 0) */
+          {
+            JSON_Value *v_neg128 = NULL;
+            cdd_int128_t i128_lt_min;
+            i128_lt_min.high = -1;
+            i128_lt_min.low = 1u;
+            ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_json_value_init_int128(i128_lt_min, &v_neg128));
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v_neg128));
           }
 
           ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(va));

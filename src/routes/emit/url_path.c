@@ -551,7 +551,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
-      find_param(segs[i].text, params, n_params, &p);
+      g_cdd_last_alloc_err = find_param(segs[i].text, params, n_params, &p);
       if (p) {
         const char *name = p->name;
         enum OpenAPI_Style style =
@@ -673,7 +673,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
-      find_param(segs[i].text, params, n_params, &p);
+      g_cdd_last_alloc_err = find_param(segs[i].text, params, n_params, &p);
       if (p) {
         CHECK_IO(fprintf(fp, ", path_%s", p->name));
       } else {
@@ -686,7 +686,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
-      find_param(segs[i].text, params, n_params, &p);
+      g_cdd_last_alloc_err = find_param(segs[i].text, params, n_params, &p);
       if (p) {
         CHECK_IO(fprintf(fp, "    free(path_%s);\n", p->name));
       }
@@ -697,7 +697,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
-      find_param(segs[i].text, params, n_params, &p);
+      g_cdd_last_alloc_err = find_param(segs[i].text, params, n_params, &p);
       if (p) {
         CHECK_IO(fprintf(fp, "  free(path_%s);\n", p->name));
       }

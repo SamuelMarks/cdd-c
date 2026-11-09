@@ -251,7 +251,7 @@ cdd_c_error_t decl_info_init(struct DeclInfo *info) {
 static cdd_c_error_t free_decl_type(struct DeclType *t) {
   if (!t)
     return CDD_C_SUCCESS;
-  free_decl_type(t->inner);
+  g_cdd_last_alloc_err = free_decl_type(t->inner);
   switch (t->kind) {
   case DECL_BASE:
     if (t->data.base.name)
@@ -288,7 +288,7 @@ cdd_c_error_t decl_info_free(struct DeclInfo *info) {
     info->identifier = NULL;
   }
   if (info->type) {
-    free_decl_type(info->type);
+    g_cdd_last_alloc_err = free_decl_type(info->type);
     info->type = NULL;
   }
   return CDD_C_SUCCESS;
@@ -798,8 +798,8 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
 
 error:
   if (node)
-    free_decl_type(node);
-  decl_info_free(out_info);
+    g_cdd_last_alloc_err = free_decl_type(node);
+  g_cdd_last_alloc_err = decl_info_free(out_info);
   return rc;
 }
 

@@ -262,55 +262,72 @@ TEST test_openapi_registry_names_and_sanitize(void) {
   g_cdd_strdup_fail = 0;
 
   /* 6. schema_name_in_use tests */
-  rc = schema_name_in_use(NULL, NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = schema_name_in_use(&spec, NULL);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = schema_name_in_use(&spec, "Test");
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-
-  def_names[0] = cdd_test_mut_str("User");
-  def_names[1] = cdd_test_mut_str("Order");
-  spec.defined_schema_names = def_names;
-  spec.n_defined_schemas = 2;
-
-  raw_names[0] = cdd_test_mut_str("Raw1");
-  raw_names[1] = cdd_test_mut_str("Raw2");
-  spec.raw_schema_names = raw_names;
-  spec.n_raw_schemas = 2;
-
-  rc = schema_name_in_use(&spec, "User");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = schema_name_in_use(&spec, "Order");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = schema_name_in_use(&spec, "Raw1");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = schema_name_in_use(&spec, "Raw2");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = schema_name_in_use(&spec, "NotFound");
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-
-  /* NULL arrays or NULL elements inside spec */
   {
-    struct OpenAPI_Spec spec_nulls;
-    char *null_arr[1];
-    null_arr[0] = NULL;
-    memset(&spec_nulls, 0, sizeof(spec_nulls));
-    spec_nulls.n_defined_schemas = 1;
-    spec_nulls.defined_schema_names = NULL;
-    spec_nulls.n_raw_schemas = 1;
-    spec_nulls.raw_schema_names = NULL;
-    rc = schema_name_in_use(&spec_nulls, "Any");
+    int in_use = 0;
+    rc = schema_name_in_use(&spec, "Test", NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = schema_name_in_use(NULL, NULL, &in_use);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = raw_schema_name_exists(&spec_nulls, "Any");
+    ASSERT_EQ(0, in_use);
+    rc = schema_name_in_use(&spec, NULL, &in_use);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, in_use);
+    rc = schema_name_in_use(&spec, "Test", &in_use);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, in_use);
 
-    spec_nulls.defined_schema_names = null_arr;
-    spec_nulls.raw_schema_names = null_arr;
-    rc = schema_name_in_use(&spec_nulls, "Any");
+    def_names[0] = cdd_test_mut_str("User");
+    def_names[1] = cdd_test_mut_str("Order");
+    spec.defined_schema_names = def_names;
+    spec.n_defined_schemas = 2;
+
+    raw_names[0] = cdd_test_mut_str("Raw1");
+    raw_names[1] = cdd_test_mut_str("Raw2");
+    spec.raw_schema_names = raw_names;
+    spec.n_raw_schemas = 2;
+
+    rc = schema_name_in_use(&spec, "User", &in_use);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = raw_schema_name_exists(&spec_nulls, "Any");
+    ASSERT_EQ(1, in_use);
+    rc = schema_name_in_use(&spec, "Order", &in_use);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, in_use);
+    rc = schema_name_in_use(&spec, "Raw1", &in_use);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, in_use);
+    rc = schema_name_in_use(&spec, "Raw2", &in_use);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(1, in_use);
+    rc = schema_name_in_use(&spec, "NotFound", &in_use);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(0, in_use);
+
+    /* NULL arrays or NULL elements inside spec */
+    {
+      struct OpenAPI_Spec spec_nulls;
+      char *null_arr[1];
+      null_arr[0] = NULL;
+      memset(&spec_nulls, 0, sizeof(spec_nulls));
+      spec_nulls.n_defined_schemas = 1;
+      spec_nulls.defined_schema_names = NULL;
+      spec_nulls.n_raw_schemas = 1;
+      spec_nulls.raw_schema_names = NULL;
+      rc = schema_name_in_use(&spec_nulls, "Any", &in_use);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(0, in_use);
+      rc = raw_schema_name_exists(&spec_nulls, "Any", &in_use);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(0, in_use);
+
+      spec_nulls.defined_schema_names = null_arr;
+      spec_nulls.raw_schema_names = null_arr;
+      rc = schema_name_in_use(&spec_nulls, "Any", &in_use);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(0, in_use);
+      rc = raw_schema_name_exists(&spec_nulls, "Any", &in_use);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(0, in_use);
+    }
   }
 
   /* 7. make_unique_schema_name tests */
@@ -371,105 +388,128 @@ TEST test_openapi_registry_object_like(void) {
   JSON_Object *jo = NULL;
   JSON_Array *ja = NULL;
   cdd_c_error_t rc = 0;
+  int bval = 0;
 
   /* 1. schema_type_array_includes NULL checks */
-  rc = schema_type_array_includes(NULL, NULL);
+  rc = schema_type_array_includes(NULL, "object", NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  rc = schema_type_array_includes(NULL, NULL, &bval);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = schema_type_array_includes(NULL, "object");
+  ASSERT_EQ(0, bval);
+  rc = schema_type_array_includes(NULL, "object", &bval);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, bval);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("[\"string\", 123, \"object\", null]", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "[\"string\", 123, \"object\", null]", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ja = json_value_get_array(jv);
-  rc = schema_type_array_includes(ja, NULL);
+  rc = schema_type_array_includes(ja, NULL, &bval);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = schema_type_array_includes(ja, "object");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  rc = schema_type_array_includes(ja, "integer");
+  ASSERT_EQ(0, bval);
+  rc = schema_type_array_includes(ja, "object", &bval);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  ASSERT_EQ(1, bval);
+  rc = schema_type_array_includes(ja, "integer", &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 2. schema_object_is_object_like NULL check */
-  rc = schema_object_is_object_like(NULL);
+  rc = schema_object_is_object_like(NULL, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  rc = schema_object_is_object_like(NULL, &bval);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, bval);
 
   /* 3. type == "object" */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+  rc = schema_object_is_object_like(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 4. type array containing "object" */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"type\": [\"null\", \"object\"]}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"type\": [\"null\", \"object\"]}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+  rc = schema_object_is_object_like(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 5. properties */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"properties\": {}}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"properties\": {}}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+  rc = schema_object_is_object_like(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 6. allOf / anyOf / oneOf */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"allOf\": []}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{\"allOf\": []}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+  rc = schema_object_is_object_like(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"anyOf\": []}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{\"anyOf\": []}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+  rc = schema_object_is_object_like(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"oneOf\": []}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("{\"oneOf\": []}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  json_value_free(jv);
+  rc = schema_object_is_object_like(jo, &bval);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 7. Scalar type (not object-like) */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
-  rc = schema_object_is_object_like(jo);
+  rc = schema_object_is_object_like(jo, &bval);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  json_value_free(jv);
+  ASSERT_EQ(0, bval);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   PASS();
 }
@@ -486,6 +526,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   JSON_Value *jv = NULL;
   char *name = NULL;
   cdd_c_error_t rc = 0;
+  int exists = 0;
 
   memset(&spec, 0, sizeof(spec));
   rc = struct_fields_init(&sf1);
@@ -494,17 +535,23 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* 1. raw_schema_name_exists NULL checks */
-  rc = raw_schema_name_exists(NULL, NULL);
+  rc = raw_schema_name_exists(&spec, "Test", NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  rc = raw_schema_name_exists(NULL, NULL, &exists);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = raw_schema_name_exists(&spec, NULL);
+  ASSERT_EQ(0, exists);
+  rc = raw_schema_name_exists(&spec, NULL, &exists);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = raw_schema_name_exists(&spec, "Test");
+  ASSERT_EQ(0, exists);
+  rc = raw_schema_name_exists(&spec, "Test", &exists);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, exists);
 
   /* 2. append_raw_schema NULL checks */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"title\": \"RawSchema\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"title\": \"RawSchema\"}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   rc = append_raw_schema(NULL, NULL, NULL);
@@ -564,7 +611,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
     g_cdd_fail_raw_schema_serialize = 0;
   }
 
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* 7. append_defined_schema NULL checks */
   rc = append_defined_schema(NULL, NULL, NULL);
@@ -635,7 +682,7 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
     rc = append_defined_schema(&spec_extra, name_extra, &sf_extra2);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-    openapi_spec_free(&spec_extra);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec_extra);
   }
 
   /* 12. append_raw_schema with spec.raw_schema_names == NULL during realloc */
@@ -644,7 +691,8 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
     JSON_Value *jv_raw = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
+      g_cdd_last_alloc_err =
+          cdd_json_parse_string("{\"type\": \"object\"}", &_cdd_jv_1);
       jv_raw = _cdd_jv_1;
     }
     memset(&spec_raw, 0, sizeof(spec_raw));
@@ -653,11 +701,11 @@ TEST test_openapi_registry_raw_and_defined_schemas(void) {
     spec_raw.raw_schema_json = NULL;
     rc = append_raw_schema(&spec_raw, "NewRaw", jv_raw);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    openapi_spec_free(&spec_raw);
-    json_value_free(jv_raw);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec_raw);
+    g_cdd_last_alloc_err = json_value_free(jv_raw);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -718,7 +766,7 @@ TEST test_openapi_registry_register_inline(void) {
   /* 5. register_inline_schema NULL checks */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(
+    g_cdd_last_alloc_err = cdd_json_parse_string(
         "{\"type\": \"object\", \"properties\": {\"id\": {\"type\": "
         "\"integer\"}}}",
         &_cdd_jv_1);
@@ -747,10 +795,11 @@ TEST test_openapi_registry_register_inline(void) {
   ASSERT_EQ(2, spec.n_defined_schemas);
 
   /* 8. register inline schema with composition */
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"allOf\": [{\"type\": \"object\"}]}", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(
+        "{\"allOf\": [{\"type\": \"object\"}]}", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   jo = json_value_get_object(jv);
@@ -795,13 +844,14 @@ TEST test_openapi_registry_register_inline(void) {
       JSON_Object *s_jo = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string("{\"type\": \"string\"}", &_cdd_jv_1);
         s_jv = _cdd_jv_1;
       }
       s_jo = json_value_get_object(s_jv);
       rc = register_inline_schema(&spec, "BadSchema2", s_jo, s_jv, &out_name);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      json_value_free(s_jv);
+      g_cdd_last_alloc_err = json_value_free(s_jv);
     }
     g_json_object_to_struct_fields_fail = 0;
   }
@@ -827,8 +877,8 @@ TEST test_openapi_registry_register_inline(void) {
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
   g_cdd_strdup_fail = 0;
 
-  json_value_free(jv);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = json_value_free(jv);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

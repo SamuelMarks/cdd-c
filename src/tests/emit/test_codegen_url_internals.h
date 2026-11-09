@@ -38,36 +38,52 @@ CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
  */
 TEST test_url_primitive_and_object_predicates(void) {
   struct OpenAPI_Parameter p;
+  int bval = 0;
   memset(&p, 0, sizeof(p));
 
   /* is_primitive_type_url */
-  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url(NULL));
-  ASSERT_EQ(1, is_primitive_type_url("integer") != 0);
-  ASSERT_EQ(1, is_primitive_type_url("string") != 0);
-  ASSERT_EQ(1, is_primitive_type_url("boolean") != 0);
-  ASSERT_EQ(1, is_primitive_type_url("number") != 0);
-  ASSERT_EQ(0, is_primitive_type_url("object") != 0);
-  ASSERT_EQ(0, is_primitive_type_url("unknown_type") != 0);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, is_primitive_type_url(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url("integer", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url("string", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url("boolean", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url("number", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url("object", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, is_primitive_type_url("unknown_type", &bval));
+  ASSERT_EQ(0, bval);
 
   /* param_is_object_kv_url */
-  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, param_is_object_kv_url(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(NULL, &bval));
+  ASSERT_EQ(0, bval);
 
   p.is_array = 1;
-  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.is_array = 0;
   p.in = OA_PARAM_IN_PATH;
-  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.in = OA_PARAM_IN_QUERY;
   p.type = NULL;
-  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.type = cdd_test_mut_str("string");
-  ASSERT_EQ(0, param_is_object_kv_url(&p) != 0);
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.type = cdd_test_mut_str("object");
-  ASSERT_EQ(1, param_is_object_kv_url(&p) != 0);
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_object_kv_url(&p, &bval));
+  ASSERT_EQ(1, bval);
 
   PASS();
 }
@@ -80,8 +96,10 @@ TEST test_url_media_type_and_param_predicates(void) {
   struct OpenAPI_Parameter p;
   const char *out_val = NULL;
   size_t len = 0;
+  int bval = 0;
 
   /* media_type_base_len_url */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, media_type_base_len_url(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, media_type_base_len_url(NULL, &len));
   ASSERT_EQ(0, len);
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -89,83 +107,130 @@ TEST test_url_media_type_and_param_predicates(void) {
   ASSERT_EQ(16, len);
 
   /* media_type_ieq_url */
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url(NULL, "test"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url("test", NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url("short", "longer_expected"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url("diff", "diffX"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_ieq_url("application/json", "APPLICATION/JSON"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_ieq_url("APPLICATION/JSON", "application/json"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            media_type_ieq_url(NULL, "test", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url(NULL, "test", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url("test", NULL, &bval));
+  ASSERT_EQ(0, bval);
   ASSERT_EQ(CDD_C_SUCCESS,
-            media_type_ieq_url("applXcation/json", "application/json"));
+            media_type_ieq_url("short", "longer_expected", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_ieq_url("diff", "diffX", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_ieq_url("application/json", "APPLICATION/JSON", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_ieq_url("APPLICATION/JSON", "application/json", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_ieq_url("applXcation/json", "application/json", &bval));
+  ASSERT_EQ(0, bval);
 
   /* media_type_is_json_url */
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("text"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/json"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_json_url("application/problem+json"));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_json_url("APPLICATION/PROBLEM+JSON"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/problem+xml"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, media_type_is_json_url(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL, &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("text", &bval));
+  ASSERT_EQ(0, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/json", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_json_url("application/problem+json", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_json_url("APPLICATION/PROBLEM+JSON", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_json_url("application/problem+xml", &bval));
+  ASSERT_EQ(0, bval);
 
   /* media_type_is_form_url */
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            media_type_is_form_url("application/x-www-form-urlencoded"));
-  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, media_type_is_form_url(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_form_url("application/x-www-form-urlencoded", &bval));
+  ASSERT_EQ(1, bval);
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json", &bval));
+  ASSERT_EQ(0, bval);
 
   /* querystring_param_is_form_object */
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            querystring_param_is_form_object(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(NULL, &bval));
+  ASSERT_EQ(0, bval);
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERY;
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.in = OA_PARAM_IN_QUERYSTRING;
   p.content_type = cdd_test_mut_str("application/json");
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.content_type = cdd_test_mut_str("application/x-www-form-urlencoded");
   p.schema.ref_name = cdd_test_mut_str("MyModel");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, querystring_param_is_form_object(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(1, bval);
 
   p.schema.ref_name = NULL;
   p.schema.inline_type = cdd_test_mut_str("object");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, querystring_param_is_form_object(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(1, bval);
 
   p.schema.inline_type = NULL;
   p.type = cdd_test_mut_str("object");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, querystring_param_is_form_object(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(1, bval);
 
   p.type = cdd_test_mut_str("string");
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_form_object(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   /* querystring_param_is_json_ref */
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            querystring_param_is_json_ref(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(NULL, &bval));
+  ASSERT_EQ(0, bval);
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_QUERY;
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.in = OA_PARAM_IN_QUERYSTRING;
   p.content_type = cdd_test_mut_str("text/plain");
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.content_type = cdd_test_mut_str("application/json");
   p.schema.is_array = 1;
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.schema.is_array = 0;
   p.type = cdd_test_mut_str("array");
-  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   p.type = NULL;
   p.schema.ref_name = cdd_test_mut_str("Model");
-  ASSERT_EQ(1, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(1, bval);
 
   p.schema.ref_name = NULL;
-  ASSERT_EQ(0, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(CDD_C_SUCCESS, querystring_param_is_json_ref(&p, &bval));
+  ASSERT_EQ(0, bval);
 
   /* querystring_param_json_primitive_type */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            querystring_param_json_primitive_type(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            querystring_param_json_array_item_type(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            querystring_param_json_array_item_ref(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            querystring_param_raw_primitive_type(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS,
             querystring_param_json_primitive_type(NULL, &out_val));
   ASSERT_EQ(NULL, out_val);

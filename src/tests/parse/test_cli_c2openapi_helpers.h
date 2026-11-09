@@ -88,8 +88,8 @@ TEST test_c2openapi_helpers_register_types_cases(void) {
 
   unions[0] = cdd_test_mut_str("string");
   unions[1] = cdd_test_mut_str("integer");
-  openapi_spec_init(&spec);
-  type_def_list_init(&types);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = type_def_list_init(&types);
 
   /* NULL checks */
   rc = c2openapi_register_types(NULL, &types);
@@ -98,17 +98,18 @@ TEST test_c2openapi_helpers_register_types_cases(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* Struct type with field unions */
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "data", "string", NULL, NULL, 0);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "data", "string", NULL, NULL, 0);
   sf.fields[0].n_type_union = 2;
   sf.fields[0].type_union = (char **)unions;
   sf.fields[0].n_items_type_union = 2;
   sf.fields[0].items_type_union = (char **)unions;
 
   /* Enum type */
-  enum_members_init(&em);
-  enum_members_add(&em, "RED");
-  enum_members_add(&em, "GREEN");
+  g_cdd_last_alloc_err = enum_members_init(&em);
+  g_cdd_last_alloc_err = enum_members_add(&em, "RED");
+  g_cdd_last_alloc_err = enum_members_add(&em, "GREEN");
 
   types.items =
       (struct TypeDefinition *)calloc(3, sizeof(struct TypeDefinition));
@@ -138,12 +139,12 @@ TEST test_c2openapi_helpers_register_types_cases(void) {
   sf.fields[0].type_union = NULL;
   sf.fields[0].n_items_type_union = 0;
   sf.fields[0].items_type_union = NULL;
-  struct_fields_free(&sf);
-  enum_members_free(&em);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  g_cdd_last_alloc_err = enum_members_free(&em);
   free(types.items);
   types.items = NULL;
   types.size = 0;
-  type_def_list_free(&types);
+  g_cdd_last_alloc_err = type_def_list_free(&types);
   /* spec_add_security_scheme string conflicts */
   {
     struct DocSecurityScheme sec_doc;
@@ -187,7 +188,7 @@ TEST test_c2openapi_helpers_register_types_cases(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -257,7 +258,7 @@ TEST test_to_docs_json_cli_main_all_verbs(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Invalid OpenAPI spec returning error from openapi_load_from_json */
-  write_to_file(invalid_spec, "[1, 2, 3]");
+  g_cdd_last_alloc_err = write_to_file(invalid_spec, "[1, 2, 3]");
   argv2[2] = cdd_test_mut_str(invalid_spec);
   rc = to_docs_json_cli_main(3, argv2);
   ASSERT_NEQ(CDD_C_SUCCESS, rc);
@@ -381,7 +382,7 @@ TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
 
   tag_names[0] = cdd_test_mut_str("tagA");
   tag_names[1] = cdd_test_mut_str("tagB");
-  openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
   memset(&meta, 0, sizeof(meta));
 
   /* NULL checks */
@@ -408,7 +409,7 @@ TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
   /* apply_doc_tag_meta */
   {
     struct DocMetadata doc_meta;
-    doc_metadata_init(&doc_meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&doc_meta);
     rc = c2openapi_apply_doc_tag_meta(&spec, &doc_meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     doc_meta.n_tag_meta = 1;
@@ -417,7 +418,7 @@ TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     doc_meta.tag_meta = NULL;
     doc_meta.n_tag_meta = 0;
-    doc_metadata_free(&doc_meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&doc_meta);
   }
 
   /* collect_tags_from_op */
@@ -490,7 +491,7 @@ TEST test_c2openapi_helpers_tag_meta_and_collection(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -579,8 +580,8 @@ TEST test_c2openapi_helpers_servers_and_security_append(void) {
 
   sec_scopes[0] = cdd_test_mut_str("read");
   sec_scopes[1] = cdd_test_mut_str("write");
-  openapi_spec_init(&spec);
-  doc_metadata_init(&meta);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = doc_metadata_init(&meta);
 
   /* append_root_servers with NULL / empty */
   rc = c2openapi_append_root_servers(NULL, &meta);
@@ -674,7 +675,7 @@ TEST test_c2openapi_helpers_servers_and_security_append(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -690,7 +691,7 @@ TEST test_c2openapi_helpers_sig_parsing_extra(void) {
   rc = c2openapi_parse_c_signature_string("void no_named_args(void)", &sig);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, sig.n_args);
-  c2openapi_free_parsed_sig(&sig);
+  g_cdd_last_alloc_err = c2openapi_free_parsed_sig(&sig);
 
   PASS();
 }
@@ -705,7 +706,7 @@ TEST test_c2openapi_helpers_security_schemes_all_types(void) {
   struct DocOAuthFlow flow;
   cdd_c_error_t rc = 0;
 
-  openapi_spec_init(&spec);
+  g_cdd_last_alloc_err = openapi_spec_init(&spec);
   memset(&doc, 0, sizeof(doc));
   memset(&flow, 0, sizeof(flow));
 
@@ -817,7 +818,7 @@ TEST test_c2openapi_helpers_security_schemes_all_types(void) {
   /* apply_doc_security_schemes */
   {
     struct DocMetadata meta;
-    doc_metadata_init(&meta);
+    g_cdd_last_alloc_err = doc_metadata_init(&meta);
     rc = c2openapi_apply_doc_security_schemes(NULL, &meta);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = c2openapi_apply_doc_security_schemes(&spec, NULL);
@@ -828,7 +829,7 @@ TEST test_c2openapi_helpers_security_schemes_all_types(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     meta.security_schemes = NULL;
     meta.n_security_schemes = 0;
-    doc_metadata_free(&meta);
+    g_cdd_last_alloc_err = doc_metadata_free(&meta);
   }
 
   /* spec_add_security_scheme string conflicts */
@@ -874,7 +875,7 @@ TEST test_c2openapi_helpers_security_schemes_all_types(void) {
     rc = c2openapi_spec_add_security_scheme(&spec, &sec_doc);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

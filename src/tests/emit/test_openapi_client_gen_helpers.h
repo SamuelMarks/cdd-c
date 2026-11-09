@@ -288,25 +288,33 @@ TEST test_client_gen_sanitize_tag(void) {
  */
 TEST test_client_gen_param_keys_match(void) {
   struct OpenAPI_Parameter a, b;
+  int match = 0;
   memset(&a, 0, sizeof(a));
   memset(&b, 0, sizeof(b));
 
-  ASSERT_EQ(0, param_keys_match(NULL, NULL));
-  ASSERT_EQ(0, param_keys_match(&a, &b));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, param_keys_match(&a, &b, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, NULL, &match));
+  ASSERT_EQ(0, match);
+  ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&a, &b, &match));
+  ASSERT_EQ(0, match);
 
   a.name = cdd_test_mut_str("test");
-  ASSERT_EQ(0, param_keys_match(&a, &b));
+  ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&a, &b, &match));
+  ASSERT_EQ(0, match);
 
   b.name = cdd_test_mut_str("test2");
-  ASSERT_EQ(0, param_keys_match(&a, &b));
+  ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&a, &b, &match));
+  ASSERT_EQ(0, match);
 
   b.name = cdd_test_mut_str("test");
   a.in = OA_PARAM_IN_HEADER;
   b.in = OA_PARAM_IN_PATH;
-  ASSERT_EQ(0, param_keys_match(&a, &b));
+  ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&a, &b, &match));
+  ASSERT_EQ(0, match);
 
   b.in = OA_PARAM_IN_HEADER;
-  ASSERT_EQ(1, param_keys_match(&a, &b));
+  ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&a, &b, &match));
+  ASSERT_EQ(1, match);
   g_fail_io_after = -1;
 
   PASS();

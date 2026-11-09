@@ -78,9 +78,11 @@ extern C_CDD_EXPORT cdd_c_error_t parse_verb(const char *v,
  * @brief Checks if fixed operation method.
  *
  * @param[in] method The HTTP method string to check.
- * @return Non-zero if fixed operation method, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_fixed Set to 1 if fixed operation method, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t is_fixed_operation_method(const char *method);
+extern C_CDD_EXPORT cdd_c_error_t is_fixed_operation_method(const char *method,
+                                                            int *out_is_fixed);
 
 /**
  * @brief Parses param in from the given input.
@@ -106,37 +108,43 @@ parse_param_style(const char *s, enum OpenAPI_Style *_out_val);
  * @brief Checks whether an OpenAPI parameter type name is a scalar primitive.
  *
  * @param[in] type The parameter type string.
- * @return Non-zero if primitive, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_prim Set to 1 if primitive, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t param_type_is_primitive(const char *type);
+extern C_CDD_EXPORT cdd_c_error_t param_type_is_primitive(const char *type,
+                                                          int *out_is_prim);
 
 /**
  * @brief Checks whether an OpenAPI parameter represents an object or map
  * structure.
  *
  * @param[in] p The OpenAPI parameter structure.
- * @return Non-zero if object-like, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_obj Set to 1 if object-like, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-param_type_is_object_like(const struct OpenAPI_Parameter *p);
+param_type_is_object_like(const struct OpenAPI_Parameter *p, int *out_is_obj);
 
 /**
  * @brief Checks case-insensitively whether a header name is Content-Type.
  *
  * @param[in] name The header name string.
- * @return Non-zero if Content-Type, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_ct Set to 1 if Content-Type, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t header_name_is_content_type(const char *name);
+extern C_CDD_EXPORT cdd_c_error_t header_name_is_content_type(const char *name,
+                                                              int *out_is_ct);
 
 /**
  * @brief Checks whether an HTTP header name is reserved by OpenAPI (Accept,
  * Content-Type, Authorization).
  *
  * @param[in] param The OpenAPI parameter structure.
- * @return Non-zero if reserved header, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_res Set to 1 if reserved header, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-header_param_is_reserved(const struct OpenAPI_Parameter *param);
+extern C_CDD_EXPORT cdd_c_error_t header_param_is_reserved(
+    const struct OpenAPI_Parameter *param, int *out_is_res);
 
 /**
  * @brief Parses security type from the given input.
@@ -220,18 +228,22 @@ extern C_CDD_EXPORT cdd_c_error_t parse_any_array(const JSON_Array *arr,
  * @param[in] key The key string to search for.
  * @param[in] list Array of string keys.
  * @param[in] count Number of elements in list.
- * @return Non-zero if found, CDD_C_SUCCESS otherwise.
+ * @param[out] out_in_list Set to 1 if found, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t key_in_list(const char *key,
-                                              const char **list, size_t count);
+                                              const char **list, size_t count,
+                                              int *out_in_list);
 
 /**
  * @brief Checks if extension key.
  *
  * @param[in] key The property key name.
- * @return Non-zero if key starts with x-, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_ext Set to 1 if key starts with x-, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t is_extension_key(const char *key);
+extern C_CDD_EXPORT cdd_c_error_t is_extension_key(const char *key,
+                                                   int *out_is_ext);
 
 /**
  * @brief Deep-copies a Parson JSON_Value via serialization round-trip.

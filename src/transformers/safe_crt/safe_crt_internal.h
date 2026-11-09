@@ -166,18 +166,19 @@ C_CDD_EXPORT cdd_c_error_t infer_buffer_size(expr_t *node,
  * transformation.
  *
  * @param[in] head Head of the expression AST list.
- * @return CDD_C_SUCCESS if none, CDD_C_ERROR_PARSE if uninferrable size,
- * CDD_C_ERROR_UNKNOWN if transformation needed.
+ * @param[out] out_needs Set to 1 if transformation needed, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head);
+C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head, int *out_needs);
 
 /**
  * @brief Checks if an expression represents NULL or numeric 0.
  *
  * @param[in] node Target expression node.
- * @return CDD_C_ERROR_UNKNOWN if NULL or 0, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_zero Set to 1 if NULL or 0, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(expr_t *node);
+C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(expr_t *node, int *out_is_zero);
 
 /**
  * @brief Safely pools a string in the CST tree's string pool.

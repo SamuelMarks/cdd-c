@@ -119,11 +119,14 @@ TEST test_eq_primitive(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
-  struct_fields_add(&sf, "dval", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "dval", "number", NULL, NULL, NULL);
 
-  code = (generate_eq_code("Prim", &sf, &_ast_generate_eq_code_0),
+  code = (g_cdd_last_alloc_err =
+              generate_eq_code("Prim", &sf, &_ast_generate_eq_code_0),
           _ast_generate_eq_code_0);
   ASSERT(code != NULL);
 
@@ -142,7 +145,7 @@ TEST test_eq_primitive(void) {
       code, "if (a->dval != b->dval) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   free(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -156,10 +159,12 @@ TEST test_eq_string(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
 
-  code = (generate_eq_code("StrS", &sf, &_ast_generate_eq_code_1),
+  code = (g_cdd_last_alloc_err =
+              generate_eq_code("StrS", &sf, &_ast_generate_eq_code_1),
           _ast_generate_eq_code_1);
   ASSERT(code != NULL);
 
@@ -170,7 +175,7 @@ TEST test_eq_string(void) {
                       "b->s) != 0)) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   free(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -184,10 +189,12 @@ TEST test_eq_recursive_object(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "child", "object", "Child", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "child", "object", "Child", NULL, NULL);
 
-  code = (generate_eq_code("Parent", &sf, &_ast_generate_eq_code_2),
+  code = (g_cdd_last_alloc_err =
+              generate_eq_code("Parent", &sf, &_ast_generate_eq_code_2),
           _ast_generate_eq_code_2);
   ASSERT(code != NULL);
 
@@ -197,7 +204,7 @@ TEST test_eq_recursive_object(void) {
                       "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
   free(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -211,10 +218,12 @@ TEST test_eq_array_primitive(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "nums", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "nums", "array", "integer", NULL, NULL);
 
-  code = (generate_eq_code("Arr", &sf, &_ast_generate_eq_code_3),
+  code = (g_cdd_last_alloc_err =
+              generate_eq_code("Arr", &sf, &_ast_generate_eq_code_3),
           _ast_generate_eq_code_3);
   ASSERT(code != NULL);
 
@@ -230,7 +239,7 @@ TEST test_eq_array_primitive(void) {
       "if (a->nums[i] != b->nums[i]) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   free(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -244,10 +253,12 @@ TEST test_eq_array_string(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "strs", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "strs", "array", "string", NULL, NULL);
 
-  code = (generate_eq_code("ArrS", &sf, &_ast_generate_eq_code_4),
+  code = (g_cdd_last_alloc_err =
+              generate_eq_code("ArrS", &sf, &_ast_generate_eq_code_4),
           _ast_generate_eq_code_4);
   ASSERT(code != NULL);
 
@@ -257,7 +268,7 @@ TEST test_eq_array_string(void) {
   ASSERT(strstr(code, "strcmp(a->strs[i], b->strs[i])"));
 
   free(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -271,10 +282,12 @@ TEST test_eq_array_object(void) {
   struct StructFields sf;
   char *code;
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
-  code = (generate_eq_code("Box", &sf, &_ast_generate_eq_code_5),
+  code = (g_cdd_last_alloc_err =
+              generate_eq_code("Box", &sf, &_ast_generate_eq_code_5),
           _ast_generate_eq_code_5);
   ASSERT(code != NULL);
 
@@ -287,7 +300,7 @@ TEST test_eq_array_object(void) {
                 "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
   free(code);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -302,8 +315,9 @@ TEST test_eq_errors(void) {
   struct StructFields sf;
   printf("test_eq_errors: start\n");
   fflush(stdout);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
 
   printf("test_eq_errors: setup done\n");
   fflush(stdout);
@@ -337,7 +351,7 @@ TEST test_eq_errors(void) {
   C_CDD_FREE(_out);
   g_fail_io_after = -1;
 
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   PASS();
 }
 

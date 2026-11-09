@@ -126,7 +126,7 @@ TEST test_pp_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_is_defined_macro_fail = 0;
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 4. pp_handle_has_include_embed NULL and hook branches */
@@ -190,7 +190,7 @@ TEST test_pp_100_percent_coverage(void) {
   g_cdd_pp_resolve_path_fail = 0;
   s.ctx = NULL;
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 5. pp_handle_has_c_attribute NULL and hook branches */
@@ -258,7 +258,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_match_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("( const )"), &tl);
@@ -271,7 +271,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_fail_identify_keyword_or_id = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* Empty parens, keyword as attr, scoped attr edge cases */
@@ -284,7 +284,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("( const )"), &tl);
@@ -295,7 +295,7 @@ TEST test_pp_100_percent_coverage(void) {
   s.end = tl->size;
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("( gnu :: 123 )"), &tl);
@@ -306,7 +306,7 @@ TEST test_pp_100_percent_coverage(void) {
   s.end = tl->size;
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("( gnu :: pure )"), &tl);
@@ -333,7 +333,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_handle_has_c_attribute(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_pp_token_to_string_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 6. Primary parsing branches */
@@ -352,7 +352,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_primary_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("0b1011"), &tl);
@@ -364,7 +364,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_primary(&s, &val);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(11, val);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("( 1 )"), &tl);
@@ -385,7 +385,7 @@ TEST test_pp_100_percent_coverage(void) {
     rc = pp_parse_primary(&s, &val);
     g_cdd_pp_match_fail = 0;
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 7. Unary parsing branches */
@@ -411,7 +411,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_match_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("~ 1"), &tl);
@@ -424,7 +424,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_match_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("- 1"), &tl);
@@ -437,7 +437,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_match_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("+ 1"), &tl);
@@ -450,7 +450,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_match_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("defined ( MACRO0 )"), &tl);
@@ -508,7 +508,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_unary(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_match_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 8. Binary operators error percolation */
@@ -538,7 +538,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_multiplicative(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_unary_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 / 2"), &tl);
@@ -557,7 +557,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_multiplicative(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_unary_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 % 2"), &tl);
@@ -576,7 +576,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_multiplicative(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_unary_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_additive(NULL, &val);
@@ -605,7 +605,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_additive(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_multiplicative_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 - 2"), &tl);
@@ -618,7 +618,7 @@ TEST test_pp_100_percent_coverage(void) {
     rc = pp_parse_additive(&s, &val);
     g_cdd_pp_match_fail = 0;
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_shift(NULL, &val);
@@ -647,7 +647,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_shift(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_additive_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 >> 2"), &tl);
@@ -660,7 +660,7 @@ TEST test_pp_100_percent_coverage(void) {
     rc = pp_parse_shift(&s, &val);
     g_cdd_pp_match_fail = 0;
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_relational(NULL, &val);
@@ -689,7 +689,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_relational(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_shift_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 >= 2"), &tl);
@@ -708,7 +708,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_relational(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_shift_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 < 2"), &tl);
@@ -727,7 +727,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_relational(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_shift_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 > 2"), &tl);
@@ -746,7 +746,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_relational(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_shift_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_equality(NULL, &val);
@@ -775,7 +775,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_equality(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_relational_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = tokenize(az_span_create_from_str("1 != 2"), &tl);
@@ -788,7 +788,7 @@ TEST test_pp_100_percent_coverage(void) {
     rc = pp_parse_equality(&s, &val);
     g_cdd_pp_match_fail = 0;
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_logic_and(NULL, &val);
@@ -811,7 +811,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_logic_and(&s, &val);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_cdd_pp_logic_and_fail = 0;
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_logic_or(NULL, &val);
@@ -828,7 +828,7 @@ TEST test_pp_100_percent_coverage(void) {
     rc = pp_parse_logic_or(&s, &val);
     g_cdd_pp_match_fail = 0;
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   rc = pp_parse_expr(NULL, &val);
@@ -836,7 +836,7 @@ TEST test_pp_100_percent_coverage(void) {
   rc = pp_parse_expr(&s, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 

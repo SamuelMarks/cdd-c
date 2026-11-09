@@ -55,8 +55,8 @@ TEST parse_compound_literal(void) {
   ASSERT_EQ(1, cst.size);
   ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
 
-  free_token_list(tl);
-  free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
   g_fail_io_after = -1;
   {
     int i;
@@ -66,20 +66,21 @@ TEST parse_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                       "_Static_assert(1); } else { "
-                                       "[[nodiscard]] int y; } }"),
-               &tl_oom);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                           "_Static_assert(1); } else { "
+                                           "[[nodiscard]] int y; } }"),
+                   &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
   {
@@ -90,20 +91,21 @@ TEST parse_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
-                                       "union "
-                                       "U { int b; }; _Generic((1), int: 1);"),
-               &tl_oom);
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                  "union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
 
@@ -136,8 +138,8 @@ TEST parse_control_block_split(void) {
   /* Verify at least 2 nodes */
   ASSERT_GTE(cst.size, 2);
 
-  free_token_list(tl);
-  free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
   g_fail_io_after = -1;
   {
     int i;
@@ -147,20 +149,21 @@ TEST parse_control_block_split(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                       "_Static_assert(1); } else { "
-                                       "[[nodiscard]] int y; } }"),
-               &tl_oom);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                           "_Static_assert(1); } else { "
+                                           "[[nodiscard]] int y; } }"),
+                   &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
   {
@@ -171,20 +174,21 @@ TEST parse_control_block_split(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
-                                       "union "
-                                       "U { int b; }; _Generic((1), int: 1);"),
-               &tl_oom);
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                  "union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
 
@@ -208,8 +212,8 @@ TEST parse_nested_compound_literal(void) {
   ASSERT_EQ(1, cst.size);
   ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
 
-  free_token_list(tl);
-  free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
   g_fail_io_after = -1;
   {
     int i;
@@ -219,20 +223,21 @@ TEST parse_nested_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                       "_Static_assert(1); } else { "
-                                       "[[nodiscard]] int y; } }"),
-               &tl_oom);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                           "_Static_assert(1); } else { "
+                                           "[[nodiscard]] int y; } }"),
+                   &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
   {
@@ -243,20 +248,21 @@ TEST parse_nested_compound_literal(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
-                                       "union "
-                                       "U { int b; }; _Generic((1), int: 1);"),
-               &tl_oom);
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                  "union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
 
@@ -278,8 +284,8 @@ TEST parse_return_compound(void) {
 
   ASSERT_EQ(1, cst.size);
 
-  free_token_list(tl);
-  free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
   g_fail_io_after = -1;
   {
     int i;
@@ -289,20 +295,21 @@ TEST parse_return_compound(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                       "_Static_assert(1); } else { "
-                                       "[[nodiscard]] int y; } }"),
-               &tl_oom);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                           "_Static_assert(1); } else { "
+                                           "[[nodiscard]] int y; } }"),
+                   &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
   {
@@ -313,20 +320,21 @@ TEST parse_return_compound(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
-                                       "union "
-                                       "U { int b; }; _Generic((1), int: 1);"),
-               &tl_oom);
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                  "union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
 
@@ -358,8 +366,8 @@ TEST parse_c11_generic(void) {
      So we need to test _Generic in a non-macro context (expression).
   */
 
-  free_token_list(tl);
-  free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
 
   {
     const az_span code2 =
@@ -383,8 +391,8 @@ TEST parse_c11_generic(void) {
     ASSERT_EQ(CST_NODE_OTHER, cst.nodes[2].kind);
   }
 
-  free_token_list(tl);
-  free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
   g_fail_io_after = -1;
   {
     int i;
@@ -394,20 +402,21 @@ TEST parse_c11_generic(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                       "_Static_assert(1); } else { "
-                                       "[[nodiscard]] int y; } }"),
-               &tl_oom);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                           "_Static_assert(1); } else { "
+                                           "[[nodiscard]] int y; } }"),
+                   &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
   {
@@ -418,20 +427,21 @@ TEST parse_c11_generic(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
-                                       "union "
-                                       "U { int b; }; _Generic((1), int: 1);"),
-               &tl_oom);
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                  "union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
 
@@ -448,8 +458,10 @@ TEST test_cst_find_first(void) {
   struct CstNodeList list = {0};
   struct CstNode *found = NULL;
 
-  cst_list_add(&list, CST_NODE_STRUCT, (const uint8_t *)"a", 1, 0, 0);
-  cst_list_add(&list, CST_NODE_ENUM, (const uint8_t *)"b", 1, 0, 0);
+  g_cdd_last_alloc_err =
+      cst_list_add(&list, CST_NODE_STRUCT, (const uint8_t *)"a", 1, 0, 0);
+  g_cdd_last_alloc_err =
+      cst_list_add(&list, CST_NODE_ENUM, (const uint8_t *)"b", 1, 0, 0);
 
   ASSERT_EQ(0, cst_find_first(&list, CST_NODE_ENUM, &found));
   ASSERT(found != NULL);
@@ -462,7 +474,7 @@ TEST test_cst_find_first(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_find_first(&list, CST_NODE_STRUCT, NULL));
 
-  free_cst_node_list(&list);
+  g_cdd_last_alloc_err = free_cst_node_list(&list);
   g_fail_io_after = -1;
   {
     int i;
@@ -472,20 +484,21 @@ TEST test_cst_find_first(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                       "_Static_assert(1); } else { "
-                                       "[[nodiscard]] int y; } }"),
-               &tl_oom);
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                           "_Static_assert(1); } else { "
+                                           "[[nodiscard]] int y; } }"),
+                   &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
   {
@@ -496,20 +509,21 @@ TEST test_cst_find_first(void) {
       int rc = 0;
       /*  (moved to global) */
       rc += 0;
-      tokenize(az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
-                                       "union "
-                                       "U { int b; }; _Generic((1), int: 1);"),
-               &tl_oom);
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
+                                  "union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
       g_cdd_alloc_fail = (int)i;
       rc = parse_tokens(tl_oom, &cst_oom);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
         break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
+      g_cdd_last_alloc_err = free_token_list(tl_oom);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
     }
   }
 
@@ -525,11 +539,11 @@ TEST test_cst_parser_extra(void) {
 
   /* Empty tree free */
   cdd_cst_tree_t *t2 = calloc(1, sizeof(cdd_cst_tree_t));
-  cdd_cst_tree_free(t2);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(t2);
 
   /* Missing EOF / No tokens */
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(""), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   /* NULL out_tree */
   {
@@ -539,38 +553,43 @@ TEST test_cst_parser_extra(void) {
 
   {
     cdd_cst_tree_t *t_stray = NULL;
-    cdd_cst_parse(az_span_create_from_str("}"), &t_stray);
-    cdd_cst_tree_free(t_stray);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str("}"), &t_stray);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_stray = NULL;
-    cdd_cst_parse(az_span_create_from_str("}}"), &t_stray);
-    cdd_cst_tree_free(t_stray);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str("}}"), &t_stray);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_stray = NULL;
-    cdd_cst_parse(az_span_create_from_str("{"), &t_stray);
-    cdd_cst_tree_free(t_stray);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str("{"), &t_stray);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_empty = NULL;
-    cdd_cst_parse(az_span_create_from_str("{}"), &t_empty);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str("{}"), &t_empty);
     if (t_empty)
-      cdd_cst_tree_free(t_empty);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(t_empty);
   }
   {
     cdd_cst_tree_t *t_empty = NULL;
-    cdd_cst_parse(az_span_create_from_str("void f() noexcept(true);"),
-                  &t_empty);
+    g_cdd_last_alloc_err = cdd_cst_parse(
+        az_span_create_from_str("void f() noexcept(true);"), &t_empty);
     if (t_empty)
-      cdd_cst_tree_free(t_empty);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(t_empty);
   }
 
   {
     cdd_cst_tree_t *t_macro = NULL;
-    cdd_cst_parse(az_span_create_from_str("#define D 1\n"), &t_macro);
+    g_cdd_last_alloc_err =
+        cdd_cst_parse(az_span_create_from_str("#define D 1\n"), &t_macro);
     if (t_macro)
-      cdd_cst_tree_free(t_macro);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(t_macro);
     {
       const char *abrupts[] = {
           "#ifdef A",  "template",    "template <",   "template <class",
@@ -580,9 +599,10 @@ TEST test_cst_parser_extra(void) {
       size_t j;
       for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
         cdd_cst_tree_t *t_abrupt = NULL;
-        cdd_cst_parse(az_span_create_from_str(abrupts[j]), &t_abrupt);
+        g_cdd_last_alloc_err =
+            cdd_cst_parse(az_span_create_from_str(abrupts[j]), &t_abrupt);
         if (t_abrupt)
-          cdd_cst_tree_free(t_abrupt);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(t_abrupt);
       }
     }
 #ifdef CDD_BUILD_TESTS
@@ -679,12 +699,13 @@ TEST test_cst_parser_extra(void) {
 
       cdd_cst_tree_t *t_dummy = NULL;
       g_cdd_cst_realloc_fail = 1000000;
-      cdd_cst_parse(az_span_create_from_str(snippet), &t_dummy);
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(snippet), &t_dummy);
       printf("Total REALLOCs in snippet: %d\n",
              1000000 - g_cdd_cst_realloc_fail);
       g_cdd_cst_realloc_fail = 0;
       if (t_dummy)
-        cdd_cst_tree_free(t_dummy);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(t_dummy);
 
       g_cdd_alloc_fail = 1000000;
       t_dummy = NULL;
@@ -696,30 +717,33 @@ TEST test_cst_parser_extra(void) {
       }
       g_cdd_alloc_fail = 0;
       if (t_dummy)
-        cdd_cst_tree_free(t_dummy);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(t_dummy);
 
       {
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          cdd_cst_parse(az_span_create_from_str(snippet), &tree);
-          cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err =
+              cdd_cst_parse(az_span_create_from_str(snippet), &tree);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         }
         g_cdd_alloc_fail = 0;
 
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_cst_alloc_token_fail = i;
-          cdd_cst_parse(az_span_create_from_str(snippet), &tree);
-          cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err =
+              cdd_cst_parse(az_span_create_from_str(snippet), &tree);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         }
         g_cdd_cst_alloc_token_fail = 0;
 
         for (i = 1; i < 50; i++) {
           tree = NULL;
           g_cdd_cst_realloc_fail = i;
-          cdd_cst_parse(az_span_create_from_str(snippet), &tree);
-          cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err =
+              cdd_cst_parse(az_span_create_from_str(snippet), &tree);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
         }
         g_cdd_cst_realloc_fail = 0;
       }
@@ -735,20 +759,21 @@ TEST test_cst_parser_extra(void) {
         int rc = 0;
         /*  (moved to global) */
         rc += 0;
-        tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
-                                         "_Static_assert(1); } else { "
-                                         "[[nodiscard]] int y; } }"),
-                 &tl_oom);
+        g_cdd_last_alloc_err =
+            tokenize(az_span_create_from_str("void f() { int x = 1; if(x) { "
+                                             "_Static_assert(1); } else { "
+                                             "[[nodiscard]] int y; } }"),
+                     &tl_oom);
         g_cdd_alloc_fail = (int)i;
         rc = parse_tokens(tl_oom, &cst_oom);
         g_cdd_alloc_fail = 0;
         if (rc == CDD_C_SUCCESS) {
-          free_token_list(tl_oom);
-          free_cst_node_list(&cst_oom);
+          g_cdd_last_alloc_err = free_token_list(tl_oom);
+          g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
           break;
         }
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
       }
     }
     {
@@ -759,7 +784,7 @@ TEST test_cst_parser_extra(void) {
         int rc = 0;
         /*  (moved to global) */
         rc += 0;
-        tokenize(
+        g_cdd_last_alloc_err = tokenize(
             az_span_create_from_str("struct A { int a: 1; }; enum E { X }; "
                                     "union "
                                     "U { int b; }; _Generic((1), int: 1);"),
@@ -768,12 +793,12 @@ TEST test_cst_parser_extra(void) {
         rc = parse_tokens(tl_oom, &cst_oom);
         g_cdd_alloc_fail = 0;
         if (rc == CDD_C_SUCCESS) {
-          free_token_list(tl_oom);
-          free_cst_node_list(&cst_oom);
+          g_cdd_last_alloc_err = free_token_list(tl_oom);
+          g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
           break;
         }
-        free_token_list(tl_oom);
-        free_cst_node_list(&cst_oom);
+        g_cdd_last_alloc_err = free_token_list(tl_oom);
+        g_cdd_last_alloc_err = free_cst_node_list(&cst_oom);
       }
     }
 

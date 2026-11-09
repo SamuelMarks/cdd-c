@@ -23,15 +23,16 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix_test(const char *uri,
-                                                             size_t len);
+                                                             size_t len,
+                                                             int *out_has);
 extern C_CDD_EXPORT cdd_c_error_t ref_base_matches_self_uri_test(
-    const char *self_uri, const char *ref, size_t base_len);
+    const char *self_uri, const char *ref, size_t base_len, int *out_matches);
 extern C_CDD_EXPORT cdd_c_error_t
 scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
-                             const struct OpenAPI_Spec *spec);
+                             const struct OpenAPI_Spec *spec, int *out_matches);
 extern C_CDD_EXPORT cdd_c_error_t scheme_in_security_sets_test(
     const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
-    const char *scheme_name, const struct OpenAPI_Spec *spec);
+    const char *scheme_name, const struct OpenAPI_Spec *spec, int *out_present);
 extern C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
     const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
@@ -39,7 +40,7 @@ extern C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
 extern C_CDD_EXPORT cdd_c_error_t scheme_is_active_test(
     const struct OpenAPI_SecurityScheme *sch,
     const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
-    int security_set, const struct OpenAPI_Spec *spec);
+    int security_set, const struct OpenAPI_Spec *spec, int *out_active);
 
 /* Helper to capture output */
 /**
@@ -108,7 +109,8 @@ TEST test_sec_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_0), _astgen_sec_code_0);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_0),
+          _astgen_sec_code_0);
   ASSERT(code);
 
   /* Check context check */
@@ -143,7 +145,8 @@ TEST test_sec_oauth2_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_1), _astgen_sec_code_1);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_1),
+          _astgen_sec_code_1);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (bearer_token) {"));
@@ -174,7 +177,8 @@ TEST test_sec_openid_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_2), _astgen_sec_code_2);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_2),
+          _astgen_sec_code_2);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (bearer_token) {"));
@@ -206,7 +210,8 @@ TEST test_sec_basic_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_3), _astgen_sec_code_3);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_3),
+          _astgen_sec_code_3);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (0 /* basic_token */) {"));
@@ -239,7 +244,8 @@ TEST test_sec_api_key_header(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_4), _astgen_sec_code_4);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_4),
+          _astgen_sec_code_4);
   ASSERT(code);
 
   /* Check context check using scheme identifier name */
@@ -291,7 +297,8 @@ TEST test_sec_uri_requirement_matches_component(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_5), _astgen_sec_code_5);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_5),
+          _astgen_sec_code_5);
   ASSERT(code);
 
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\"") != NULL);
@@ -322,7 +329,8 @@ TEST test_sec_api_key_query(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_6), _astgen_sec_code_6);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_6),
+          _astgen_sec_code_6);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (!qp_initialized)") != NULL);
@@ -355,7 +363,8 @@ TEST test_sec_api_key_cookie(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_7), _astgen_sec_code_7);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_7),
+          _astgen_sec_code_7);
   ASSERT(code);
 
   ASSERT(strstr(code, "cookie_str") != NULL);
@@ -405,7 +414,8 @@ TEST test_sec_multiple_schemes(void) {
 
   spec.n_security_schemes = 5;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_8), _astgen_sec_code_8);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_8),
+          _astgen_sec_code_8);
   ASSERT(code);
 
   ASSERT(strstr(code, "bearer_token"));
@@ -542,7 +552,8 @@ TEST test_sec_security_requirements_filter(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_9), _astgen_sec_code_9);
+  code = (g_cdd_last_alloc_err = gen_sec_code(&spec, NULL, &_astgen_sec_code_9),
+          _astgen_sec_code_9);
   ASSERT(code);
   ASSERT(strstr(code, "api_key_ApiKeyAuth"));
   ASSERT(!strstr(code, "bearer_token"));
@@ -557,12 +568,21 @@ TEST test_sec_security_requirements_filter(void) {
  * @return Greatest test result.
  */
 TEST test_uri_has_scheme_prefix(void) {
-  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test(NULL, 1));
-  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("abc", 0));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, uri_has_scheme_prefix_test("http:x", 6));
-  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http/x", 6));
-  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http?x", 6));
-  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http#x", 6));
+  int res = 0;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            uri_has_scheme_prefix_test("http:x", 6, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test(NULL, 1, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("abc", 0, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http:x", 6, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http/x", 6, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http?x", 6, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, uri_has_scheme_prefix_test("http#x", 6, &res));
+  ASSERT_EQ(0, res);
   PASS();
 }
 
@@ -571,40 +591,65 @@ TEST test_uri_has_scheme_prefix(void) {
  * @return Greatest test result.
  */
 TEST test_ref_base_matches_self_uri(void) {
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(NULL, "a", 1));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", NULL, 1));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", "a", 0));
+  int res = 0;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            ref_base_matches_self_uri_test("abc", "abc", 3, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(NULL, "a", 1, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", NULL, 1, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", "a", 0, &res));
+  ASSERT_EQ(0, res);
   ASSERT_EQ(CDD_C_SUCCESS,
-            ref_base_matches_self_uri_test("./self", "abself", 6));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("././", "abc", 3));
+            ref_base_matches_self_uri_test("./self", "abself", 6, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("././", "abc", 3, &res));
+  ASSERT_EQ(0, res);
 
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("", "a", 1));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(".a", "a", 1));
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("", "a", 1, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(".a", "a", 1, &res));
+  ASSERT_EQ(0, res);
 
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("abc", "abc", 3));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("abc#def", "abc", 3));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("abc", "abc", 3, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("abc#def", "abc", 3, &res));
+  ASSERT_EQ(1, res);
 
   /* uri_has_scheme_prefix check fails so it falls back to ./ removal */
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("./abc", "abc", 3));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("./", "abc", 3));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("./abc", "abc", 3, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("./", "abc", 3, &res));
+  ASSERT_EQ(0, res);
 
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("abc", "/abc", 4));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("abc", "xyz/abc", 7));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("abc", "abc", 2));
-  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", "ba", 2));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, ref_base_matches_self_uri_test("a", "/a", 2));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("abc", "/abc", 4, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("abc", "xyz/abc", 7, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("abc", "abc", 2, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", "ba", 2, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", "/a", 2, &res));
+  ASSERT_EQ(1, res);
 
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("/self", "ref/self", 8));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("./self", "self", 4));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            ref_base_matches_self_uri_test("./self", "a/self", 6));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("/self", "ref/self", 8, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("./self", "self", 4, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            ref_base_matches_self_uri_test("./self", "a/self", 6, &res));
+  ASSERT_EQ(1, res);
 
   PASS();
 }
@@ -615,37 +660,51 @@ TEST test_ref_base_matches_self_uri(void) {
  */
 TEST test_scheme_ref_matches_name(void) {
   struct OpenAPI_Spec spec;
+  int res = 0;
   memset(&spec, 0, sizeof(spec));
 
-  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(NULL, "a", &spec));
-  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test("a", NULL, &spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scheme_ref_matches_name_test("a", "a", &spec, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            scheme_ref_matches_name_test(NULL, "a", &spec, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            scheme_ref_matches_name_test("a", NULL, &spec, &res));
+  ASSERT_EQ(0, res);
 
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+  ASSERT_EQ(CDD_C_SUCCESS,
             scheme_ref_matches_name_test("#/components/securitySchemes/abc",
-                                         "abc", &spec));
+                                         "abc", &spec, &res));
+  ASSERT_EQ(1, res);
   ASSERT_EQ(CDD_C_SUCCESS,
             scheme_ref_matches_name_test("#/components/securitySchemes/def",
-                                         "abc", &spec));
+                                         "abc", &spec, &res));
+  ASSERT_EQ(0, res);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             scheme_ref_matches_name_test(
-                "http://x#/components/securitySchemes/abc", "abc", NULL));
-  ASSERT_EQ(CDD_C_SUCCESS,
-            scheme_ref_matches_name_test(
-                "http://x#/components/securitySchemes/abc", "abc", &spec));
-
-  spec.self_uri = cdd_test_mut_str("http://x");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
-            scheme_ref_matches_name_test(
-                "http://x#/components/securitySchemes/abc", "abc", &spec));
+                "http://x#/components/securitySchemes/abc", "abc", NULL, &res));
+  ASSERT_EQ(0, res);
   ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
                                "http://x#/components/securitySchemes/abc",
-                               "different", &spec));
+                               "abc", &spec, &res));
+  ASSERT_EQ(0, res);
+
+  spec.self_uri = cdd_test_mut_str("http://x");
+  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
+                               "http://x#/components/securitySchemes/abc",
+                               "abc", &spec, &res));
+  ASSERT_EQ(1, res);
+  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
+                               "http://x#/components/securitySchemes/abc",
+                               "different", &spec, &res));
+  ASSERT_EQ(0, res);
 
   spec.self_uri = cdd_test_mut_str("http://y");
-  ASSERT_EQ(CDD_C_SUCCESS,
-            scheme_ref_matches_name_test(
-                "http://x#/components/securitySchemes/abc", "abc", &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
+                               "http://x#/components/securitySchemes/abc",
+                               "abc", &spec, &res));
+  ASSERT_EQ(0, res);
 
   PASS();
 }
@@ -658,6 +717,7 @@ TEST test_scheme_in_security_sets(void) {
   struct OpenAPI_SecurityRequirement req;
   struct OpenAPI_SecurityRequirementSet set;
   struct OpenAPI_Spec spec;
+  int res = 0;
   memset(&spec, 0, sizeof(spec));
   memset(&req, 0, sizeof(req));
   memset(&set, 0, sizeof(set));
@@ -666,8 +726,14 @@ TEST test_scheme_in_security_sets(void) {
   set.requirements = &req;
   set.n_requirements = 1;
 
-  ASSERT_EQ(CDD_C_SUCCESS, scheme_in_security_sets_test(NULL, 1, "abc", &spec));
-  ASSERT_EQ(CDD_C_SUCCESS, scheme_in_security_sets_test(&set, 1, NULL, &spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scheme_in_security_sets_test(&set, 1, "abc", &spec, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            scheme_in_security_sets_test(NULL, 1, "abc", &spec, &res));
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            scheme_in_security_sets_test(&set, 1, NULL, &spec, &res));
+  ASSERT_EQ(0, res);
 
   PASS();
 }
@@ -693,10 +759,11 @@ TEST test_resolve_active_security(void) {
             resolve_active_security_test(&op, NULL, NULL, NULL, NULL));
 
   op.security_set = 1;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+  ASSERT_EQ(CDD_C_SUCCESS,
             resolve_active_security_test(&op, &spec, &out_sets, &out_count,
                                          &out_set_flag));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+  ASSERT_EQ(1, out_set_flag);
+  ASSERT_EQ(CDD_C_SUCCESS,
             resolve_active_security_test(&op, &spec, NULL, NULL, NULL));
 
   op.security_set = 0;
@@ -715,11 +782,16 @@ TEST test_scheme_is_active(void) {
   struct OpenAPI_SecurityScheme sch;
   struct OpenAPI_SecurityRequirementSet set;
   struct OpenAPI_Spec spec;
+  int res = 0;
   memset(&sch, 0, sizeof(sch));
   memset(&set, 0, sizeof(set));
   memset(&spec, 0, sizeof(spec));
 
-  ASSERT_EQ(CDD_C_SUCCESS, scheme_is_active_test(NULL, &set, 1, 1, &spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scheme_is_active_test(&sch, &set, 1, 1, &spec, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            scheme_is_active_test(NULL, &set, 1, 1, &spec, &res));
+  ASSERT_EQ(0, res);
 
   PASS();
 }

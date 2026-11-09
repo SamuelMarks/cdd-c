@@ -97,11 +97,12 @@ TEST test_build_response_multi_content(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, op.n_responses);
   ASSERT_EQ(2, op.responses[0].n_content_media_types);
-  ASSERT((find_response_media_type(&op.responses[0], "application/json",
-                                   &_ast_find_response_media_type_0),
+  ASSERT((g_cdd_last_alloc_err =
+              find_response_media_type(&op.responses[0], "application/json",
+                                       &_ast_find_response_media_type_0),
           _ast_find_response_media_type_0));
-  ASSERT((find_response_media_type(&op.responses[0], "text/plain",
-                                   &_ast_find_response_media_type_1),
+  ASSERT((g_cdd_last_alloc_err = find_response_media_type(
+              &op.responses[0], "text/plain", &_ast_find_response_media_type_1),
           _ast_find_response_media_type_1));
 
   free(doc.route);
@@ -267,7 +268,7 @@ TEST test_build_response_output_arg(void) {
   ctx.doc = NULL;
   ctx.func_name = sig.name;
 
-  c2openapi_build_operation(&ctx, &op);
+  g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
 
   /* Should skip parameters */
   ASSERT_EQ(0, op.n_parameters);

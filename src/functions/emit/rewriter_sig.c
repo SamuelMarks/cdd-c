@@ -395,7 +395,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
       }
       {
         int is_stor = 0;
-        is_storage_specifier(&tokens->tokens[i], &is_stor);
+        g_cdd_last_alloc_err =
+            is_storage_specifier(&tokens->tokens[i], &is_stor);
         if (is_stor) {
           found_storage = 1;
           i++;
@@ -522,7 +523,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   /* 6. Extract K&R Declarations (if any) */
   if (rparen_idx + 1 < tokens->size) {
     int has_toks = 0;
-    has_meaningful_tokens(tokens, rparen_idx + 1, tokens->size, &has_toks);
+    g_cdd_last_alloc_err =
+        has_meaningful_tokens(tokens, rparen_idx + 1, tokens->size, &has_toks);
     if (has_toks) {
       rc = join_tokens(tokens, rparen_idx + 1, tokens->size, &sig.k_r_decls);
       if (rc)
@@ -663,6 +665,6 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 cleanup:
   if (new_args)
     C_CDD_FREE(new_args);
-  parsed_sig_C_CDD_FREE(&sig);
+  g_cdd_last_alloc_err = parsed_sig_C_CDD_FREE(&sig);
   return rc;
 }

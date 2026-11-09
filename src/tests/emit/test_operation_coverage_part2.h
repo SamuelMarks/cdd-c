@@ -26,10 +26,10 @@ TEST test_operation_100_percent_coverage_part2(void) {
     memset(&a, 0, sizeof(a));
     a.type = OA_ANY_STRING;
     a.string = NULL;
-    free_any_value_local(&a);
+    g_cdd_last_alloc_err = free_any_value_local(&a);
     a.type = OA_ANY_JSON;
     a.json = NULL;
-    free_any_value_local(&a);
+    g_cdd_last_alloc_err = free_any_value_local(&a);
   }
 
   {
@@ -94,7 +94,7 @@ TEST test_operation_100_percent_coverage_part2(void) {
     dl.name = cdd_test_mut_str("Link2");
     ASSERT_EQ(CDD_C_ERROR_MEMORY, add_link_to_response(&resp_lnk, &dl));
     g_cdd_strdup_fail = 0;
-    cleanup_link_fields(&resp_lnk.links[1]);
+    g_cdd_last_alloc_err = cleanup_link_fields(&resp_lnk.links[1]);
     free(resp_lnk.links);
   }
 
@@ -250,26 +250,26 @@ TEST test_operation_100_percent_coverage_part2(void) {
     src.number = 42;
     ASSERT_EQ(CDD_C_SUCCESS, copy_any_value_local(&dst, &src));
     ASSERT_EQ(42, (int)dst.number);
-    free_any_value_local(&dst);
+    g_cdd_last_alloc_err = free_any_value_local(&dst);
 
     memset(&src, 0, sizeof(src));
     src.type = OA_ANY_BOOL;
     src.boolean = 1;
     ASSERT_EQ(CDD_C_SUCCESS, copy_any_value_local(&dst, &src));
     ASSERT_EQ(1, dst.boolean);
-    free_any_value_local(&dst);
+    g_cdd_last_alloc_err = free_any_value_local(&dst);
 
     memset(&src, 0, sizeof(src));
     src.type = OA_ANY_NULL;
     ASSERT_EQ(CDD_C_SUCCESS, copy_any_value_local(&dst, &src));
     ASSERT_EQ(OA_ANY_NULL, dst.type);
-    free_any_value_local(&dst);
+    g_cdd_last_alloc_err = free_any_value_local(&dst);
 
     memset(&src, 0, sizeof(src));
     src.type = OA_ANY_UNSET;
     ASSERT_EQ(CDD_C_SUCCESS, copy_any_value_local(&dst, &src));
     ASSERT_EQ(OA_ANY_UNSET, dst.type);
-    free_any_value_local(&dst);
+    g_cdd_last_alloc_err = free_any_value_local(&dst);
   }
 
   /* Case 2: DocServerVar with default_value == NULL and enum_values == NULL
@@ -292,7 +292,7 @@ TEST test_operation_100_percent_coverage_part2(void) {
     svar.enum_values = NULL;
     svar.n_enum_values = 1;
     ASSERT_EQ(CDD_C_SUCCESS, copy_doc_server_variables_op(&srv, &dserver));
-    free_openapi_server_variables_op(&srv);
+    g_cdd_last_alloc_err = free_openapi_server_variables_op(&srv);
   }
 
   /* Case 3: apply_example_to_response when content_type not found in
@@ -337,7 +337,7 @@ TEST test_operation_100_percent_coverage_part2(void) {
     lnk.parameters =
         (struct OpenAPI_LinkParam *)calloc(1, sizeof(struct OpenAPI_LinkParam));
     lnk.n_parameters = 1;
-    cleanup_link_fields(&lnk);
+    g_cdd_last_alloc_err = cleanup_link_fields(&lnk);
   }
 
   /* Case 6: schema_ref_has_data_basic with is_array = 1 and ref_name == NULL */

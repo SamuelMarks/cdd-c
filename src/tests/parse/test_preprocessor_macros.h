@@ -34,14 +34,14 @@ TEST test_macro_evaluator_basic(void) {
   int rc = 0;
 
   rc += 0;
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
 
   /* Test 1: Simple addition */
   rc = cdd_macro_evaluate(&ctx, "1 + 2 * 3", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(7, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Test 2: Bitwise and shifts */
   rc = cdd_macro_evaluate(&ctx, "1.5 << 3", &res);
@@ -54,32 +54,33 @@ TEST test_macro_evaluator_basic(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(10, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Test 3: Logical operations */
   rc = cdd_macro_evaluate(&ctx, "1.5 && 0 && (0 || !0.0)", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(0, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "1.5 && 2.5 && (0.0 || !0.0)", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(1, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Test 4: Macro referencing another macro */
-  write_to_file("test_eval_macros.h", "#define A 10\n#define B (A + 5)\n");
+  g_cdd_last_alloc_err =
+      write_to_file("test_eval_macros.h", "#define A 10\n#define B (A + 5)\n");
   rc = pp_scan_defines(&ctx, "test_eval_macros.h");
   ASSERT_EQ(0, rc);
   rc = cdd_macro_evaluate(&ctx, "B * 2", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(30, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove("test_eval_macros.h");
   g_fail_io_after = -1;
   PASS();
@@ -95,13 +96,13 @@ TEST test_macro_evaluator_all_ops(void) {
   int rc = 0;
 
   rc += 0;
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
 
   /* Bitwise NOT, XOR, AND, Modulo, Integer Subtract, Integer Divide, Unary
    * Minus Int */
   rc = cdd_macro_evaluate(&ctx, "~1 ^ 2 % 3 & 4 - (-1) / 2", &res);
   ASSERT_EQ(0, rc);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Relational, Equality */
   rc = cdd_macro_evaluate(
@@ -111,21 +112,21 @@ TEST test_macro_evaluator_all_ops(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(1, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Shifts */
   rc = cdd_macro_evaluate(&ctx, "(4 >> 1) << 2", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(8, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Floats: Lexing floats, exponents, hex, negate float, divide, relational on
    * floats, float multiply */
   rc = cdd_macro_evaluate(&ctx, "0x10 + 0X20 + 1.5e1 - 5.0 / 2.0 * 1.5", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_FLOAT, res.type);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx,
                           "(1.5 < 2.5) && (2.5 > 1.5) && (1.5 <= 1.5) && (1.5 "
@@ -133,28 +134,28 @@ TEST test_macro_evaluator_all_ops(void) {
                           &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "-1.5f + .5L + 1.u + 1e+1F + 1El + 1U", &res);
   ASSERT_EQ(0, rc);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "!1.5", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "!1", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, res.int_val);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* Identifiers */
   rc = cdd_macro_evaluate(&ctx, "IDENTIFIER_WITH_NO_VALUE", &res);
   ASSERT_EQ(0, rc);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 
@@ -168,7 +169,7 @@ TEST test_macro_evaluator_errors(void) {
   int rc = 0;
 
   rc += 0;
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
 
   rc = cdd_macro_evaluate(NULL, "1", &res);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -229,11 +230,11 @@ TEST test_macro_evaluator_errors(void) {
 
   rc = cdd_macro_evaluate(&ctx, "1.5 || 0", &res);
   ASSERT_EQ(0, rc);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "0 || 1.5", &res);
   ASSERT_EQ(0, rc);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "1 || ", &res);
   ASSERT_NEQ(0, rc);
@@ -259,7 +260,7 @@ TEST test_macro_evaluator_errors(void) {
   rc = cdd_macro_evaluate(&ctx, "2 * \"foo\"", &res);
   ASSERT_NEQ(0, rc);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
 }
 
@@ -274,9 +275,10 @@ TEST test_pp_define_object_like(void) {
   struct PreprocessorContext ctx;
 
   rc += 0;
-  write_to_file(fname, "#define MAX_SIZE 100\n#define PI 3.14\n");
+  g_cdd_last_alloc_err =
+      write_to_file(fname, "#define MAX_SIZE 100\n#define PI 3.14\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_defines(&ctx, fname);
   ASSERT_EQ(0, rc);
 
@@ -287,7 +289,7 @@ TEST test_pp_define_object_like(void) {
   ASSERT_STR_EQ("PI", ctx.macros[1].name);
   ASSERT_EQ(0, ctx.macros[1].is_function_like);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(fname);
   g_fail_io_after = -1;
   PASS();
@@ -304,9 +306,10 @@ TEST test_pp_define_function_like(void) {
   struct PreprocessorContext ctx;
 
   rc += 0;
-  write_to_file(fname, "#define MIN(a, b) ((a)<(b)?(a):(b))\n");
+  g_cdd_last_alloc_err =
+      write_to_file(fname, "#define MIN(a, b) ((a)<(b)?(a):(b))\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_defines(&ctx, fname);
   ASSERT_EQ(0, rc);
 
@@ -317,7 +320,7 @@ TEST test_pp_define_function_like(void) {
   ASSERT_STR_EQ("a", ctx.macros[0].args[0]);
   ASSERT_STR_EQ("b", ctx.macros[0].args[1]);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(fname);
   g_fail_io_after = -1;
   PASS();
@@ -335,9 +338,10 @@ TEST test_pp_define_variadic_standard(void) {
 
   /* Standard C99: trailing ellipsis */
   rc += 0;
-  write_to_file(fname, "#define LOG(level, ...) printf(level, __VA_ARGS__)\n");
+  g_cdd_last_alloc_err = write_to_file(
+      fname, "#define LOG(level, ...) printf(level, __VA_ARGS__)\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_defines(&ctx, fname);
   ASSERT_EQ(0, rc);
 
@@ -350,7 +354,7 @@ TEST test_pp_define_variadic_standard(void) {
   ASSERT_EQ(1, ctx.macros[0].arg_count);
   ASSERT_STR_EQ("level", ctx.macros[0].args[0]);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(fname);
   g_fail_io_after = -1;
   PASS();
@@ -368,9 +372,10 @@ TEST test_pp_define_variadic_empty(void) {
 
   /* #define TRACE(...) */
   rc += 0;
-  write_to_file(fname, "#define TRACE(...) trace_impl(__VA_ARGS__)\n");
+  g_cdd_last_alloc_err =
+      write_to_file(fname, "#define TRACE(...) trace_impl(__VA_ARGS__)\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_defines(&ctx, fname);
   ASSERT_EQ(0, rc);
 
@@ -379,7 +384,7 @@ TEST test_pp_define_variadic_empty(void) {
   ASSERT(ctx.macros[0].is_variadic);
   ASSERT_EQ(0, ctx.macros[0].arg_count);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(fname);
   g_fail_io_after = -1;
   PASS();
@@ -398,9 +403,10 @@ TEST test_pp_define_variadic_gcc(void) {
   /* GCC named variadic: #define LOG(args...) */
   /* Our parser detects this if it finds ID then ... */
   rc += 0;
-  write_to_file(fname, "#define LOG(args...) printf(args)\n");
+  g_cdd_last_alloc_err =
+      write_to_file(fname, "#define LOG(args...) printf(args)\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_defines(&ctx, fname);
   ASSERT_EQ(0, rc);
 
@@ -410,7 +416,7 @@ TEST test_pp_define_variadic_gcc(void) {
   ASSERT_EQ(1, ctx.macros[0].arg_count);
   ASSERT_STR_EQ("args", ctx.macros[0].args[0]);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(fname);
   g_fail_io_after = -1;
   PASS();
@@ -427,7 +433,7 @@ TEST test_macro_evaluator_uncovered(void) {
   int rc = 0;
   struct MacroDef def;
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
 
   /* float + int */
   rc = cdd_macro_evaluate(&ctx, "1.5 + 2", &res);
@@ -465,7 +471,7 @@ TEST test_macro_evaluator_uncovered(void) {
   /* escaped string */
   rc = cdd_macro_evaluate(&ctx, "\"foo\\\"bar\"", &res);
   ASSERT_EQ(0, rc);
-  cdd_macro_eval_result_free(&res);
+  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
 
   /* unary plus */
   rc = cdd_macro_evaluate(&ctx, "+5", &res);
@@ -507,8 +513,8 @@ TEST test_macro_evaluator_uncovered(void) {
     g_cdd_alloc_fail = 0;
 
     rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
-    cdd_macro_eval_result_free(&res);
-    cdd_macro_eval_result_free(NULL);
+    g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
+    g_cdd_last_alloc_err = cdd_macro_eval_result_free(NULL);
 
     rc = cdd_macro_evaluate(&ctx, "   ", &res);
     ASSERT_NEQ(0, rc);
@@ -517,7 +523,7 @@ TEST test_macro_evaluator_uncovered(void) {
     rc = cdd_macro_evaluate(&ctx, "ABC", &res);
     g_cdd_alloc_fail = 0;
 
-    pp_context_free(&ctx);
+    g_cdd_last_alloc_err = pp_context_free(&ctx);
     PASS();
   }
 }

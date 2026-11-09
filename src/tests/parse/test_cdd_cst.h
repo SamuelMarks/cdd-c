@@ -53,7 +53,7 @@ TEST test_cdd_cst_roundtrip_basic(void) {
   ASSERT_STR_EQ(code, out);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -79,7 +79,7 @@ TEST test_cdd_cst_roundtrip_macros(void) {
   ASSERT_STR_EQ(code, out);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -124,7 +124,7 @@ TEST test_cdd_cst_asm_statement(void) {
   ASSERT_STR_EQ(code, out);
 
   free(out);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -147,7 +147,7 @@ TEST test_cdd_cst_cpp_class(void) {
   ASSERT_EQ(1, tree->root->num_children); /* Class */
   ASSERT_EQ(CDD_CST_CHILD_NODE, tree->root->children[0].kind);
   ASSERT_EQ(CDD_CST_CLASS_DECLARATION, tree->root->children[0].val.node->kind);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
 
   PASS();
@@ -200,7 +200,7 @@ TEST test_cdd_cst_cpp_methods(void) {
     ASSERT(has_op);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
 
   PASS();
@@ -274,7 +274,7 @@ TEST test_cdd_cst_cpp_exceptions(void) {
     ASSERT(has_try);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
 
   PASS();
@@ -323,7 +323,7 @@ TEST test_cdd_cst_cpp_namespace(void) {
     free(out);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -366,7 +366,7 @@ TEST test_cdd_cst_cpp_template(void) {
     free(out);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -430,7 +430,7 @@ TEST test_cdd_cst_cpp_inheritance(void) {
     free(out);
   }
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -485,7 +485,7 @@ TEST test_cdd_cst_parser_oom(void) {
     g_cdd_alloc_fail = (int)i;
     if (cdd_cst_parse(az_span_create_from_str(code), &tree) != CDD_C_SUCCESS) {
     }
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
   g_cdd_alloc_fail = 0;
 
@@ -494,7 +494,7 @@ TEST test_cdd_cst_parser_oom(void) {
     g_cdd_cst_realloc_fail = (int)i;
     if (cdd_cst_parse(az_span_create_from_str(code), &tree) != CDD_C_SUCCESS) {
     }
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
   g_cdd_cst_realloc_fail = 0;
 
@@ -522,7 +522,7 @@ TEST test_cdd_cst_parser_oom(void) {
                           &tree) != CDD_C_SUCCESS) {
         }
         if (tree)
-          cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       }
       g_cdd_alloc_fail = 0;
 
@@ -533,7 +533,7 @@ TEST test_cdd_cst_parser_oom(void) {
                           &tree) != CDD_C_SUCCESS) {
         }
         if (tree)
-          cdd_cst_tree_free(tree);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       }
       g_cdd_cst_realloc_fail = 0;
     }
@@ -545,7 +545,7 @@ TEST test_cdd_cst_parser_oom(void) {
     if (cdd_cst_parse(az_span_create_from_str("/* eof */"), &tree) !=
         CDD_C_SUCCESS) {
     }
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     g_cdd_cst_realloc_fail = 0;
   }
 #endif
@@ -586,7 +586,7 @@ TEST test_cdd_cst_parser_macros_full(void) {
       32,  105, 110, 116, 32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,
       125, 0};
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -626,7 +626,8 @@ TEST test_cdd_cst_peek_advance_eof(void) {
   parser_state_t s = {0};
   cdd_token_t *tok = NULL;
   cdd_token_list_t *tl = NULL;
-  cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  g_cdd_last_alloc_err =
+      cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   s.list = tl;
   s.pos = tl->size; /* Move past end */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, peek(NULL, &tok));
@@ -635,7 +636,7 @@ TEST test_cdd_cst_peek_advance_eof(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, advance(&s, NULL));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, peek(&s, &tok));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, advance(&s, &tok));
-  cdd_lexer_free_token_list(tl);
+  g_cdd_last_alloc_err = cdd_lexer_free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -685,7 +686,7 @@ TEST test_cdd_cst_parser_complex_syntax(void) {
       116, 32,  103, 59,  32,  105, 110, 116, 32,  104, 59,  32,  105, 110, 116,
       32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,  125, 0};
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
 }
@@ -697,76 +698,91 @@ TEST test_cdd_cst_parser_complex_syntax(void) {
 TEST test_cdd_cst_parser_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   /* Unmatched brace */
-  cdd_cst_parse(az_span_create_from_str("{"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str("{"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Missing namespace name */
-  cdd_cst_parse(az_span_create_from_str("namespace {"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("namespace {"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Missing catch */
-  cdd_cst_parse(az_span_create_from_str("try { }"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("try { }"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Class without semicolon or body */
-  cdd_cst_parse(az_span_create_from_str("class X : public Y"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("class X : public Y"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function due to rbrace */
-  cdd_cst_parse(az_span_create_from_str("} func() {"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("} func() {"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: expression with parens and then semicolon */
-  cdd_cst_parse(az_span_create_from_str("int x = (1);"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x = (1);"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("int arr[] = {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int arr[] = {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("x = {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("x = {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("return {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("return {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("int x = (1) {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x = (1) {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("int x(1) {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x(1) {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("int x(1) : 1 {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x(1) : 1 {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str("int x, {1};"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x, {1};"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: unmatched parens */
-  cdd_cst_parse(az_span_create_from_str("int x = (1;"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("int x = (1;"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: function call */
-  cdd_cst_parse(az_span_create_from_str("func();"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("func();"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Template without params */
-  cdd_cst_parse(az_span_create_from_str("template < > class X;"), &tree);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err =
+      cdd_cst_parse(az_span_create_from_str("template < > class X;"), &tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   tree = NULL;
 
   g_fail_io_after = -1;
@@ -869,7 +885,7 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
             cdd_cst_parse(az_span_create_from_str("int x;"), NULL));
 
   /* cdd_cst_tree_free with NULL */
-  cdd_cst_tree_free(NULL);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(NULL);
 
   /* Test cdd_cst_tree_free with synthesized tokens and string pool */
   {
@@ -889,7 +905,7 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
     free_tree->num_strings = 1;
     free_tree->string_pool = (char **)C_CDD_CALLOC(1, sizeof(char *));
     free_tree->string_pool[0] = pooled_str;
-    cdd_cst_tree_free(free_tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(free_tree);
   }
 
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
@@ -898,7 +914,7 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
     rc_snip = cdd_cst_parse(az_span_create_from_str(snippets[i]), &tree);
     ASSERT(rc_snip == CDD_C_SUCCESS || rc_snip == CDD_C_ERROR_NOT_FOUND);
     if (tree) {
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }
@@ -910,21 +926,21 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
     rc_snip = cdd_cst_parse(az_span_create_from_str(""), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc_snip);
     if (tree) {
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
     rc_snip =
         cdd_cst_parse(az_span_create_from_str("void f() noexcept(1"), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc_snip);
     if (tree) {
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
     rc_snip =
         cdd_cst_parse(az_span_create_from_str("void f() noexcept"), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc_snip);
     if (tree) {
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }

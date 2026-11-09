@@ -104,7 +104,8 @@ static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
       char racket_name[512];
-      racketify_name(t->ref_name, racket_name, sizeof(racket_name));
+      g_cdd_last_alloc_err =
+          racketify_name(t->ref_name, racket_name, sizeof(racket_name));
       CDD_SNPRINTF(out_type, out_sz, "_%s-pointer", racket_name);
     } else {
       CDD_SNPRINTF(out_type, out_sz, "_pointer");
@@ -114,7 +115,8 @@ static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
       char racket_name[512];
-      racketify_name(t->ref_name, racket_name, sizeof(racket_name));
+      g_cdd_last_alloc_err =
+          racketify_name(t->ref_name, racket_name, sizeof(racket_name));
       CDD_SNPRINTF(out_type, out_sz, "_%s", racket_name);
     } else {
       CDD_SNPRINTF(out_type, out_sz, "_pointer");
@@ -155,7 +157,8 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
   }
 
   lib_name = (config->library_name) ? config->library_name : "mylib";
-  racketify_name(lib_name, racket_lib_name, sizeof(racket_lib_name));
+  g_cdd_last_alloc_err =
+      racketify_name(lib_name, racket_lib_name, sizeof(racket_lib_name));
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.rkt", config->output_dir,
@@ -192,7 +195,8 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
 
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
-    racketify_name(node->name, racket_node_name, sizeof(racket_node_name));
+    g_cdd_last_alloc_err =
+        racketify_name(node->name, racket_node_name, sizeof(racket_node_name));
 
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
       /* In Racket, define-cstruct does not easily support unions. Treating
@@ -206,20 +210,23 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
           fprintf(f, ")\n\n");
         }
         for (j = 0; j < node->fields_count; j++) {
-          racketify_name(node->fields[j].name, field_name, sizeof(field_name));
-          map_racket_type(&node->fields[j].type, type_str, sizeof(type_str));
+          g_cdd_last_alloc_err = racketify_name(node->fields[j].name,
+                                                field_name, sizeof(field_name));
+          g_cdd_last_alloc_err = map_racket_type(&node->fields[j].type,
+                                                 type_str, sizeof(type_str));
           fprintf(f, "[%s %s]%s", field_name, type_str,
                   j + 1 < node->fields_count ? "\n   " : "))\n\n");
         }
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "(define _%s\n", racket_node_name);
       fprintf(f, "  (_enum\n");
       fprintf(f, "   '(\n");
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
-        racketify_name(var->name, var_name, sizeof(var_name));
+        g_cdd_last_alloc_err =
+            racketify_name(var->name, var_name, sizeof(var_name));
         if (var->value) {
           fprintf(f, "     [%s = %s]\n", var_name, var->value);
         } else {
@@ -228,16 +235,18 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "    )))\n\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      map_racket_type(&node->return_or_base_type, type_str, sizeof(type_str));
+      g_cdd_last_alloc_err = map_racket_type(&node->return_or_base_type,
+                                             type_str, sizeof(type_str));
       fprintf(f, "(define _%s %s)\n\n", racket_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      map_racket_type(&node->return_or_base_type, ret_type_str,
-                      sizeof(ret_type_str));
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = map_racket_type(
+          &node->return_or_base_type, ret_type_str, sizeof(ret_type_str));
       fprintf(f, "(define-%s %s\n", racket_lib_name, node->name);
       fprintf(f, "  (_fun ");
       for (j = 0; j < node->fields_count; j++) {
-        map_racket_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            map_racket_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(f, "%s ", type_str);
       }
       fprintf(f, "-> %s))\n\n", ret_type_str);

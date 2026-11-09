@@ -36,18 +36,18 @@ static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
   int rc = 0;
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(json, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
     dyn = _cdd_jv_1;
   }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = openapi_spec_init(spec);
   if (rc != CDD_C_SUCCESS) {
-    json_value_free(dyn);
+    g_cdd_last_alloc_err = json_value_free(dyn);
     return rc;
   }
   rc = openapi_load_from_json(dyn, spec);
-  json_value_free(dyn);
+  g_cdd_last_alloc_err = json_value_free(dyn);
   return rc;
 }
 
@@ -81,15 +81,15 @@ TEST test_sync_signature_update(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec("{}", NULL));
 
   rc += 0;
-  write_to_file(src_file, old_code);
+  g_cdd_last_alloc_err = write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
   ASSERT_EQ(0, rc);
-  read_to_file(src_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(src_file, "r", &content, &sz);
   ASSERT(strstr(content, "int get_pet(struct HttpClient *ctx, int id, struct "
                          "ApiError **api_error)"));
   free(content);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   remove(src_file);
   g_fail_io_after = -1;
   PASS();
@@ -121,17 +121,17 @@ TEST test_sync_url_logic_update(void) {
   int rc = 0;
 
   rc += 0;
-  write_to_file(src_file, old_code);
+  g_cdd_last_alloc_err = write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
   ASSERT_EQ(0, rc);
-  read_to_file(src_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(src_file, "r", &content, &sz);
   ASSERT(strstr(content,
                 "asprintf(&url, \"%s/pets/%s\", ctx->base_url, path_id)") !=
          NULL);
   ASSERT(strstr(content, "oldpath") == NULL);
   free(content);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   remove(src_file);
   g_fail_io_after = -1;
   PASS();
@@ -165,11 +165,11 @@ TEST test_sync_query_update(void) {
   int rc = 0;
 
   rc += 0;
-  write_to_file(src_file, old_code);
+  g_cdd_last_alloc_err = write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
   ASSERT_EQ(0, rc);
-  read_to_file(src_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(src_file, "r", &content, &sz);
 
   /* Should replace old block with loop logic */
   printf("CONTENT:\n%s\n", content);
@@ -177,7 +177,7 @@ TEST test_sync_query_update(void) {
   ASSERT(strstr(content, "url_query_add(&qp, \"old\", \"val\")") == NULL);
 
   free(content);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   remove(src_file);
   g_fail_io_after = -1;
   PASS();
@@ -209,11 +209,11 @@ TEST test_sync_header_update(void) {
   int rc = 0;
 
   rc += 0;
-  write_to_file(src_file, old_code);
+  g_cdd_last_alloc_err = write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
   ASSERT_EQ(0, rc);
-  read_to_file(src_file, "r", &content, &sz);
+  g_cdd_last_alloc_err = read_to_file(src_file, "r", &content, &sz);
 
   /* Should replace old_call with http_headers_add */
   ASSERT(strstr(content, "http_headers_add(&req.headers, \"key\", key)") !=
@@ -221,7 +221,7 @@ TEST test_sync_header_update(void) {
   ASSERT(strstr(content, "old_call") == NULL);
 
   free(content);
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   remove(src_file);
   g_fail_io_after = -1;
   PASS();
@@ -526,9 +526,9 @@ TEST test_sync_full_coverage(void) {
   rc = cdd_test_sync_apply_header_sync(&op, tl, node, &patches);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  patch_list_free(&patches);
-  free_cst_node_list(&cst);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 9. Header parameter comment found but entered == 0 (no LBRACE in scope) */
@@ -548,9 +548,9 @@ TEST test_sync_full_coverage(void) {
   ASSERT_EQ(0, rc);
   rc = cdd_test_sync_apply_header_sync(&op, tl, node, &patches);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  patch_list_free(&patches);
-  free_cst_node_list(&cst);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 10. Node with LBRACE before closing RPAREN (unclosed paren signature) */
@@ -567,7 +567,7 @@ TEST test_sync_full_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(str_out == NULL);
   }
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   tl = NULL;
 
   /* 11. apply_updates tests and failure injections */
@@ -667,8 +667,8 @@ TEST test_sync_full_coverage(void) {
                                             &node);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
       ASSERT(node != NULL);
-      free_cst_node_list(&cst_ws);
-      free_token_list(tl_ws);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_ws);
+      g_cdd_last_alloc_err = free_token_list(tl_ws);
     }
 
     /* Nested parens in signature */
@@ -689,8 +689,8 @@ TEST test_sync_full_coverage(void) {
         if (str_out)
           free(str_out);
       }
-      free_cst_node_list(&cst_nest);
-      free_token_list(tl_nest);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_nest);
+      g_cdd_last_alloc_err = free_token_list(tl_nest);
     }
 
     /* Query init without query build */
@@ -710,13 +710,13 @@ TEST test_sync_full_coverage(void) {
       ASSERT_EQ(0, rc);
       rc = cdd_test_sync_apply_query_sync(&op, tl_q, node, &patches);
       ASSERT_EQ(CDD_C_SUCCESS, rc);
-      patch_list_free(&patches);
-      free_cst_node_list(&cst_q);
-      free_token_list(tl_q);
+      g_cdd_last_alloc_err = patch_list_free(&patches);
+      g_cdd_last_alloc_err = free_cst_node_list(&cst_q);
+      g_cdd_last_alloc_err = free_token_list(tl_q);
     }
 
-    free_cst_node_list(&cst);
-    free_token_list(tl);
+    g_cdd_last_alloc_err = free_cst_node_list(&cst);
+    g_cdd_last_alloc_err = free_token_list(tl);
     tl = NULL;
   }
 
@@ -731,7 +731,8 @@ TEST test_sync_full_coverage(void) {
   ASSERT(rc != CDD_C_SUCCESS);
 
   /* Temporary file for tokenize/parse errors */
-  write_to_file("temp_sync_test.c", "int main() { return 0; }\n");
+  g_cdd_last_alloc_err =
+      write_to_file("temp_sync_test.c", "int main() { return 0; }\n");
 
   /* Tokenize error simulation */
   g_cdd_alloc_fail = 1;

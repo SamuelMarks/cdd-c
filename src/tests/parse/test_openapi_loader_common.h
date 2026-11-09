@@ -36,16 +36,16 @@ static cdd_c_error_t load_spec_str(const char *json_str,
   cdd_c_error_t rc = 0;
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(json_str, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(json_str, &_cdd_jv_1);
     dyn = _cdd_jv_1;
   }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  openapi_spec_init(spec);
+  g_cdd_last_alloc_err = openapi_spec_init(spec);
   rc = openapi_load_from_json(dyn, spec);
   if (rc != CDD_C_SUCCESS)
-    openapi_spec_free(spec);
-  json_value_free(dyn);
+    g_cdd_last_alloc_err = openapi_spec_free(spec);
+  g_cdd_last_alloc_err = json_value_free(dyn);
   return rc;
 }
 
@@ -65,16 +65,16 @@ load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
   cdd_c_error_t rc = 0;
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(json_str, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(json_str, &_cdd_jv_1);
     dyn = _cdd_jv_1;
   }
   if (!dyn)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  openapi_spec_init(spec);
+  g_cdd_last_alloc_err = openapi_spec_init(spec);
   rc = openapi_load_from_json_with_context(dyn, retrieval_uri, spec, registry);
   if (rc != CDD_C_SUCCESS)
-    openapi_spec_free(spec);
-  json_value_free(dyn);
+    g_cdd_last_alloc_err = openapi_spec_free(spec);
+  g_cdd_last_alloc_err = json_value_free(dyn);
   return rc;
 }
 
@@ -92,7 +92,7 @@ static cdd_c_error_t test_wrap_parse_header_object(
   cdd_c_error_t rc =
       (parse_header_object)(hdr_obj, out_hdr, spec, resolve_refs);
   if (rc != CDD_C_SUCCESS && out_hdr)
-    free_header(out_hdr);
+    g_cdd_last_alloc_err = free_header(out_hdr);
   return rc;
 }
 /**
@@ -120,7 +120,7 @@ static cdd_c_error_t test_wrap_parse_headers_object(
   if (rc != CDD_C_SUCCESS && out_headers && *out_headers) {
     size_t i;
     for (i = 0; out_count && i < *out_count; ++i)
-      free_header(&(*out_headers)[i]);
+      g_cdd_last_alloc_err = free_header(&(*out_headers)[i]);
     free(*out_headers);
     *out_headers = NULL;
     if (out_count)
@@ -148,7 +148,7 @@ test_wrap_parse_link_object(const JSON_Object *link_obj,
   cdd_c_error_t rc =
       (parse_link_object)(link_obj, out_link, spec, resolve_refs);
   if (rc != CDD_C_SUCCESS && out_link)
-    free_link(out_link);
+    g_cdd_last_alloc_err = free_link(out_link);
   return rc;
 }
 /**
@@ -173,7 +173,7 @@ static cdd_c_error_t test_wrap_parse_links_object(
   if (rc != CDD_C_SUCCESS && out_links && *out_links) {
     size_t i;
     for (i = 0; out_count && i < *out_count; ++i)
-      free_link(&(*out_links)[i]);
+      g_cdd_last_alloc_err = free_link(&(*out_links)[i]);
     free(*out_links);
     *out_links = NULL;
     if (out_count)
@@ -202,7 +202,7 @@ test_wrap_parse_link_parameters(const JSON_Object *params_obj,
     size_t i;
     for (i = 0; out_count && i < *out_count; ++i) {
       free((*out_params)[i].name);
-      free_any_value(&(*out_params)[i].value);
+      g_cdd_last_alloc_err = free_any_value(&(*out_params)[i].value);
     }
     free(*out_params);
     *out_params = NULL;
@@ -229,7 +229,7 @@ static cdd_c_error_t test_wrap_parse_encoding_object(
     const struct OpenAPI_Spec *spec, int resolve_refs) {
   cdd_c_error_t rc = (parse_encoding_object)(enc_obj, out, spec, resolve_refs);
   if (rc != CDD_C_SUCCESS && out)
-    free_encoding(out);
+    g_cdd_last_alloc_err = free_encoding(out);
   return rc;
 }
 /**
@@ -254,7 +254,7 @@ static cdd_c_error_t test_wrap_parse_encoding_map(
   if (rc != CDD_C_SUCCESS && out && *out) {
     size_t i;
     for (i = 0; out_count && i < *out_count; ++i)
-      free_encoding(&(*out)[i]);
+      g_cdd_last_alloc_err = free_encoding(&(*out)[i]);
     free(*out);
     *out = NULL;
     if (out_count)
@@ -284,7 +284,7 @@ static cdd_c_error_t test_wrap_parse_encoding_array(
   if (rc != CDD_C_SUCCESS && out && *out) {
     size_t i;
     for (i = 0; out_count && i < *out_count; ++i)
-      free_encoding(&(*out)[i]);
+      g_cdd_last_alloc_err = free_encoding(&(*out)[i]);
     free(*out);
     *out = NULL;
     if (out_count)
@@ -308,7 +308,7 @@ test_wrap_parse_component_parameters(const JSON_Object *components,
                                      struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_parameters)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -327,7 +327,7 @@ test_wrap_parse_component_responses(const JSON_Object *components,
                                     struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_responses)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -346,7 +346,7 @@ test_wrap_parse_component_headers(const JSON_Object *components,
                                   struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_headers)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -365,7 +365,7 @@ test_wrap_parse_component_request_bodies(const JSON_Object *components,
                                          struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_request_bodies)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -384,7 +384,7 @@ test_wrap_parse_component_media_types(const JSON_Object *components,
                                       struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_media_types)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -403,7 +403,7 @@ test_wrap_parse_component_examples(const JSON_Object *components,
                                    struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_examples)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -422,7 +422,7 @@ test_wrap_parse_component_links(const JSON_Object *components,
                                 struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_links)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -441,7 +441,7 @@ test_wrap_parse_component_callbacks(const JSON_Object *components,
                                     struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_callbacks)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -460,7 +460,7 @@ test_wrap_parse_component_path_items(const JSON_Object *components,
                                      struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_component_path_items)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**
@@ -478,7 +478,7 @@ static cdd_c_error_t test_wrap_parse_components(const JSON_Object *components,
                                                 struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = (parse_components)(components, out);
   if (rc != CDD_C_SUCCESS && out)
-    openapi_spec_free(out);
+    g_cdd_last_alloc_err = openapi_spec_free(out);
   return rc;
 }
 /**

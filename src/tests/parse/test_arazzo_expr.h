@@ -37,106 +37,106 @@ TEST test_arazzo_runtime_expr_parse_valid(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("plain_literal", &expr));
   ASSERT_EQ(ARAZZO_EXPR_LITERAL, expr.kind);
   ASSERT_EQ(0, expr.is_embedded_template);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("Bearer {$steps.s1.outputs.tok}", &expr));
   ASSERT_EQ(ARAZZO_EXPR_LITERAL, expr.kind);
   ASSERT_EQ(1, expr.is_embedded_template);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Simple roots */
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$url", &expr));
   ASSERT_EQ(ARAZZO_EXPR_URL, expr.kind);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$method", &expr));
   ASSERT_EQ(ARAZZO_EXPR_METHOD, expr.kind);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$statusCode", &expr));
   ASSERT_EQ(ARAZZO_EXPR_STATUS_CODE, expr.kind);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$self", &expr));
   ASSERT_EQ(ARAZZO_EXPR_SELF, expr.kind);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Request expressions */
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$request.header.Authorization", &expr));
   ASSERT_EQ(ARAZZO_EXPR_REQUEST_HEADER, expr.kind);
   ASSERT_STR_EQ("Authorization", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$request.query.limit", &expr));
   ASSERT_EQ(ARAZZO_EXPR_REQUEST_QUERY, expr.kind);
   ASSERT_STR_EQ("limit", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$request.path.petId", &expr));
   ASSERT_EQ(ARAZZO_EXPR_REQUEST_PATH, expr.kind);
   ASSERT_STR_EQ("petId", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$request.body", &expr));
   ASSERT_EQ(ARAZZO_EXPR_REQUEST_BODY, expr.kind);
   ASSERT_EQ(NULL, expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$request.body#/user/id", &expr));
   ASSERT_EQ(ARAZZO_EXPR_REQUEST_BODY, expr.kind);
   ASSERT_STR_EQ("/user/id", expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Response expressions */
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$response.header.X-Rate-Limit", &expr));
   ASSERT_EQ(ARAZZO_EXPR_RESPONSE_HEADER, expr.kind);
   ASSERT_STR_EQ("X-Rate-Limit", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$response.body", &expr));
   ASSERT_EQ(ARAZZO_EXPR_RESPONSE_BODY, expr.kind);
   ASSERT_EQ(NULL, expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$response.body#/data/0/token", &expr));
   ASSERT_EQ(ARAZZO_EXPR_RESPONSE_BODY, expr.kind);
   ASSERT_STR_EQ("/data/0/token", expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Message expressions */
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse("$message.header", &expr));
   ASSERT_EQ(ARAZZO_EXPR_MESSAGE_HEADER, expr.kind);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$message.header#/corrId", &expr));
   ASSERT_EQ(ARAZZO_EXPR_MESSAGE_HEADER, expr.kind);
   ASSERT_STR_EQ("/corrId", expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$message.header.X-Msg-Id", &expr));
   ASSERT_EQ(ARAZZO_EXPR_MESSAGE_HEADER, expr.kind);
   ASSERT_STR_EQ("X-Msg-Id", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$message.payload", &expr));
   ASSERT_EQ(ARAZZO_EXPR_MESSAGE_PAYLOAD, expr.kind);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$message.payload#/event/id", &expr));
   ASSERT_EQ(ARAZZO_EXPR_MESSAGE_PAYLOAD, expr.kind);
   ASSERT_STR_EQ("/event/id", expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Inputs & Outputs */
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -144,13 +144,13 @@ TEST test_arazzo_runtime_expr_parse_valid(void) {
   ASSERT_EQ(ARAZZO_EXPR_INPUTS, expr.kind);
   ASSERT_STR_EQ("username", expr.property_name);
   ASSERT_STR_EQ("/sub", expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$outputs.resultId", &expr));
   ASSERT_EQ(ARAZZO_EXPR_OUTPUTS, expr.kind);
   ASSERT_STR_EQ("resultId", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Steps, Workflows, SourceDescriptions, Components */
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse(
@@ -159,28 +159,28 @@ TEST test_arazzo_runtime_expr_parse_valid(void) {
   ASSERT_STR_EQ("login", expr.step_or_workflow_id);
   ASSERT_STR_EQ("token", expr.property_name);
   ASSERT_STR_EQ("/jwt", expr.json_pointer);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS,
             arazzo_runtime_expr_parse("$workflows.auth.inputs.user", &expr));
   ASSERT_EQ(ARAZZO_EXPR_WORKFLOWS, expr.kind);
   ASSERT_STR_EQ("auth", expr.step_or_workflow_id);
   ASSERT_STR_EQ("user", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse(
                                "$sourceDescriptions.petstore.url", &expr));
   ASSERT_EQ(ARAZZO_EXPR_SOURCE_DESCRIPTIONS, expr.kind);
   ASSERT_STR_EQ("petstore", expr.source_name);
   ASSERT_STR_EQ("url", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_parse(
                                "$components.parameters.authHeader", &expr));
   ASSERT_EQ(ARAZZO_EXPR_COMPONENTS, expr.kind);
   ASSERT_STR_EQ("parameters", expr.source_name);
   ASSERT_STR_EQ("authHeader", expr.property_name);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   PASS();
 }
@@ -328,7 +328,7 @@ TEST test_arazzo_runtime_expr_format_all(void) {
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_runtime_expr_format(&expr, &out));
   ASSERT_STR_EQ("$url", out);
   free(out);
-  arazzo_runtime_expr_free(&expr);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
 
   /* Without raw set - test all kinds */
   for (k = (int)ARAZZO_EXPR_URL; k <= (int)ARAZZO_EXPR_SELF; ++k) {
@@ -377,7 +377,7 @@ TEST test_arazzo_runtime_expr_format_all(void) {
       out = NULL;
     }
 
-    arazzo_runtime_expr_free(&expr);
+    g_cdd_last_alloc_err = arazzo_runtime_expr_free(&expr);
   }
 
   /* Default/literal without raw */

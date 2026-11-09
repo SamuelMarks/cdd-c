@@ -66,7 +66,7 @@ TEST test_extern_c_late_include(void) {
             char *func2_pos = strstr(reopen_pos, "void func2();");
             ASSERT(func2_pos != NULL);
             free(out);
-            cdd_cst_tree_free(tree);
+            g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
             g_fail_io_after = -1;
             PASS();
           }
@@ -91,9 +91,9 @@ TEST test_cdd_transform_extern_c_builder_fails(void) {
     rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
     ASSERT_EQ(0, rc);
     g_cdd_cst_alloc_token_fail = i;
-    cdd_transform_extern_c(tree, &config);
+    g_cdd_last_alloc_err = cdd_transform_extern_c(tree, &config);
     g_cdd_cst_alloc_token_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
   g_fail_io_after = -1;
   PASS();
@@ -143,7 +143,7 @@ TEST test_extern_c_bot_node_insert_oom(void) {
   rc = cdd_transform_extern_c(tree, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   if (eof_tok)
     free(eof_tok);
   PASS();
@@ -165,7 +165,7 @@ TEST test_extern_c_bot_node_append_oom(void) {
   rc = cdd_transform_extern_c(tree, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -185,7 +185,7 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   ASSERT_NEQ(NULL, tree);
   rc = cdd_transform_extern_c(tree, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   PASS();
 }
@@ -208,7 +208,7 @@ TEST test_extern_c_top_node_oom(void) {
     g_cdd_alloc_fail = i;
     rc = cdd_transform_extern_c(tree, &config);
     g_cdd_alloc_fail = 0;
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 #endif
   PASS();
@@ -230,7 +230,7 @@ TEST test_extern_c_extra_coverage2(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cdd_transform_extern_c(tree, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   PASS();
 }
 
@@ -251,13 +251,13 @@ TEST test_extern_c_extra_coverage3(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cdd_transform_extern_c(tree, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
-  cdd_cst_tree_free(tree);
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
   {
     const char *code2 = cdd_test_mut_str("int main() { return 0; }\n");
     rc = cdd_cst_parse(az_span_create_from_str(code2), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     PASS();
   }
 }
@@ -283,18 +283,19 @@ TEST test_extern_c_extra_coverage4(void) {
     dir1->kind = CDD_CST_PREPROC_DIRECTIVE; /* num_children == 0 */
     dir2->kind = CDD_CST_PREPROC_DIRECTIVE;
     subnode->kind = CDD_CST_UNKNOWN;
-    cdd_cst_append_child_node(dir2, subnode); /* children[0] is CHILD_NODE */
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(
+        dir2, subnode); /* children[0] is CHILD_NODE */
 
     decl->kind = CDD_CST_DECLARATION;
 
-    cdd_cst_append_child_node(root, dir1);
-    cdd_cst_append_child_node(root, dir2);
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, dir1);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, dir2);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* 2. Directive with child[1] being CHILD_NODE, or non-identifier, or length
@@ -330,16 +331,17 @@ TEST test_extern_c_extra_coverage4(void) {
     dir->kind = CDD_CST_PREPROC_DIRECTIVE;
     subnode->kind = CDD_CST_UNKNOWN;
 
-    cdd_cst_append_child_token(dir, tok_ifdef);
-    cdd_cst_append_child_node(dir, subnode);
-    cdd_cst_append_child_token(dir, tok_num);
-    cdd_cst_append_child_token(dir, tok_ident10);
-    cdd_cst_append_child_token(dir, tok_ident11_mismatch);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(dir, tok_ifdef);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(dir, subnode);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(dir, tok_num);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(dir, tok_ident10);
+    g_cdd_last_alloc_err =
+        cdd_cst_append_child_token(dir, tok_ident11_mismatch);
 
     decl->kind = CDD_CST_DECLARATION;
 
-    cdd_cst_append_child_node(root, dir);
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, dir);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
@@ -349,7 +351,7 @@ TEST test_extern_c_extra_coverage4(void) {
     free(tok_num);
     free(tok_ident10);
     free(tok_ident11_mismatch);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   PASS();
@@ -374,7 +376,7 @@ TEST test_extern_c_extra_coverage5(void) {
       g_cdd_alloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
       g_cdd_alloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
     for (i = 1; i <= 80; i++) {
@@ -383,7 +385,7 @@ TEST test_extern_c_extra_coverage5(void) {
       g_cdd_cst_realloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
       g_cdd_cst_realloc_fail = 0;
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       tree = NULL;
     }
   }
@@ -398,14 +400,14 @@ TEST test_extern_c_extra_coverage5(void) {
 
       root->kind = CDD_CST_TRANSLATION_UNIT;
       decl->kind = CDD_CST_DECLARATION;
-      cdd_cst_append_child_node(root, decl);
+      g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
       tree->root = root;
 
       g_cdd_cst_realloc_fail = r_i;
       rc = cdd_transform_extern_c(tree, &config);
       g_cdd_cst_realloc_fail = 0;
 
-      cdd_cst_tree_free(tree);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
       if (rc == CDD_C_SUCCESS)
         break;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -426,19 +428,19 @@ TEST test_extern_c_extra_coverage5(void) {
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
     unk->kind = CDD_CST_UNKNOWN;
-    cdd_cst_append_child_token(unk, tok);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(unk, tok);
 
     decl->kind = CDD_CST_DECLARATION;
 
-    cdd_cst_append_child_node(root, unk);
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, unk);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     free(tok);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* 4. Target parent child is token other than ifdef/ifndef/define/pragma/eof
@@ -454,17 +456,17 @@ TEST test_extern_c_extra_coverage5(void) {
     tok_semi->length = 1;
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
-    cdd_cst_append_child_token(root, tok_semi);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(root, tok_semi);
 
     decl->kind = CDD_CST_DECLARATION;
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     free(tok_semi);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* 5. Last child is token with kind other than EOF/ENDIF to hit default: break
@@ -481,15 +483,15 @@ TEST test_extern_c_extra_coverage5(void) {
 
     root->kind = CDD_CST_TRANSLATION_UNIT;
     decl->kind = CDD_CST_DECLARATION;
-    cdd_cst_append_child_node(root, decl);
-    cdd_cst_append_child_token(root, tok_semi);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(root, tok_semi);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     free(tok_semi);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* 6. g_cdd_query_err_fail tests for CONDITIONAL and DIRECTIVE */
@@ -504,7 +506,7 @@ TEST test_extern_c_extra_coverage5(void) {
     rc = cdd_transform_extern_c(tree, &config);
     g_cdd_query_err_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
 
     rc = cdd_cst_parse(az_span_create_from_str(code2), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -512,7 +514,7 @@ TEST test_extern_c_extra_coverage5(void) {
     rc = cdd_transform_extern_c(tree, &config);
     g_cdd_query_err_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   PASS();
@@ -598,7 +600,7 @@ TEST test_extern_c_helpers_direct(void) {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* Test first_token_of_file when children[0] has num_children == 0 */
@@ -613,13 +615,13 @@ TEST test_extern_c_helpers_direct(void) {
     empty_node->kind = CDD_CST_UNKNOWN;
     decl->kind = CDD_CST_DECLARATION;
 
-    cdd_cst_append_child_node(root, empty_node);
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, empty_node);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* Test target_parent child token EOF */
@@ -634,15 +636,15 @@ TEST test_extern_c_helpers_direct(void) {
     tok_eof->kind = CDD_TOKEN_EOF;
     decl->kind = CDD_CST_DECLARATION;
 
-    cdd_cst_append_child_token(root, tok_eof);
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_token(root, tok_eof);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     free(tok_eof);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   /* Test child in UNKNOWN whose children[0] is CHILD_NODE */
@@ -659,14 +661,14 @@ TEST test_extern_c_helpers_direct(void) {
     sub->kind = CDD_CST_UNKNOWN;
     decl->kind = CDD_CST_DECLARATION;
 
-    cdd_cst_append_child_node(unk, sub);
-    cdd_cst_append_child_node(root, unk);
-    cdd_cst_append_child_node(root, decl);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(unk, sub);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, unk);
+    g_cdd_last_alloc_err = cdd_cst_append_child_node(root, decl);
     tree->root = root;
 
     rc = cdd_transform_extern_c(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    cdd_cst_tree_free(tree);
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
   PASS();

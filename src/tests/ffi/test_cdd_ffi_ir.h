@@ -55,7 +55,7 @@ TEST test_ffi_ir_toposort_empty(void) {
  * @return Greatest test result.
  */
 TEST test_ffi_ir_free_null(void) {
-  cdd_ffi_ir_free(NULL);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(NULL);
   PASS();
 }
 
@@ -119,7 +119,7 @@ TEST test_ffi_ir_free_full(void) {
   n->variants[0].doc = strdup("VarDoc1");
   n->variants[0].raw_spelling = strdup("RawVar1");
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 
@@ -242,7 +242,7 @@ TEST test_ffi_ir_toposort_complex(void) {
     ASSERT(idxA < idxM);
     /* Just to avoid unused warning */
 
-    cdd_ffi_ir_free(&ir);
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
     PASS();
   }
 }
@@ -253,7 +253,7 @@ TEST test_ffi_ir_toposort_complex(void) {
  */
 TEST test_ffi_ir_free_empty(void) {
   cdd_ffi_ir_t ir = {0};
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 
@@ -288,7 +288,7 @@ TEST test_ffi_ir_free_partial(void) {
   n->variants =
       (cdd_ffi_enum_variant_t *)calloc(1, sizeof(cdd_ffi_enum_variant_t));
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 
@@ -353,7 +353,7 @@ TEST test_ffi_ir_c_toposort_dfs_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_ffi_ir_toposort_fail = 0;
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
 #endif
   PASS();
 }
@@ -393,7 +393,7 @@ TEST test_ffi_ir_c_toposort_oom(void) {
   g_cdd_ffi_ir_malloc_fail = 0;
 #endif
 
-  cdd_ffi_ir_free(&ir);
+  g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
   PASS();
 }
 

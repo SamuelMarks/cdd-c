@@ -380,14 +380,23 @@ cdd_c_error_t infer_buffer_size(expr_t *node, inferred_size_t *out_size) {
  * @brief Checks if an expression represents NULL or numeric 0.
  *
  * @param[in] node Target expression node.
- * @return CDD_C_ERROR_UNKNOWN if NULL or 0, CDD_C_SUCCESS otherwise.
+ * @param[out] out_is_zero Set to 1 if NULL or 0, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(expr_t *node) {
+C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(expr_t *node,
+                                                int *out_is_zero) {
+  if (!out_is_zero)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_zero = 0;
   if (node && node->type == 0 && node->tok && !node->next) {
-    if (node->tok->length == 4 && memcmp(node->tok->start, "NULL", 4) == 0)
-      return CDD_C_ERROR_UNKNOWN;
-    if (node->tok->length == 1 && node->tok->start[0] == '0')
-      return CDD_C_ERROR_UNKNOWN;
+    if (node->tok->length == 4 && memcmp(node->tok->start, "NULL", 4) == 0) {
+      *out_is_zero = 1;
+      return CDD_C_SUCCESS;
+    }
+    if (node->tok->length == 1 && node->tok->start[0] == '0') {
+      *out_is_zero = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -397,11 +406,14 @@ C_CDD_EXPORT cdd_c_error_t expr_is_null_or_zero(expr_t *node) {
  * transformation.
  *
  * @param[in] head Head of the expression AST list.
- * @return CDD_C_SUCCESS if none, CDD_C_ERROR_PARSE if uninferrable size,
- * CDD_C_ERROR_UNKNOWN if transformation needed.
+ * @param[out] out_needs Set to 1 if transformation needed, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
+C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head, int *out_needs) {
   size_t i;
+  if (!out_needs)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_needs = 0;
   while (head) {
     if (head->type == 1 || head->type == 5) {
       char name[128] = {0};
@@ -498,7 +510,9 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
               expr_t *arg = head->args[a_idx];
               inferred_size_t inf;
               cdd_c_error_t inf_rc;
-              if (expr_is_null_or_zero(arg) != CDD_C_SUCCESS)
+              int is_zero = 0;
+              g_cdd_last_alloc_err = expr_is_null_or_zero(arg, &is_zero);
+              if (is_zero)
                 continue;
               inf_rc = infer_buffer_size(arg, &inf);
               if (!inf.valid) {
@@ -508,19 +522,27 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head) {
             }
           }
         }
-        return CDD_C_ERROR_UNKNOWN;
+        *out_needs = 1;
+        return CDD_C_SUCCESS;
       }
       for (i = 0; i < head->num_args; i++) {
-        cdd_c_error_t err = check_needs_transform(head->args[i]);
-        if (err)
-          return err;
+        int sub_needs = 0;
+        g_cdd_last_alloc_err = check_needs_transform(head->args[i], &sub_needs);
+        if (sub_needs) {
+          *out_needs = 1;
+          return CDD_C_SUCCESS;
+        }
       }
     } else if (head->type == 2) {
-      cdd_c_error_t err = check_needs_transform(head->args[0]);
-      if (err)
-        return err;
+      int sub_needs = 0;
+      g_cdd_last_alloc_err = check_needs_transform(head->args[0], &sub_needs);
+      if (sub_needs) {
+        *out_needs = 1;
+        return CDD_C_SUCCESS;
+      }
     } else if (head->type == 3) {
-      return CDD_C_ERROR_UNKNOWN;
+      *out_needs = 1;
+      return CDD_C_SUCCESS;
     }
     head = head->next;
   }

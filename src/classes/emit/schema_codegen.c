@@ -85,7 +85,7 @@
   for (;;) {                                                                   \
     cdd_c_error_t err = (x);                                                   \
     if (err != 0) {                                                            \
-      struct_fields_free(&sf);                                                 \
+      g_cdd_last_alloc_err = struct_fields_free(&sf);                          \
       fclose(fp);                                                              \
       return err;                                                              \
     }                                                                          \
@@ -135,12 +135,14 @@ static cdd_c_error_t resolve_schema_c_name(const char *raw_name,
   char *san_name = NULL;
   int needs_san = 0;
 
-  cdd_json_object_get_string(s, "x-cdd-c-name", &c_name_ext);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_string(s, "x-cdd-c-name", &c_name_ext);
   if (c_name_ext && c_name_ext[0] != '\0') {
     CDD_STRCPY(out_name, 64, c_name_ext);
     return CDD_C_SUCCESS;
   }
-  c2s_needs_identifier_sanitization(raw_name, &needs_san);
+  g_cdd_last_alloc_err =
+      c2s_needs_identifier_sanitization(raw_name, &needs_san);
   if (needs_san) {
     if (sanitize_identifier(raw_name, &san_name) != CDD_C_SUCCESS)
       return CDD_C_ERROR_MEMORY;
@@ -234,7 +236,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
                           "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Pass 1: Forward Decls */
-  cdd_json_object_get_count(schemas_obj, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(schemas_obj, &count);
   for (i = 0; i < count; i++) {
     const char *raw_name = NULL;
     JSON_Value *val_at = NULL;
@@ -245,11 +247,12 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     JSON_Object *props = NULL;
     char c_name[64];
 
-    cdd_json_object_get_name(schemas_obj, i, &raw_name);
-    cdd_json_object_get_value_at(schemas_obj, i, &val_at);
-    cdd_json_value_get_object(val_at, &s);
-    cdd_json_object_get_string(s, "type", &type);
-    cdd_json_object_get_object(s, "properties", &props);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(schemas_obj, i, &raw_name);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_value_at(schemas_obj, i, &val_at);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &s);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(s, "type", &type);
+    g_cdd_last_alloc_err = cdd_json_object_get_object(s, "properties", &props);
 
     if (resolve_schema_c_name(raw_name, s, c_name) != CDD_C_SUCCESS) {
       fclose(fp);
@@ -262,7 +265,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
                                                 raw_name) != 0) {
-      struct_fields_free(&sf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
     }
@@ -273,13 +276,13 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     if (sf.is_union || is_object_schema) {
       F_CHECK_RC_TESTABLE_SF(write_forward_decl(fp, c_name));
     }
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
   }
   fprintf(fp, "\n");
 
   /* Pass 2: Definitions */
   count = 0;
-  cdd_json_object_get_count(schemas_obj, &count);
+  g_cdd_last_alloc_err = cdd_json_object_get_count(schemas_obj, &count);
   for (i = 0; i < count; i++) {
     const char *raw_name = NULL;
     JSON_Value *val_at = NULL;
@@ -290,11 +293,12 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     JSON_Object *props = NULL;
     char c_name[64];
 
-    cdd_json_object_get_name(schemas_obj, i, &raw_name);
-    cdd_json_object_get_value_at(schemas_obj, i, &val_at);
-    cdd_json_value_get_object(val_at, &s);
-    cdd_json_object_get_string(s, "type", &type);
-    cdd_json_object_get_object(s, "properties", &props);
+    g_cdd_last_alloc_err = cdd_json_object_get_name(schemas_obj, i, &raw_name);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_value_at(schemas_obj, i, &val_at);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &s);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(s, "type", &type);
+    g_cdd_last_alloc_err = cdd_json_object_get_object(s, "properties", &props);
 
     if (resolve_schema_c_name(raw_name, s, c_name) != CDD_C_SUCCESS) {
       fclose(fp);
@@ -307,7 +311,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
                                                 raw_name) != 0) {
-      struct_fields_free(&sf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
     }
@@ -329,7 +333,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
           write_struct_declaration_h(fp, c_name, &sf, config));
     }
 
-    struct_fields_free(&sf);
+    g_cdd_last_alloc_err = struct_fields_free(&sf);
   }
 
   F_CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
@@ -448,7 +452,7 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
 
   {
     size_t count = 0;
-    cdd_json_object_get_count(schemas_obj, &count);
+    g_cdd_last_alloc_err = cdd_json_object_get_count(schemas_obj, &count);
     for (i = 0; i < count; i++) {
       const char *raw_name = NULL;
       JSON_Value *val_at = NULL;
@@ -459,11 +463,14 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
       struct StructFields sf;
       int is_object_schema = 0;
 
-      cdd_json_object_get_name(schemas_obj, i, &raw_name);
-      cdd_json_object_get_value_at(schemas_obj, i, &val_at);
-      cdd_json_value_get_object(val_at, &s);
-      cdd_json_object_get_string(s, "type", &type);
-      cdd_json_object_get_object(s, "properties", &props);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_name(schemas_obj, i, &raw_name);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_value_at(schemas_obj, i, &val_at);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &s);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(s, "type", &type);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(s, "properties", &props);
 
       if (resolve_schema_c_name(raw_name, s, name) != CDD_C_SUCCESS) {
         fclose(fp);
@@ -476,7 +483,7 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
       }
       if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
                                                   raw_name) != 0) {
-        struct_fields_free(&sf);
+        g_cdd_last_alloc_err = struct_fields_free(&sf);
         fclose(fp);
         return CDD_C_ERROR_MEMORY; /* Parse error */
       }
@@ -529,7 +536,7 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
             write_struct_eq_func(fp, name, &sf, &struct_cfg));
       }
 
-      struct_fields_free(&sf);
+      g_cdd_last_alloc_err = struct_fields_free(&sf);
     }
   }
   fclose(fp);
@@ -564,45 +571,54 @@ cdd_c_error_t schema2code_main(int argc, char **argv) {
 
   for (i = 2; i < argc; ++i) {
     int starts = 0;
-    if ((str_starts_with(argv[i], "--guard-enum=", &starts), starts))
+    if ((g_cdd_last_alloc_err =
+             str_starts_with(argv[i], "--guard-enum=", &starts),
+         starts))
       config.enum_guard = argv[i] + 13;
-    else if ((str_starts_with(argv[i], "--guard-json=", &starts), starts))
+    else if ((g_cdd_last_alloc_err =
+                  str_starts_with(argv[i], "--guard-json=", &starts),
+              starts))
       config.json_guard = argv[i] + 13;
-    else if ((str_starts_with(argv[i], "--guard-utils=", &starts), starts))
+    else if ((g_cdd_last_alloc_err =
+                  str_starts_with(argv[i], "--guard-utils=", &starts),
+              starts))
       config.utils_guard = argv[i] + 14;
   }
 
-  cdd_json_parse_file(schema_file, &root);
+  g_cdd_last_alloc_err = cdd_json_parse_file(schema_file, &root);
   if (!root) {
     C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  cdd_json_value_get_object(root, &root_obj);
-  cdd_json_object_get_object(root_obj, "components", &schemas);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(root_obj, "components", &schemas);
   if (schemas)
-    cdd_json_object_get_object(schemas, "schemas", &schemas);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(schemas, "schemas", &schemas);
   if (!schemas)
-    cdd_json_object_get_object(root_obj, "$defs", &schemas);
+    g_cdd_last_alloc_err =
+        cdd_json_object_get_object(root_obj, "$defs", &schemas);
 
   if (!schemas) {
-    cdd_json_value_free(root);
+    g_cdd_last_alloc_err = cdd_json_value_free(root);
     C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
   if (generate_header(prefix, basename, schemas, &config) != 0) {
-    cdd_json_value_free(root);
+    g_cdd_last_alloc_err = cdd_json_value_free(root);
     C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
   if (generate_source(prefix, basename, schemas, &config) != 0) {
-    cdd_json_value_free(root);
+    g_cdd_last_alloc_err = cdd_json_value_free(root);
     C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  cdd_json_value_free(root);
+  g_cdd_last_alloc_err = cdd_json_value_free(root);
   C_CDD_FREE(basename);
   return CDD_C_SUCCESS;
 }

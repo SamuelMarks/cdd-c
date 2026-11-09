@@ -72,8 +72,9 @@ TEST test_client_gen_defined_schemas(void) {
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  read_to_file("build/test_out/src/test_client_gen_schemas_models.h", "r",
-               &content, &sz);
+  g_cdd_last_alloc_err =
+      read_to_file("build/test_out/src/test_client_gen_schemas_models.h", "r",
+                   &content, &sz);
   ASSERT(content != NULL);
   free(content);
 
@@ -352,12 +353,13 @@ TEST test_client_gen_mock_errors(void) {
 
   {
     struct OpenAPI_Parameter p_a, p_b;
+    int match = 0;
     memset(&p_a, 0, sizeof(p_a));
     memset(&p_b, 0, sizeof(p_b));
-    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, NULL));
-    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&p_a, NULL));
-    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, &p_b));
-    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&p_a, &p_b));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, NULL, &match));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&p_a, NULL, &match));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, &p_b, &match));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&p_a, &p_b, &match));
   }
 
   {
@@ -514,7 +516,7 @@ TEST test_client_gen_mock_errors(void) {
     doc_op2.operation_id = NULL;
     g_io_calls = 0;
     g_fail_io_after = 1;
-    write_docblock(devnull, NULL, &doc_op2);
+    g_cdd_last_alloc_err = write_docblock(devnull, NULL, &doc_op2);
     g_fail_io_after = -1;
 
     /* 8. IO fail on operation with operation_id */
@@ -522,7 +524,7 @@ TEST test_client_gen_mock_errors(void) {
     doc_op2.operation_id = cdd_test_mut_str("myOp");
     g_io_calls = 0;
     g_fail_io_after = 1;
-    write_docblock(devnull, NULL, &doc_op2);
+    g_cdd_last_alloc_err = write_docblock(devnull, NULL, &doc_op2);
     g_fail_io_after = -1;
 
     fclose(devnull);
@@ -679,7 +681,7 @@ TEST test_client_gen_mock_errors(void) {
     sf[0].serde_rename[0] = '\0';
     for (f_alloc = 12; f_alloc <= 20; ++f_alloc) {
       g_cdd_alloc_fail = f_alloc;
-      openapi_client_generate(&spec, &config);
+      g_cdd_last_alloc_err = openapi_client_generate(&spec, &config);
       g_cdd_alloc_fail = 0;
     }
     sf[0].serde_rename[0] = '\0';

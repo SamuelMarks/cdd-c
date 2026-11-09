@@ -74,12 +74,12 @@ TEST test_cdd_context_lifecycle_and_vtables(void) {
   ASSERT(ptr != NULL);
   ASSERT_EQ(CDD_C_SUCCESS, active->allocator.realloc_fn(ptr, 32, &ptr));
   ASSERT(ptr != NULL);
-  active->allocator.free_fn(ptr);
+  g_cdd_last_alloc_err = active->allocator.free_fn(ptr);
 
   ptr = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, active->allocator.calloc_fn(4, 4, &ptr));
   ASSERT(ptr != NULL);
-  active->allocator.free_fn(ptr);
+  g_cdd_last_alloc_err = active->allocator.free_fn(ptr);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             active->allocator.strdup_fn(NULL, &dup));
@@ -87,7 +87,7 @@ TEST test_cdd_context_lifecycle_and_vtables(void) {
             active->allocator.strdup_fn("hello", NULL));
   ASSERT_EQ(CDD_C_SUCCESS, active->allocator.strdup_fn("hello", &dup));
   ASSERT_STR_EQ("hello", dup);
-  active->allocator.free_fn(dup);
+  g_cdd_last_alloc_err = active->allocator.free_fn(dup);
 
   /* VFS VTable error and success paths */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, active->vfs.fopen_fn(NULL, "r", &fp));

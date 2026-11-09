@@ -113,7 +113,7 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
-  audit_stats_free(&stats);
+  g_cdd_last_alloc_err = audit_stats_free(&stats);
   return rc;
 }
 
@@ -201,7 +201,7 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   const char *env_val;
   const char *sug = NULL;
   int has_subcommand = 0;
-  int i;
+  int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
@@ -236,53 +236,42 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
     }
   }
 
-  for (i = 1; i < argc; i++) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      if (has_subcommand) {
-        printf("Usage: cdd-c from_openapi %s [args]\n\n", subcmd_str);
-        if (api_cfg.subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK) {
-          puts("Generate a C Client SDK from an OpenAPI specification.");
-        } else if (api_cfg.subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI) {
-          puts("Generate a C Client SDK CLI from an OpenAPI specification.");
-        } else {
-          puts("Generate a C Server stub from an OpenAPI specification.");
-        }
+  rc = cdd_cli_parse_reflected_argv(argc, argv, 1,
+                                    &cdd_from_openapi_config_type_info,
+                                    &api_cfg, &is_help, NULL);
+  if (is_help) {
+    if (has_subcommand) {
+      printf("Usage: cdd-c from_openapi %s [args]\n\n", subcmd_str);
+      if (api_cfg.subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK) {
+        puts("Generate a C Client SDK from an OpenAPI specification.");
+      } else if (api_cfg.subcommand == CDD_OPENAPI_SUBCOMMAND_TO_SDK_CLI) {
+        puts("Generate a C Client SDK CLI from an OpenAPI specification.");
       } else {
-        puts("Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]");
-        puts("");
-        puts("Commands:");
-        puts("  to_sdk         Generate a Client SDK from an OpenAPI "
-             "specification.");
-        puts("  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI "
-             "specification.");
-        puts("  to_server      Generate a Server stub from an OpenAPI "
-             "specification.");
+        puts("Generate a C Server stub from an OpenAPI specification.");
       }
+    } else {
+      puts("Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]");
       puts("");
-      puts("Options:");
-      puts("  -i, --input <spec.json>   Input OpenAPI spec file");
-      puts("  --input-dir <specs_dir>   Input directory containing OpenAPI "
-           "specs");
-      puts("  -o, --output <dir>        Output directory");
-      puts("  --no-github-actions       Do not generate GitHub Actions CI "
-           "workflow");
-      puts("  --no-installable-package  Do not generate build system files "
-           "(e.g. CMakeLists.txt)");
-      puts("  --tests                   Generate composable tests and mocks");
-      return rc;
-    } else if (cdd_reflect_find_field(&cdd_from_openapi_config_type_info, flag,
-                                      &f) == CDD_C_SUCCESS) {
-      if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
-        c_cdd_bool_t bval = CDD_TRUE;
-        memcpy((unsigned char *)&api_cfg + f->offset, &bval, sizeof(bval));
-      } else if (i + 1 < argc) {
-        const char *arg_val = argv[++i];
-        memcpy((unsigned char *)&api_cfg + f->offset, &arg_val,
-               sizeof(arg_val));
-      }
+      puts("Commands:");
+      puts("  to_sdk         Generate a Client SDK from an OpenAPI "
+           "specification.");
+      puts("  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI "
+           "specification.");
+      puts("  to_server      Generate a Server stub from an OpenAPI "
+           "specification.");
     }
+    puts("");
+    puts("Options:");
+    puts("  -i, --input <spec.json>   Input OpenAPI spec file");
+    puts("  --input-dir <specs_dir>   Input directory containing OpenAPI "
+         "specs");
+    puts("  -o, --output <dir>        Output directory");
+    puts("  --no-github-actions       Do not generate GitHub Actions CI "
+         "workflow");
+    puts("  --no-installable-package  Do not generate build system files "
+         "(e.g. CMakeLists.txt)");
+    puts("  --tests                   Generate composable tests and mocks");
+    return rc;
   }
 
   return cdd_generate_from_openapi(&api_cfg);
@@ -303,7 +292,7 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t api_cfg;
   const char *env_val;
   const char *sug = NULL;
-  int i;
+  int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
@@ -315,24 +304,17 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
     env_val = getenv("OUT_FILE");
   api_cfg.output = env_val ? env_val : "openapi.json";
 
-  for (i = 0; i < argc; i++) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c to_openapi [args]");
-      puts("");
-      puts("Options:");
-      puts(
-          "  -i, --input <dir>       Input directory containing C source code");
-      puts("  -o, --output <out.json> Output OpenAPI spec file (default: "
-           "openapi.json)");
-      return rc;
-    } else if (cdd_reflect_find_field(&cdd_to_openapi_config_type_info, flag,
-                                      &f) == CDD_C_SUCCESS &&
-               i + 1 < argc) {
-      const char *arg_val = argv[++i];
-      memcpy((unsigned char *)&api_cfg + f->offset, &arg_val, sizeof(arg_val));
-    }
+  rc = cdd_cli_parse_reflected_argv(argc, argv, 0,
+                                    &cdd_to_openapi_config_type_info, &api_cfg,
+                                    &is_help, NULL);
+  if (is_help) {
+    puts("Usage: cdd-c to_openapi [args]");
+    puts("");
+    puts("Options:");
+    puts("  -i, --input <dir>       Input directory containing C source code");
+    puts("  -o, --output <out.json> Output OpenAPI spec file (default: "
+         "openapi.json)");
+    return rc;
   }
 
   return cdd_generate_to_openapi(&api_cfg);
@@ -349,7 +331,7 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
   cdd_from_arazzo_config_t cfg;
   const char *sug = NULL;
-  int i;
+  int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
@@ -372,19 +354,12 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
     }
   }
 
-  for (i = 1; i < argc; ++i) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c from_arazzo [to_sdk|to_sdk_cli|to_server] -i "
-           "<arazzo.json> [-o <output>]");
-      return rc;
-    } else if ((cdd_reflect_find_field(&cdd_from_arazzo_config_type_info, flag,
-                                       &f) == CDD_C_SUCCESS) &
-               (i + 1 < argc)) {
-      const char *arg_val = argv[++i];
-      memcpy((unsigned char *)&cfg + f->offset, &arg_val, sizeof(arg_val));
-    }
+  rc = cdd_cli_parse_reflected_argv(
+      argc, argv, 1, &cdd_from_arazzo_config_type_info, &cfg, &is_help, NULL);
+  if (is_help) {
+    puts("Usage: cdd-c from_arazzo [to_sdk|to_sdk_cli|to_server] -i "
+         "<arazzo.json> [-o <output>]");
+    return rc;
   }
 
   return cdd_generate_from_arazzo(&cfg);
@@ -399,13 +374,15 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
  * @return `CDD_C_SUCCESS` on success, or error code on failure.
  */
 C_CDD_EXPORT cdd_c_error_t to_arazzo_cli_main(int argc, char **argv) {
-  int i;
-  for (i = 0; i < argc; ++i) {
-    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c to_arazzo -i <dir_or_file> [-o <arazzo.json>] "
-           "[--self <uri>]");
-      return CDD_C_SUCCESS;
-    }
+  cdd_to_arazzo_config_t cfg;
+  int is_help = 0;
+  memset(&cfg, 0, sizeof(cfg));
+  g_cdd_last_alloc_err = cdd_cli_parse_reflected_argv(
+      argc, argv, 0, &cdd_to_arazzo_config_type_info, &cfg, &is_help, NULL);
+  if (is_help) {
+    puts("Usage: cdd-c to_arazzo -i <dir_or_file> [-o <arazzo.json>] "
+         "[--self <uri>]");
+    return CDD_C_SUCCESS;
   }
   return c2arazzo_cli_main(argc, argv);
 }

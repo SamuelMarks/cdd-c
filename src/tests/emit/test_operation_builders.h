@@ -604,13 +604,13 @@ TEST test_operation_all_null_and_boundary_checks(void) {
   /* any_from_json_value */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("123", &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string("123", &_cdd_jv_1);
     jv = _cdd_jv_1;
   }
   ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(NULL, &any_val));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, any_from_json_value(jv, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, any_from_json_value(NULL, NULL));
-  json_value_free(jv);
+  g_cdd_last_alloc_err = json_value_free(jv);
 
   /* parse_link_params_json */
   ASSERT_EQ(CDD_C_SUCCESS, parse_link_params_json(NULL, &lp, &count));

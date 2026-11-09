@@ -158,7 +158,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
     dserver.variables = &svar;
     dserver.n_variables = 1;
     ASSERT_EQ(CDD_C_SUCCESS, copy_doc_server_variables_op(&srv, &dserver));
-    free_openapi_server_variables_op(&srv);
+    g_cdd_last_alloc_err = free_openapi_server_variables_op(&srv);
   }
 
   /* Case 20: apply_example_to_response with mt->example_set == 1 and
@@ -177,7 +177,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
 
     resp.n_content_media_types = 0;
     ASSERT_EQ(CDD_C_SUCCESS, apply_example_to_response(&resp, "ex", NULL));
-    free_any_value_local(&resp.example);
+    g_cdd_last_alloc_err = free_any_value_local(&resp.example);
   }
 
   /* Case 21: schema_ref_has_data_basic empty strings */
@@ -415,9 +415,9 @@ TEST test_operation_100_percent_coverage_part3(void) {
     memset(&test_enc, 0, sizeof(test_enc));
     test_enc.name = (char *)malloc(10);
     test_enc.content_type = (char *)malloc(10);
-    free_encoding_fields(&test_enc);
-    free_encoding_fields(&test_enc);
-    free_encoding_fields(NULL);
+    g_cdd_last_alloc_err = free_encoding_fields(&test_enc);
+    g_cdd_last_alloc_err = free_encoding_fields(&test_enc);
+    g_cdd_last_alloc_err = free_encoding_fields(NULL);
   }
 
   /* Case 31: add_header_to_response existing header with type == NULL and

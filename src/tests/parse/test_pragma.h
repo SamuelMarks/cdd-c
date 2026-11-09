@@ -41,7 +41,7 @@ TEST test_tokenize_pragma_op(void) {
   ASSERT_EQ(TOKEN_STRING_LITERAL, tl->tokens[2].kind);
   ASSERT_EQ(TOKEN_RPAREN, tl->tokens[3].kind);
 
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -53,7 +53,8 @@ TEST test_tokenize_pragma_op(void) {
  */
 TEST test_destringize_basic(void) {
   char *_ast_destringize_0 = NULL;
-  char *res = (c_cdd_destringize("\"simple\"", &_ast_destringize_0),
+  char *res = (g_cdd_last_alloc_err =
+                   c_cdd_destringize("\"simple\"", &_ast_destringize_0),
                _ast_destringize_0);
   ASSERT(res);
   ASSERT_STR_EQ("simple", res);
@@ -72,7 +73,8 @@ TEST test_destringize_escaped_quote(void) {
   /* "foo\"bar" -> foo"bar */
   const char *input = "\"foo\\\"bar\"";
   char *res =
-      (c_cdd_destringize(input, &_ast_destringize_1), _ast_destringize_1);
+      (g_cdd_last_alloc_err = c_cdd_destringize(input, &_ast_destringize_1),
+       _ast_destringize_1);
   ASSERT(res);
   ASSERT_STR_EQ("foo\"bar", res);
   free(res);
@@ -90,7 +92,8 @@ TEST test_destringize_escaped_backslash(void) {
   /* "path\\to" -> path\to */
   const char *input = "\"path\\\\to\"";
   char *res =
-      (c_cdd_destringize(input, &_ast_destringize_2), _ast_destringize_2);
+      (g_cdd_last_alloc_err = c_cdd_destringize(input, &_ast_destringize_2),
+       _ast_destringize_2);
   ASSERT(res);
   ASSERT_STR_EQ("path\\to", res);
   free(res);
@@ -106,8 +109,9 @@ TEST test_destringize_escaped_backslash(void) {
 TEST test_destringize_wide_literal(void) {
   char *_ast_destringize_3 = NULL;
   /* L"wide" -> wide */
-  char *res =
-      (c_cdd_destringize("L\"wide\"", &_ast_destringize_3), _ast_destringize_3);
+  char *res = (g_cdd_last_alloc_err =
+                   c_cdd_destringize("L\"wide\"", &_ast_destringize_3),
+               _ast_destringize_3);
   ASSERT(res);
   ASSERT_STR_EQ("wide", res);
   free(res);
@@ -152,7 +156,8 @@ TEST test_destringize_mixed(void) {
   */
   const char *input = "\"a\\\\\\\"b\""; /* C string: "a\\\"b" */
   char *res =
-      (c_cdd_destringize(input, &_ast_destringize_4), _ast_destringize_4);
+      (g_cdd_last_alloc_err = c_cdd_destringize(input, &_ast_destringize_4),
+       _ast_destringize_4);
 
   ASSERT(res);
   ASSERT_STR_EQ("a\\\"b", res); /* C String comparison: a\"b */
@@ -174,18 +179,23 @@ TEST test_destringize_invalids(void) {
   char *_ast_destringize_9 = NULL;
   char *empty = NULL;
 
-  ASSERT_EQ(NULL,
-            (c_cdd_destringize(NULL, &_ast_destringize_5), _ast_destringize_5));
-  ASSERT_EQ(NULL, (c_cdd_destringize("unquoted", &_ast_destringize_6),
+  ASSERT_EQ(NULL, (g_cdd_last_alloc_err =
+                       c_cdd_destringize(NULL, &_ast_destringize_5),
+                   _ast_destringize_5));
+  ASSERT_EQ(NULL, (g_cdd_last_alloc_err =
+                       c_cdd_destringize("unquoted", &_ast_destringize_6),
                    _ast_destringize_6));
-  ASSERT_EQ(NULL,
-            (c_cdd_destringize("'c'", &_ast_destringize_7),
-             _ast_destringize_7)); /* Char literal not supported by this */
-  ASSERT_EQ(NULL, (c_cdd_destringize("L\"", &_ast_destringize_8),
+  ASSERT_EQ(
+      NULL,
+      (g_cdd_last_alloc_err = c_cdd_destringize("'c'", &_ast_destringize_7),
+       _ast_destringize_7)); /* Char literal not supported by this */
+  ASSERT_EQ(NULL, (g_cdd_last_alloc_err =
+                       c_cdd_destringize("L\"", &_ast_destringize_8),
                    _ast_destringize_8));
   ASSERT_EQ(NULL,
-            (c_cdd_destringize("L", &_ast_destringize_9), _ast_destringize_9));
-  c_cdd_destringize("\"\"", &empty);
+            (g_cdd_last_alloc_err = c_cdd_destringize("L", &_ast_destringize_9),
+             _ast_destringize_9));
+  g_cdd_last_alloc_err = c_cdd_destringize("\"\"", &empty);
   ASSERT_EQ(0, strlen(empty));
   free(empty);
   g_fail_io_after = -1;

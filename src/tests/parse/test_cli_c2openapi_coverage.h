@@ -212,9 +212,9 @@ TEST test_c2openapi_full_coverage_100(void) {
             map_doc_flow_type((enum DocOAuthFlowType)999, &flow_type));
 
   /* 8. free_openapi_server_variables */
-  free_openapi_server_variables(NULL);
+  g_cdd_last_alloc_err = free_openapi_server_variables(NULL);
   memset(&srv, 0, sizeof(srv));
-  free_openapi_server_variables(&srv);
+  g_cdd_last_alloc_err = free_openapi_server_variables(&srv);
 
   /* 9. copy_doc_server_variables */
   memset(&srv, 0, sizeof(srv));
@@ -442,7 +442,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_sec.n_flows = 0;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             spec_add_security_scheme(&spec, &doc_sec));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 14. apply_doc_security_schemes */
   memset(&spec, 0, sizeof(spec));
@@ -457,7 +457,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, apply_doc_security_schemes(&spec, &meta));
   g_cdd_strdup_fail = 0;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 15. append_root_security */
   memset(&spec, 0, sizeof(spec));
@@ -487,7 +487,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, append_root_security(&spec, &meta));
   g_cdd_strdup_fail = 0;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 16. append_root_servers */
   memset(&spec, 0, sizeof(spec));
@@ -512,7 +512,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 3;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, append_root_servers(&spec, &meta));
   g_cdd_strdup_fail = 0;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 17. apply_doc_global_meta */
   memset(&spec, 0, sizeof(spec));
@@ -530,7 +530,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   meta.license_identifier = NULL;
   meta.license_url = cdd_test_mut_str("http://lic");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, apply_doc_global_meta(&spec, &meta));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* externalDocs url conflict */
   memset(&spec, 0, sizeof(spec));
@@ -539,7 +539,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
   meta.external_docs_url = cdd_test_mut_str("http://docs2");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, apply_doc_global_meta(&spec, &meta));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 18. spec_apply_tag_meta */
   memset(&spec, 0, sizeof(spec));
@@ -558,7 +558,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, &doc_tag));
   /* apply second time: all fields already populated */
   ASSERT_EQ(CDD_C_SUCCESS, spec_apply_tag_meta(&spec, &doc_tag));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 19. apply_doc_tag_meta */
   memset(&spec, 0, sizeof(spec));
@@ -589,7 +589,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, collect_tags_from_paths(&spec, &path, 1));
   g_cdd_strdup_fail = 0;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 21. parse_c_signature_string edge cases */
   memset(&psig, 0, sizeof(psig));
@@ -608,7 +608,7 @@ TEST test_c2openapi_full_coverage_100(void) {
             parse_c_signature_string("void foo(int a, int b)", &psig));
   g_cdd_alloc_fail = 0;
   /* free_parsed_sig NULL */
-  free_parsed_sig(NULL);
+  g_cdd_last_alloc_err = free_parsed_sig(NULL);
 
   /* 22. process_file */
   memset(&spec, 0, sizeof(spec));
@@ -661,7 +661,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, apply_doc_global_meta(&spec, &meta));
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 31. merge_scopes with NULL scope name in dst */
@@ -726,7 +726,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_flow.type = DOC_OAUTH_FLOW_CLIENT_CREDENTIALS;
   doc_flow.token_url = cdd_test_mut_str("http://token");
   ASSERT_EQ(CDD_C_SUCCESS, spec_add_security_scheme(&spec, &doc_sec));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 34. append_root_security with NULL scheme and NULL scope */
   memset(&spec, 0, sizeof(spec));
@@ -739,7 +739,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_req.scopes = req_scopes;
   req_scopes[0] = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, append_root_security(&spec, &meta));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 35. append_root_servers with NULL fields and vrc failure */
   memset(&spec, 0, sizeof(spec));
@@ -762,7 +762,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   doc_srv.description = NULL;
   doc_srv.n_variables = 0;
   ASSERT_EQ(CDD_C_SUCCESS, append_root_servers(&spec, &meta));
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 36. apply_doc_global_meta license & ext docs */
   memset(&spec, 0, sizeof(spec));
@@ -773,7 +773,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   meta.license_identifier = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
   spec.info.license.name = NULL; /* avoid double free */
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* ext docs description when url already set */
   memset(&spec, 0, sizeof(spec));
@@ -783,7 +783,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   meta.external_docs_description = cdd_test_mut_str("New Desc");
   ASSERT_EQ(CDD_C_SUCCESS, apply_doc_global_meta(&spec, &meta));
   spec.external_docs.url = NULL;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 37. spec_apply_tag_meta */
   memset(&spec, 0, sizeof(spec));
@@ -805,7 +805,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_apply_tag_meta(&spec, &doc_tag));
   g_cdd_strdup_fail = 0;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
   /* 38. collect_spec_tags with paths and webhooks failure */
   memset(&spec, 0, sizeof(spec));
@@ -834,7 +834,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   /* 39. parse_c_signature_string empty parens and arg cleanup */
   memset(&psig, 0, sizeof(psig));
   ASSERT_EQ(CDD_C_SUCCESS, parse_c_signature_string("void foo()", &psig));
-  free_parsed_sig(&psig);
+  g_cdd_last_alloc_err = free_parsed_sig(&psig);
   g_cdd_alloc_fail = 5;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             parse_c_signature_string("void foo(int a, int b)", &psig));
@@ -915,7 +915,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     ASSERT_EQ(CDD_C_SUCCESS, c2openapi_register_types(&spec, &types));
 
     free(types.items);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 44. process_file error in function doc comment via title conflict */
@@ -930,7 +930,7 @@ TEST test_c2openapi_full_coverage_100(void) {
       spec.info.title = c_cdd_strdup_macro("DocTitleExisting");
       rc = process_file(fpath, &spec);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
       remove(fpath);
     }
   }
@@ -946,7 +946,7 @@ TEST test_c2openapi_full_coverage_100(void) {
       spec.info.title = c_cdd_strdup_macro("DocTitleExisting");
       rc = process_file(fpath, &spec);
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
       remove(fpath);
     }
   }
@@ -960,7 +960,7 @@ TEST test_c2openapi_full_coverage_100(void) {
       fclose(fp);
       memset(&spec, 0, sizeof(spec));
       ASSERT_EQ(CDD_C_SUCCESS, process_file(fpath, &spec));
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
       remove(fpath);
     }
   }
@@ -996,9 +996,9 @@ TEST test_c2openapi_full_coverage_100(void) {
   {
     struct TypeDefList types;
     struct EnumMembers em;
-    enum_members_init(&em);
-    enum_members_add(&em, "VAL1");
-    enum_members_add(&em, "VAL2");
+    g_cdd_last_alloc_err = enum_members_init(&em);
+    g_cdd_last_alloc_err = enum_members_add(&em, "VAL1");
+    g_cdd_last_alloc_err = enum_members_add(&em, "VAL2");
 
     memset(&types, 0, sizeof(types));
     types.items =
@@ -1014,8 +1014,8 @@ TEST test_c2openapi_full_coverage_100(void) {
     ASSERT_EQ(1, spec.n_defined_schemas);
 
     free(types.items);
-    enum_members_free(&em);
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = enum_members_free(&em);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
   }
 
   /* 50. Additional branch coverage across modules */
@@ -1026,7 +1026,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, spec_add_tag(&spec, "tag2"));
     g_cdd_strdup_fail = 0;
-    openapi_spec_free(&spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
     /* cli.c: c2openapi_generate config->input == NULL and config->output ==
      * NULL */
@@ -1052,8 +1052,8 @@ TEST test_c2openapi_full_coverage_100(void) {
 #else
       setenv("CDD_OUTPUT", "build/dummy_out.json", 1);
 #endif
-      to_docs_json_cli_main(2, d_argv);
-      to_docs_json_cli_main(3, d_argv);
+      g_cdd_last_alloc_err = to_docs_json_cli_main(2, d_argv);
+      g_cdd_last_alloc_err = to_docs_json_cli_main(3, d_argv);
 #if defined(_MSC_VER)
       _putenv_s("CDD_OUTPUT", "");
 #elif defined(_WIN32)
@@ -1071,25 +1071,25 @@ TEST test_c2openapi_full_coverage_100(void) {
       extern C_CDD_EXPORT int g_initializer_fail_skip_ws;
       struct TokenList *tl = NULL;
       struct InitList il;
-      init_list_init(&il);
+      g_cdd_last_alloc_err = init_list_init(&il);
       if (tokenize(az_span_create_from_str("{ 1 }"), &tl) == CDD_C_SUCCESS &&
           tl) {
         g_initializer_fail_skip_ws = 3;
-        parse_initializer(tl, 0, tl->size, &il, NULL);
+        g_cdd_last_alloc_err = parse_initializer(tl, 0, tl->size, &il, NULL);
         g_initializer_fail_skip_ws = 0;
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
       }
-      init_list_free(&il);
-      init_list_init(&il);
+      g_cdd_last_alloc_err = init_list_free(&il);
+      g_cdd_last_alloc_err = init_list_init(&il);
       if (tokenize(az_span_create_from_str("{ .a = 1 }"), &tl) ==
               CDD_C_SUCCESS &&
           tl) {
         g_initializer_fail_skip_ws = 3;
-        parse_initializer(tl, 0, tl->size, &il, NULL);
+        g_cdd_last_alloc_err = parse_initializer(tl, 0, tl->size, &il, NULL);
         g_initializer_fail_skip_ws = 0;
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
       }
-      init_list_free(&il);
+      g_cdd_last_alloc_err = init_list_free(&il);
     }
 
     /* tokenizer.c: UCN at EOF ("\\u", "a\\u") and digit separator at EOF
@@ -1098,17 +1098,17 @@ TEST test_c2openapi_full_coverage_100(void) {
       struct TokenList *tl = NULL;
       if (tokenize(az_span_create_from_str("\\u"), &tl) == CDD_C_SUCCESS &&
           tl) {
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         tl = NULL;
       }
       if (tokenize(az_span_create_from_str("a\\u"), &tl) == CDD_C_SUCCESS &&
           tl) {
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         tl = NULL;
       }
       if (tokenize(az_span_create_from_str("123'"), &tl) == CDD_C_SUCCESS &&
           tl) {
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         tl = NULL;
       }
     }
@@ -1121,14 +1121,14 @@ TEST test_c2openapi_full_coverage_100(void) {
       const JSON_Object *jo = NULL;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_value_init_object(&_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_value_init_object(&_cdd_jv_1);
         jv = _cdd_jv_1;
       }
       jo = json_value_get_object(jv);
       memset(&spec, 0, sizeof(spec));
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                 register_inline_schema(&spec, NULL, jo, jv, &out_name));
-      json_value_free(jv);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
 
     /* openapi_schemas.c: parse_schema_constraints pattern strdup fail when
@@ -1142,9 +1142,10 @@ TEST test_c2openapi_full_coverage_100(void) {
       int ex_set = 0;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("{\"type\":\"string\",\"example\":\"abc\","
-                              "\"pattern\":\"^[a-z]+$\"}",
-                              &_cdd_jv_1);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string("{\"type\":\"string\",\"example\":\"abc\","
+                                  "\"pattern\":\"^[a-z]+$\"}",
+                                  &_cdd_jv_1);
         jv = _cdd_jv_1;
       }
       jo = json_value_get_object(jv);
@@ -1161,7 +1162,7 @@ TEST test_c2openapi_full_coverage_100(void) {
       g_cdd_strdup_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_schema_constraints(jo, &tgt));
       g_cdd_strdup_fail = 0;
-      json_value_free(jv);
+      g_cdd_last_alloc_err = json_value_free(jv);
     }
 
     /* code2schema.c & code2schema_parser.c: 64-char identifier, union comments,
@@ -1183,21 +1184,21 @@ TEST test_c2openapi_full_coverage_100(void) {
       }
       c2s_argv[0] = cdd_test_mut_str(c2s_in);
       c2s_argv[1] = cdd_test_mut_str(c2s_out);
-      code2schema_main(2, c2s_argv);
+      g_cdd_last_alloc_err = code2schema_main(2, c2s_argv);
 
       fp = fopen(c2s_in, "w");
       if (fp) {
         fputs("union U2 { int a", fp);
         fclose(fp);
       }
-      code2schema_main(2, c2s_argv);
+      g_cdd_last_alloc_err = code2schema_main(2, c2s_argv);
 
       fp = fopen(c2s_in, "w");
       if (fp) {
         fputs("struct NamedUnclosed { int a", fp);
         fclose(fp);
       }
-      code2schema_main(2, c2s_argv);
+      g_cdd_last_alloc_err = code2schema_main(2, c2s_argv);
 
       remove(c2s_in);
       remove(c2s_out);
@@ -1210,22 +1211,22 @@ TEST test_c2openapi_full_coverage_100(void) {
       struct OpenAPI_Any any_out;
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("[1,2]", &_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_parse_string("[1,2]", &_cdd_jv_1);
         arr_v = _cdd_jv_1;
       }
       {
         JSON_Value *_cdd_jv_1 = NULL;
-        cdd_json_parse_string("{\"a\":1}", &_cdd_jv_1);
+        g_cdd_last_alloc_err = cdd_json_parse_string("{\"a\":1}", &_cdd_jv_1);
         obj_v = _cdd_jv_1;
       }
       memset(&any_out, 0, sizeof(any_out));
       ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(arr_v, &any_out));
-      free_any_value(&any_out);
+      g_cdd_last_alloc_err = free_any_value(&any_out);
       memset(&any_out, 0, sizeof(any_out));
       ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(obj_v, &any_out));
-      free_any_value(&any_out);
-      json_value_free(arr_v);
-      json_value_free(obj_v);
+      g_cdd_last_alloc_err = free_any_value(&any_out);
+      g_cdd_last_alloc_err = json_value_free(arr_v);
+      g_cdd_last_alloc_err = json_value_free(obj_v);
     }
 
     /* operation_response.c: add_link_to_response when dl->server_url != NULL &&
@@ -1240,7 +1241,7 @@ TEST test_c2openapi_full_coverage_100(void) {
       dl.server_url = cdd_test_mut_str("https://api.example.com");
       dl.server_description = NULL;
       ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
-      free_response(&resp);
+      g_cdd_last_alloc_err = free_response(&resp);
     }
 
     /* cli.c: process_file when c2openapi_build_operation or aggregator fails */
@@ -1265,22 +1266,22 @@ TEST test_c2openapi_full_coverage_100(void) {
       }
       memset(&spec, 0, sizeof(spec));
       g_cdd_aggregator_fail_path_realloc = 1;
-      process_file(pf_in, &spec);
+      g_cdd_last_alloc_err = process_file(pf_in, &spec);
       g_cdd_aggregator_fail_path_realloc = 0;
-      openapi_spec_free(&spec);
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
 
       for (k = 1; k <= 30; ++k) {
         memset(&spec, 0, sizeof(spec));
         g_cdd_strdup_fail = k;
-        process_file(pf_in, &spec);
+        g_cdd_last_alloc_err = process_file(pf_in, &spec);
         g_cdd_strdup_fail = 0;
-        openapi_spec_free(&spec);
+        g_cdd_last_alloc_err = openapi_spec_free(&spec);
       }
       remove(pf_in);
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

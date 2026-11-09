@@ -140,23 +140,24 @@ TEST test_operation_100_percent_coverage(void) {
   /* 3. any_from_json_value */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_value_init_null(&_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_value_init_null(&_cdd_jv_1);
     val_null = _cdd_jv_1;
   }
   ASSERT_EQ(CDD_C_SUCCESS, any_from_json_value(val_null, &any));
   ASSERT_EQ(OA_ANY_NULL, any.type);
-  json_value_free(val_null);
+  g_cdd_last_alloc_err = json_value_free(val_null);
 
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"key\": \"value\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"key\": \"value\"}", &_cdd_jv_1);
     val_obj = _cdd_jv_1;
   }
   ASSERT(val_obj != NULL);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(val_obj, &any));
   g_cdd_strdup_fail = 0;
-  json_value_free(val_obj);
+  g_cdd_last_alloc_err = json_value_free(val_obj);
 
   /* 4. parse_link_params_json calloc OOM */
   g_cdd_alloc_fail = 1;
@@ -319,14 +320,15 @@ TEST test_operation_100_percent_coverage(void) {
   /* 17. any_from_json_value json_serialize failure (line 106) */
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string("{\"key\": \"value\"}", &_cdd_jv_1);
+    g_cdd_last_alloc_err =
+        cdd_json_parse_string("{\"key\": \"value\"}", &_cdd_jv_1);
     val_obj = _cdd_jv_1;
   }
   ASSERT(val_obj != NULL);
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, any_from_json_value(val_obj, &any));
   g_cdd_strdup_fail = 0;
-  json_value_free(val_obj);
+  g_cdd_last_alloc_err = json_value_free(val_obj);
 
   /* 19. add_header_to_response existing header content_type OOM (line 667) &
    * loop exit (line 676) */
@@ -362,8 +364,8 @@ TEST test_operation_100_percent_coverage(void) {
   ASSERT_EQ(CDD_C_SUCCESS, add_link_to_response(&resp, &dl));
   /* Duplicate link name (hits line 854) */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
-  cleanup_link_fields(&resp.links[0]);
-  cleanup_link_fields(&resp.links[1]);
+  g_cdd_last_alloc_err = cleanup_link_fields(&resp.links[0]);
+  g_cdd_last_alloc_err = cleanup_link_fields(&resp.links[1]);
   free(resp.links);
   resp.links = NULL;
   resp.n_links = 0;

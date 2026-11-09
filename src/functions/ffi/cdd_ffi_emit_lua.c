@@ -138,13 +138,13 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  typedef struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
-        get_luajit_c_type(node->fields[j].type, &ftype);
+        g_cdd_last_alloc_err = get_luajit_c_type(node->fields[j].type, &ftype);
         if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
           fprintf(f, "    struct %s %s;\n", ftype, fname);
         } else {
@@ -153,7 +153,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "  } %s;\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "  enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -169,12 +169,13 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "  };\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_lt = NULL;
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      get_luajit_c_type(node->return_or_base_type, &ret_lt);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err =
+          get_luajit_c_type(node->return_or_base_type, &ret_lt);
       fprintf(f, "  %s %s(", ret_lt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *lt = NULL;
-        get_luajit_c_type(node->fields[j].type, &lt);
+        g_cdd_last_alloc_err = get_luajit_c_type(node->fields[j].type, &lt);
         fprintf(f, "%s %s", lt,
                 node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1)
@@ -195,7 +196,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       if (node->doc)
         fprintf(f, "-- %s\n", node->doc);
       fprintf(f, "function M.%s(", node->name);

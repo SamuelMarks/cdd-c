@@ -29,7 +29,7 @@ TEST test_dsl_tokenizer_comments(void) {
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_WHITESPACE, list.tokens[1].kind, "%d");
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_COMMENT_BLOCK, list.tokens[2].kind, "%d");
 
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
   PASS();
 }
 
@@ -47,7 +47,7 @@ TEST test_dsl_tokenizer_escapes(void) {
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_ESCAPE_WS, list.tokens[0].kind, "%d");
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_STRING, list.tokens[1].kind, "%d");
 
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
   PASS();
 }
 

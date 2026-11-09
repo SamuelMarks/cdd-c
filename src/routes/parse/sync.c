@@ -393,7 +393,7 @@ static cdd_c_error_t apply_updates(const char *filename,
 
       rc = find_function_node(cst, tokens, func_name, &node);
       if (rc != CDD_C_SUCCESS) {
-        patch_list_free(&patches);
+        g_cdd_last_alloc_err = patch_list_free(&patches);
         return rc;
       }
 
@@ -415,14 +415,14 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = generate_expected_sig(op, cfg, &expected_sig);
         if (rc != CDD_C_SUCCESS) {
-          patch_list_free(&patches);
+          g_cdd_last_alloc_err = patch_list_free(&patches);
           return rc;
         }
 
         rc = extract_current_sig(tokens, node, &sig_end_idx, &actual_sig);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(expected_sig);
-          patch_list_free(&patches);
+          g_cdd_last_alloc_err = patch_list_free(&patches);
           return rc;
         }
 
@@ -433,7 +433,7 @@ static cdd_c_error_t apply_updates(const char *filename,
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(expected_sig);
               C_CDD_FREE(actual_sig);
-              patch_list_free(&patches);
+              g_cdd_last_alloc_err = patch_list_free(&patches);
               return rc;
             }
             rc = patch_list_add(&patches, node->start_token, sig_end_idx,
@@ -441,7 +441,7 @@ static cdd_c_error_t apply_updates(const char *filename,
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(expected_sig);
               C_CDD_FREE(actual_sig);
-              patch_list_free(&patches);
+              g_cdd_last_alloc_err = patch_list_free(&patches);
               return rc;
             }
           }
@@ -451,13 +451,13 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = apply_query_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
-          patch_list_free(&patches);
+          g_cdd_last_alloc_err = patch_list_free(&patches);
           return rc;
         }
 
         rc = apply_header_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
-          patch_list_free(&patches);
+          g_cdd_last_alloc_err = patch_list_free(&patches);
           return rc;
         }
 
@@ -501,13 +501,13 @@ static cdd_c_error_t apply_updates(const char *filename,
               char *new_block = NULL;
               rc = generate_expected_url(p->route, op, cfg, &new_block);
               if (rc != CDD_C_SUCCESS) {
-                patch_list_free(&patches);
+                g_cdd_last_alloc_err = patch_list_free(&patches);
                 return rc;
               }
               rc = patch_list_add(&patches, asprintf_idx, stmt_end_idx,
                                   new_block);
               if (rc != CDD_C_SUCCESS) {
-                patch_list_free(&patches);
+                g_cdd_last_alloc_err = patch_list_free(&patches);
                 return rc;
               }
             }
@@ -518,7 +518,7 @@ static cdd_c_error_t apply_updates(const char *filename,
   }
 
   rc = patch_list_apply(&patches, tokens, &result);
-  patch_list_free(&patches);
+  g_cdd_last_alloc_err = patch_list_free(&patches);
 
   if (rc == CDD_C_SUCCESS) {
     FILE *f = NULL;
@@ -593,15 +593,15 @@ cdd_c_error_t api_sync_file(const char *filename,
 
   rc = parse_tokens(tokens, &cst);
   if (rc != CDD_C_SUCCESS) {
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = free_token_list(tokens);
     C_CDD_FREE(content);
     return rc;
   }
 
   rc = apply_updates(filename, tokens, &cst, spec, cfg);
 
-  free_cst_node_list(&cst);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   C_CDD_FREE(content);
 
   return rc;

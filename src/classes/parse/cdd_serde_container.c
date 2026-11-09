@@ -329,7 +329,7 @@ cdd_c_error_t cdd_serde_parse_enum_comment(const char *comment_text,
   memset(&tmp_sf, 0, sizeof(tmp_sf));
   rc = cdd_serde_parse_container_comment(comment_text, &tmp_sf);
   if (rc != CDD_C_SUCCESS) {
-    struct_fields_free(&tmp_sf);
+    g_cdd_last_alloc_err = struct_fields_free(&tmp_sf);
     return rc;
   }
 
@@ -356,6 +356,6 @@ cdd_c_error_t cdd_serde_parse_enum_comment(const char *comment_text,
   }
   if (tmp_sf.serde_untagged)
     em->serde_untagged = 1;
-  struct_fields_free(&tmp_sf);
+  g_cdd_last_alloc_err = struct_fields_free(&tmp_sf);
   return rc;
 }

@@ -77,7 +77,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
     CDD_SNPRINTF(erl_module_name, sizeof(erl_module_name), "%s",
                  config->module_name);
   } else {
-    snake_case_name(lib_name, erl_module_name, sizeof(erl_module_name));
+    g_cdd_last_alloc_err =
+        snake_case_name(lib_name, erl_module_name, sizeof(erl_module_name));
   }
 
 #if defined(_MSC_VER)
@@ -191,7 +192,7 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
       has_functions = 1;
       fprintf(c_f,
               "static ERL_NIF_TERM nif_%s(ErlNifEnv* env, int argc, const "
@@ -335,8 +336,9 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(c_f, node->leading_trivia);
-      snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+      g_cdd_last_alloc_err =
+          snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(c_f, "    {\"%s\", %lu, nif_%s, 0},\n", snake_node_name,
               (unsigned long)node->fields_count, node->name);
     }
@@ -379,10 +381,11 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(erl_f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(erl_f, node->leading_trivia);
       if (has_functions)
         fprintf(erl_f, ",\n");
-      snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
+      g_cdd_last_alloc_err =
+          snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(erl_f, "    %s/%lu", snake_node_name,
               (unsigned long)node->fields_count);
       has_functions = 1;
@@ -413,8 +416,9 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(erl_f, node->leading_trivia);
-      snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(erl_f, node->leading_trivia);
+      g_cdd_last_alloc_err =
+          snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(erl_f, "%s(", snake_node_name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(erl_f, "%s_Arg%lu", j > 0 ? ", " : "", (unsigned long)j);

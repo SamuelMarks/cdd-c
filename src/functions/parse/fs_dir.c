@@ -175,7 +175,7 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
-  c_cdd_strdup(path, &dup_path);
+  g_cdd_last_alloc_err = c_cdd_strdup(path, &dup_path);
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

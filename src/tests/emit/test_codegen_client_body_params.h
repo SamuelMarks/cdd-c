@@ -133,7 +133,7 @@ TEST test_client_body_direct_part_headers_and_form_edge_cases(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_multipart_part_headers(fp, &enc);
+      g_cdd_last_alloc_err = client_body_write_multipart_part_headers(fp, &enc);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -166,14 +166,17 @@ TEST test_client_body_direct_part_headers_and_form_edge_cases(void) {
   spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "empty_obj", "object", "", NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "unknown_obj", "object",
-                    "UnknownSchemaRef", NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "res_only_obj", "object",
-                    "EmptyObjForm", NULL, NULL);
-  c_cdd_strdup("EmptyObjForm", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "empty_obj", "object", "", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&spec.defined_schemas[0], "unknown_obj", "object",
+                        "UnknownSchemaRef", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&spec.defined_schemas[0], "res_only_obj", "object",
+                        "EmptyObjForm", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("EmptyObjForm", &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   memset(&op, 0, sizeof(op));
@@ -201,7 +204,7 @@ TEST test_client_body_direct_part_headers_and_form_edge_cases(void) {
     fclose(fp);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -265,7 +268,7 @@ TEST test_client_body_inline_req_body_json_types(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   fclose(fp);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -291,7 +294,7 @@ TEST test_client_body_querystring_and_security_query(void) {
 
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_QUERY;
-  c_cdd_strdup("query_key", &sch.name);
+  g_cdd_last_alloc_err = c_cdd_strdup("query_key", &sch.name);
   spec.security_schemes =
       (struct OpenAPI_SecurityScheme *)calloc(1, sizeof(sch));
   ASSERT(spec.security_schemes);
@@ -320,7 +323,7 @@ TEST test_client_body_querystring_and_security_query(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   fclose(fp);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -344,14 +347,14 @@ TEST test_client_body_systematic_io_failures(void) {
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "count", "integer", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "flag", "boolean", NULL, NULL,
-                    NULL);
-  c_cdd_strdup("Item", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "title",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "count",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "flag",
+                                           "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = c_cdd_strdup("Item", &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   memset(&op, 0, sizeof(op));
@@ -505,7 +508,8 @@ TEST test_client_body_systematic_io_failures(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
+    g_cdd_last_alloc_err =
+        codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -523,10 +527,11 @@ TEST test_client_body_systematic_io_failures(void) {
     pipe_spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
     ASSERT(pipe_spec.defined_schemas);
     ASSERT(pipe_spec.defined_schema_names);
-    struct_fields_init(&pipe_spec.defined_schemas[0]);
-    struct_fields_add(&pipe_spec.defined_schemas[0], "arr_p", "array", "string",
-                      NULL, NULL);
-    c_cdd_strdup("PipeSchema", &pipe_spec.defined_schema_names[0]);
+    g_cdd_last_alloc_err = struct_fields_init(&pipe_spec.defined_schemas[0]);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &pipe_spec.defined_schemas[0], "arr_p", "array", "string", NULL, NULL);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("PipeSchema", &pipe_spec.defined_schema_names[0]);
     pipe_spec.n_defined_schemas = 1;
 
     memset(&pipe_op, 0, sizeof(pipe_op));
@@ -551,11 +556,12 @@ TEST test_client_body_systematic_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      client_body_write_form_urlencoded_body(fp, &pipe_op, &pipe_spec);
+      g_cdd_last_alloc_err =
+          client_body_write_form_urlencoded_body(fp, &pipe_op, &pipe_spec);
       g_fail_io_after = -1;
       fclose(fp);
     }
-    openapi_spec_free(&pipe_spec);
+    g_cdd_last_alloc_err = openapi_spec_free(&pipe_spec);
   }
 
   /* Loop with security header scheme */
@@ -564,7 +570,7 @@ TEST test_client_body_systematic_io_failures(void) {
     memset(&s_sch, 0, sizeof(s_sch));
     s_sch.type = OA_SEC_APIKEY;
     s_sch.in = OA_SEC_IN_HEADER;
-    c_cdd_strdup("s_key", &s_sch.name);
+    g_cdd_last_alloc_err = c_cdd_strdup("s_key", &s_sch.name);
     spec.security_schemes =
         (struct OpenAPI_SecurityScheme *)calloc(1, sizeof(s_sch));
     ASSERT(spec.security_schemes);
@@ -576,14 +582,15 @@ TEST test_client_body_systematic_io_failures(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
       g_fail_io_after = -1;
       fclose(fp);
     }
   }
 
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 
@@ -609,33 +616,34 @@ TEST test_client_body_targeted_remaining_branches(void) {
   ASSERT(spec.defined_schema_names);
 
   /* Schema with all multipart types */
-  struct_fields_init(&spec.defined_schemas[0]);
-  struct_fields_add(&spec.defined_schemas[0], "f_str", "string", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_int", "integer", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_num", "number", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_bool", "boolean", NULL, NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_obj", "object", "SubM", NULL,
-                    NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_arr_str", "array", "string",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_arr_int", "array", "integer",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_arr_num", "array", "number",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_arr_bool", "array", "boolean",
-                    NULL, NULL);
-  struct_fields_add(&spec.defined_schemas[0], "f_arr_obj", "array", "SubM",
-                    NULL, NULL);
-  c_cdd_strdup("MultiAll", &spec.defined_schema_names[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_str",
+                                           "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_int",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_num",
+                                           "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_bool",
+                                           "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[0], "f_obj",
+                                           "object", "SubM", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "f_arr_str", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "f_arr_int", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "f_arr_num", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "f_arr_bool", "array", "boolean", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &spec.defined_schemas[0], "f_arr_obj", "array", "SubM", NULL, NULL);
+  g_cdd_last_alloc_err =
+      c_cdd_strdup("MultiAll", &spec.defined_schema_names[0]);
 
-  struct_fields_init(&spec.defined_schemas[1]);
-  struct_fields_add(&spec.defined_schemas[1], "id", "integer", NULL, NULL,
-                    NULL);
-  c_cdd_strdup("SubM", &spec.defined_schema_names[1]);
+  g_cdd_last_alloc_err = struct_fields_init(&spec.defined_schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_add(&spec.defined_schemas[1], "id",
+                                           "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = c_cdd_strdup("SubM", &spec.defined_schema_names[1]);
   spec.n_defined_schemas = 2;
 
   memset(&op, 0, sizeof(op));
@@ -704,7 +712,7 @@ TEST test_client_body_targeted_remaining_branches(void) {
     fp = cdd_test_tmpfile_global();
     g_io_calls = 0;
     g_fail_io_after = io_fail;
-    client_body_write_multipart_body(fp, &op, &spec);
+    g_cdd_last_alloc_err = client_body_write_multipart_body(fp, &op, &spec);
     g_fail_io_after = -1;
     fclose(fp);
   }
@@ -754,7 +762,8 @@ TEST test_client_body_targeted_remaining_branches(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      codegen_client_write_body(fp, &t_op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &t_op, &spec, "/test", NULL);
       g_fail_io_after = -1;
       fclose(fp);
     }
@@ -766,14 +775,15 @@ TEST test_client_body_targeted_remaining_branches(void) {
       fp = cdd_test_tmpfile_global();
       g_io_calls = 0;
       g_fail_io_after = io_fail;
-      codegen_client_write_body(fp, &t_op, &spec, "/test", NULL);
+      g_cdd_last_alloc_err =
+          codegen_client_write_body(fp, &t_op, &spec, "/test", NULL);
       g_fail_io_after = -1;
       fclose(fp);
     }
   }
 
   g_fail_io_after = -1;
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }
 

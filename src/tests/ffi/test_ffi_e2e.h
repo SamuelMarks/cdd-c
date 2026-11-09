@@ -74,8 +74,8 @@ TEST test_ffi_e2e_complex_codebase(void) {
   int rc = 0;
   FILE *f;
 
-  write_to_file(filename, code);
-  makedir(output_dir);
+  g_cdd_last_alloc_err = write_to_file(filename, code);
+  g_cdd_last_alloc_err = makedir(output_dir);
 
   config.input = filename;
   config.output_dir = output_dir;

@@ -137,15 +137,15 @@ TEST test_walk_directory(void) {
 
     if (asprintf(&sub, "%s%ssub", root, PATH_SEP)) {
     }
-    makedir(sub);
+    g_cdd_last_alloc_err = makedir(sub);
 
     if (asprintf(&f1, "%s%sa.txt", root, PATH_SEP)) {
     }
-    write_to_file(f1, "a");
+    g_cdd_last_alloc_err = write_to_file(f1, "a");
 
     if (asprintf(&f2, "%s%sb.txt", sub, PATH_SEP)) {
     }
-    write_to_file(f2, "b");
+    g_cdd_last_alloc_err = write_to_file(f2, "b");
 
     rc = walk_directory(root, mock_walk_cb, &count);
     ASSERT_EQ(0, rc);
@@ -173,7 +173,7 @@ TEST test_walk_directory(void) {
 TEST test_makedir_check(void) {
   char *t = NULL;
   char *p = NULL;
-  tempdir(&t);
+  g_cdd_last_alloc_err = tempdir(&t);
   if (asprintf(&p, "%s%snewdir", t, PATH_SEP)) {
   }
   ASSERT_EQ(0, makedir(p));
@@ -193,19 +193,19 @@ TEST test_makedir_check(void) {
 TEST test_fs_fopen_error_from(void) {
   FopenError_t err;
 
-  fopen_error_from(0, &err);
+  g_cdd_last_alloc_err = fopen_error_from(0, &err);
   ASSERT_EQ(FOPEN_OK, err);
-  fopen_error_from(EINVAL, &err);
+  g_cdd_last_alloc_err = fopen_error_from(EINVAL, &err);
   ASSERT_EQ(FOPEN_INVALID_PARAMETER, err);
-  fopen_error_from(EMFILE, &err);
+  g_cdd_last_alloc_err = fopen_error_from(EMFILE, &err);
   ASSERT_EQ(FOPEN_TOO_MANY_OPEN_FILES, err);
-  fopen_error_from(ENOMEM, &err);
+  g_cdd_last_alloc_err = fopen_error_from(ENOMEM, &err);
   ASSERT_EQ(FOPEN_OUT_OF_MEMORY, err);
-  fopen_error_from(ENOENT, &err);
+  g_cdd_last_alloc_err = fopen_error_from(ENOENT, &err);
   ASSERT_EQ(FOPEN_FILE_NOT_FOUND, err);
-  fopen_error_from(EACCES, &err);
+  g_cdd_last_alloc_err = fopen_error_from(EACCES, &err);
   ASSERT_EQ(FOPEN_PERMISSION_DENIED, err);
-  fopen_error_from(EIO, &err);
+  g_cdd_last_alloc_err = fopen_error_from(EIO, &err);
   ASSERT_EQ(FOPEN_UNKNOWN_ERROR, err);
   g_fail_io_after = -1;
 
@@ -319,7 +319,7 @@ TEST test_fs_write_to_file(void) {
   char *out_data = NULL;
   size_t sz = 0;
 
-  tempdir(&tmp_dir);
+  g_cdd_last_alloc_err = tempdir(&tmp_dir);
   if (asprintf(&file_path, "%s%ctest_write.txt", tmp_dir, PATH_SEP_C)) {
   }
 
@@ -328,7 +328,7 @@ TEST test_fs_write_to_file(void) {
 
   ASSERT_EQ(0, fs_write_to_file(file_path, "hello world"));
 
-  read_to_file(file_path, "r", &out_data, &sz);
+  g_cdd_last_alloc_err = read_to_file(file_path, "r", &out_data, &sz);
   ASSERT_STR_EQ("hello world", out_data);
 
   free(out_data);

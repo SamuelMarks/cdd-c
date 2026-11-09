@@ -48,15 +48,15 @@ TEST test_scan_for_designated_initializers_basic(void) {
   ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   ASSERT_EQ(3, list.count);
-  desig_init_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = desig_init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   tokens = NULL;
   ASSERT_EQ(0, tokenize(az_span_create_from_str(long_src), &tokens));
   ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
-  desig_init_list_free(&list);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = desig_init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tokens);
 
   g_fail_io_after = -1;
   PASS();
@@ -78,8 +78,8 @@ TEST test_scan_for_designated_initializers_errors(void) {
             scan_for_designated_initializers(tl, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, desig_init_list_init(NULL));
 
-  desig_init_list_free(&list);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = desig_init_list_free(&list);
+  g_cdd_last_alloc_err = free_token_list(tl);
   g_fail_io_after = -1;
   PASS();
 }
@@ -107,10 +107,10 @@ TEST test_scan_for_designated_initializers_oom(void) {
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
-    desig_init_list_free(&list);
+    g_cdd_last_alloc_err = desig_init_list_free(&list);
   }
 
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -139,10 +139,10 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
-    desig_init_list_free(&list);
+    g_cdd_last_alloc_err = desig_init_list_free(&list);
   }
 
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   PASS();
 }
 
@@ -233,7 +233,7 @@ TEST test_scan_for_designated_initializers_edge_cases(void) {
     tokens.size = 10;
     ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-    desig_init_list_free(&list);
+    g_cdd_last_alloc_err = desig_init_list_free(&list);
     PASS();
   }
 }
@@ -278,7 +278,7 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
-    desig_init_list_free(&list);
+    g_cdd_last_alloc_err = desig_init_list_free(&list);
   }
 
   /* Also test empty expr OOM */
@@ -292,7 +292,7 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
-    desig_init_list_free(&list);
+    g_cdd_last_alloc_err = desig_init_list_free(&list);
   }
 
   PASS();
@@ -323,8 +323,8 @@ TEST test_desig_init_list_free_nulls(void) {
   strcpy(list.sites[1].value_expr, "1");
 #endif
 
-  desig_init_list_free(&list);
-  desig_init_list_free(NULL);
+  g_cdd_last_alloc_err = desig_init_list_free(&list);
+  g_cdd_last_alloc_err = desig_init_list_free(NULL);
   PASS();
 }
 

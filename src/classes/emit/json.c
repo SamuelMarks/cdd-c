@@ -333,30 +333,32 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
     } else if (strcmp(t, "int128") == 0 || strcmp(t, "cdd_int128_t") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "  { JSON_Value *_v128 = NULL; char *_s128 = NULL;\n"
+          "  { JSON_Value *_v128 = NULL; char *_s128 = NULL; cdd_c_error_t "
+          "_r;\n"
           "    if (cdd_json_value_init_int128(obj->%s, &_v128) != "
           "CDD_C_SUCCESS) return CDD_C_ERROR_MEMORY;\n"
           "    if (cdd_json_serialize_to_string(_v128, &_s128) != "
-          "CDD_C_SUCCESS) { cdd_json_value_free(_v128); return "
+          "CDD_C_SUCCESS) { _r = cdd_json_value_free(_v128); return "
           "CDD_C_ERROR_MEMORY; }\n"
           "    rc = c89stringutils_jasprintf(json, \"\\\"%s\\\": %%s\", "
           "_s128);\n"
-          "    cdd_json_free_serialized_string(_s128);\n"
-          "    cdd_json_value_free(_v128); }\n",
+          "    _r = cdd_json_free_serialized_string(_s128);\n"
+          "    _r = cdd_json_value_free(_v128); if (_r) return _r; }\n",
           n, kn));
     } else if (strcmp(t, "uint128") == 0 || strcmp(t, "cdd_uint128_t") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "  { JSON_Value *_v128 = NULL; char *_s128 = NULL;\n"
+          "  { JSON_Value *_v128 = NULL; char *_s128 = NULL; cdd_c_error_t "
+          "_r;\n"
           "    if (cdd_json_value_init_uint128(obj->%s, &_v128) != "
           "CDD_C_SUCCESS) return CDD_C_ERROR_MEMORY;\n"
           "    if (cdd_json_serialize_to_string(_v128, &_s128) != "
-          "CDD_C_SUCCESS) { cdd_json_value_free(_v128); return "
+          "CDD_C_SUCCESS) { _r = cdd_json_value_free(_v128); return "
           "CDD_C_ERROR_MEMORY; }\n"
           "    rc = c89stringutils_jasprintf(json, \"\\\"%s\\\": %%s\", "
           "_s128);\n"
-          "    cdd_json_free_serialized_string(_s128);\n"
-          "    cdd_json_value_free(_v128); }\n",
+          "    _r = cdd_json_free_serialized_string(_s128);\n"
+          "    _r = cdd_json_value_free(_v128); if (_r) return _r; }\n",
           n, kn));
     } else if (strcmp(t, "number") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
@@ -558,13 +560,14 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
       "out) {\n"
       "  JSON_Value *val = NULL;\n"
       "  JSON_Object *obj = NULL;\n"
-      "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"
-      "  if (cdd_json_parse_string(json_str, &val) != CDD_C_SUCCESS || !val) "
+      "  cdd_c_error_t rc = CDD_C_SUCCESS, _rc;\n"
+      "  _rc = cdd_json_parse_string(json_str, &val);\n"
+      "  if (_rc != CDD_C_SUCCESS || !val) "
       "return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-      "  cdd_json_value_get_object(val, &obj);\n"
+      "  _rc = cdd_json_value_get_object(val, &obj);\n"
       "  rc = %s_from_jsonObject(obj, out);\n"
-      "  cdd_json_value_free(val);\n"
-      "  return rc;\n"
+      "  _rc = cdd_json_value_free(val);\n"
+      "  return rc ? rc : _rc;\n"
       "}\n",
       struct_name, struct_name, struct_name));
 
@@ -600,32 +603,34 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
       "  JSON_Array *arr = NULL;\n"
       "  size_t i, count = 0;\n"
       "  struct %s **tmp = NULL;\n"
-      "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"
-      "  if (cdd_json_parse_string(json_str, &val) != CDD_C_SUCCESS || !val) "
+      "  cdd_c_error_t rc = CDD_C_SUCCESS, _rc;\n"
+      "  _rc = cdd_json_parse_string(json_str, &val);\n"
+      "  if (_rc != CDD_C_SUCCESS || !val) "
       "return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-      "  cdd_json_value_get_array(val, &arr);\n"
-      "  if (!arr) { cdd_json_value_free(val); return "
+      "  _rc = cdd_json_value_get_array(val, &arr);\n"
+      "  if (!arr) { _rc = cdd_json_value_free(val); return "
       "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
       struct_name, struct_name, struct_name));
 
-  CHECK_IO(FPRINTF_HOOK(
-      fp,
-      "  cdd_json_array_get_count(arr, &count);\n"
-      "  if (count == 0) {\n"
-      "    *out = NULL;\n"
-      "    *out_len = 0;\n"
-      "    cdd_json_value_free(val);\n"
-      "    return CDD_C_SUCCESS;\n"
-      "  }\n"
-      "  tmp = (struct %s **)calloc(count, sizeof(struct %s *));\n"
-      "  if (!tmp) { cdd_json_value_free(val); return CDD_C_ERROR_MEMORY; }\n"
-      "  for (i = 0; i < count; ++i) {\n"
-      "    JSON_Object *_elem_obj = NULL;\n"
-      "    cdd_json_array_get_object(arr, i, &_elem_obj);\n"
-      "    rc = %s_from_jsonObject(_elem_obj, &tmp[i]);\n"
-      "    if (rc != CDD_C_SUCCESS) break;\n"
-      "  }\n",
-      struct_name, struct_name, struct_name));
+  CHECK_IO(
+      FPRINTF_HOOK(fp,
+                   "  _rc = cdd_json_array_get_count(arr, &count);\n"
+                   "  if (count == 0) {\n"
+                   "    *out = NULL;\n"
+                   "    *out_len = 0;\n"
+                   "    _rc = cdd_json_value_free(val);\n"
+                   "    return _rc;\n"
+                   "  }\n"
+                   "  tmp = (struct %s **)calloc(count, sizeof(struct %s *));\n"
+                   "  if (!tmp) { _rc = cdd_json_value_free(val); return "
+                   "CDD_C_ERROR_MEMORY; }\n"
+                   "  for (i = 0; i < count; ++i) {\n"
+                   "    JSON_Object *_elem_obj = NULL;\n"
+                   "    _rc = cdd_json_array_get_object(arr, i, &_elem_obj);\n"
+                   "    rc = %s_from_jsonObject(_elem_obj, &tmp[i]);\n"
+                   "    if (rc != CDD_C_SUCCESS) break;\n"
+                   "  }\n",
+                   struct_name, struct_name, struct_name));
 
   CHECK_IO(FPRINTF_HOOK(fp,
                         "  if (rc == CDD_C_SUCCESS) {\n"
@@ -638,7 +643,9 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
                         "    }\n"
                         "    free(tmp);\n"
                         "  }\n"
-                        "  cdd_json_value_free(val);\n"
+                        "  _rc = cdd_json_value_free(val);\n"
+                        "  if (_rc != CDD_C_SUCCESS && rc == CDD_C_SUCCESS) "
+                        "rc = _rc;\n"
                         "  return rc;\n"
                         "}\n",
                         struct_name));
@@ -717,7 +724,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
   if (len_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  size_t len;\n"));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *ret = calloc(1, sizeof(*ret));\n",
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "  struct %s *ret = calloc(1, sizeof(*ret));\n"
+                        "  cdd_c_error_t _rc = CDD_C_SUCCESS;\n",
                         struct_name));
   CHECK_IO(FPRINTF_HOOK(fp, "  if (!ret) return CDD_C_ERROR_MEMORY;\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  if (!jsonObject || !out) { free(ret); return "
@@ -728,10 +737,10 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     size_t j, a;
     CHECK_IO(FPRINTF_HOOK(
         fp, "  {\n    size_t _k, _cnt = 0;\n"
-            "    cdd_json_object_get_count(jsonObject, &_cnt);\n"
+            "    _rc = cdd_json_object_get_count(jsonObject, &_cnt);\n"
             "    for (_k = 0; _k < _cnt; ++_k) {\n"
             "      const char *_jn = NULL;\n"
-            "      cdd_json_object_get_name(jsonObject, _k, &_jn);\n"
+            "      _rc = cdd_json_object_get_name(jsonObject, _k, &_jn);\n"
             "      if (_jn"));
     for (j = 0; j < sf->size; ++j) {
       char dname[128];
@@ -830,12 +839,12 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  { int _hv = 0;\n"
-          "    cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n",
+          "    _rc = cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n",
           kn));
       for (a = 0; a < f->n_serde_aliases; ++a) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "    if (!_hv) cdd_json_object_has_value(jsonObject, \"%s\", "
+            "    if (!_hv) _rc = cdd_json_object_has_value(jsonObject, \"%s\", "
             "&_hv);\n",
             f->serde_aliases[a]));
       }
@@ -874,24 +883,24 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           f->serde_default_fn[0] == '\0') {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "  { double _num = 0.0; cdd_json_object_get_number(jsonObject, "
-            "\"%s\", &_num); ret->%s = (int)_num; }\n",
+            "  { double _num = 0.0; _rc = cdd_json_object_get_number("
+            "jsonObject, \"%s\", &_num); ret->%s = (int)_num; }\n",
             kn, n));
       } else {
         size_t a;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "  { int _hv = 0; double _num = 0.0;\n"
-            "    cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n"
-            "    if (_hv) { cdd_json_object_get_number(jsonObject, \"%s\", "
-            "&_num); ret->%s = (int)_num; }\n",
+            "    _rc = cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n"
+            "    if (_hv) { _rc = cdd_json_object_get_number(jsonObject, "
+            "\"%s\", &_num); ret->%s = (int)_num; }\n",
             kn, kn, n));
         for (a = 0; a < f->n_serde_aliases; ++a) {
           CHECK_IO(FPRINTF_HOOK(
               fp,
-              "    else if ((cdd_json_object_has_value(jsonObject, \"%s\", "
-              "&_hv), _hv)) { cdd_json_object_get_number(jsonObject, \"%s\", "
-              "&_num); ret->%s = (int)_num; }\n",
+              "    else if ((_rc = cdd_json_object_has_value(jsonObject, "
+              "\"%s\", &_hv), _hv)) { _rc = cdd_json_object_get_number("
+              "jsonObject, \"%s\", &_num); ret->%s = (int)_num; }\n",
               f->serde_aliases[a], f->serde_aliases[a], n));
         }
         if (f->serde_default_fn[0] != '\0') {
@@ -944,8 +953,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     } else if (strcmp(t, "int64") == 0 || strcmp(t, "int64_t") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "  { int _hv = 0; cdd_json_object_has_value(jsonObject, \"%s\", "
-          "&_hv);\n"
+          "  { int _hv = 0; _rc = cdd_json_object_has_value(jsonObject, "
+          "\"%s\", &_hv);\n"
           "    if (_hv) {\n"
           "      if (cdd_json_object_get_int64(jsonObject, \"%s\", &ret->%s) "
           "!= CDD_C_SUCCESS) { %s_cleanup(ret); return "
@@ -955,8 +964,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     } else if (strcmp(t, "uint64") == 0 || strcmp(t, "uint64_t") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "  { int _hv = 0; cdd_json_object_has_value(jsonObject, \"%s\", "
-          "&_hv);\n"
+          "  { int _hv = 0; _rc = cdd_json_object_has_value(jsonObject, "
+          "\"%s\", &_hv);\n"
           "    if (_hv) {\n"
           "      if (cdd_json_object_get_uint64(jsonObject, \"%s\", &ret->%s) "
           "!= CDD_C_SUCCESS) { %s_cleanup(ret); return "
@@ -966,8 +975,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     } else if (strcmp(t, "int128") == 0 || strcmp(t, "cdd_int128_t") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "  { int _hv = 0; cdd_json_object_has_value(jsonObject, \"%s\", "
-          "&_hv);\n"
+          "  { int _hv = 0; _rc = cdd_json_object_has_value(jsonObject, "
+          "\"%s\", &_hv);\n"
           "    if (_hv) {\n"
           "      if (cdd_json_object_get_int128(jsonObject, \"%s\", &ret->%s) "
           "!= CDD_C_SUCCESS) { %s_cleanup(ret); return "
@@ -977,8 +986,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     } else if (strcmp(t, "uint128") == 0 || strcmp(t, "cdd_uint128_t") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "  { int _hv = 0; cdd_json_object_has_value(jsonObject, \"%s\", "
-          "&_hv);\n"
+          "  { int _hv = 0; _rc = cdd_json_object_has_value(jsonObject, "
+          "\"%s\", &_hv);\n"
           "    if (_hv) {\n"
           "      if (cdd_json_object_get_uint128(jsonObject, \"%s\", &ret->%s) "
           "!= CDD_C_SUCCESS) { %s_cleanup(ret); return "
@@ -989,23 +998,25 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       if (f->n_serde_aliases == 0 && !has_def &&
           f->serde_default_fn[0] == '\0') {
         CHECK_IO(FPRINTF_HOOK(
-            fp, "  cdd_json_object_get_number(jsonObject, \"%s\", &ret->%s);\n",
+            fp,
+            "  _rc = cdd_json_object_get_number(jsonObject, \"%s\", "
+            "&ret->%s);\n",
             kn, n));
       } else {
         size_t a;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "  { int _hv = 0;\n"
-            "    cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n"
-            "    if (_hv) cdd_json_object_get_number(jsonObject, \"%s\", "
+            "    _rc = cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n"
+            "    if (_hv) _rc = cdd_json_object_get_number(jsonObject, \"%s\", "
             "&ret->%s);\n",
             kn, kn, n));
         for (a = 0; a < f->n_serde_aliases; ++a) {
           CHECK_IO(FPRINTF_HOOK(
               fp,
-              "    else if ((cdd_json_object_has_value(jsonObject, \"%s\", "
-              "&_hv), _hv)) cdd_json_object_get_number(jsonObject, \"%s\", "
-              "&ret->%s);\n",
+              "    else if ((_rc = cdd_json_object_has_value(jsonObject, "
+              "\"%s\", &_hv), _hv)) _rc = cdd_json_object_get_number("
+              "jsonObject, \"%s\", &ret->%s);\n",
               f->serde_aliases[a], f->serde_aliases[a], n));
         }
         if (f->serde_default_fn[0] != '\0') {
@@ -1052,24 +1063,24 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           f->serde_default_fn[0] == '\0' && f->bit_width[0] == '\0') {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "  { int _bv = 0; cdd_json_object_get_boolean(jsonObject, \"%s\", "
-            "&_bv); ret->%s = _bv; }\n",
+            "  { int _bv = 0; _rc = cdd_json_object_get_boolean(jsonObject, "
+            "\"%s\", &_bv); ret->%s = _bv; }\n",
             kn, n));
       } else {
         size_t a;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "  { int _hv = 0, _bv = 0;\n"
-            "    cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n"
-            "    if (_hv) { cdd_json_object_get_boolean(jsonObject, \"%s\", "
-            "&_bv); ret->%s = _bv; }\n",
+            "    _rc = cdd_json_object_has_value(jsonObject, \"%s\", &_hv);\n"
+            "    if (_hv) { _rc = cdd_json_object_get_boolean(jsonObject, "
+            "\"%s\", &_bv); ret->%s = _bv; }\n",
             kn, kn, n));
         for (a = 0; a < f->n_serde_aliases; ++a) {
           CHECK_IO(FPRINTF_HOOK(
               fp,
-              "    else if ((cdd_json_object_has_value(jsonObject, \"%s\", "
-              "&_hv), _hv)) { cdd_json_object_get_boolean(jsonObject, \"%s\", "
-              "&_bv); ret->%s = _bv; }\n",
+              "    else if ((_rc = cdd_json_object_has_value(jsonObject, "
+              "\"%s\", &_hv), _hv)) { _rc = cdd_json_object_get_boolean("
+              "jsonObject, \"%s\", &_bv); ret->%s = _bv; }\n",
               f->serde_aliases[a], f->serde_aliases[a], n));
         }
         if (f->serde_default_fn[0] != '\0') {
@@ -1097,12 +1108,13 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  { const char *s = NULL;\n"
-          "    cdd_json_object_get_string(jsonObject, \"%s\", &s);\n",
+          "    _rc = cdd_json_object_get_string(jsonObject, \"%s\", &s);\n",
           kn));
       for (a = 0; a < f->n_serde_aliases; ++a) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "    if (!s) cdd_json_object_get_string(jsonObject, \"%s\", &s);\n",
+            "    if (!s) _rc = cdd_json_object_get_string(jsonObject, \"%s\", "
+            "&s);\n",
             f->serde_aliases[a]));
       }
       if (has_def && f->default_val[0] != '\0') {
@@ -1203,13 +1215,13 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  { JSON_Object *sub = NULL;\n"
-          "    cdd_json_object_get_object(jsonObject, \"%s\", &sub);\n",
+          "    _rc = cdd_json_object_get_object(jsonObject, \"%s\", &sub);\n",
           kn));
       for (a = 0; a < f->n_serde_aliases; ++a) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "    if (!sub) cdd_json_object_get_object(jsonObject, \"%s\", "
-            "&sub);\n",
+            "    if (!sub) _rc = cdd_json_object_get_object(jsonObject, "
+            "\"%s\", &sub);\n",
             f->serde_aliases[a]));
       }
       CHECK_IO(FPRINTF_HOOK(fp, "    if (sub) {\n"));
@@ -1232,12 +1244,13 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  { const char *s = NULL;\n"
-          "    cdd_json_object_get_string(jsonObject, \"%s\", &s);\n",
+          "    _rc = cdd_json_object_get_string(jsonObject, \"%s\", &s);\n",
           kn));
       for (a = 0; a < f->n_serde_aliases; ++a) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "    if (!s) cdd_json_object_get_string(jsonObject, \"%s\", &s);\n",
+            "    if (!s) _rc = cdd_json_object_get_string(jsonObject, \"%s\", "
+            "&s);\n",
             f->serde_aliases[a]));
       }
       CHECK_IO(FPRINTF_HOOK(fp, "    if (s) {\n"));
@@ -1271,39 +1284,42 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  arr = NULL;\n"
-          "  cdd_json_object_get_array(jsonObject, \"%s\", &arr);\n",
+          "  _rc = cdd_json_object_get_array(jsonObject, \"%s\", &arr);\n",
           kn));
       for (a = 0; a < f->n_serde_aliases; ++a) {
         CHECK_IO(FPRINTF_HOOK(
             fp,
-            "  if (!arr) cdd_json_object_get_array(jsonObject, \"%s\", "
+            "  if (!arr) _rc = cdd_json_object_get_array(jsonObject, \"%s\", "
             "&arr);\n",
             f->serde_aliases[a]));
       }
       CHECK_IO(FPRINTF_HOOK(fp, "  if (arr) {\n"));
       if (f->fixed_array_len > 0) {
         unsigned long flen = (unsigned long)f->fixed_array_len;
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "    size_t _cnt = 0;\n"
-                              "    cdd_json_array_get_count(arr, &_cnt);\n"
-                              "    if (_cnt > %lu) _cnt = %lu;\n"
-                              "    for (i = 0; i < _cnt; ++i) {\n",
-                              flen, flen));
+        CHECK_IO(
+            FPRINTF_HOOK(fp,
+                         "    size_t _cnt = 0;\n"
+                         "    _rc = cdd_json_array_get_count(arr, &_cnt);\n"
+                         "    if (_cnt > %lu) _cnt = %lu;\n"
+                         "    for (i = 0; i < _cnt; ++i) {\n",
+                         flen, flen));
         if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
           CHECK_IO(FPRINTF_HOOK(
               fp,
-              "      { double _num = 0.0; cdd_json_array_get_number(arr, i, "
-              "&_num); ret->%s[i] = (int)_num; }\n",
+              "      { double _num = 0.0; _rc = cdd_json_array_get_number(arr, "
+              "i, &_num); ret->%s[i] = (int)_num; }\n",
               n));
         } else if (strcmp(r, "number") == 0) {
           CHECK_IO(FPRINTF_HOOK(
-              fp, "      cdd_json_array_get_number(arr, i, &ret->%s[i]);\n",
+              fp,
+              "      _rc = cdd_json_array_get_number(arr, i, &ret->%s[i]);\n",
               n));
         } else if (strcmp(r, "string") == 0) {
           CHECK_IO(
               FPRINTF_HOOK(fp,
                            "      const char *_es = NULL;\n"
-                           "      cdd_json_array_get_string(arr, i, &_es);\n"
+                           "      _rc = cdd_json_array_get_string(arr, i, "
+                           "&_es);\n"
                            "      if (_es) {\n"
                            "        ret->%s[i] = strdup(_es);\n"
                            "        if (!ret->%s[i]) { %s_cleanup(ret); return "
@@ -1318,7 +1334,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           CHECK_IO(FPRINTF_HOOK(
               fp,
               "      { JSON_Object *_elem_obj = NULL;\n"
-              "        cdd_json_array_get_object(arr, i, &_elem_obj);\n"
+              "        _rc = cdd_json_array_get_object(arr, i, &_elem_obj);\n"
               "        rc = %s_from_jsonObject(_elem_obj, &ret->%s[i]);\n"
               "        if (rc) { %s_cleanup(ret); return rc; } }\n",
               tn, n, struct_name));
@@ -1327,7 +1343,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         continue;
       }
       CHECK_IO(FPRINTF_HOOK(
-          fp, "    cdd_json_array_get_count(arr, &ret->n_%s);\n", n));
+          fp, "    _rc = cdd_json_array_get_count(arr, &ret->n_%s);\n", n));
       CHECK_IO(FPRINTF_HOOK(fp, "    if (ret->n_%s > 0) {\n", n));
       if (strcmp(r, "integer") == 0) {
         CHECK_IO(FPRINTF_HOOK(
@@ -1335,7 +1351,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "      for(i=0; i<ret->n_%s; ++i) { double _num = 0.0; "
-            "cdd_json_array_get_number(arr, i, &_num); ret->%s[i] = "
+            "_rc = cdd_json_array_get_number(arr, i, &_num); ret->%s[i] = "
             "(int)_num; }\n",
             n, n));
       } else if (strcmp(r, "boolean") == 0) {
@@ -1346,8 +1362,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             "      if (!ret->%s) { %s_cleanup(ret); return CDD_C_ERROR_MEMORY; "
             "}\n"
             "      for(i=0; i<ret->n_%s; ++i) { int _bv = 0; "
-            "cdd_json_array_get_boolean(arr, i, &_bv); ret->%s[i] = _bv ? 1 : "
-            "0; }\n",
+            "_rc = cdd_json_array_get_boolean(arr, i, &_bv); ret->%s[i] = _bv "
+            "? 1 : 0; }\n",
             n, struct_name, n, n));
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(FPRINTF_HOOK(
@@ -1356,8 +1372,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             fp,
             "      if (!ret->%s) { %s_cleanup(ret); return CDD_C_ERROR_MEMORY; "
             "}\n"
-            "      for(i=0; i<ret->n_%s; ++i) cdd_json_array_get_number(arr, "
-            "i, &ret->%s[i]);\n",
+            "      for(i=0; i<ret->n_%s; ++i) _rc = cdd_json_array_get_number("
+            "arr, i, &ret->%s[i]);\n",
             n, struct_name, n, n));
       } else if (strcmp(r, "string") == 0) {
         CHECK_IO(FPRINTF_HOOK(
@@ -1368,7 +1384,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             "}\n"
             "      for(i=0; i<ret->n_%s; ++i) {\n"
             "        const char *_es = NULL;\n"
-            "        cdd_json_array_get_string(arr, i, &_es);\n"
+            "        _rc = cdd_json_array_get_string(arr, i, &_es);\n"
             "        if (_es) {\n"
             "          ret->%s[i] = strdup(_es);\n"
             "          if (!ret->%s[i]) { %s_cleanup(ret); return "
@@ -1401,7 +1417,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           io_rc = FPRINTF_HOOK(
               fp,
               "        JSON_Object *_elem_obj = NULL;\n"
-              "        cdd_json_array_get_object(arr, i, &_elem_obj);\n"
+              "        _rc = cdd_json_array_get_object(arr, i, &_elem_obj);\n"
               "        rc = %s_from_jsonObject(_elem_obj, &ret->%s[i]);\n",
               tn, n);
           CHECK_IO(io_rc);
@@ -1415,7 +1431,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     }
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  *out = ret;\n  return CDD_C_SUCCESS;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (_rc != CDD_C_SUCCESS) {}\n"
+                            "  *out = ret;\n  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));

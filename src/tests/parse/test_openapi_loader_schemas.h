@@ -51,7 +51,7 @@ TEST test_load_inline_schema_items_type_union(void) {
     ASSERT_STR_EQ("integer", p->schema.items_type_union[1]);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -101,7 +101,7 @@ TEST test_load_schema_boolean_and_numeric_enum(void) {
     ASSERT_EQ(2.0, lvl_p->schema.enum_values[1].number);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -141,7 +141,7 @@ TEST test_load_schema_items_examples_and_boolean_items(void) {
     ASSERT_EQ(0, anys->schema.items_schema_boolean_value);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -186,7 +186,7 @@ TEST test_load_inline_schema_example_and_numeric_constraints(void) {
     ASSERT_EQ(2.5, schema->example.number);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -240,7 +240,7 @@ TEST test_load_inline_schema_array_constraints_and_items_example(void) {
     ASSERT_STR_EQ("ab", schema->items_example.string);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -279,7 +279,7 @@ TEST test_load_inline_schema_items_const_default_and_extras(void) {
     ASSERT(strstr(schema->items_extra_json, "\"x-custom\"") != NULL);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -329,20 +329,21 @@ TEST test_load_inline_request_body_object_promoted(void) {
                 spec.paths[0].operations[0].req_body.ref_name);
   {
     const struct StructFields *sf =
-        (openapi_spec_find_schema(&spec, "Inline_createPet_Request_1",
-                                  &_ast_openapi_spec_find_schema_3),
+        (g_cdd_last_alloc_err =
+             openapi_spec_find_schema(&spec, "Inline_createPet_Request_1",
+                                      &_ast_openapi_spec_find_schema_3),
          _ast_openapi_spec_find_schema_3);
     ASSERT(sf != NULL);
     {
-      struct StructField *field =
-          (struct_fields_get(sf, "name", &_ast_struct_fields_get_4),
-           _ast_struct_fields_get_4);
+      struct StructField *field = (g_cdd_last_alloc_err = struct_fields_get(
+                                       sf, "name", &_ast_struct_fields_get_4),
+                                   _ast_struct_fields_get_4);
       ASSERT(field != NULL);
       ASSERT_STR_EQ("string", field->type);
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -378,7 +379,7 @@ TEST test_load_request_body_item_schema_array(void) {
   ASSERT_EQ(1, spec.paths[0].operations[0].req_body.is_array);
   ASSERT_STR_EQ("string", spec.paths[0].operations[0].req_body.inline_type);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -422,20 +423,21 @@ TEST test_load_inline_response_schema_object_item_promoted(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref_name);
   {
     const struct StructFields *sf =
-        (openapi_spec_find_schema(&spec, "Inline_listPets_Response_200_Item",
-                                  &_ast_openapi_spec_find_schema_5),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "Inline_listPets_Response_200_Item",
+             &_ast_openapi_spec_find_schema_5),
          _ast_openapi_spec_find_schema_5);
     ASSERT(sf != NULL);
     {
-      struct StructField *field =
-          (struct_fields_get(sf, "id", &_ast_struct_fields_get_6),
-           _ast_struct_fields_get_6);
+      struct StructField *field = (g_cdd_last_alloc_err = struct_fields_get(
+                                       sf, "id", &_ast_struct_fields_get_6),
+                                   _ast_struct_fields_get_6);
       ASSERT(field != NULL);
       ASSERT_STR_EQ("integer", field->type);
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -478,20 +480,21 @@ TEST test_load_inline_response_item_schema_object_promoted(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref_name);
   {
     const struct StructFields *sf =
-        (openapi_spec_find_schema(&spec, "Inline_streamPets_Response_200_Item",
-                                  &_ast_openapi_spec_find_schema_7),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "Inline_streamPets_Response_200_Item",
+             &_ast_openapi_spec_find_schema_7),
          _ast_openapi_spec_find_schema_7);
     ASSERT(sf != NULL);
     {
-      struct StructField *field =
-          (struct_fields_get(sf, "name", &_ast_struct_fields_get_8),
-           _ast_struct_fields_get_8);
+      struct StructField *field = (g_cdd_last_alloc_err = struct_fields_get(
+                                       sf, "name", &_ast_struct_fields_get_8),
+                                   _ast_struct_fields_get_8);
       ASSERT(field != NULL);
       ASSERT_STR_EQ("string", field->type);
     }
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -534,7 +537,7 @@ TEST test_load_request_body_ref_description_override(void) {
                 spec.paths[0].operations[0].req_body_ref);
   ASSERT_STR_EQ("Override", spec.paths[0].operations[0].req_body_description);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -569,7 +572,7 @@ TEST test_load_options_trace_verbs(void) {
     ASSERT_EQ(1, saw_trace);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -611,7 +614,7 @@ TEST test_load_root_metadata_and_tags(void) {
                 spec.tags[0].external_docs.url);
   ASSERT_STR_EQ("Tag docs", spec.tags[0].external_docs.description);
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -669,7 +672,7 @@ TEST test_self_qualified_component_refs(void) {
     ASSERT_STR_EQ("Pet", spec.component_parameters[0].schema.ref_name);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -717,7 +720,7 @@ TEST test_relative_self_component_refs(void) {
     ASSERT_EQ(OA_PARAM_IN_QUERY, p->in);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

@@ -53,20 +53,23 @@ openapi_media_type_base_len(const char *media_type, size_t *_out_val);
  *
  * @param[in] a First media type string.
  * @param[in] b Second media type string.
- * @return Non-zero if base essences match, 0 otherwise.
+ * @param[out] out_equal Set to 1 if base essences match, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t media_type_base_equal(const char *a,
-                                                        const char *b);
+                                                        const char *b,
+                                                        int *out_equal);
 
 /**
  * @brief Checks if a media type string represents a JSON media type
  * (`application/json` or `+json`).
  *
  * @param[in] name Media type string.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if JSON media type, CDD_C_SUCCESS (0)
- * otherwise.
+ * @param[out] out_is_json Set to 1 if JSON media type, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t openapi_media_type_is_json(const char *name);
+extern C_CDD_EXPORT cdd_c_error_t openapi_media_type_is_json(const char *name,
+                                                             int *out_is_json);
 
 /**
  * @brief Computes media type specificity (`0` for wildcard, `1` for type

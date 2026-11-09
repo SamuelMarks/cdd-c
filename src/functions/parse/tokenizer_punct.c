@@ -53,7 +53,7 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
   }
 
   cur_pos = *pos + consumed;
-  peek_logical(base, len, cur_pos, &next_con, &next_c);
+  g_cdd_last_alloc_err = peek_logical(base, len, cur_pos, &next_con, &next_c);
 
   switch (c) {
   case '{':
@@ -111,7 +111,7 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
       while (cur_pos < len) {
         size_t c_con;
         int lc = -1;
-        peek_logical(base, len, cur_pos, &c_con, &lc);
+        g_cdd_last_alloc_err = peek_logical(base, len, cur_pos, &c_con, &lc);
         if (lc == '\n' || lc == -1) {
           break;
         }
@@ -125,12 +125,13 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
       while (cur_pos < len) {
         size_t c_con;
         int lc = -1;
-        peek_logical(base, len, cur_pos, &c_con, &lc);
+        g_cdd_last_alloc_err = peek_logical(base, len, cur_pos, &c_con, &lc);
         cur_pos += c_con;
         if (lc == '*') {
           size_t slash_con;
           int slash_c = -1;
-          peek_logical(base, len, cur_pos, &slash_con, &slash_c);
+          g_cdd_last_alloc_err =
+              peek_logical(base, len, cur_pos, &slash_con, &slash_c);
           if (slash_c == '/') {
             cur_pos += slash_con;
             break;
@@ -215,9 +216,11 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     } else if (next_c == ':') {
       size_t c3_con = 0, c4_con = 0;
       int c3 = -1, c4 = -1;
-      peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
+      g_cdd_last_alloc_err =
+          peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
       if (c3 == '%') {
-        peek_logical(base, len, cur_pos + next_con + c3_con, &c4_con, &c4);
+        g_cdd_last_alloc_err =
+            peek_logical(base, len, cur_pos + next_con + c3_con, &c4_con, &c4);
       }
       if (c3 == '%' && c4 == ':') {
         k = TOKEN_HASH_HASH;
@@ -238,7 +241,8 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     } else if (next_c == '<') {
       size_t c3_con;
       int c3 = -1;
-      peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
+      g_cdd_last_alloc_err =
+          peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
       if (c3 == '=') {
         k = TOKEN_LSHIFT_ASSIGN;
         extra = next_con + c3_con;
@@ -264,7 +268,8 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     } else if (next_c == '>') {
       size_t c3_con;
       int c3 = -1;
-      peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
+      g_cdd_last_alloc_err =
+          peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
       if (c3 == '=') {
         k = TOKEN_RSHIFT_ASSIGN;
         extra = next_con + c3_con;
@@ -314,7 +319,8 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     size_t peek_con = 0;
     int peek_c = -1;
     if (next_c == '.') {
-      peek_logical(base, len, cur_pos + next_con, &peek_con, &peek_c);
+      g_cdd_last_alloc_err =
+          peek_logical(base, len, cur_pos + next_con, &peek_con, &peek_c);
     }
     if (next_c == '.' && peek_c == '.') {
       k = TOKEN_ELLIPSIS;

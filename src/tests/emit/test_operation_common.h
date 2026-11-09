@@ -226,7 +226,7 @@ static void reset_operation_test(struct OpenAPI_Operation *op) {
   }
   if (op->servers) {
     for (i = 0; i < op->n_servers; ++i) {
-      free_openapi_server_variables_op(&op->servers[i]);
+      g_cdd_last_alloc_err = free_openapi_server_variables_op(&op->servers[i]);
       free(op->servers[i].url);
       free(op->servers[i].name);
       free(op->servers[i].description);

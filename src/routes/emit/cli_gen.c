@@ -435,8 +435,8 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
       const char *opId = op->operation_id;
       if (opId) {
         char kebab_op[64];
-        cdd_serde_transform_case(opId, CDD_SERDE_CASE_KEBABCASE, kebab_op,
-                                 sizeof(kebab_op));
+        g_cdd_last_alloc_err = cdd_serde_transform_case(
+            opId, CDD_SERDE_CASE_KEBABCASE, kebab_op, sizeof(kebab_op));
         fprintf(fp, "  /* \n");
         fprintf(fp, "   * @brief %s CLI handler\n",
                 op->summary ? op->summary : opId);
@@ -469,8 +469,8 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
           char kp_name[64];
           const char *pname =
               op->parameters[k].name ? op->parameters[k].name : "param";
-          cdd_serde_transform_case(pname, CDD_SERDE_CASE_KEBABCASE, kp_name,
-                                   sizeof(kp_name));
+          g_cdd_last_alloc_err = cdd_serde_transform_case(
+              pname, CDD_SERDE_CASE_KEBABCASE, kp_name, sizeof(kp_name));
           fprintf(fp, "        printf(\"  --%s <VAL>  %s\\n\");\n", kp_name,
                   op->parameters[k].description ? op->parameters[k].description
                                                 : "");
@@ -500,8 +500,8 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
           char kp_name[64];
           const char *pname =
               op->parameters[k].name ? op->parameters[k].name : "param";
-          cdd_serde_transform_case(pname, CDD_SERDE_CASE_KEBABCASE, kp_name,
-                                   sizeof(kp_name));
+          g_cdd_last_alloc_err = cdd_serde_transform_case(
+              pname, CDD_SERDE_CASE_KEBABCASE, kp_name, sizeof(kp_name));
           fprintf(
               fp,
               "      if ((strcmp(argv[_arg_i], \"--%s\") == 0 || "

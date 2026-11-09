@@ -59,52 +59,60 @@ TEST test_writer_ignores_content_type_response_header(void) {
     JSON_Object *headers_obj;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     op_obj = json_value_get_object(root);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "paths", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "paths", &_cdd_jo_1);
       op_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "/r", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "/r", &_cdd_jo_1);
       op_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "get", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "get", &_cdd_jo_1);
       op_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "responses", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "responses", &_cdd_jo_1);
       resp_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(resp_obj, "200", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(resp_obj, "200", &_cdd_jo_1);
       resp_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(resp_obj, "headers", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(resp_obj, "headers", &_cdd_jo_1);
       headers_obj = _cdd_jo_1;
     }
     ASSERT(headers_obj != NULL);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(headers_obj, "Content-Type", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(headers_obj, "Content-Type", &_cdd_jo_1);
       ASSERT(_cdd_jo_1 == NULL);
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(headers_obj, "X-Rate", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(headers_obj, "X-Rate", &_cdd_jo_1);
       ASSERT(_cdd_jo_1 != NULL);
     }
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -152,49 +160,55 @@ TEST test_writer_path_level_parameters(void) {
     JSON_Object *paths;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(json_value_get_object(root), "paths",
-                                 &_cdd_jo_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_object(
+          json_value_get_object(root), "paths", &_cdd_jo_1);
       paths = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(paths, "/pets", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(paths, "/pets", &_cdd_jo_1);
       item = _cdd_jo_1;
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(item, "parameters", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(item, "parameters", &_cdd_ja_1);
       oa_params = _cdd_ja_1;
     }
     p_obj = json_array_get_object(oa_params, 0);
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(item, "summary", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(item, "summary", &_cdd_js_1);
       ASSERT_STR_EQ("Pets", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(item, "description", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(item, "description", &_cdd_js_1);
       ASSERT_STR_EQ("All pets", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(p_obj, "name", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(p_obj, "name", &_cdd_js_1);
       ASSERT_STR_EQ("x-trace", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(p_obj, "in", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(p_obj, "in", &_cdd_js_1);
       ASSERT_STR_EQ("header", _cdd_js_1);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -244,46 +258,51 @@ TEST test_writer_server_variables(void) {
     JSON_Array *enum_arr;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     obj = json_value_get_object(root);
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(obj, "servers", &_cdd_ja_1);
       srv_arr = _cdd_ja_1;
     }
     srv_obj = json_array_get_object(srv_arr, 0);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(srv_obj, "variables", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(srv_obj, "variables", &_cdd_jo_1);
       vars = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(vars, "env", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(vars, "env", &_cdd_jo_1);
       env = _cdd_jo_1;
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(env, "enum", &_cdd_ja_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_array(env, "enum", &_cdd_ja_1);
       enum_arr = _cdd_ja_1;
     }
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(env, "default", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(env, "default", &_cdd_js_1);
       ASSERT_STR_EQ("prod", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(env, "description", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(env, "description", &_cdd_js_1);
       ASSERT_STR_EQ("Environment", _cdd_js_1);
     }
     ASSERT_STR_EQ("prod", json_array_get_string(enum_arr, 0));
     ASSERT_STR_EQ("staging", json_array_get_string(enum_arr, 1));
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -337,18 +356,19 @@ TEST test_writer_security_schemes(void) {
     JSON_Object *comps;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(json_value_get_object(root), "components",
-                                 &_cdd_jo_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_object(
+          json_value_get_object(root), "components", &_cdd_jo_1);
       comps = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(comps, "securitySchemes", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(comps, "securitySchemes", &_cdd_jo_1);
       secs = _cdd_jo_1;
     }
 
@@ -357,23 +377,27 @@ TEST test_writer_security_schemes(void) {
       JSON_Object *b;
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(secs, "bearerAuth", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(secs, "bearerAuth", &_cdd_jo_1);
         b = _cdd_jo_1;
       }
       ASSERT(b != NULL);
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(b, "type", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(b, "type", &_cdd_js_1);
         ASSERT_STR_EQ("http", _cdd_js_1);
       }
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(b, "scheme", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(b, "scheme", &_cdd_js_1);
         ASSERT_STR_EQ("bearer", _cdd_js_1);
       }
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(b, "bearerFormat", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(b, "bearerFormat", &_cdd_js_1);
         ASSERT_STR_EQ("Opaque", _cdd_js_1);
       }
     }
@@ -383,23 +407,26 @@ TEST test_writer_security_schemes(void) {
       JSON_Object *k;
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(secs, "apiKeyAuth", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(secs, "apiKeyAuth", &_cdd_jo_1);
         k = _cdd_jo_1;
       }
       ASSERT(k != NULL);
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(k, "type", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(k, "type", &_cdd_js_1);
         ASSERT_STR_EQ("apiKey", _cdd_js_1);
       }
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(k, "in", &_cdd_js_1);
+        g_cdd_last_alloc_err = cdd_json_object_get_string(k, "in", &_cdd_js_1);
         ASSERT_STR_EQ("header", _cdd_js_1);
       }
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(k, "name", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(k, "name", &_cdd_js_1);
         ASSERT_STR_EQ("X-Api-Key", _cdd_js_1);
       }
     }
@@ -409,23 +436,26 @@ TEST test_writer_security_schemes(void) {
       JSON_Object *m;
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(secs, "mtlsAuth", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(secs, "mtlsAuth", &_cdd_jo_1);
         m = _cdd_jo_1;
       }
       ASSERT(m != NULL);
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(m, "type", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(m, "type", &_cdd_js_1);
         ASSERT_STR_EQ("mutualTLS", _cdd_js_1);
       }
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(m, "description", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(m, "description", &_cdd_js_1);
         ASSERT_STR_EQ("mTLS only", _cdd_js_1);
       }
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
   free(json);
   g_fail_io_after = -1;
@@ -481,19 +511,21 @@ TEST test_writer_security_requirements(void) {
     JSON_Array *root_scopes;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     root_obj = json_value_get_object(root);
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(root_obj, "security", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(root_obj, "security", &_cdd_ja_1);
       root_sec = _cdd_ja_1;
     }
     root_req_obj = json_array_get_object(root_sec, 0);
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(root_req_obj, "bearerAuth", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(root_req_obj, "bearerAuth", &_cdd_ja_1);
       root_scopes = _cdd_ja_1;
     }
 
@@ -507,25 +539,30 @@ TEST test_writer_security_requirements(void) {
         JSON_Object *_cdd_jo_1 = NULL;
         JSON_Object *_cdd_jo_2 = NULL;
         JSON_Object *_cdd_jo_3 = NULL;
-        cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
-        cdd_json_object_get_object(_cdd_jo_1, "/test/route", &_cdd_jo_2);
-        cdd_json_object_get_object(_cdd_jo_2, "get", &_cdd_jo_3);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(_cdd_jo_1, "/test/route", &_cdd_jo_2);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(_cdd_jo_2, "get", &_cdd_jo_3);
         op_obj = _cdd_jo_3;
       }
       {
         JSON_Array *_cdd_ja_1 = NULL;
-        cdd_json_object_get_array(op_obj, "security", &_cdd_ja_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_array(op_obj, "security", &_cdd_ja_1);
         op_sec = _cdd_ja_1;
       }
       op_req_obj = json_array_get_object(op_sec, 0);
       {
         JSON_Array *_cdd_ja_1 = NULL;
-        cdd_json_object_get_array(op_req_obj, "ApiKeyAuth", &_cdd_ja_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_array(op_req_obj, "ApiKeyAuth", &_cdd_ja_1);
         ASSERT(_cdd_ja_1 != NULL);
       }
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -566,23 +603,26 @@ TEST test_writer_multipart_schema(void) {
     JSON_Object *op_obj;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     op_obj = json_value_get_object(root);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "paths", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "paths", &_cdd_jo_1);
       op_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "/test/route", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "/test/route", &_cdd_jo_1);
       op_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(op_obj, "post", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(op_obj, "post", &_cdd_jo_1);
       op_obj = _cdd_jo_1;
     }
 
@@ -594,33 +634,39 @@ TEST test_writer_multipart_schema(void) {
       JSON_Object *props;
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(op_obj, "requestBody", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(op_obj, "requestBody", &_cdd_jo_1);
         req = _cdd_jo_1;
       }
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(req, "content", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(req, "content", &_cdd_jo_1);
         cnt = _cdd_jo_1;
       }
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(cnt, "multipart/form-data", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(cnt, "multipart/form-data", &_cdd_jo_1);
         mp = _cdd_jo_1;
       }
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(mp, "schema", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(mp, "schema", &_cdd_jo_1);
         sch = _cdd_jo_1;
       }
       {
         JSON_Object *_cdd_jo_1 = NULL;
-        cdd_json_object_get_object(sch, "properties", &_cdd_jo_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_object(sch, "properties", &_cdd_jo_1);
         props = _cdd_jo_1;
       }
 
       {
         const char *_cdd_js_1 = NULL;
-        cdd_json_object_get_string(sch, "type", &_cdd_js_1);
+        g_cdd_last_alloc_err =
+            cdd_json_object_get_string(sch, "type", &_cdd_js_1);
         ASSERT_STR_EQ("object", _cdd_js_1);
       }
 
@@ -629,17 +675,20 @@ TEST test_writer_multipart_schema(void) {
         JSON_Object *f;
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(props, "file", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(props, "file", &_cdd_jo_1);
           f = _cdd_jo_1;
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(f, "type", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(f, "type", &_cdd_js_1);
           ASSERT_STR_EQ("string", _cdd_js_1);
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(f, "format", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(f, "format", &_cdd_js_1);
           ASSERT_STR_EQ("binary", _cdd_js_1);
         }
       }
@@ -648,17 +697,19 @@ TEST test_writer_multipart_schema(void) {
         JSON_Object *d;
         {
           JSON_Object *_cdd_jo_1 = NULL;
-          cdd_json_object_get_object(props, "desc", &_cdd_jo_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_object(props, "desc", &_cdd_jo_1);
           d = _cdd_jo_1;
         }
         {
           const char *_cdd_js_1 = NULL;
-          cdd_json_object_get_string(d, "type", &_cdd_js_1);
+          g_cdd_last_alloc_err =
+              cdd_json_object_get_string(d, "type", &_cdd_js_1);
           ASSERT_STR_EQ("string", _cdd_js_1);
         }
       }
     }
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
   free(json);
   g_fail_io_after = -1;
@@ -756,73 +807,87 @@ TEST test_writer_components_and_response_headers(void) {
     JSON_Object *resp404;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     root_obj = json_value_get_object(root);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
       components = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(components, "parameters", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(components, "parameters", &_cdd_jo_1);
       params = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(components, "headers", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(components, "headers", &_cdd_jo_1);
       hdrs = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(components, "responses", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(components, "responses", &_cdd_jo_1);
       resps = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
       paths = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(paths, "/items", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(paths, "/items", &_cdd_jo_1);
       item = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(item, "get", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(item, "get", &_cdd_jo_1);
       get = _cdd_jo_1;
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(get, "parameters", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(get, "parameters", &_cdd_ja_1);
       params_arr = _cdd_ja_1;
     }
     p0 = json_array_get_object(params_arr, 0);
     {
       JSON_Object *_cdd_jo_1 = NULL;
       JSON_Object *_cdd_jo_2 = NULL;
-      cdd_json_object_get_object(get, "responses", &_cdd_jo_1);
-      cdd_json_object_get_object(_cdd_jo_1, "200", &_cdd_jo_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(get, "responses", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(_cdd_jo_1, "200", &_cdd_jo_2);
       resp200 = _cdd_jo_2;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
       JSON_Object *_cdd_jo_2 = NULL;
-      cdd_json_object_get_object(get, "responses", &_cdd_jo_1);
-      cdd_json_object_get_object(_cdd_jo_1, "404", &_cdd_jo_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(get, "responses", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(_cdd_jo_1, "404", &_cdd_jo_2);
       resp404 = _cdd_jo_2;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(resp200, "headers", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(resp200, "headers", &_cdd_jo_1);
       resp200_hdrs = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(resp200_hdrs, "X-Rate", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(resp200_hdrs, "X-Rate", &_cdd_jo_1);
       x_rate = _cdd_jo_1;
     }
 
@@ -832,44 +897,53 @@ TEST test_writer_components_and_response_headers(void) {
     {
       JSON_Object *_cdd_jo_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_object(params, "LimitParam", &_cdd_jo_1);
-      cdd_json_object_get_string(_cdd_jo_1, "name", &_cdd_js_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(params, "LimitParam", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(_cdd_jo_1, "name", &_cdd_js_2);
       ASSERT_STR_EQ("limit", _cdd_js_2);
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
       JSON_Object *_cdd_jo_2 = NULL;
       const char *_cdd_js_3 = NULL;
-      cdd_json_object_get_object(hdrs, "RateLimit", &_cdd_jo_1);
-      cdd_json_object_get_object(_cdd_jo_1, "schema", &_cdd_jo_2);
-      cdd_json_object_get_string(_cdd_jo_2, "type", &_cdd_js_3);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(hdrs, "RateLimit", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(_cdd_jo_1, "schema", &_cdd_jo_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(_cdd_jo_2, "type", &_cdd_js_3);
       ASSERT_STR_EQ("integer", _cdd_js_3);
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
       const char *_cdd_js_2 = NULL;
-      cdd_json_object_get_object(resps, "NotFound", &_cdd_jo_1);
-      cdd_json_object_get_string(_cdd_jo_1, "description", &_cdd_js_2);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(resps, "NotFound", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(_cdd_jo_1, "description", &_cdd_js_2);
       ASSERT_STR_EQ("missing", _cdd_js_2);
     }
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(p0, "$ref", &_cdd_js_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_string(p0, "$ref", &_cdd_js_1);
       ASSERT_STR_EQ("#/components/parameters/LimitParam", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(x_rate, "$ref", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(x_rate, "$ref", &_cdd_js_1);
       ASSERT_STR_EQ("#/components/headers/RateLimit", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(resp404, "$ref", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(resp404, "$ref", &_cdd_js_1);
       ASSERT_STR_EQ("#/components/responses/NotFound", _cdd_js_1);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -924,64 +998,75 @@ TEST test_writer_components_request_bodies(void) {
     JSON_Object *req;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     root_obj = json_value_get_object(root);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
       components = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(components, "requestBodies", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(components, "requestBodies", &_cdd_jo_1);
       rbs = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(rbs, "CreatePet", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(rbs, "CreatePet", &_cdd_jo_1);
       create = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(create, "content", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(create, "content", &_cdd_jo_1);
       content = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(content, "application/json", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(content, "application/json", &_cdd_jo_1);
       media = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(media, "schema", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(media, "schema", &_cdd_jo_1);
       schema = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "paths", &_cdd_jo_1);
       paths = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(paths, "/test/route", &_cdd_jo_1);
       p_item = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(p_item, "post", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(p_item, "post", &_cdd_jo_1);
       post = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(post, "requestBody", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(post, "requestBody", &_cdd_jo_1);
       req = _cdd_jo_1;
     }
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(create, "description", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(create, "description", &_cdd_js_1);
       ASSERT_STR_EQ("Create", _cdd_js_1);
     }
     {
@@ -993,16 +1078,18 @@ TEST test_writer_components_request_bodies(void) {
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(schema, "$ref", &_cdd_js_1);
       ASSERT_STR_EQ("#/components/schemas/Pet", _cdd_js_1);
     }
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(req, "$ref", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(req, "$ref", &_cdd_js_1);
       ASSERT_STR_EQ("#/components/requestBodies/CreatePet", _cdd_js_1);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
@@ -1024,8 +1111,9 @@ TEST test_writer_components_schemas(void) {
   json = NULL;
 
   memset(&spec, 0, sizeof(spec));
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
 
   spec.defined_schemas = &sf;
   spec.defined_schema_names = &name;
@@ -1043,47 +1131,52 @@ TEST test_writer_components_schemas(void) {
     JSON_Object *comps;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(json_value_get_object(root), "components",
-                                 &_cdd_jo_1);
+      g_cdd_last_alloc_err = cdd_json_object_get_object(
+          json_value_get_object(root), "components", &_cdd_jo_1);
       comps = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(comps, "schemas", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(comps, "schemas", &_cdd_jo_1);
       schemas = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(schemas, "MyModel", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(schemas, "MyModel", &_cdd_jo_1);
       model = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(model, "properties", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(model, "properties", &_cdd_jo_1);
       props = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(props, "id", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(props, "id", &_cdd_jo_1);
       id_prop = _cdd_jo_1;
     }
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(id_prop, "type", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(id_prop, "type", &_cdd_js_1);
       ASSERT_STR_EQ("integer", _cdd_js_1);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
-  struct_fields_free(&sf);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

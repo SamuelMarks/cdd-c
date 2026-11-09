@@ -38,14 +38,14 @@ static cdd_c_error_t load_spec_string(const char *json,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     JSON_Value *_cdd_jv_1 = NULL;
-    cdd_json_parse_string(json, &_cdd_jv_1);
+    g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
     root = _cdd_jv_1;
   }
   if (!root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  openapi_spec_init(spec);
+  g_cdd_last_alloc_err = openapi_spec_init(spec);
   rc = openapi_load_from_json(root, spec);
-  json_value_free(root);
+  g_cdd_last_alloc_err = json_value_free(root);
   return rc;
 }
 
@@ -79,8 +79,8 @@ TEST test_loader_enum_and_required(void) {
 
   {
     const struct StructFields *color =
-        (openapi_spec_find_schema(&spec, "Color",
-                                  &_ast_openapi_spec_find_schema_0),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "Color", &_ast_openapi_spec_find_schema_0),
          _ast_openapi_spec_find_schema_0);
     ASSERT(color != NULL);
     ASSERT_EQ(1, color->is_enum);
@@ -91,8 +91,8 @@ TEST test_loader_enum_and_required(void) {
 
   {
     const struct StructFields *car =
-        (openapi_spec_find_schema(&spec, "Car",
-                                  &_ast_openapi_spec_find_schema_1),
+        (g_cdd_last_alloc_err = openapi_spec_find_schema(
+             &spec, "Car", &_ast_openapi_spec_find_schema_1),
          _ast_openapi_spec_find_schema_1);
     ASSERT(car != NULL);
     ASSERT_EQ(0, car->is_enum);
@@ -102,7 +102,7 @@ TEST test_loader_enum_and_required(void) {
     ASSERT_EQ(1, car->fields[0].required);
   }
 
-  openapi_spec_free(&spec);
+  g_cdd_last_alloc_err = openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -124,15 +124,15 @@ TEST test_writer_enum_and_required(void) {
   names[0] = cdd_test_mut_str("Color");
   names[1] = cdd_test_mut_str("Car");
 
-  struct_fields_init(&schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_init(&schemas[0]);
   schemas[0].is_enum = 1;
-  enum_members_init(&schemas[0].enum_members);
-  enum_members_add(&schemas[0].enum_members, "RED");
-  enum_members_add(&schemas[0].enum_members, "GREEN");
+  g_cdd_last_alloc_err = enum_members_init(&schemas[0].enum_members);
+  g_cdd_last_alloc_err = enum_members_add(&schemas[0].enum_members, "RED");
+  g_cdd_last_alloc_err = enum_members_add(&schemas[0].enum_members, "GREEN");
 
-  struct_fields_init(&schemas[1]);
-  struct_fields_add(&schemas[1], "color", "enum", "#/components/schemas/Color",
-                    NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_init(&schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &schemas[1], "color", "enum", "#/components/schemas/Color", NULL, NULL);
   schemas[1].fields[0].required = 1;
 
   spec.openapi_version = cdd_test_mut_str("3.2.0");
@@ -156,54 +156,63 @@ TEST test_writer_enum_and_required(void) {
     JSON_Object *color_prop = NULL;
     {
       JSON_Value *_cdd_jv_1 = NULL;
-      cdd_json_parse_string(json, &_cdd_jv_1);
+      g_cdd_last_alloc_err = cdd_json_parse_string(json, &_cdd_jv_1);
       root = _cdd_jv_1;
     }
     root_obj = json_value_get_object(root);
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(root_obj, "components", &_cdd_jo_1);
       components = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(components, "schemas", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(components, "schemas", &_cdd_jo_1);
       schemas_obj = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(schemas_obj, "Color", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(schemas_obj, "Color", &_cdd_jo_1);
       color = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(schemas_obj, "Car", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(schemas_obj, "Car", &_cdd_jo_1);
       car = _cdd_jo_1;
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(color, "enum", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(color, "enum", &_cdd_ja_1);
       enum_arr = _cdd_ja_1;
     }
     {
       JSON_Array *_cdd_ja_1 = NULL;
-      cdd_json_object_get_array(car, "required", &_cdd_ja_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_array(car, "required", &_cdd_ja_1);
       req_arr = _cdd_ja_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(car, "properties", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(car, "properties", &_cdd_jo_1);
       props = _cdd_jo_1;
     }
     {
       JSON_Object *_cdd_jo_1 = NULL;
-      cdd_json_object_get_object(props, "color", &_cdd_jo_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_object(props, "color", &_cdd_jo_1);
       color_prop = _cdd_jo_1;
     }
 
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(color, "type", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(color, "type", &_cdd_js_1);
       ASSERT_STR_EQ("string", _cdd_js_1);
     }
     ASSERT_EQ(2, json_array_get_count(enum_arr));
@@ -214,16 +223,17 @@ TEST test_writer_enum_and_required(void) {
     ASSERT_STR_EQ("color", json_array_get_string(req_arr, 0));
     {
       const char *_cdd_js_1 = NULL;
-      cdd_json_object_get_string(color_prop, "$ref", &_cdd_js_1);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_string(color_prop, "$ref", &_cdd_js_1);
       ASSERT_STR_EQ("#/components/schemas/Color", _cdd_js_1);
     }
 
-    json_value_free(root);
+    g_cdd_last_alloc_err = json_value_free(root);
   }
 
   free(json);
-  struct_fields_free(&schemas[0]);
-  struct_fields_free(&schemas[1]);
+  g_cdd_last_alloc_err = struct_fields_free(&schemas[0]);
+  g_cdd_last_alloc_err = struct_fields_free(&schemas[1]);
   g_fail_io_after = -1;
   PASS();
 }

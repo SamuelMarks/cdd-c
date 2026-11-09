@@ -309,9 +309,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       return CDD_C_ERROR_MEMORY;
 
     top_node->kind = CDD_CST_UNKNOWN;
-    cdd_cst_builder_init(&bld, tree, top_node);
-    cdd_cst_bld_newline(&bld);
-    cdd_cst_bld_extern_c_open(&bld);
+    g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, top_node);
+    g_cdd_last_alloc_err = cdd_cst_bld_newline(&bld);
+    g_cdd_last_alloc_err = cdd_cst_bld_extern_c_open(&bld);
     if (bld.error_state == 0) {
       /* Transplant leading trivia from the first token to our top_node so
        * comments stay at the top */
@@ -323,15 +323,15 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
       rc = cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
       if (rc != CDD_C_SUCCESS) {
-        cdd_cst_free_node(top_node);
-        cdd_cst_builder_free(&bld);
+        g_cdd_last_alloc_err = cdd_cst_free_node(top_node);
+        g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
         return rc;
       }
       in_extern_c = 1;
     } else {
-      cdd_cst_free_node(top_node);
+      g_cdd_last_alloc_err = cdd_cst_free_node(top_node);
     }
-    cdd_cst_builder_free(&bld);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
 
     /* Process children to find late includes that need to be excluded from
      * extern "C" */
@@ -355,33 +355,35 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
               reopen_node =
                   (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
               if (!reopen_node) {
-                cdd_cst_free_node(close_node);
+                g_cdd_last_alloc_err = cdd_cst_free_node(close_node);
                 return CDD_C_ERROR_MEMORY;
               }
 
               close_node->kind = CDD_CST_UNKNOWN;
-              cdd_cst_builder_init(&bld, tree, close_node);
-              cdd_cst_bld_newline(&bld);
-              cdd_cst_bld_extern_c_close(&bld);
+              g_cdd_last_alloc_err =
+                  cdd_cst_builder_init(&bld, tree, close_node);
+              g_cdd_last_alloc_err = cdd_cst_bld_newline(&bld);
+              g_cdd_last_alloc_err = cdd_cst_bld_extern_c_close(&bld);
               rc = cdd_cst_insert_child_node_at(target_parent, j, close_node);
-              cdd_cst_builder_free(&bld);
+              g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
               if (rc != CDD_C_SUCCESS) {
-                cdd_cst_free_node(close_node);
-                cdd_cst_free_node(reopen_node);
+                g_cdd_last_alloc_err = cdd_cst_free_node(close_node);
+                g_cdd_last_alloc_err = cdd_cst_free_node(reopen_node);
                 return rc;
               }
               j++; /* skip the close node we just inserted */
               in_extern_c = 0;
 
               reopen_node->kind = CDD_CST_UNKNOWN;
-              cdd_cst_builder_init(&bld, tree, reopen_node);
-              cdd_cst_bld_newline(&bld);
-              cdd_cst_bld_extern_c_open(&bld);
+              g_cdd_last_alloc_err =
+                  cdd_cst_builder_init(&bld, tree, reopen_node);
+              g_cdd_last_alloc_err = cdd_cst_bld_newline(&bld);
+              g_cdd_last_alloc_err = cdd_cst_bld_extern_c_open(&bld);
               rc = cdd_cst_insert_child_node_at(target_parent, j + 1,
                                                 reopen_node);
-              cdd_cst_builder_free(&bld);
+              g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
               if (rc != CDD_C_SUCCESS) {
-                cdd_cst_free_node(reopen_node);
+                g_cdd_last_alloc_err = cdd_cst_free_node(reopen_node);
                 return rc;
               }
               j += 2; /* skip the include node AND the reopen node we just
@@ -403,9 +405,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       return CDD_C_ERROR_MEMORY;
 
     bot_node->kind = CDD_CST_UNKNOWN;
-    cdd_cst_builder_init(&bld, tree, bot_node);
-    cdd_cst_bld_newline(&bld);
-    cdd_cst_bld_extern_c_close(&bld);
+    g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, bot_node);
+    g_cdd_last_alloc_err = cdd_cst_bld_newline(&bld);
+    g_cdd_last_alloc_err = cdd_cst_bld_extern_c_close(&bld);
     if (bld.error_state == 0) {
       size_t bot_insert_idx = target_parent->num_children;
       if (target_parent->num_children > 0) {
@@ -425,14 +427,14 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       rc =
           cdd_cst_insert_child_node_at(target_parent, bot_insert_idx, bot_node);
       if (rc != CDD_C_SUCCESS) {
-        cdd_cst_free_node(bot_node);
-        cdd_cst_builder_free(&bld);
+        g_cdd_last_alloc_err = cdd_cst_free_node(bot_node);
+        g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
         return rc;
       }
     } else {
-      cdd_cst_free_node(bot_node);
+      g_cdd_last_alloc_err = cdd_cst_free_node(bot_node);
     }
-    cdd_cst_builder_free(&bld);
+    g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
   }
 
   return CDD_C_SUCCESS;

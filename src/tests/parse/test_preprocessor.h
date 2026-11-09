@@ -111,7 +111,7 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = pp_eval_expression(tl, 0, tl->size, ctx, &res);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   if (out)
     *out = res;
   return rc;
@@ -245,8 +245,8 @@ TEST test_pp_eval_comparison(void) {
  */
 TEST test_pp_eval_defined(void) {
   struct PreprocessorContext ctx;
-  pp_context_init(&ctx);
-  pp_add_macro(&ctx, "FOO", NULL);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "FOO", NULL);
 
   {
     long out = 0;
@@ -263,7 +263,7 @@ TEST test_pp_eval_defined(void) {
     eval("defined BAR", &ctx, &out);
     ASSERT_EQ(0, out);
   }
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   g_fail_io_after = -1;
   PASS();
 }
@@ -274,9 +274,9 @@ TEST test_pp_eval_defined(void) {
  */
 TEST test_pp_eval_macros_as_values(void) {
   struct PreprocessorContext ctx;
-  pp_context_init(&ctx);
-  pp_add_macro(&ctx, "ONE", "1");
-  pp_add_macro(&ctx, "TWO", "2");
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "ONE", "1");
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "TWO", "2");
 
   {
     long out = 0;
@@ -284,7 +284,7 @@ TEST test_pp_eval_macros_as_values(void) {
     ASSERT_EQ(3, out);
   }
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   g_fail_io_after = -1;
   PASS();
 }
@@ -301,16 +301,16 @@ TEST test_pp_has_include(void) {
   char *root = NULL;
   char *h = NULL;
 
-  tempdir(&tmp);
+  g_cdd_last_alloc_err = tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_inc_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
   if (asprintf(&h, "%s%cheading.h", root, PATH_SEP_CHAR)) {
   }
-  write_to_file(h, "/* contents */");
+  g_cdd_last_alloc_err = write_to_file(h, "/* contents */");
 
-  pp_context_init(&ctx);
-  pp_add_search_path(&ctx, root);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_search_path(&ctx, root);
 
   {
     long out = 0;
@@ -323,7 +323,7 @@ TEST test_pp_has_include(void) {
     ASSERT_EQ(0, out);
   }
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(h);
   rmdir(root);
   free(h);
@@ -345,21 +345,21 @@ TEST test_pp_embed_params_parsing(void) {
   memset(&tctx, 0, sizeof(tctx));
   tctx.last_params.limit = -1;
 
-  tempdir(&tmp);
+  g_cdd_last_alloc_err = tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_embp_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
   if (asprintf(&src, "%s%cmain.c", root, PATH_SEP_CHAR)) {
   }
   if (asprintf(&dat, "%s%cdata.bin", root, PATH_SEP_CHAR)) {
   }
-  write_to_file(dat, "123");
+  g_cdd_last_alloc_err = write_to_file(dat, "123");
 
-  write_to_file(
+  g_cdd_last_alloc_err = write_to_file(
       src, "#embed \"data.bin\" limit(10) prefix(0x00, ) suffix( ,0xFF)\n");
 
-  pp_context_init(&ctx);
-  pp_add_search_path(&ctx, root);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_search_path(&ctx, root);
 
   ASSERT_EQ(0, pp_scan_includes(src, &ctx, mock_cb, &tctx));
 
@@ -374,7 +374,7 @@ TEST test_pp_embed_params_parsing(void) {
   if (tctx.last_params.suffix)
     free(tctx.last_params.suffix);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(src);
   remove(dat);
   rmdir(root);
@@ -398,28 +398,28 @@ TEST test_pp_ifdef_skip(void) {
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
 
-  tempdir(&tmp);
+  g_cdd_last_alloc_err = tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_cond_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
   if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
   }
   if (asprintf(&header, "%s%cheader.h", root, PATH_SEP_CHAR)) {
   }
 
-  write_to_file(header, "//");
-  write_to_file(main_c,
-                "#define FOO\n#ifdef FOO\n#include \"header.h\"\n#endif\n");
+  g_cdd_last_alloc_err = write_to_file(header, "//");
+  g_cdd_last_alloc_err = write_to_file(
+      main_c, "#define FOO\n#ifdef FOO\n#include \"header.h\"\n#endif\n");
 
-  pp_context_init(&ctx);
-  pp_add_macro(&ctx, "FOO", NULL);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_add_macro(&ctx, "FOO", NULL);
 
   rc = pp_scan_includes(main_c, &ctx, mock_cb, &tctx);
 
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, tctx.count);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(header);
   remove(main_c);
   rmdir(root);
@@ -441,10 +441,10 @@ TEST test_pp_if_else(void) {
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
 
-  tempdir(&tmp);
+  g_cdd_last_alloc_err = tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_else_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
   if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
   }
   if (asprintf(&h1, "%s%ch1.h", root, PATH_SEP_CHAR)) {
@@ -452,12 +452,12 @@ TEST test_pp_if_else(void) {
   if (asprintf(&h2, "%s%ch2.h", root, PATH_SEP_CHAR)) {
   }
 
-  write_to_file(h1, "");
-  write_to_file(h2, "");
-  write_to_file(main_c,
-                "#if 0\n#include \"h1.h\"\n#else\n#include \"h2.h\"\n#endif\n");
+  g_cdd_last_alloc_err = write_to_file(h1, "");
+  g_cdd_last_alloc_err = write_to_file(h2, "");
+  g_cdd_last_alloc_err = write_to_file(
+      main_c, "#if 0\n#include \"h1.h\"\n#else\n#include \"h2.h\"\n#endif\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_includes(main_c, &ctx, mock_cb, &tctx);
 
   ASSERT_EQ(0, rc);
@@ -465,7 +465,7 @@ TEST test_pp_if_else(void) {
   /* The last found path includes the full path, verify substring */
   ASSERT(strstr(tctx.last_found, "h2.h") != NULL);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(h1);
   remove(h2);
   remove(main_c);
@@ -489,26 +489,27 @@ TEST test_pp_nested_if(void) {
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
 
-  tempdir(&tmp);
+  g_cdd_last_alloc_err = tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_nest_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
-  makedir(root);
+  g_cdd_last_alloc_err = makedir(root);
   if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
   }
   if (asprintf(&h1, "%s%ch1.h", root, PATH_SEP_CHAR)) {
   }
 
-  write_to_file(h1, "");
-  write_to_file(main_c, "#if 1\n#if 0\n#include \"h1.h\"\n#elif 1\n#include "
-                        "\"h1.h\"\n#endif\n#endif\n");
+  g_cdd_last_alloc_err = write_to_file(h1, "");
+  g_cdd_last_alloc_err = write_to_file(
+      main_c, "#if 1\n#if 0\n#include \"h1.h\"\n#elif 1\n#include "
+              "\"h1.h\"\n#endif\n#endif\n");
 
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   rc = pp_scan_includes(main_c, &ctx, mock_cb, &tctx);
 
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, tctx.count);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(h1);
   remove(main_c);
   rmdir(root);
@@ -567,14 +568,14 @@ TEST test_pp_include_next(void) {
   const char *sys_file = cdd_test_mut_str("test_include_next_sys/stdlib.h");
 
   memset(&res, 0, sizeof(res));
-  makedir(test_dir);
-  makedir(sys_dir);
-  write_to_file(test_file, "#include_next <stdlib.h>\n");
-  write_to_file(sys_file, "int x;\n");
+  g_cdd_last_alloc_err = makedir(test_dir);
+  g_cdd_last_alloc_err = makedir(sys_dir);
+  g_cdd_last_alloc_err = write_to_file(test_file, "#include_next <stdlib.h>\n");
+  g_cdd_last_alloc_err = write_to_file(sys_file, "int x;\n");
 
   rc = pp_context_init(&ctx);
   ASSERT_EQ(0, rc);
-  pp_add_search_path(&ctx, sys_dir);
+  g_cdd_last_alloc_err = pp_add_search_path(&ctx, sys_dir);
 
   rc = pp_scan_includes(test_file, &ctx, test_include_next_visitor, &res);
   ASSERT_EQ(0, rc);
@@ -584,7 +585,7 @@ TEST test_pp_include_next(void) {
   ASSERT(res.is_system);
   ASSERT_STR_EQ("stdlib.h", res.raw_path);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(test_file);
   remove(sys_file);
   rmdir(test_dir);
@@ -622,7 +623,7 @@ TEST test_preprocessor_abort(void) {
   char *sys_file1 = NULL;
   char *sys_file2 = NULL;
 
-  tempdir(&tmp);
+  g_cdd_last_alloc_err = tempdir(&tmp);
   if (asprintf(&test_dir, "%s%cpp_abort_test_%d", tmp, PATH_SEP_CHAR, rand())) {
   }
   if (asprintf(&test_file, "%s%ctest.c", test_dir, PATH_SEP_CHAR)) {
@@ -634,22 +635,23 @@ TEST test_preprocessor_abort(void) {
   if (asprintf(&sys_file2, "%s%cstdlib.h", sys_dir, PATH_SEP_CHAR)) {
   }
 
-  makedir(test_dir);
-  makedir(sys_dir);
-  write_to_file(test_file, "#include <stdio.h>\n#include <stdlib.h>\n");
-  write_to_file(sys_file1, "int x;\n");
-  write_to_file(sys_file2, "int y;\n");
+  g_cdd_last_alloc_err = makedir(test_dir);
+  g_cdd_last_alloc_err = makedir(sys_dir);
+  g_cdd_last_alloc_err =
+      write_to_file(test_file, "#include <stdio.h>\n#include <stdlib.h>\n");
+  g_cdd_last_alloc_err = write_to_file(sys_file1, "int x;\n");
+  g_cdd_last_alloc_err = write_to_file(sys_file2, "int y;\n");
 
   rc = pp_context_init(&ctx);
   ASSERT_EQ(0, rc);
-  pp_add_search_path(&ctx, sys_dir);
+  g_cdd_last_alloc_err = pp_add_search_path(&ctx, sys_dir);
 
   rc = pp_scan_includes(test_file, &ctx, abort_cb, &called);
   printf("called=%d\n", called);
   ASSERT_EQ(0, rc);     /* It just stops scanning, rc is still 0 */
   ASSERT_EQ(1, called); /* It should have stopped after the first include */
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(test_file);
   remove(sys_file1);
   remove(sys_file2);
@@ -677,28 +679,29 @@ TEST test_pp_scan_defines(void) {
     char *tmp = NULL, *root = NULL, *main_c = NULL;
     int rc;
 
-    tempdir(&tmp);
+    g_cdd_last_alloc_err = tempdir(&tmp);
     if (asprintf(&root, "%s%cpp_scan_%d", tmp, PATH_SEP_CHAR, rand())) {
     }
-    makedir(root);
+    g_cdd_last_alloc_err = makedir(root);
     if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
     }
 
-    write_to_file(main_c, "#define FOO 1\n"
-                          "#define BAR(x) x + 1\n"
-                          "#define EMPTY\n"
-                          "#define MACRO_WITH_ARGS(a, b) a + b\n");
+    g_cdd_last_alloc_err =
+        write_to_file(main_c, "#define FOO 1\n"
+                              "#define BAR(x) x + 1\n"
+                              "#define EMPTY\n"
+                              "#define MACRO_WITH_ARGS(a, b) a + b\n");
 
 #ifdef CDD_BUILD_TESTS
     /*  (moved to global) */
-    pp_context_init(&ctx);
+    g_cdd_last_alloc_err = pp_context_init(&ctx);
 
     g_cdd_alloc_fail = i;
 
     rc = pp_scan_defines(&ctx, main_c);
 
     g_cdd_alloc_fail = 0;
-    pp_context_free(&ctx);
+    g_cdd_last_alloc_err = pp_context_free(&ctx);
 
     remove(main_c);
     rmdir(root);
@@ -723,7 +726,7 @@ TEST test_pp_scan_defines(void) {
 TEST test_pp_has_c_attribute(void) {
   struct PreprocessorContext ctx;
   long out = 0;
-  pp_context_init(&ctx);
+  g_cdd_last_alloc_err = pp_context_init(&ctx);
   eval("__has_c_attribute(fallthrough)", &ctx, &out);
   ASSERT_EQ(201904L, out);
 
@@ -731,7 +734,7 @@ TEST test_pp_has_c_attribute(void) {
   eval("__has_c_attribute(nonexistent)", &ctx, &out);
   ASSERT_EQ(0, out);
 
-  pp_context_free(&ctx);
+  g_cdd_last_alloc_err = pp_context_free(&ctx);
   g_fail_io_after = -1;
   PASS();
 }

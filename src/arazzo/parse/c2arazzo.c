@@ -55,10 +55,10 @@ static cdd_c_error_t parse_str_to_any(const char *raw,
   JSON_Value *jv = NULL;
   cdd_c_error_t rc;
   memset(out_any, 0, sizeof(*out_any));
-  cdd_json_parse_string(raw, &jv);
+  g_cdd_last_alloc_err = cdd_json_parse_string(raw, &jv);
   if (jv) {
     rc = parse_any_value(jv, out_any);
-    cdd_json_value_free(jv);
+    g_cdd_last_alloc_err = cdd_json_value_free(jv);
     return rc;
   }
   out_any->type = OA_ANY_STRING;
@@ -587,7 +587,7 @@ cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
       return rc;
     rc = arazzo_extension_list_append(&spec->extensions,
                                       meta->arazzo_extensions[i].key, &ext_val);
-    free_any_value(&ext_val);
+    g_cdd_last_alloc_err = free_any_value(&ext_val);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
@@ -631,14 +631,15 @@ cdd_c_error_t c2arazzo_apply_doc_metadata(const struct DocMetadata *meta,
       if (meta->workflow_inputs_json) {
         JSON_Value *in_val = NULL;
         JSON_Object *in_obj = NULL;
-        cdd_json_parse_string(meta->workflow_inputs_json, &in_val);
-        cdd_json_value_get_object(in_val, &in_obj);
+        g_cdd_last_alloc_err =
+            cdd_json_parse_string(meta->workflow_inputs_json, &in_val);
+        g_cdd_last_alloc_err = cdd_json_value_get_object(in_val, &in_obj);
         if (in_obj) {
           if (parse_schema_ref(in_obj, &wf->inputs, NULL) == CDD_C_SUCCESS) {
             wf->has_inputs = 1;
           }
         }
-        cdd_json_value_free(in_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(in_val);
       }
       if (meta->n_workflow_depends_on > 0) {
         wf->depends_on =
@@ -732,7 +733,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
           size_t id_len = tl->tokens[i].length - (k + 9);
           wf_id = (char *)C_CDD_MALLOC(id_len + 1);
           if (!wf_id) {
-            free_token_list(tl);
+            g_cdd_last_alloc_err = free_token_list(tl);
             return CDD_C_ERROR_MEMORY;
           }
           memcpy(wf_id, tl->tokens[i].start + k + 9, id_len);
@@ -746,7 +747,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
   }
 
   if (wf_id) {
-    find_workflow_by_id(spec, wf_id, &found);
+    g_cdd_last_alloc_err = find_workflow_by_id(spec, wf_id, &found);
     if (!found) {
       struct Arazzo_Workflow *next_wfs =
           (struct Arazzo_Workflow *)C_CDD_REALLOC(
@@ -754,7 +755,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
               (spec->n_workflows + 1) * sizeof(struct Arazzo_Workflow));
       if (!next_wfs) {
         C_CDD_FREE(wf_id);
-        free_token_list(tl);
+        g_cdd_last_alloc_err = free_token_list(tl);
         return CDD_C_ERROR_MEMORY;
       }
       spec->workflows = next_wfs;
@@ -775,14 +776,14 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
                 (struct Arazzo_Step *)C_CDD_REALLOC(
                     wf->steps, (wf->n_steps + 1) * sizeof(struct Arazzo_Step));
             if (!next_steps) {
-              free_token_list(tl);
+              g_cdd_last_alloc_err = free_token_list(tl);
               return CDD_C_ERROR_MEMORY;
             }
             wf->steps = next_steps;
             memset(&wf->steps[wf->n_steps], 0, sizeof(struct Arazzo_Step));
             wf->steps[wf->n_steps].step_id = (char *)C_CDD_MALLOC(slen + 1);
             if (!wf->steps[wf->n_steps].step_id) {
-              free_token_list(tl);
+              g_cdd_last_alloc_err = free_token_list(tl);
               return CDD_C_ERROR_MEMORY;
             }
             memcpy(wf->steps[wf->n_steps].step_id, tl->tokens[i].start + 5,
@@ -794,7 +795,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
                               &wf->steps[wf->n_steps].operation_id);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(wf->steps[wf->n_steps].step_id);
-              free_token_list(tl);
+              g_cdd_last_alloc_err = free_token_list(tl);
               return rc;
             }
             wf->n_steps++;
@@ -805,19 +806,19 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
           wf->steps =
               (struct Arazzo_Step *)C_CDD_CALLOC(1, sizeof(struct Arazzo_Step));
           if (!wf->steps) {
-            free_token_list(tl);
+            g_cdd_last_alloc_err = free_token_list(tl);
             return CDD_C_ERROR_MEMORY;
           }
           wf->n_steps = 1;
           rc = c_cdd_strdup("step_1", &wf->steps[0].step_id);
           if (rc != CDD_C_SUCCESS) {
-            free_token_list(tl);
+            g_cdd_last_alloc_err = free_token_list(tl);
             return rc;
           }
           wf->steps[0].target_kind = ARAZZO_STEP_TARGET_OPERATION_ID;
           rc = c_cdd_strdup(wf->workflow_id, &wf->steps[0].operation_id);
           if (rc != CDD_C_SUCCESS) {
-            free_token_list(tl);
+            g_cdd_last_alloc_err = free_token_list(tl);
             return rc;
           }
         }
@@ -826,7 +827,7 @@ extract_workflow_from_function_node(const struct CstNode *func_node,
   }
 
   C_CDD_FREE(wf_id);
-  free_token_list(tl);
+  g_cdd_last_alloc_err = free_token_list(tl);
   return rc;
 }
 
@@ -929,7 +930,7 @@ cdd_c_error_t c2arazzo_parse_source(const char *source,
   }
   rc = parse_tokens(tokens, &cst);
   if (rc != CDD_C_SUCCESS) {
-    free_token_list(tokens);
+    g_cdd_last_alloc_err = free_token_list(tokens);
     return rc;
   }
 
@@ -944,12 +945,12 @@ cdd_c_error_t c2arazzo_parse_source(const char *source,
       memcpy(doc_text, cst.nodes[i].start, cst.nodes[i].length);
       doc_text[cst.nodes[i].length] = '\0';
 
-      doc_metadata_init(&meta);
+      g_cdd_last_alloc_err = doc_metadata_init(&meta);
       rc = doc_parse_block(doc_text, &meta);
       if (rc == CDD_C_SUCCESS) {
         rc = c2arazzo_apply_doc_metadata(&meta, spec);
       }
-      doc_metadata_free(&meta);
+      g_cdd_last_alloc_err = doc_metadata_free(&meta);
       C_CDD_FREE(doc_text);
       if (rc != CDD_C_SUCCESS) {
         goto cleanup;
@@ -965,8 +966,8 @@ cdd_c_error_t c2arazzo_parse_source(const char *source,
   rc = ensure_spec_defaults(spec);
 
 cleanup:
-  free_cst_node_list(&cst);
-  free_token_list(tokens);
+  g_cdd_last_alloc_err = free_cst_node_list(&cst);
+  g_cdd_last_alloc_err = free_token_list(tokens);
   return rc;
 }
 
@@ -1007,7 +1008,7 @@ static cdd_c_error_t c2arazzo_walker_cb(const char *path, void *user_data) {
   struct Arazzo_Spec *spec = (struct Arazzo_Spec *)user_data;
   int is_src = 0;
 
-  c2openapi_is_source_file(path, &is_src);
+  g_cdd_last_alloc_err = c2openapi_is_source_file(path, &is_src);
   if (!is_src) {
     return CDD_C_SUCCESS;
   }
@@ -1036,7 +1037,7 @@ cdd_c_error_t c2arazzo_parse_dir(const char *dir_path,
       return rc;
   }
 
-  c2openapi_is_source_file(dir_path, &is_src);
+  g_cdd_last_alloc_err = c2openapi_is_source_file(dir_path, &is_src);
   if (is_src) {
     return c2arazzo_parse_file(dir_path, spec);
   }
@@ -1066,23 +1067,20 @@ cdd_c_error_t c2arazzo_cli_main(int argc, char **argv) {
   memset(&cfg, 0, sizeof(cfg));
   rc = cdd_cli_suggest_closest(argv[0], NULL, 0, &sug);
 
+  rc = cdd_cli_parse_reflected_argv(
+      argc, argv, 1, &cdd_to_arazzo_config_type_info, &cfg, NULL, NULL);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
   for (i = 1; i < argc; ++i) {
-    const struct cdd_field_info *f = NULL;
-    const char *flag = argv[i] + (argv[i][1] == '-' ? 2 : 1);
-    if (argv[i][0] == '-' &&
-        cdd_reflect_find_field(&cdd_to_arazzo_config_type_info, flag, &f) ==
-            CDD_C_SUCCESS) {
-      const char *arg_val;
-      if (i + 1 >= argc)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      arg_val = argv[++i];
-      memcpy((unsigned char *)&cfg + f->offset, &arg_val, sizeof(arg_val));
-    } else {
-      if (!cfg.input)
-        cfg.input = argv[i];
-      else if (!cfg.output)
-        cfg.output = argv[i];
+    if (argv[i][0] == '-') {
+      i++;
+      continue;
     }
+    if (!cfg.input)
+      cfg.input = argv[i];
+    else if (!cfg.output)
+      cfg.output = argv[i];
   }
 
   rc = cdd_generate_to_arazzo(&cfg);

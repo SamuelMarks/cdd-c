@@ -52,11 +52,12 @@ extern C_CDD_EXPORT cdd_c_error_t json_pointer_unescape(const char *in,
  *
  * @param[in] uri URI string to inspect.
  * @param[in] len Number of characters to inspect.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if scheme is present, CDD_C_SUCCESS
- * (0) otherwise.
+ * @param[out] out_has Set to 1 if scheme is present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix(const char *uri,
-                                                        size_t len);
+                                                        size_t len,
+                                                        int *out_has);
 
 /**
  * @brief Computes the length of the base URI before any `#` fragment.
@@ -130,10 +131,12 @@ extern C_CDD_EXPORT cdd_c_error_t compute_document_uri(
  * fields.
  *
  * @param[in] root_obj Root JSON object.
- * @return Non-zero if OpenAPI document fields are present, 0 otherwise.
+ * @param[out] out_has Set to 1 if OpenAPI document fields are present, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-root_has_openapi_fields(const JSON_Object *root_obj);
+root_has_openapi_fields(const JSON_Object *root_obj, int *out_has);
 
 /**
  * @brief Resolves a `$ref` against a specification and its document registry.
@@ -154,11 +157,12 @@ resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
  * @param[in] spec OpenAPI specification context.
  * @param[in] ref Full reference string.
  * @param[in] hash Pointer to the `#` character within `ref`.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if base matches self, CDD_C_SUCCESS
- * (0) otherwise.
+ * @param[out] out_matches Set to 1 if base matches self, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t ref_base_matches_self(
-    const struct OpenAPI_Spec *spec, const char *ref, const char *hash);
+extern C_CDD_EXPORT cdd_c_error_t
+ref_base_matches_self(const struct OpenAPI_Spec *spec, const char *ref,
+                      const char *hash, int *out_matches);
 
 /**
  * @brief Extracts the trailing component name from a `$ref` matching a prefix.
@@ -178,10 +182,11 @@ ref_name_from_prefix(const struct OpenAPI_Spec *spec, const char *ref,
  * @brief Checks if a URL string contains a query (`?`) or fragment (`#`).
  *
  * @param[in] url URL string to inspect.
- * @return CDD_C_ERROR_UNKNOWN (non-zero) if query or fragment is present,
- * CDD_C_SUCCESS (0) otherwise.
+ * @param[out] out_has_qf Set to 1 if query or fragment is present, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t url_has_query_or_fragment(const char *url);
+extern C_CDD_EXPORT cdd_c_error_t url_has_query_or_fragment(const char *url,
+                                                            int *out_has_qf);
 
 #ifdef __cplusplus
 }

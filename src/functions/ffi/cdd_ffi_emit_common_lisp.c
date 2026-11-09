@@ -105,7 +105,8 @@ static cdd_c_error_t map_lisp_type(cdd_ffi_type_t *t, char *out_type,
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
       char lisp_name[512];
-      lispify_name(t->ref_name, lisp_name, sizeof(lisp_name));
+      g_cdd_last_alloc_err =
+          lispify_name(t->ref_name, lisp_name, sizeof(lisp_name));
       CDD_SNPRINTF(out_type, out_sz, "(:struct %s)", lisp_name);
     } else {
       CDD_SNPRINTF(out_type, out_sz, ":pointer");
@@ -115,7 +116,8 @@ static cdd_c_error_t map_lisp_type(cdd_ffi_type_t *t, char *out_type,
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
       char lisp_name[256];
-      lispify_name(t->ref_name, lisp_name, sizeof(lisp_name));
+      g_cdd_last_alloc_err =
+          lispify_name(t->ref_name, lisp_name, sizeof(lisp_name));
       CDD_SNPRINTF(out_type, out_sz, "%s", lisp_name);
     } else {
       CDD_SNPRINTF(out_type, out_sz, ":pointer");
@@ -160,7 +162,8 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
-  lispify_name(lib_name, lisp_lib_name, sizeof(lisp_lib_name));
+  g_cdd_last_alloc_err =
+      lispify_name(lib_name, lisp_lib_name, sizeof(lisp_lib_name));
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.lisp", config->output_dir,
@@ -230,31 +233,37 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
 
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
-    lispify_name(node->name, lisp_node_name, sizeof(lisp_node_name));
+    g_cdd_last_alloc_err =
+        lispify_name(node->name, lisp_node_name, sizeof(lisp_node_name));
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "(defcstruct %s\n", lisp_node_name);
       for (j = 0; j < node->fields_count; j++) {
-        lispify_name(node->fields[j].name, field_name, sizeof(field_name));
-        map_lisp_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            lispify_name(node->fields[j].name, field_name, sizeof(field_name));
+        g_cdd_last_alloc_err =
+            map_lisp_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(f, "  (%s %s)\n", field_name, type_str);
       }
       fprintf(f, ")\n\n");
     } else if (node->kind == CDD_FFI_NODE_UNION) {
       fprintf(f, "(defcunion %s\n", lisp_node_name);
       for (j = 0; j < node->fields_count; j++) {
-        lispify_name(node->fields[j].name, field_name, sizeof(field_name));
-        map_lisp_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            lispify_name(node->fields[j].name, field_name, sizeof(field_name));
+        g_cdd_last_alloc_err =
+            map_lisp_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(f, "  (%s %s)\n", field_name, type_str);
       }
       fprintf(f, ")\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
       fprintf(f, "(defcenum %s\n", lisp_node_name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
-        lispify_name(var->name, var_name, sizeof(var_name));
+        g_cdd_last_alloc_err =
+            lispify_name(var->name, var_name, sizeof(var_name));
         if (var->value) {
           fprintf(f, "  (:%s %s)\n", var_name, var->value);
         } else {
@@ -263,17 +272,20 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
       }
       fprintf(f, ")\n\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      map_lisp_type(&node->return_or_base_type, type_str, sizeof(type_str));
+      g_cdd_last_alloc_err =
+          map_lisp_type(&node->return_or_base_type, type_str, sizeof(type_str));
       fprintf(f, "(defctype %s %s)\n\n", lisp_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      cdd_ffi_emit_trivia(f, node->leading_trivia);
-      map_lisp_type(&node->return_or_base_type, ret_type_str,
-                    sizeof(ret_type_str));
+      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      g_cdd_last_alloc_err = map_lisp_type(&node->return_or_base_type,
+                                           ret_type_str, sizeof(ret_type_str));
       fprintf(f, "(defcfun (\"%s\" %s) %s\n", node->name, lisp_node_name,
               ret_type_str);
       for (j = 0; j < node->fields_count; j++) {
-        lispify_name(node->fields[j].name, arg_name, sizeof(arg_name));
-        map_lisp_type(&node->fields[j].type, type_str, sizeof(type_str));
+        g_cdd_last_alloc_err =
+            lispify_name(node->fields[j].name, arg_name, sizeof(arg_name));
+        g_cdd_last_alloc_err =
+            map_lisp_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(f, "  (%s %s)\n", arg_name, type_str);
       }
       fprintf(f, ")\n\n");

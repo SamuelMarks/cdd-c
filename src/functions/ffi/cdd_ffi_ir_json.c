@@ -445,7 +445,7 @@ static const struct cdd_type_info g_cdd_ffi_base_class_type_info = {
 #define SET_STR(o, k, v)                                                       \
   do {                                                                         \
     if (set_string((o), (k), (v)) != CDD_C_SUCCESS) {                          \
-      cdd_json_value_free(val);                                                \
+      g_cdd_last_alloc_err = cdd_json_value_free(val);                         \
       return CDD_C_ERROR_MEMORY;                                               \
     }                                                                          \
   } while (0)
@@ -454,7 +454,7 @@ static const struct cdd_type_info g_cdd_ffi_base_class_type_info = {
 #define SET_INT(o, k, v)                                                       \
   do {                                                                         \
     if (set_int((o), (k), (v)) != CDD_C_SUCCESS) {                             \
-      cdd_json_value_free(val);                                                \
+      g_cdd_last_alloc_err = cdd_json_value_free(val);                         \
       return CDD_C_ERROR_MEMORY;                                               \
     }                                                                          \
   } while (0)
@@ -470,7 +470,7 @@ static const struct cdd_type_info g_cdd_ffi_base_class_type_info = {
 static cdd_c_error_t get_num_opt(const JSON_Object *obj, const char *name,
                                  double *out_num) {
   *out_num = 0.0;
-  cdd_json_object_get_number(obj, name, out_num);
+  g_cdd_last_alloc_err = cdd_json_object_get_number(obj, name, out_num);
   return CDD_C_SUCCESS;
 }
 
@@ -485,7 +485,7 @@ static cdd_c_error_t get_num_opt(const JSON_Object *obj, const char *name,
 static cdd_c_error_t get_str_opt(const JSON_Object *obj, const char *name,
                                  const char **out_str) {
   *out_str = NULL;
-  cdd_json_object_get_string(obj, name, out_str);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(obj, name, out_str);
   return CDD_C_SUCCESS;
 }
 
@@ -501,7 +501,7 @@ static cdd_c_error_t get_str_opt(const JSON_Object *obj, const char *name,
 static cdd_c_error_t get_obj_opt(const JSON_Object *obj, const char *name,
                                  JSON_Object **out_obj) {
   *out_obj = NULL;
-  cdd_json_object_get_object(obj, name, out_obj);
+  g_cdd_last_alloc_err = cdd_json_object_get_object(obj, name, out_obj);
   return CDD_C_SUCCESS;
 }
 
@@ -516,7 +516,7 @@ static cdd_c_error_t get_obj_opt(const JSON_Object *obj, const char *name,
 static cdd_c_error_t get_arr_opt(const JSON_Object *obj, const char *name,
                                  JSON_Array **out_arr) {
   *out_arr = NULL;
-  cdd_json_object_get_array(obj, name, out_arr);
+  g_cdd_last_alloc_err = cdd_json_object_get_array(obj, name, out_arr);
   return CDD_C_SUCCESS;
 }
 
@@ -531,7 +531,7 @@ static cdd_c_error_t get_arr_opt(const JSON_Object *obj, const char *name,
 static cdd_c_error_t has_val_opt(const JSON_Object *obj, const char *name,
                                  int *out_has) {
   *out_has = 0;
-  cdd_json_object_has_value(obj, name, out_has);
+  g_cdd_last_alloc_err = cdd_json_object_has_value(obj, name, out_has);
   return CDD_C_SUCCESS;
 }
 
@@ -582,20 +582,20 @@ static cdd_c_error_t trivia_to_json(const cdd_ffi_trivia_t *trivia,
   const cdd_ffi_trivia_t *curr = trivia;
   if (cdd_json_value_init_array(&val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
-  cdd_json_value_get_array(val, &arr);
+  g_cdd_last_alloc_err = cdd_json_value_get_array(val, &arr);
   while (curr) {
     JSON_Value *t_val = NULL;
     JSON_Object *t_obj = NULL;
     if (cdd_json_value_init_object(&t_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    cdd_json_value_get_object(t_val, &t_obj);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(t_val, &t_obj);
     if (set_int(t_obj, "kind", (int)curr->kind) != CDD_C_SUCCESS ||
         set_string(t_obj, "text", curr->text) != CDD_C_SUCCESS ||
         cdd_json_array_append_value(arr, t_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
     curr = curr->next;
@@ -613,14 +613,18 @@ static cdd_c_error_t trivia_to_json(const cdd_ffi_trivia_t *trivia,
  */
 static cdd_c_error_t number_to_json(const struct cdd_ffi_number_t *num,
                                     JSON_Value **out_val) {
-  char *jstr = NULL;
-  cdd_c_error_t rc =
-      cdd_reflect_to_json(num, &g_cdd_ffi_number_type_info, &jstr);
-  if (rc != CDD_C_SUCCESS)
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
+  if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
-  rc = cdd_json_parse_string(jstr, out_val);
-  C_CDD_FREE(jstr);
-  return rc == CDD_C_SUCCESS ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
+  if (cdd_reflect_to_json_object(num, &g_cdd_ffi_number_type_info, obj) !=
+      CDD_C_SUCCESS) {
+    g_cdd_last_alloc_err = cdd_json_value_free(val);
+    return CDD_C_ERROR_MEMORY;
+  }
+  *out_val = val;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -633,14 +637,18 @@ static cdd_c_error_t number_to_json(const struct cdd_ffi_number_t *num,
 static cdd_c_error_t
 macro_expansion_to_json(const struct cdd_ffi_macro_expansion_t *m,
                         JSON_Value **out_val) {
-  char *jstr = NULL;
-  cdd_c_error_t rc =
-      cdd_reflect_to_json(m, &g_cdd_ffi_macro_expansion_type_info, &jstr);
-  if (rc != CDD_C_SUCCESS)
+  JSON_Value *val = NULL;
+  JSON_Object *obj = NULL;
+  if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
-  rc = cdd_json_parse_string(jstr, out_val);
-  C_CDD_FREE(jstr);
-  return rc == CDD_C_SUCCESS ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
+  if (cdd_reflect_to_json_object(m, &g_cdd_ffi_macro_expansion_type_info,
+                                 obj) != CDD_C_SUCCESS) {
+    g_cdd_last_alloc_err = cdd_json_value_free(val);
+    return CDD_C_ERROR_MEMORY;
+  }
+  *out_val = val;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -656,7 +664,7 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
   JSON_Object *obj = NULL;
   if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
-  cdd_json_value_get_object(val, &obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
 
   SET_INT(obj, "kind", (int)type->kind);
   SET_INT(obj, "is_const", type->is_const);
@@ -671,26 +679,26 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
     JSON_Array *arr = NULL;
     size_t i;
     if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    cdd_json_value_get_array(arr_val, &arr);
+    g_cdd_last_alloc_err = cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < type->template_args_count; ++i) {
       JSON_Value *t_val = NULL;
       cdd_c_error_t rc = type_to_json(&type->template_args[i], &t_val);
       if (rc != CDD_C_SUCCESS ||
           cdd_json_array_append_value(arr, t_val) != CDD_C_SUCCESS) {
         if (t_val)
-          cdd_json_value_free(t_val);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+          g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (cdd_json_object_set_value(obj, "template_args", arr_val) !=
         CDD_C_SUCCESS) {
-      cdd_json_value_free(arr_val);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -701,8 +709,8 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
         cdd_json_object_set_value(obj, "leading_trivia", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -713,8 +721,8 @@ static cdd_c_error_t type_to_json(const cdd_ffi_type_t *type,
         cdd_json_object_set_value(obj, "trailing_trivia", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -736,7 +744,7 @@ static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
   JSON_Object *obj = NULL;
   if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
-  cdd_json_value_get_object(val, &obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
 
   SET_STR(obj, "name", field->name);
   {
@@ -745,8 +753,8 @@ static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
     if (rc != CDD_C_SUCCESS ||
         cdd_json_object_set_value(obj, "type", t_val) != CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -760,8 +768,8 @@ static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
         cdd_json_object_set_value(obj, "leading_trivia", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -772,8 +780,8 @@ static cdd_c_error_t field_to_json(const cdd_ffi_field_t *field,
         cdd_json_object_set_value(obj, "trailing_trivia", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -796,7 +804,7 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
 
   if (cdd_json_value_init_object(&val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
-  cdd_json_value_get_object(val, &obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
 
   SET_INT(obj, "kind", (int)node->kind);
   SET_STR(obj, "name", node->name);
@@ -806,25 +814,25 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     JSON_Value *arr_val = NULL;
     JSON_Array *arr = NULL;
     if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    cdd_json_value_get_array(arr_val, &arr);
+    g_cdd_last_alloc_err = cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->fields_count; ++i) {
       JSON_Value *f_val = NULL;
       cdd_c_error_t rc = field_to_json(&node->fields[i], &f_val);
       if (rc != CDD_C_SUCCESS ||
           cdd_json_array_append_value(arr, f_val) != CDD_C_SUCCESS) {
         if (f_val)
-          cdd_json_value_free(f_val);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+          g_cdd_last_alloc_err = cdd_json_value_free(f_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (cdd_json_object_set_value(obj, "fields", arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(arr_val);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -833,35 +841,33 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     JSON_Value *arr_val = NULL;
     JSON_Array *arr = NULL;
     if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    cdd_json_value_get_array(arr_val, &arr);
+    g_cdd_last_alloc_err = cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->base_classes_count; ++i) {
       JSON_Value *bc_val = NULL;
-      char *bc_str = NULL;
-      if (cdd_reflect_to_json(&node->base_classes[i],
-                              &g_cdd_ffi_base_class_type_info,
-                              &bc_str) != CDD_C_SUCCESS ||
-          cdd_json_parse_string(bc_str, &bc_val) != CDD_C_SUCCESS) {
-        if (bc_str)
-          C_CDD_FREE(bc_str);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+      JSON_Object *bc_obj = NULL;
+      if (cdd_json_value_init_object(&bc_val) != CDD_C_SUCCESS) {
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
-      C_CDD_FREE(bc_str);
-      if (cdd_json_array_append_value(arr, bc_val) != CDD_C_SUCCESS) {
-        cdd_json_value_free(bc_val);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(bc_val, &bc_obj);
+      if (cdd_reflect_to_json_object(&node->base_classes[i],
+                                     &g_cdd_ffi_base_class_type_info,
+                                     bc_obj) != CDD_C_SUCCESS ||
+          cdd_json_array_append_value(arr, bc_val) != CDD_C_SUCCESS) {
+        g_cdd_last_alloc_err = cdd_json_value_free(bc_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (cdd_json_object_set_value(obj, "base_classes", arr_val) !=
         CDD_C_SUCCESS) {
-      cdd_json_value_free(arr_val);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -870,26 +876,26 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     JSON_Value *arr_val = NULL;
     JSON_Array *arr = NULL;
     if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    cdd_json_value_get_array(arr_val, &arr);
+    g_cdd_last_alloc_err = cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->variants_count; ++i) {
       JSON_Value *v_val = NULL;
       JSON_Object *v_obj = NULL;
       if (cdd_json_value_init_object(&v_val) != CDD_C_SUCCESS) {
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
-      cdd_json_value_get_object(v_val, &v_obj);
+      g_cdd_last_alloc_err = cdd_json_value_get_object(v_val, &v_obj);
       if (set_string(v_obj, "name", node->variants[i].name) != CDD_C_SUCCESS ||
           set_string(v_obj, "value", node->variants[i].value) !=
               CDD_C_SUCCESS ||
           set_string(v_obj, "doc", node->variants[i].doc) != CDD_C_SUCCESS) {
-        cdd_json_value_free(v_val);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(v_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
       if (node->variants[i].number_details) {
@@ -900,10 +906,10 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
             cdd_json_object_set_value(v_obj, "number_details", n_val) !=
                 CDD_C_SUCCESS) {
           if (n_val)
-            cdd_json_value_free(n_val);
-          cdd_json_value_free(v_val);
-          cdd_json_value_free(arr_val);
-          cdd_json_value_free(val);
+            g_cdd_last_alloc_err = cdd_json_value_free(n_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(v_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(val);
           return CDD_C_ERROR_MEMORY;
         }
       }
@@ -915,10 +921,10 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
             cdd_json_object_set_value(v_obj, "leading_trivia", t_val) !=
                 CDD_C_SUCCESS) {
           if (t_val)
-            cdd_json_value_free(t_val);
-          cdd_json_value_free(v_val);
-          cdd_json_value_free(arr_val);
-          cdd_json_value_free(val);
+            g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(v_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(val);
           return CDD_C_ERROR_MEMORY;
         }
       }
@@ -930,25 +936,25 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
             cdd_json_object_set_value(v_obj, "trailing_trivia", t_val) !=
                 CDD_C_SUCCESS) {
           if (t_val)
-            cdd_json_value_free(t_val);
-          cdd_json_value_free(v_val);
-          cdd_json_value_free(arr_val);
-          cdd_json_value_free(val);
+            g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(v_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(val);
           return CDD_C_ERROR_MEMORY;
         }
       }
       if (set_string(v_obj, "raw_spelling", node->variants[i].raw_spelling) !=
               CDD_C_SUCCESS ||
           cdd_json_array_append_value(arr, v_val) != CDD_C_SUCCESS) {
-        cdd_json_value_free(v_val);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(v_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (cdd_json_object_set_value(obj, "variants", arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(arr_val);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -957,10 +963,10 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
     JSON_Value *arr_val = NULL;
     JSON_Array *arr = NULL;
     if (cdd_json_value_init_array(&arr_val) != CDD_C_SUCCESS) {
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
-    cdd_json_value_get_array(arr_val, &arr);
+    g_cdd_last_alloc_err = cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < node->macro_expansions_count; ++i) {
       JSON_Value *m_val = NULL;
       cdd_c_error_t rc =
@@ -968,16 +974,16 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
       if (rc != CDD_C_SUCCESS ||
           cdd_json_array_append_value(arr, m_val) != CDD_C_SUCCESS) {
         if (m_val)
-          cdd_json_value_free(m_val);
-        cdd_json_value_free(arr_val);
-        cdd_json_value_free(val);
+          g_cdd_last_alloc_err = cdd_json_value_free(m_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (cdd_json_object_set_value(obj, "macro_expansions", arr_val) !=
         CDD_C_SUCCESS) {
-      cdd_json_value_free(arr_val);
-      cdd_json_value_free(val);
+      g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -990,8 +996,8 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
         cdd_json_object_set_value(obj, "return_or_base_type", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -1008,8 +1014,8 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
         cdd_json_object_set_value(obj, "leading_trivia", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -1020,8 +1026,8 @@ static cdd_c_error_t node_to_json(const cdd_ffi_ir_node_t *node,
         cdd_json_object_set_value(obj, "trailing_trivia", t_val) !=
             CDD_C_SUCCESS) {
       if (t_val)
-        cdd_json_value_free(t_val);
-      cdd_json_value_free(val);
+        g_cdd_last_alloc_err = cdd_json_value_free(t_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -1053,12 +1059,12 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_to_json(const cdd_ffi_ir_t *ir,
 
   if (cdd_json_value_init_object(&root_val) != CDD_C_SUCCESS)
     return CDD_C_ERROR_UNKNOWN;
-  cdd_json_value_get_object(root_val, &root_obj);
+  g_cdd_last_alloc_err = cdd_json_value_get_object(root_val, &root_obj);
   if (cdd_json_value_init_array(&nodes_val) != CDD_C_SUCCESS) {
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return CDD_C_ERROR_UNKNOWN;
   }
-  cdd_json_value_get_array(nodes_val, &nodes_arr);
+  g_cdd_last_alloc_err = cdd_json_value_get_array(nodes_val, &nodes_arr);
 
   for (i = 0; i < ir->nodes_count; ++i) {
     JSON_Value *n_val = NULL;
@@ -1066,26 +1072,26 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_to_json(const cdd_ffi_ir_t *ir,
     if (rc != CDD_C_SUCCESS ||
         cdd_json_array_append_value(nodes_arr, n_val) != CDD_C_SUCCESS) {
       if (n_val)
-        cdd_json_value_free(n_val);
-      cdd_json_value_free(nodes_val);
-      cdd_json_value_free(root_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(n_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(nodes_val);
+      g_cdd_last_alloc_err = cdd_json_value_free(root_val);
       return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
     }
   }
 
   if (cdd_json_object_set_value(root_obj, "nodes", nodes_val) !=
       CDD_C_SUCCESS) {
-    cdd_json_value_free(nodes_val);
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(nodes_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return CDD_C_ERROR_UNKNOWN;
   }
 
   if (cdd_json_serialize_to_string_pretty(root_val, &serialized) !=
       CDD_C_SUCCESS) {
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return CDD_C_ERROR_UNKNOWN;
   }
-  cdd_json_value_free(root_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
 
   *out_json = serialized;
   return CDD_C_SUCCESS;
@@ -1120,12 +1126,12 @@ static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
   cdd_ffi_trivia_t *head = NULL, *tail = NULL, *node = NULL;
   if (!arr)
     return CDD_C_SUCCESS;
-  cdd_json_array_get_count(arr, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &count);
   for (i = 0; i < count; ++i) {
     JSON_Object *obj = NULL;
     double d_val = 0.0;
     const char *s_val = NULL;
-    cdd_json_array_get_object(arr, i, &obj);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &obj);
     if (!obj)
       continue;
     node = C_CDD_CALLOC(1, sizeof(cdd_ffi_trivia_t));
@@ -1133,9 +1139,9 @@ static cdd_c_error_t parse_trivia(JSON_Array *arr, cdd_ffi_trivia_t **out) {
       *out = head;
       return CDD_C_ERROR_MEMORY;
     }
-    get_num_opt(obj, "kind", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "kind", &d_val);
     node->kind = (cdd_ffi_trivia_kind_t)d_val;
-    get_str_opt(obj, "text", &s_val);
+    g_cdd_last_alloc_err = get_str_opt(obj, "text", &s_val);
     if (strdup_safe(s_val, &node->text) != CDD_C_SUCCESS) {
       C_CDD_FREE(node);
       *out = head;
@@ -1216,58 +1222,59 @@ static cdd_c_error_t parse_type(JSON_Object *obj, cdd_ffi_type_t *type) {
   if (!obj)
     return CDD_C_SUCCESS;
 
-  has_val_opt(obj, "kind", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "kind", &has_v);
   if (has_v) {
-    get_num_opt(obj, "kind", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "kind", &d_val);
     type->kind = (cdd_ffi_primitive_kind_t)d_val;
   }
-  has_val_opt(obj, "is_const", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "is_const", &has_v);
   if (has_v) {
-    get_num_opt(obj, "is_const", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "is_const", &d_val);
     type->is_const = (int)d_val;
   }
-  has_val_opt(obj, "pointer_depth", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "pointer_depth", &has_v);
   if (has_v) {
-    get_num_opt(obj, "pointer_depth", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "pointer_depth", &d_val);
     type->pointer_depth = (int)d_val;
   }
-  has_val_opt(obj, "array_size", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "array_size", &has_v);
   if (has_v) {
-    get_num_opt(obj, "array_size", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "array_size", &d_val);
     type->array_size = (long)d_val;
   }
 
-  get_str_opt(obj, "ref_name", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "ref_name", &s_val);
   rc = strdup_safe(s_val, &type->ref_name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_arr_opt(obj, "template_args", &t_arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "template_args", &t_arr);
   if (t_arr) {
-    cdd_json_array_get_count(t_arr, &type->template_args_count);
+    g_cdd_last_alloc_err =
+        cdd_json_array_get_count(t_arr, &type->template_args_count);
     type->template_args =
         C_CDD_CALLOC(type->template_args_count, sizeof(cdd_ffi_type_t));
     if (!type->template_args)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < type->template_args_count; ++i) {
       JSON_Object *sub_obj = NULL;
-      cdd_json_array_get_object(t_arr, i, &sub_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(t_arr, i, &sub_obj);
       rc = parse_type(sub_obj, &type->template_args[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  get_arr_opt(obj, "leading_trivia", &tr_arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "leading_trivia", &tr_arr);
   rc = parse_trivia(tr_arr, &type->leading_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  get_arr_opt(obj, "trailing_trivia", &tr_arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "trailing_trivia", &tr_arr);
   rc = parse_trivia(tr_arr, &type->trailing_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_str_opt(obj, "raw_spelling", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "raw_spelling", &s_val);
   rc = strdup_safe(s_val, &type->raw_spelling);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -1290,37 +1297,37 @@ static cdd_c_error_t parse_field(JSON_Object *obj, cdd_ffi_field_t *field) {
   cdd_c_error_t rc;
   memset(field, 0, sizeof(cdd_ffi_field_t));
 
-  get_str_opt(obj, "name", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "name", &s_val);
   rc = strdup_safe(s_val, &field->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_str_opt(obj, "doc", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "doc", &s_val);
   rc = strdup_safe(s_val, &field->doc);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_str_opt(obj, "array_length_ref", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "array_length_ref", &s_val);
   rc = strdup_safe(s_val, &field->array_length_ref);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  has_val_opt(obj, "intent", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "intent", &has_v);
   if (has_v) {
-    get_num_opt(obj, "intent", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "intent", &d_val);
     field->intent = (cdd_ffi_param_intent_t)d_val;
   }
 
-  get_obj_opt(obj, "type", &sub_obj);
+  g_cdd_last_alloc_err = get_obj_opt(obj, "type", &sub_obj);
   rc = parse_type(sub_obj, &field->type);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_arr_opt(obj, "leading_trivia", &tr_arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "leading_trivia", &tr_arr);
   rc = parse_trivia(tr_arr, &field->leading_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  get_arr_opt(obj, "trailing_trivia", &tr_arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "trailing_trivia", &tr_arr);
   rc = parse_trivia(tr_arr, &field->trailing_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -1345,47 +1352,48 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
 
   memset(node, 0, sizeof(cdd_ffi_ir_node_t));
 
-  has_val_opt(obj, "kind", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "kind", &has_v);
   if (has_v) {
-    get_num_opt(obj, "kind", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "kind", &d_val);
     node->kind = (cdd_ffi_node_kind_t)d_val;
   }
 
-  get_str_opt(obj, "name", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "name", &s_val);
   rc = strdup_safe(s_val, &node->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_str_opt(obj, "doc", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "doc", &s_val);
   rc = strdup_safe(s_val, &node->doc);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_arr_opt(obj, "fields", &arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "fields", &arr);
   if (arr) {
-    cdd_json_array_get_count(arr, &node->fields_count);
+    g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &node->fields_count);
     node->fields = C_CDD_CALLOC(node->fields_count, sizeof(cdd_ffi_field_t));
     if (!node->fields)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->fields_count; ++i) {
       JSON_Object *f_obj = NULL;
-      cdd_json_array_get_object(arr, i, &f_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &f_obj);
       rc = parse_field(f_obj, &node->fields[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  get_arr_opt(obj, "base_classes", &arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "base_classes", &arr);
   if (arr) {
-    cdd_json_array_get_count(arr, &node->base_classes_count);
+    g_cdd_last_alloc_err =
+        cdd_json_array_get_count(arr, &node->base_classes_count);
     node->base_classes =
         C_CDD_CALLOC(node->base_classes_count, sizeof(cdd_ffi_base_class_t));
     if (!node->base_classes)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->base_classes_count; ++i) {
       JSON_Object *bc_obj = NULL;
-      cdd_json_array_get_object(arr, i, &bc_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &bc_obj);
       if (bc_obj) {
         rc = cdd_reflect_from_json_object(
             bc_obj, &g_cdd_ffi_base_class_type_info, &node->base_classes[i]);
@@ -1395,9 +1403,9 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
     }
   }
 
-  get_arr_opt(obj, "variants", &arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "variants", &arr);
   if (arr) {
-    cdd_json_array_get_count(arr, &node->variants_count);
+    g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &node->variants_count);
     node->variants =
         C_CDD_CALLOC(node->variants_count, sizeof(cdd_ffi_enum_variant_t));
     if (!node->variants)
@@ -1406,95 +1414,96 @@ static cdd_c_error_t parse_node(JSON_Object *obj, cdd_ffi_ir_node_t *node) {
       JSON_Object *v_obj = NULL;
       JSON_Object *nd_obj = NULL;
       JSON_Array *tr_arr = NULL;
-      cdd_json_array_get_object(arr, i, &v_obj);
-      get_str_opt(v_obj, "name", &s_val);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &v_obj);
+      g_cdd_last_alloc_err = get_str_opt(v_obj, "name", &s_val);
       rc = strdup_safe(s_val, &node->variants[i].name);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      get_str_opt(v_obj, "value", &s_val);
+      g_cdd_last_alloc_err = get_str_opt(v_obj, "value", &s_val);
       rc = strdup_safe(s_val, &node->variants[i].value);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      get_str_opt(v_obj, "doc", &s_val);
+      g_cdd_last_alloc_err = get_str_opt(v_obj, "doc", &s_val);
       rc = strdup_safe(s_val, &node->variants[i].doc);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      get_str_opt(v_obj, "raw_spelling", &s_val);
+      g_cdd_last_alloc_err = get_str_opt(v_obj, "raw_spelling", &s_val);
       rc = strdup_safe(s_val, &node->variants[i].raw_spelling);
       if (rc != CDD_C_SUCCESS)
         return rc;
 
-      get_obj_opt(v_obj, "number_details", &nd_obj);
+      g_cdd_last_alloc_err = get_obj_opt(v_obj, "number_details", &nd_obj);
       rc = parse_number(nd_obj, &node->variants[i].number_details);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      get_arr_opt(v_obj, "leading_trivia", &tr_arr);
+      g_cdd_last_alloc_err = get_arr_opt(v_obj, "leading_trivia", &tr_arr);
       rc = parse_trivia(tr_arr, &node->variants[i].leading_trivia);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      get_arr_opt(v_obj, "trailing_trivia", &tr_arr);
+      g_cdd_last_alloc_err = get_arr_opt(v_obj, "trailing_trivia", &tr_arr);
       rc = parse_trivia(tr_arr, &node->variants[i].trailing_trivia);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  get_arr_opt(obj, "macro_expansions", &arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "macro_expansions", &arr);
   if (arr) {
-    cdd_json_array_get_count(arr, &node->macro_expansions_count);
+    g_cdd_last_alloc_err =
+        cdd_json_array_get_count(arr, &node->macro_expansions_count);
     node->macro_expansions = C_CDD_CALLOC(
         node->macro_expansions_count, sizeof(struct cdd_ffi_macro_expansion_t));
     if (!node->macro_expansions)
       return CDD_C_ERROR_MEMORY;
     for (i = 0; i < node->macro_expansions_count; ++i) {
       JSON_Object *m_obj = NULL;
-      cdd_json_array_get_object(arr, i, &m_obj);
+      g_cdd_last_alloc_err = cdd_json_array_get_object(arr, i, &m_obj);
       rc = parse_macro_expansion(m_obj, &node->macro_expansions[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
 
-  has_val_opt(obj, "return_or_base_type", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "return_or_base_type", &has_v);
   if (has_v) {
     JSON_Object *rt_obj = NULL;
-    get_obj_opt(obj, "return_or_base_type", &rt_obj);
+    g_cdd_last_alloc_err = get_obj_opt(obj, "return_or_base_type", &rt_obj);
     rc = parse_type(rt_obj, &node->return_or_base_type);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
-  get_str_opt(obj, "evaluated_value", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "evaluated_value", &s_val);
   rc = strdup_safe(s_val, &node->evaluated_value);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  has_val_opt(obj, "inferred_type", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "inferred_type", &has_v);
   if (has_v) {
-    get_num_opt(obj, "inferred_type", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "inferred_type", &d_val);
     node->inferred_type = (cdd_ffi_macro_type_t)d_val;
   }
-  has_val_opt(obj, "requires_gil_release", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "requires_gil_release", &has_v);
   if (has_v) {
-    get_num_opt(obj, "requires_gil_release", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "requires_gil_release", &d_val);
     node->requires_gil_release = (int)d_val;
   }
-  has_val_opt(obj, "is_variadic", &has_v);
+  g_cdd_last_alloc_err = has_val_opt(obj, "is_variadic", &has_v);
   if (has_v) {
-    get_num_opt(obj, "is_variadic", &d_val);
+    g_cdd_last_alloc_err = get_num_opt(obj, "is_variadic", &d_val);
     node->is_variadic = (int)d_val;
   }
 
-  get_arr_opt(obj, "leading_trivia", &arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "leading_trivia", &arr);
   rc = parse_trivia(arr, &node->leading_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  get_arr_opt(obj, "trailing_trivia", &arr);
+  g_cdd_last_alloc_err = get_arr_opt(obj, "trailing_trivia", &arr);
   rc = parse_trivia(arr, &node->trailing_trivia);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  get_str_opt(obj, "raw_body", &s_val);
+  g_cdd_last_alloc_err = get_str_opt(obj, "raw_body", &s_val);
   rc = strdup_safe(s_val, &node->raw_body);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -1530,43 +1539,44 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_ir_from_json(const char *json_str,
   }
 
   if (cdd_json_value_get_object(root_val, &root_obj) != CDD_C_SUCCESS) {
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return CDD_C_ERROR_PARSE;
   }
 
   ir = C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
   if (!ir) {
-    cdd_json_value_free(root_val);
+    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
     return CDD_C_ERROR_MEMORY;
   }
 
-  get_arr_opt(root_obj, "nodes", &nodes_arr);
+  g_cdd_last_alloc_err = get_arr_opt(root_obj, "nodes", &nodes_arr);
   if (nodes_arr) {
-    cdd_json_array_get_count(nodes_arr, &ir->nodes_count);
+    g_cdd_last_alloc_err =
+        cdd_json_array_get_count(nodes_arr, &ir->nodes_count);
     ir->nodes_capacity = ir->nodes_count;
     if (ir->nodes_count > 0) {
       ir->nodes = C_CDD_CALLOC(ir->nodes_count, sizeof(cdd_ffi_ir_node_t));
       if (!ir->nodes) {
         C_CDD_FREE(ir);
-        cdd_json_value_free(root_val);
+        g_cdd_last_alloc_err = cdd_json_value_free(root_val);
         return CDD_C_ERROR_MEMORY;
       }
 
       for (i = 0; i < ir->nodes_count; ++i) {
         JSON_Object *n_obj = NULL;
-        cdd_json_array_get_object(nodes_arr, i, &n_obj);
+        g_cdd_last_alloc_err = cdd_json_array_get_object(nodes_arr, i, &n_obj);
         rc = parse_node(n_obj, &ir->nodes[i]);
         if (rc != CDD_C_SUCCESS) {
-          cdd_ffi_ir_free(ir);
+          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
           C_CDD_FREE(ir);
-          cdd_json_value_free(root_val);
+          g_cdd_last_alloc_err = cdd_json_value_free(root_val);
           return rc;
         }
       }
     }
   }
 
-  cdd_json_value_free(root_val);
+  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
   *out_ir = ir;
   return CDD_C_SUCCESS;
 }

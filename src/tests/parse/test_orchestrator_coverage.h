@@ -56,7 +56,8 @@ TEST test_orchestrator_coverage_oom(void) {
 
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
-    orchestrate_fix("void test() { char *p = malloc(1); }", &out);
+    g_cdd_last_alloc_err =
+        orchestrate_fix("void test() { char *p = malloc(1); }", &out);
     C_CDD_FREE(out);
     out = NULL;
     g_cdd_alloc_fail = 0;
@@ -77,13 +78,13 @@ TEST test_orchestrator_coverage_oom_deep(void) {
 
   for (i = 1; i < 50; ++i) {
     g_cdd_alloc_fail = i;
-    orchestrate_fix(code, &out);
+    g_cdd_last_alloc_err = orchestrate_fix(code, &out);
     C_CDD_FREE(out);
     out = NULL;
     g_cdd_alloc_fail = 0;
 
     g_cdd_strdup_fail = i;
-    orchestrate_fix(code, &out);
+    g_cdd_last_alloc_err = orchestrate_fix(code, &out);
     C_CDD_FREE(out);
     out = NULL;
     g_cdd_strdup_fail = 0;
@@ -116,7 +117,7 @@ TEST test_orchestrator_coverage_fix_file(void) {
     fputs("int main(){}", f);
     fclose(f);
   }
-  makedir("my_empty_dir");
+  g_cdd_last_alloc_err = makedir("my_empty_dir");
   {
     char *argv_txt[2];
     char *argv_c[2];
@@ -325,7 +326,7 @@ TEST test_orchestrator_many_callers(void) {
 TEST test_orchestrator_anonymous_func(void) {
   const char *code = "() { malloc(1); }";
   char *out = NULL;
-  orchestrate_fix(code, &out);
+  g_cdd_last_alloc_err = orchestrate_fix(code, &out);
   if (out)
     C_CDD_FREE(out);
   PASS();
@@ -402,19 +403,19 @@ TEST test_orchestrator_extra_oom_sweeps(void) {
 
   for (i = 1; i <= 60; ++i) {
     g_cdd_alloc_fail = i;
-    orchestrate_fix(code_allocs, &out);
+    g_cdd_last_alloc_err = orchestrate_fix(code_allocs, &out);
     C_CDD_FREE(out);
     out = NULL;
     g_cdd_alloc_fail = 0;
 
     g_cdd_alloc_fail = i;
-    orchestrate_fix(code_callers, &out);
+    g_cdd_last_alloc_err = orchestrate_fix(code_callers, &out);
     C_CDD_FREE(out);
     out = NULL;
     g_cdd_alloc_fail = 0;
 
     g_cdd_alloc_fail = i;
-    orchestrate_fix(code_main, &out);
+    g_cdd_last_alloc_err = orchestrate_fix(code_main, &out);
     C_CDD_FREE(out);
     out = NULL;
     g_cdd_alloc_fail = 0;

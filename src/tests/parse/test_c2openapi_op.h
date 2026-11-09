@@ -164,7 +164,7 @@ TEST test_build_param_format_override(void) {
   ASSERT_STR_EQ("int64", op.parameters[0].schema.format);
 
   reset_op(&op);
-  doc_metadata_free(&doc);
+  g_cdd_last_alloc_err = doc_metadata_free(&doc);
   g_fail_io_after = -1;
   PASS();
 }
@@ -213,7 +213,7 @@ TEST test_build_response_header_format(void) {
   ASSERT_STR_EQ("int64", op.responses[0].headers[0].schema.format);
 
   reset_op(&op);
-  doc_metadata_free(&doc);
+  g_cdd_last_alloc_err = doc_metadata_free(&doc);
   g_fail_io_after = -1;
   PASS();
 }
@@ -591,7 +591,7 @@ TEST test_build_params_explicit(void) {
   ctx.doc = &doc;
   ctx.func_name = sig.name;
 
-  c2openapi_build_operation(&ctx, &op);
+  g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
 
   ASSERT_EQ(1, op.n_parameters);
   ASSERT_STR_EQ("limit", op.parameters[0].name);
@@ -858,7 +858,7 @@ TEST test_build_params_querystring(void) {
   ctx.doc = &doc;
   ctx.func_name = sig.name;
 
-  c2openapi_build_operation(&ctx, &op);
+  g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
 
   ASSERT_EQ(1, op.n_parameters);
   ASSERT_STR_EQ("qs", op.parameters[0].name);
@@ -904,7 +904,7 @@ TEST test_build_params_querystring_json_struct(void) {
   ctx.doc = &doc;
   ctx.func_name = sig.name;
 
-  c2openapi_build_operation(&ctx, &op);
+  g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
 
   ASSERT_EQ(1, op.n_parameters);
   ASSERT_EQ(OA_PARAM_IN_QUERYSTRING, op.parameters[0].in);

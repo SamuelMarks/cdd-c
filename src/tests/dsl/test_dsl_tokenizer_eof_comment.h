@@ -27,7 +27,7 @@ TEST test_dsl_tokenizer_eof_comment(void) {
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_COMMENT_LINE, list.tokens[0].kind, "%d");
 
-  cdd_dsl_token_list_free(&list);
+  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&list);
   PASS();
 }
 

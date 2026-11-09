@@ -107,17 +107,18 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
     dest->bit_width[sizeof(dest->bit_width) - 1] = '\0';
   }
 
-  c2s_merge_schema_extras_strings(&dest->schema_extra_json,
-                                  src->schema_extra_json);
-  c2s_merge_schema_extras_strings(&dest->items_extra_json,
-                                  src->items_extra_json);
+  g_cdd_last_alloc_err = c2s_merge_schema_extras_strings(
+      &dest->schema_extra_json, src->schema_extra_json);
+  g_cdd_last_alloc_err = c2s_merge_schema_extras_strings(
+      &dest->items_extra_json, src->items_extra_json);
 
   if (!dest->type_union && src->type_union) {
-    copy_string_array_code2schema(&dest->type_union, &dest->n_type_union,
-                                  src->type_union, src->n_type_union);
+    g_cdd_last_alloc_err =
+        copy_string_array_code2schema(&dest->type_union, &dest->n_type_union,
+                                      src->type_union, src->n_type_union);
   }
   if (!dest->items_type_union && src->items_type_union) {
-    copy_string_array_code2schema(
+    g_cdd_last_alloc_err = copy_string_array_code2schema(
         &dest->items_type_union, &dest->n_items_type_union,
         src->items_type_union, src->n_items_type_union);
   }
@@ -173,7 +174,8 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
     size_t a_idx;
     for (a_idx = 0; a_idx < src->n_serde_aliases; ++a_idx) {
       if (src->serde_aliases[a_idx]) {
-        struct_field_add_alias(dest, src->serde_aliases[a_idx]);
+        g_cdd_last_alloc_err =
+            struct_field_add_alias(dest, src->serde_aliases[a_idx]);
       }
     }
   }
@@ -204,7 +206,8 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
   if (!dest->cli_help[0] && src->cli_help[0])
     CDD_STRCPY(dest->cli_help, sizeof(dest->cli_help), src->cli_help);
   if (!dest->cli_long_help && src->cli_long_help) {
-    c_cdd_strdup(src->cli_long_help, &dest->cli_long_help);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup(src->cli_long_help, &dest->cli_long_help);
   }
   if (!dest->cli_help_heading[0] && src->cli_help_heading[0])
     CDD_STRCPY(dest->cli_help_heading, sizeof(dest->cli_help_heading),
@@ -260,22 +263,24 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
     size_t c_idx;
     for (c_idx = 0; c_idx < src->n_cli_conflicts_with; ++c_idx) {
       if (src->cli_conflicts_with[c_idx])
-        struct_field_add_cli_conflict(dest, src->cli_conflicts_with[c_idx]);
+        g_cdd_last_alloc_err =
+            struct_field_add_cli_conflict(dest, src->cli_conflicts_with[c_idx]);
     }
   }
   if (src->cli_requires) {
     size_t r_idx;
     for (r_idx = 0; r_idx < src->n_cli_requires; ++r_idx) {
       if (src->cli_requires[r_idx])
-        struct_field_add_cli_requires(dest, src->cli_requires[r_idx]);
+        g_cdd_last_alloc_err =
+            struct_field_add_cli_requires(dest, src->cli_requires[r_idx]);
     }
   }
   if (src->cli_required_unless) {
     size_t u_idx;
     for (u_idx = 0; u_idx < src->n_cli_required_unless; ++u_idx) {
       if (src->cli_required_unless[u_idx])
-        struct_field_add_cli_required_unless(dest,
-                                             src->cli_required_unless[u_idx]);
+        g_cdd_last_alloc_err = struct_field_add_cli_required_unless(
+            dest, src->cli_required_unless[u_idx]);
     }
   }
 
@@ -415,7 +420,8 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
   for (i = 0; i < src->size; ++i) {
     const struct StructField *src_field = &src->fields[i];
     struct StructField *dest_field = NULL;
-    struct_fields_get(dest, src_field->name, &dest_field);
+    g_cdd_last_alloc_err =
+        struct_fields_get(dest, src_field->name, &dest_field);
 
     if (!dest_field) {
       const char *ref = src_field->ref[0] ? src_field->ref : NULL;
@@ -426,7 +432,8 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
                             bw) != 0)
         return CDD_C_ERROR_MEMORY;
       dest_field = NULL;
-      struct_fields_get(dest, src_field->name, &dest_field);
+      g_cdd_last_alloc_err =
+          struct_fields_get(dest, src_field->name, &dest_field);
 
       {
         struct StructField tmp = *src_field;
@@ -509,7 +516,7 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
       continue;
     }
 
-    merge_struct_field(dest_field, src_field);
+    g_cdd_last_alloc_err = merge_struct_field(dest_field, src_field);
   }
 
   return CDD_C_SUCCESS;
@@ -531,7 +538,7 @@ cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
   if (!all_of || !dest)
     return CDD_C_SUCCESS;
 
-  cdd_json_array_get_count(all_of, &count);
+  g_cdd_last_alloc_err = cdd_json_array_get_count(all_of, &count);
   for (i = 0; i < count; ++i) {
     JSON_Object *sub = NULL;
     const JSON_Object *resolved = NULL;
@@ -539,12 +546,12 @@ cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
     struct StructFields tmp;
     cdd_c_error_t rc;
 
-    cdd_json_array_get_object(all_of, i, &sub);
+    g_cdd_last_alloc_err = cdd_json_array_get_object(all_of, i, &sub);
     resolved = sub;
     if (!sub)
       continue;
 
-    cdd_json_object_get_string(sub, "$ref", &ref);
+    g_cdd_last_alloc_err = cdd_json_object_get_string(sub, "$ref", &ref);
     if (ref && root) {
       cdd_c_error_t rc_c2s = resolve_schema_ref_object(root, ref, &resolved);
       if (rc_c2s != CDD_C_SUCCESS)
@@ -559,12 +566,12 @@ cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
 
     rc = json_object_to_struct_fields(resolved, &tmp, root);
     if (rc != CDD_C_SUCCESS) {
-      struct_fields_free(&tmp);
+      g_cdd_last_alloc_err = struct_fields_free(&tmp);
       return rc;
     }
 
     rc = merge_struct_fields(dest, &tmp);
-    struct_fields_free(&tmp);
+    g_cdd_last_alloc_err = struct_fields_free(&tmp);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }

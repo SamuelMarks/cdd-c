@@ -127,13 +127,14 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
   }
   {
     int is_enum = 0;
-    schema_object_is_string_enum(schema_obj, NULL, &is_enum);
+    g_cdd_last_alloc_err =
+        schema_object_is_string_enum(schema_obj, NULL, &is_enum);
     if (is_enum) {
       *_out_val = UNION_JSON_STRING;
       return CDD_C_SUCCESS;
     }
   }
-  cdd_json_object_get_string(schema_obj, "type", &type);
+  g_cdd_last_alloc_err = cdd_json_object_get_string(schema_obj, "type", &type);
   if (type) {
     if (strcmp(type, "object") == 0) {
       *_out_val = UNION_JSON_OBJECT;
@@ -164,7 +165,8 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
       return CDD_C_SUCCESS;
     }
   }
-  cdd_json_object_get_object(schema_obj, "properties", &props);
+  g_cdd_last_alloc_err =
+      cdd_json_object_get_object(schema_obj, "properties", &props);
   if (props) {
     *_out_val = UNION_JSON_OBJECT;
     return CDD_C_SUCCESS;

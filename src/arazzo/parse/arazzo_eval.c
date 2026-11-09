@@ -64,28 +64,28 @@ static cdd_c_error_t json_val_to_str(const JSON_Value *val, char **out_str) {
   if (!val)
     return CDD_C_ERROR_NOT_FOUND;
 
-  cdd_json_value_get_type(val, &vtype);
+  g_cdd_last_alloc_err = cdd_json_value_get_type(val, &vtype);
   switch (vtype) {
   case JSONString:
-    cdd_json_value_get_string(val, &s);
+    g_cdd_last_alloc_err = cdd_json_value_get_string(val, &s);
     *out_str = C_CDD_STRDUP(s);
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   case JSONNumber:
-    cdd_json_value_get_number(val, &num);
+    g_cdd_last_alloc_err = cdd_json_value_get_number(val, &num);
     CDD_SNPRINTF(num_buf, sizeof(num_buf), "%.15g", num);
     *out_str = C_CDD_STRDUP(num_buf);
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   case JSONBoolean:
-    cdd_json_value_get_boolean(val, &bval);
+    g_cdd_last_alloc_err = cdd_json_value_get_boolean(val, &bval);
     *out_str = C_CDD_STRDUP(bval ? "true" : "false");
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   case JSONNull:
     *out_str = C_CDD_STRDUP("null");
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   default:
-    cdd_json_serialize_to_string(val, &ser);
+    g_cdd_last_alloc_err = cdd_json_serialize_to_string(val, &ser);
     *out_str = C_CDD_STRDUP(ser);
-    cdd_json_free_serialized_string(ser);
+    g_cdd_last_alloc_err = cdd_json_free_serialized_string(ser);
     return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 }
@@ -307,7 +307,8 @@ eval_single_expr_to_str(const struct Arazzo_RuntimeExpr *expr,
     else if (expr->kind == ARAZZO_EXPR_INPUTS)
       map = ctx->inputs;
     if (map)
-      cdd_json_object_get_value(map, expr->property_name, &tv);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_value(map, expr->property_name, &tv);
     target_val = tv;
     if (target_val && expr->json_pointer) {
       rc =
@@ -341,8 +342,10 @@ eval_single_expr_to_str(const struct Arazzo_RuntimeExpr *expr,
     if (expr->property_name) {
       JSON_Object *mh_obj = NULL;
       JSON_Value *tv = NULL;
-      cdd_json_value_get_object(ctx->msg_header, &mh_obj);
-      cdd_json_object_get_value(mh_obj, expr->property_name, &tv);
+      g_cdd_last_alloc_err =
+          cdd_json_value_get_object(ctx->msg_header, &mh_obj);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_value(mh_obj, expr->property_name, &tv);
       target_val = tv;
     } else if (expr->json_pointer) {
       rc = arazzo_eval_json_pointer(ctx->msg_header, expr->json_pointer,
@@ -368,10 +371,11 @@ eval_single_expr_to_str(const struct Arazzo_RuntimeExpr *expr,
       outer = ctx->sources;
     }
     if (outer)
-      cdd_json_object_get_object(outer, key, &so);
+      g_cdd_last_alloc_err = cdd_json_object_get_object(outer, key, &so);
     sub_obj = so;
     if (sub_obj)
-      cdd_json_object_get_value(sub_obj, expr->property_name, &tv);
+      g_cdd_last_alloc_err =
+          cdd_json_object_get_value(sub_obj, expr->property_name, &tv);
     target_val = tv;
     if (target_val && expr->json_pointer) {
       rc =
@@ -413,7 +417,7 @@ arazzo_eval_runtime_expr_to_str(const char *expr_str,
   if (parsed.is_embedded_template) {
     char *acc;
     const char *cursor = expr_str;
-    arazzo_runtime_expr_free(&parsed);
+    g_cdd_last_alloc_err = arazzo_runtime_expr_free(&parsed);
 
     acc = C_CDD_STRDUP("");
     if (!acc)
@@ -479,7 +483,7 @@ arazzo_eval_runtime_expr_to_str(const char *expr_str,
   }
 
   rc = eval_single_expr_to_str(&parsed, ctx, out_str);
-  arazzo_runtime_expr_free(&parsed);
+  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&parsed);
   return rc;
 }
 
@@ -641,8 +645,8 @@ static cdd_c_error_t eval_simple_atom(const char *atom,
     }
   }
 
-  try_parse_number(lhs_val, &d1, &is_num1);
-  try_parse_number(rhs_val, &d2, &is_num2);
+  g_cdd_last_alloc_err = try_parse_number(lhs_val, &d1, &is_num1);
+  g_cdd_last_alloc_err = try_parse_number(rhs_val, &d2, &is_num2);
   if (is_num1 && is_num2) {
     cmp = (d1 < d2) ? -1 : ((d1 > d2) ? 1 : 0);
   } else {
@@ -726,7 +730,7 @@ eval_simple_bool_expr(const char *expr,
   while (len > 0 && isspace((unsigned char)s[len - 1]))
     --len;
 
-  find_top_level_bool_op(s, "||", &op_pos);
+  g_cdd_last_alloc_err = find_top_level_bool_op(s, "||", &op_pos);
   if (op_pos) {
     size_t left_len = (size_t)(op_pos - s);
     char *left_str = (char *)C_CDD_MALLOC(left_len + 1);
@@ -746,7 +750,7 @@ eval_simple_bool_expr(const char *expr,
     return eval_simple_bool_expr(op_pos + 2, ctx, out_passed);
   }
 
-  find_top_level_bool_op(s, "&&", &op_pos);
+  g_cdd_last_alloc_err = find_top_level_bool_op(s, "&&", &op_pos);
   if (op_pos) {
     size_t left_len = (size_t)(op_pos - s);
     char *left_str = (char *)C_CDD_MALLOC(left_len + 1);
@@ -870,7 +874,7 @@ static cdd_c_error_t regex_match_here(const char *text, const char *pat,
     return CDD_C_SUCCESS;
   }
 
-  regex_match_atom(*text, pat, &next_pat, &atom_ok);
+  g_cdd_last_alloc_err = regex_match_atom(*text, pat, &next_pat, &atom_ok);
 
   if (*next_pat == '*' || *next_pat == '+' || *next_pat == '?') {
     char q = *next_pat;
@@ -891,7 +895,7 @@ static cdd_c_error_t regex_match_here(const char *text, const char *pat,
     while (count < max_rep) {
       const char *dummy = NULL;
       int m = 0;
-      regex_match_atom(*t, pat, &dummy, &m);
+      g_cdd_last_alloc_err = regex_match_atom(*t, pat, &dummy, &m);
       if (!m)
         break;
       ++t;
@@ -900,7 +904,7 @@ static cdd_c_error_t regex_match_here(const char *text, const char *pat,
 
     while (count >= min_rep) {
       int tail_ok = 0;
-      regex_match_here(text + count, after_q, &tail_ok);
+      g_cdd_last_alloc_err = regex_match_here(text + count, after_q, &tail_ok);
       if (tail_ok) {
         *out_matched = 1;
         return CDD_C_SUCCESS;
@@ -942,7 +946,7 @@ static cdd_c_error_t match_simple_regex(const char *text, const char *pattern,
       return CDD_C_ERROR_MEMORY;
     memcpy(left_pat, pattern, left_len);
     left_pat[left_len] = '\0';
-    match_simple_regex(text, left_pat, &m);
+    g_cdd_last_alloc_err = match_simple_regex(text, left_pat, &m);
     C_CDD_FREE(left_pat);
     if (m) {
       *out_matched = 1;
@@ -957,7 +961,7 @@ static cdd_c_error_t match_simple_regex(const char *text, const char *pattern,
   t = text;
   for (;;) {
     int m = 0;
-    regex_match_here(t, pattern, &m);
+    g_cdd_last_alloc_err = regex_match_here(t, pattern, &m);
     if (m) {
       *out_matched = 1;
       return CDD_C_SUCCESS;
@@ -1163,10 +1167,11 @@ cdd_c_error_t arazzo_apply_payload_replacements(
 
     {
       JSON_Value_Type ptype = JSONError;
-      cdd_json_value_get_type(parent_const, &ptype);
+      g_cdd_last_alloc_err = cdd_json_value_get_type(parent_const, &ptype);
       if (ptype == JSONObject) {
         JSON_Object *parent_obj = NULL;
-        cdd_json_value_get_object(parent_const, &parent_obj);
+        g_cdd_last_alloc_err =
+            cdd_json_value_get_object(parent_const, &parent_obj);
         if (rep->value.type == OA_ANY_STRING) {
           rc = arazzo_eval_runtime_expr_to_str(
               rep->value.string ? rep->value.string : "", ctx, &new_str_val);
@@ -1174,23 +1179,27 @@ cdd_c_error_t arazzo_apply_payload_replacements(
             C_CDD_FREE(final_tok);
             return rc;
           }
-          cdd_json_object_set_string(parent_obj, final_tok, new_str_val);
+          g_cdd_last_alloc_err =
+              cdd_json_object_set_string(parent_obj, final_tok, new_str_val);
           C_CDD_FREE(new_str_val);
         } else if (rep->value.type == OA_ANY_NUMBER) {
-          cdd_json_object_set_number(parent_obj, final_tok, rep->value.number);
+          g_cdd_last_alloc_err = cdd_json_object_set_number(
+              parent_obj, final_tok, rep->value.number);
         } else if (rep->value.type == OA_ANY_BOOL) {
-          cdd_json_object_set_boolean(parent_obj, final_tok,
-                                      rep->value.boolean);
+          g_cdd_last_alloc_err = cdd_json_object_set_boolean(
+              parent_obj, final_tok, rep->value.boolean);
         } else {
-          cdd_json_object_set_null(parent_obj, final_tok);
+          g_cdd_last_alloc_err =
+              cdd_json_object_set_null(parent_obj, final_tok);
         }
       } else if (ptype == JSONArray) {
         JSON_Array *parent_arr = NULL;
         size_t arr_count = 0;
         char *endp = NULL;
         unsigned long idx = strtoul(final_tok, &endp, 10);
-        cdd_json_value_get_array(parent_const, &parent_arr);
-        cdd_json_array_get_count(parent_arr, &arr_count);
+        g_cdd_last_alloc_err =
+            cdd_json_value_get_array(parent_const, &parent_arr);
+        g_cdd_last_alloc_err = cdd_json_array_get_count(parent_arr, &arr_count);
         if (*endp != '\0' || (size_t)idx >= arr_count) {
           C_CDD_FREE(final_tok);
           return CDD_C_ERROR_NOT_FOUND;
@@ -1202,16 +1211,18 @@ cdd_c_error_t arazzo_apply_payload_replacements(
             C_CDD_FREE(final_tok);
             return rc;
           }
-          cdd_json_array_replace_string(parent_arr, (size_t)idx, new_str_val);
+          g_cdd_last_alloc_err = cdd_json_array_replace_string(
+              parent_arr, (size_t)idx, new_str_val);
           C_CDD_FREE(new_str_val);
         } else if (rep->value.type == OA_ANY_NUMBER) {
-          cdd_json_array_replace_number(parent_arr, (size_t)idx,
-                                        rep->value.number);
+          g_cdd_last_alloc_err = cdd_json_array_replace_number(
+              parent_arr, (size_t)idx, rep->value.number);
         } else if (rep->value.type == OA_ANY_BOOL) {
-          cdd_json_array_replace_boolean(parent_arr, (size_t)idx,
-                                         rep->value.boolean);
+          g_cdd_last_alloc_err = cdd_json_array_replace_boolean(
+              parent_arr, (size_t)idx, rep->value.boolean);
         } else {
-          cdd_json_array_replace_null(parent_arr, (size_t)idx);
+          g_cdd_last_alloc_err =
+              cdd_json_array_replace_null(parent_arr, (size_t)idx);
         }
       } else {
         C_CDD_FREE(final_tok);

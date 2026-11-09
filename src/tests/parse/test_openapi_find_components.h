@@ -615,7 +615,7 @@ TEST test_openapi_find_external_components(void) {
       spec.component_path_item_names = path_names;
     }
 
-    openapi_doc_registry_free(&reg);
+    g_cdd_last_alloc_err = openapi_doc_registry_free(&reg);
     spec.document_uri = NULL;
     spec.doc_registry = NULL;
   }

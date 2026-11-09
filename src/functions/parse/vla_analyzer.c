@@ -310,14 +310,14 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                   const char *t_end =
                       (const char *)tokens->tokens[type_end_idx - 1].start +
                       tokens->tokens[type_end_idx - 1].length;
-                  c_cdd_strndup(t_start, (size_t)(t_end - t_start),
-                                &s->type_str);
+                  g_cdd_last_alloc_err = c_cdd_strndup(
+                      t_start, (size_t)(t_end - t_start), &s->type_str);
                 }
 
                 /* Extract var name */
-                c_cdd_strndup((const char *)tokens->tokens[var_name_idx].start,
-                              tokens->tokens[var_name_idx].length,
-                              &s->var_name);
+                g_cdd_last_alloc_err = c_cdd_strndup(
+                    (const char *)tokens->tokens[var_name_idx].start,
+                    tokens->tokens[var_name_idx].length, &s->var_name);
 
                 /* Extract size expression */
                 {
@@ -326,8 +326,8 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                   const char *sz_end =
                       (const char *)tokens->tokens[size_expr_end - 1].start +
                       tokens->tokens[size_expr_end - 1].length;
-                  c_cdd_strndup(sz_start, (size_t)(sz_end - sz_start),
-                                &s->size_expr);
+                  g_cdd_last_alloc_err = c_cdd_strndup(
+                      sz_start, (size_t)(sz_end - sz_start), &s->size_expr);
                 }
 
                 list->count++;

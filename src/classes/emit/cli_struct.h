@@ -37,6 +37,28 @@ extern "C" {
 /* clang-format on */
 
 struct TypeDefList;
+struct cdd_type_info;
+
+/**
+ * @brief Parses CLI flags from `(argc, argv)` starting at `start_idx` into a
+ * reflected struct `target` using `ti` field metadata (`--long`, `-s`,
+ * `--key=val`, boolean flags, string pointers, and integer fields).
+ *
+ * @param[in] argc Total argument count.
+ * @param[in] argv Argument vector.
+ * @param[in] start_idx Index in `argv` to begin scanning.
+ * @param[in] ti Runtime reflection descriptor for `target`.
+ * @param[in,out] target Target C struct pointer.
+ * @param[out] out_help Optional flag set to `1` if `-h` or `--help` was
+ * encountered (may be NULL).
+ * @param[out] out_first_unknown Optional index of the first unrecognized flag
+ * or positional argument (may be NULL).
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT on missing
+ * flag value or invalid arguments.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_cli_parse_reflected_argv(
+    int argc, char **argv, int start_idx, const struct cdd_type_info *ti,
+    void *target, int *out_help, int *out_first_unknown);
 
 /**
  * @brief Configuration options for declarative CLI code generation.
