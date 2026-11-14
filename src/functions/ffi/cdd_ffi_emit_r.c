@@ -49,6 +49,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name = config->library_name ? config->library_name : "mylib";
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.R", config->output_dir,
@@ -102,7 +103,8 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- list(\n", node->name);
@@ -125,7 +127,8 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- function(", node->name);
@@ -152,7 +155,8 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
           arg_name = "func";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_arg";
-        g_cdd_last_alloc_err = get_r_type(node->fields[j].type, &rt);
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)get_r_type(node->fields[j].type, &rt));
         fprintf(f, ", \n    as.%s(%s)", rt, arg_name);
       }
       fprintf(f, "\n  )\n");
@@ -161,7 +165,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   }
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*

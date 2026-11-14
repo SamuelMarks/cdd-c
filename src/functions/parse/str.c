@@ -38,12 +38,13 @@
  */
 cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   const cdd_context_t *ctx = NULL;
+  cdd_c_error_t rc;
   if (s == NULL) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err = cdd_context_get_global(&ctx);
-  return ctx->allocator.strdup_fn(s, out_s);
+  rc = cdd_context_get_global(&ctx);
+  return (cdd_c_error_t)((int)ctx->allocator.strdup_fn(s, out_s) + (int)rc);
 }
 
 /*

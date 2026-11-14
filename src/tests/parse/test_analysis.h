@@ -468,7 +468,13 @@ TEST test_analysis_failure_hooks(void) {
   extern C_CDD_EXPORT int g_cdd_fail_is_inside_condition;
   extern C_CDD_EXPORT int g_cdd_fail_is_dereference_use;
   extern C_CDD_EXPORT int g_cdd_fail_is_checked;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
 
+  ASSERT_EQ(CDD_C_SUCCESS, allocation_site_list_init(&sites));
+  g_cdd_fail_alloc = 2;
+  ASSERT_EQ(0, find_allocs("p = malloc(10); q = malloc(10);", &sites));
+  g_cdd_last_alloc_err = allocation_site_list_free(&sites);
+  g_cdd_fail_alloc = 0;
   ASSERT_EQ(CDD_C_SUCCESS, allocation_site_list_init(&sites));
   g_cdd_last_alloc_err =
       tokenize(az_span_create_from_str("p = malloc(10); if (p) 0;"), &tl);

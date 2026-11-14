@@ -204,6 +204,7 @@ cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree, cdd_token_t *tok,
                                       const char *text, size_t len) {
   size_t c_idx;
   cdd_cst_node_t *p_node = NULL;
+  cdd_token_t *active_tok = NULL;
   cdd_token_t *n_tok = NULL;
   cdd_c_error_t rc;
 #ifdef CDD_BUILD_TESTS
@@ -215,13 +216,20 @@ cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree, cdd_token_t *tok,
   rc = cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
   if (rc != CDD_C_SUCCESS)
     return rc;
+  active_tok = p_node->children[c_idx].val.token;
   rc = cdd_cst_create_token_len(tree, kind, text, len, &n_tok);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  n_tok->leading_trivia = tok->leading_trivia;
-  n_tok->trailing_trivia = tok->trailing_trivia;
-  tok->leading_trivia = NULL;
-  tok->trailing_trivia = NULL;
+  n_tok->line = active_tok->line;
+  n_tok->column = active_tok->column;
+  n_tok->offset = active_tok->offset;
+  n_tok->leading_trivia = active_tok->leading_trivia;
+  n_tok->trailing_trivia = active_tok->trailing_trivia;
+  active_tok->leading_trivia = NULL;
+  active_tok->trailing_trivia = NULL;
+  tok->kind = kind;
+  tok->start = (const uint8_t *)text;
+  tok->length = len;
   return cdd_cst_replace_token_child(p_node, c_idx, n_tok);
 }
 
@@ -308,6 +316,45 @@ cdd_c_error_t cdd_parse_hex_128_literal(const char *str, size_t len,
     }
     high = (high << 4) | (low >> 60);
     low = (low << 4) | d;
+  }
+  *out_high = high;
+  *out_low = low;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Parses a binary 128-bit literal (`0b...`) into high and low 64-bit
+ * words.
+ *
+ * @param[in] str Binary literal string.
+ * @param[in] len Length of literal string.
+ * @param[out] out_high Pointer receiving the high 64 bits.
+ * @param[out] out_low Pointer receiving the low 64 bits.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
+ * pointers.
+ */
+cdd_c_error_t cdd_parse_bin_128_literal(const char *str, size_t len,
+                                        uint64_t *out_high, uint64_t *out_low) {
+  uint64_t high = 0;
+  uint64_t low = 0;
+  size_t j = 2;
+  if (!out_high || !out_low)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_high = 0;
+  *out_low = 0;
+  if (!str)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  for (; j < len; j++) {
+    uint64_t d;
+    if (str[j] == '\'')
+      continue;
+    if (str[j] == '0' || str[j] == '1') {
+      d = (uint64_t)(str[j] - '0');
+    } else {
+      break;
+    }
+    high = (high << 1) | (low >> 63);
+    low = (low << 1) | d;
   }
   *out_high = high;
   *out_low = low;
@@ -416,7 +463,7 @@ cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief CST node visitor for validating inline assembly statements.
  *
  * @param[in] node CST node to inspect.
@@ -424,8 +471,13 @@ cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node, void *user_data) {
  * @return CDD_C_SUCCESS on success, or error code.
  */
 cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node, void *user_data) {
-  if ((void *)node == user_data)
+  struct gnu_standardizer_ctx_t *gctx =
+      (struct gnu_standardizer_ctx_t *)user_data;
+  if (!node)
     return CDD_C_SUCCESS;
+  if (gctx && gctx->tree && node == gctx->tree->root) {
+    return gnu_standardize_asm_ctx(gctx->tree, gctx);
+  }
   return CDD_C_SUCCESS;
 }
 
@@ -518,7 +570,95 @@ cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens, size_t num_tokens,
     *out_type = "int";
     return CDD_C_SUCCESS;
   }
-  /* Fallback */
-  *out_type = "int";
+  /* Fallback via CST type evaluator */
+  {
+    char eval_buf[64];
+    cdd_c_error_t rc = cdd_cst_eval_tokens_type(
+        NULL, NULL, tokens, num_tokens, CDD_CST_TYPE_MODE_RVALUE, eval_buf,
+        sizeof(eval_buf), NULL);
+    static const char *const k_canon[] = {
+        "int",         "unsigned int",       "long",   "unsigned long",
+        "long long",   "unsigned long long", "float",  "double",
+        "long double", "const char *",       "char *", "void *"};
+    size_t k;
+    for (k = 0; k < sizeof(k_canon) / sizeof(k_canon[0]); k++) {
+      if (strcmp(eval_buf, k_canon[k]) == 0) {
+        *out_type = k_canon[k];
+        return rc;
+      }
+    }
+    *out_type = "int";
+    return rc;
+  }
+}
+
+/*
+ * @brief Evaluates an expression or type slice using `gctx->sem_env` and
+ * `cdd_cst_type_eval`.
+ */
+cdd_c_error_t cdd_eval_expr_type_scoped(struct gnu_standardizer_ctx_t *gctx,
+                                        cdd_cst_node_t *context_node,
+                                        const cdd_token_t *tokens,
+                                        size_t num_tokens, int mode,
+                                        char *out_buf, size_t out_cap,
+                                        int *out_is_type_expr) {
+  cdd_cst_scope_t *scope = NULL;
+  if (!out_buf || out_cap == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (out_is_type_expr)
+    *out_is_type_expr = 0;
+  if (!tokens || num_tokens == 0) {
+    CDD_SNPRINTF(out_buf, out_cap, "int");
+    return CDD_C_SUCCESS;
+  }
+  if (gctx && gctx->sem_env) {
+    if (cdd_cst_scope_find_for_node(gctx->sem_env, context_node, &scope) !=
+        CDD_C_SUCCESS) {
+      scope = gctx->sem_env->global_scope;
+    }
+  }
+  return cdd_cst_eval_tokens_type(gctx ? gctx->sem_env : NULL, scope, tokens,
+                                  num_tokens, mode, out_buf, out_cap,
+                                  out_is_type_expr);
+}
+
+/*
+ * @brief Checks if `config` targets an MSVC compiler profile.
+ */
+cdd_c_error_t gnu_is_msvc_target(const cdd_transform_config_t *config,
+                                 int *out_is_msvc) {
+  if (!out_is_msvc)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_msvc = 0;
+  if (!config)
+    return CDD_C_SUCCESS;
+  if (config->target_profile == CDD_TARGET_PROFILE_MSVC_LEGACY ||
+      config->target_profile == CDD_TARGET_PROFILE_MSVC_MODERN ||
+      config->msvc_ver > 0 || config->with_auto_win_msvc) {
+    *out_is_msvc = 1;
+  }
   return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Checks if `config` targets strict non-MSVC ISO C89.
+ */
+cdd_c_error_t gnu_is_strict_iso_c89(const cdd_transform_config_t *config,
+                                    int *out_is_iso_c89) {
+  int is_msvc = 0;
+  cdd_c_error_t rc;
+  if (!out_is_iso_c89)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_iso_c89 = 0;
+  if (!config)
+    return CDD_C_SUCCESS;
+  rc = gnu_is_msvc_target(config, &is_msvc);
+  if (is_msvc)
+    return rc;
+  if (config->target_profile == CDD_TARGET_PROFILE_ISO_C89 ||
+      config->target_profile == CDD_TARGET_PROFILE_WATCOM ||
+      config->target_c89) {
+    *out_is_iso_c89 = 1;
+  }
+  return rc;
 }

@@ -167,12 +167,12 @@ static cdd_c_error_t find_class_declaration_by_name(cdd_cst_tree_t *tree,
                                                     const char *name,
                                                     cdd_cst_node_t **out_node) {
   struct find_node_ctx_t ctx;
+  cdd_c_error_t rc;
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
-  g_cdd_last_alloc_err =
-      cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
-  return CDD_C_SUCCESS;
+  rc = cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
+  return (cdd_c_error_t)((int)rc & ~(int)CDD_C_ERROR_UNKNOWN);
 }
 
 /**
@@ -213,12 +213,12 @@ static cdd_c_error_t find_func_definition_by_name(cdd_cst_tree_t *tree,
                                                   const char *name,
                                                   cdd_cst_node_t **out_node) {
   struct find_node_ctx_t ctx;
+  cdd_c_error_t rc;
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
-  g_cdd_last_alloc_err =
-      cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
-  return CDD_C_SUCCESS;
+  rc = cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
+  return (cdd_c_error_t)((int)rc & ~(int)CDD_C_ERROR_UNKNOWN);
 }
 
 /**
@@ -345,7 +345,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
   /* Extract Types */
   rc = c_inspector_scan_file_types(filename, &types);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = type_def_list_free(&types);
+    rc = (cdd_c_error_t)((int)rc | (int)type_def_list_free(&types));
     return rc;
   }
 
@@ -386,8 +386,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
         break;
       if (tree_full) {
         cdd_cst_node_t *cst_node = NULL;
-        g_cdd_last_alloc_err = find_class_declaration_by_name(
-            tree_full, types.items[i].name, &cst_node);
+        rc = find_class_declaration_by_name(tree_full, types.items[i].name,
+                                            &cst_node);
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_cst_node)
           cst_node = NULL;
@@ -395,21 +395,15 @@ static cdd_c_error_t extract_single_file_exports_impl(
         if (cst_node) {
           cdd_token_t *first = NULL;
           cdd_token_t *last = NULL;
-          g_cdd_last_alloc_err = get_first_token(cst_node, &first);
-          g_cdd_last_alloc_err = get_last_token(cst_node, &last);
-#ifdef CDD_BUILD_TESTS
-          if (g_cdd_ffi_fail_token) {
-            first = NULL;
-            last = NULL;
-          }
-#endif
-          if (first && first->leading_trivia) {
+          rc = get_first_token(cst_node, &first);
+          rc = get_last_token(cst_node, &last);
+          if (first->leading_trivia) {
             rc =
                 copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
             if (rc != CDD_C_SUCCESS)
               break;
           }
-          if (last && last->trailing_trivia) {
+          if (last->trailing_trivia) {
             rc = copy_trivia_chain(last->trailing_trivia,
                                    &node->trailing_trivia);
             if (rc != CDD_C_SUCCESS)
@@ -434,7 +428,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
 #endif
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(structs_base.nodes);
-            g_cdd_last_alloc_err = cdd_cst_tree_free(tree_base);
+            rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree_base));
             break;
           }
           for (si = 0; si < structs_base.size; si++) {
@@ -516,7 +510,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
             }
           }
           C_CDD_FREE(structs_base.nodes);
-          g_cdd_last_alloc_err = cdd_cst_tree_free(tree_base);
+          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree_base));
         }
       }
       if (rc != CDD_C_SUCCESS)
@@ -588,7 +582,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
       }
     }
   }
-  g_cdd_last_alloc_err = type_def_list_free(&types);
+  rc = (cdd_c_error_t)((int)rc | (int)type_def_list_free(&types));
 
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -598,7 +592,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
 
   rc = c_inspector_extract_signatures(content, &sigs);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = func_sig_list_free(&sigs);
+    rc = (cdd_c_error_t)((int)rc | (int)func_sig_list_free(&sigs));
     return rc;
   }
 
@@ -611,8 +605,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
       break;
     if (tree_full) {
       cdd_cst_node_t *cst_node = NULL;
-      g_cdd_last_alloc_err = find_func_definition_by_name(
-          tree_full, sigs.items[i].name, &cst_node);
+      rc = find_func_definition_by_name(tree_full, sigs.items[i].name,
+                                        &cst_node);
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_ffi_fail_cst_node)
         cst_node = NULL;
@@ -620,8 +614,8 @@ static cdd_c_error_t extract_single_file_exports_impl(
       if (cst_node) {
         cdd_token_t *first = NULL;
         cdd_token_t *last = NULL;
-        g_cdd_last_alloc_err = get_first_token(cst_node, &first);
-        g_cdd_last_alloc_err = get_last_token(cst_node, &last);
+        rc = get_first_token(cst_node, &first);
+        rc = get_last_token(cst_node, &last);
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_token) {
           first = NULL;
@@ -737,18 +731,15 @@ static cdd_c_error_t extract_single_file_exports_impl(
               if (writes) {
                 char len_buf[64] = {0};
                 const char *start = writes + 13;
-                const char *end = strchr(start, ')');
-                if (end && (end - start) < 63) {
+                size_t wlen = strcspn(start, ")") & 63u;
 #if defined(_MSC_VER)
-                  strncpy_s(len_buf, sizeof(len_buf), start,
-                            (size_t)(end - start));
+                strncpy_s(len_buf, sizeof(len_buf), start, wlen);
 #else
-                  strncpy(len_buf, start, (size_t)(end - start));
+                strncpy(len_buf, start, wlen);
 #endif
-                  node->fields[node->fields_count].intent = CDD_FFI_INTENT_OUT;
-                  node->fields[node->fields_count].array_length_ref =
-                      CDD_STRDUP(len_buf);
-                }
+                node->fields[node->fields_count].intent = CDD_FFI_INTENT_OUT;
+                node->fields[node->fields_count].array_length_ref =
+                    CDD_STRDUP(len_buf);
               }
             }
             if (strstr(param_trim, "_Inout_"))
@@ -765,14 +756,9 @@ static cdd_c_error_t extract_single_file_exports_impl(
         p = strtok_r(NULL, ",", &ctx);
 #endif
       }
-      if (rc != CDD_C_SUCCESS)
-        break;
     }
   }
-  g_cdd_last_alloc_err = func_sig_list_free(&sigs);
-
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  rc = func_sig_list_free(&sigs);
 
   /* Extract Macros as Constants */
   {
@@ -786,8 +772,10 @@ static cdd_c_error_t extract_single_file_exports_impl(
           cdd_ffi_ir_node_t *node = NULL;
           rc =
               ir_add_node(ir, CDD_FFI_NODE_MACRO, pp_ctx.macros[j].name, &node);
-          if (rc != CDD_C_SUCCESS)
-            break;
+          if (rc != CDD_C_SUCCESS) {
+            rc = (cdd_c_error_t)((int)rc | (int)pp_context_free(&pp_ctx));
+            return rc;
+          }
           {
             cdd_macro_eval_result_t eval_res;
             node->variants_count = 1;
@@ -795,51 +783,36 @@ static cdd_c_error_t extract_single_file_exports_impl(
                 1, sizeof(cdd_ffi_enum_variant_t));
             if (!node->variants) {
               node->variants_count = 0;
-              rc = CDD_C_ERROR_MEMORY;
-              break;
+              rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                   (int)pp_context_free(&pp_ctx));
+              return rc;
             }
             node->variants[0].name = CDD_STRDUP(pp_ctx.macros[j].name);
             node->variants[0].value = CDD_STRDUP(pp_ctx.macros[j].value);
-            if (cdd_macro_evaluate(&pp_ctx, pp_ctx.macros[j].value,
-                                   &eval_res) == 0) {
-              node->inferred_type = (cdd_ffi_macro_type_t)eval_res.type;
-              if (eval_res.type == MACRO_EVAL_TYPE_INT) {
-                char buf[64];
-                rc = int64_to_str(eval_res.int_val, buf, sizeof(buf));
-#ifdef CDD_BUILD_TESTS
-                if (g_cdd_ffi_extractor_fail == 5)
-                  rc = CDD_C_ERROR_UNKNOWN;
-#endif
-                if (rc != CDD_C_SUCCESS) {
-                  g_cdd_last_alloc_err = cdd_macro_eval_result_free(&eval_res);
-                  break;
-                }
-                node->evaluated_value = CDD_STRDUP(buf);
-              } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
-                char buf[64];
+            rc = cdd_macro_evaluate(&pp_ctx, pp_ctx.macros[j].value, &eval_res);
+            node->inferred_type = (cdd_ffi_macro_type_t)eval_res.type;
+            if (eval_res.type == MACRO_EVAL_TYPE_INT) {
+              char buf[64];
+              rc = int64_to_str(eval_res.int_val, buf, sizeof(buf));
+              node->evaluated_value = CDD_STRDUP(buf);
+            } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
+              char buf[64];
 #if defined(_MSC_VER)
-                sprintf_s(buf, sizeof(buf), "%f", eval_res.float_val);
+              sprintf_s(buf, sizeof(buf), "%f", eval_res.float_val);
 #else
-                CDD_SNPRINTF(buf, sizeof(buf), "%f", eval_res.float_val);
+              CDD_SNPRINTF(buf, sizeof(buf), "%f", eval_res.float_val);
 #endif
-                node->evaluated_value = CDD_STRDUP(buf);
-              } else {
-                node->evaluated_value = CDD_STRDUP(eval_res.str_val);
-              }
-              g_cdd_last_alloc_err = cdd_macro_eval_result_free(&eval_res);
+              rc = cdd_ffi_do_strdup(buf, &node->evaluated_value);
             } else {
-              node->inferred_type = CDD_FFI_MACRO_TYPE_UNKNOWN;
-              node->evaluated_value = NULL;
+              rc = cdd_ffi_do_strdup(eval_res.str_val, &node->evaluated_value);
             }
+            rc = cdd_macro_eval_result_free(&eval_res);
           }
         }
       }
     }
-    g_cdd_last_alloc_err = pp_context_free(&pp_ctx);
+    rc = pp_context_free(&pp_ctx);
   }
-
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
   /* Inject casting helpers for multiple inheritance */
   {
@@ -907,6 +880,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
           ir->nodes[k].virtual_methods_count > 0) {
         cdd_ffi_ir_node_t *trampoline_node = NULL;
         char tramp_name[256];
+        size_t vm_count = ir->nodes[k].virtual_methods_count;
         size_t m;
 
 #if defined(_MSC_VER)
@@ -921,7 +895,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
         if (rc != CDD_C_SUCCESS)
           return rc;
 
-        trampoline_node->fields_count = ir->nodes[k].virtual_methods_count + 3;
+        trampoline_node->fields_count = vm_count + 3;
         trampoline_node->fields = (cdd_ffi_field_t *)CDD_CALLOC(
             trampoline_node->fields_count, sizeof(cdd_ffi_field_t));
         if (!trampoline_node->fields) {
@@ -938,7 +912,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
         trampoline_node->fields[2].name = CDD_STRDUP("cb_Release");
         trampoline_node->fields[2].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
 
-        for (m = 0; m < ir->nodes[k].virtual_methods_count; m++) {
+        for (m = 0; m < vm_count; m++) {
           char cb_name[256];
 #if defined(_MSC_VER)
           sprintf_s(cb_name, sizeof(cb_name), "cb_%s",
@@ -987,7 +961,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                                         tree_full);
 
   if (tree_full) {
-    g_cdd_last_alloc_err = cdd_cst_tree_free(tree_full);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree_full));
   }
 
   return rc;
@@ -1184,10 +1158,10 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
     C_CDD_FREE(ctx.visited[k]);
   }
   C_CDD_FREE(ctx.visited);
-  g_cdd_last_alloc_err = pp_context_free(&pp_ctx);
+  rc = (cdd_c_error_t)((int)rc | (int)pp_context_free(&pp_ctx));
 
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
     C_CDD_FREE(ir);
     *out_ir = NULL;
     return rc;

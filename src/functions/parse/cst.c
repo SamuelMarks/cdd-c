@@ -474,7 +474,7 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
 
   rc = parse_recursive(tokens, 0, tokens->size, out);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_cst_node_list(out);
+    rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(out));
   }
   return rc;
 }

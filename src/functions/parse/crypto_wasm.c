@@ -7,18 +7,10 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/parse/crypto_types.h"
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "msvc/stdint.h"
-#else
 #if defined(_MSC_VER) && _MSC_VER < 1600
 #include "msvc/stdint.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "c_cdd/msvc/stdint.h"
 #else
 #include <stdint.h>
-#endif
-#endif
 #endif
 #include <string.h>
 

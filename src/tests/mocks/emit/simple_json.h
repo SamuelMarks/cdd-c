@@ -5,58 +5,22 @@
 #ifndef SIMPLE_JSON_H
 #define SIMPLE_JSON_H
 
+/* clang-format off */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L &&                \
+    (!defined(_MSC_VER) || _MSC_VER >= 1800)
+#include <stdbool.h>
+#else
+#include <c_cdd_stdbool.h>
+#endif
+#include "cdd_c_error.h"
+#include <stdio.h>
+#include "c_cdd/json_dom.h"
+#include "simple_mocks_export.h"
+/* clang-format on */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-/* clang-format off */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#if !defined(__cplusplus)
-#ifndef bool
-#define bool unsigned char
-#endif
-#ifndef true
-#define true 1
-#endif
-#ifndef false
-#define false 0
-#endif
-#endif
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#ifndef __cplusplus
-typedef unsigned char bool;
-#define true 1
-#define false 0
-#endif
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "msvc/stdbool.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "msvc/stdbool.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "c_cdd/msvc/stdbool.h"
-#else
-#include <stdbool.h>
-#endif
-#endif
-#endif
-#include "cdd_c_error.h"
-#endif
-#endif
-#else
-#include <c_cdd_stdbool.h>
-#endif /* __STDC_VERSION__ >= 199901L */
-
-#include <stdio.h>
-
-#include "c_cdd/json_dom.h"
-
-#include "simple_mocks_export.h"
-/* clang-format on */
 
 /** @brief Test definition Tank. */
 enum Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };

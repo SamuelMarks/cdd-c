@@ -223,6 +223,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "transformers/gnu_standardizer/test_gnu_standardizer_branches.h"
 #include "transformers/macros/test_macros.h"
 #include "transformers/msvc_port/test_msvc_port.h"
+#include "transformers/c_lowering/test_c_lowering.h"
 
 
 #include "parse/test_cmake_parser.h"
@@ -820,6 +821,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(crypto_suite);
   RUN_SUITE_RESET(c_cdd_int128_suite);
   RUN_SUITE_RESET(transformer_msvc_port_suite);
+  RUN_SUITE_RESET(transformer_c_lowering_suite);
   RUN_SUITE_RESET(transformer_extern_c_suite);
   RUN_SUITE_RESET(transformer_extern_c_coverage_suite);
   RUN_SUITE_RESET(transformer_macros_suite);

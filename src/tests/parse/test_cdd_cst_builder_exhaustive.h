@@ -155,6 +155,28 @@ TEST test_cdd_cst_builder_oom(void) {
   }
   b.error_state = 0;
 
+  /* Test cdd_cst_bld_ifdef error percolation across token/space/ident steps */
+  {
+    int step;
+    for (step = 1; step <= 8; ++step) {
+      cdd_c_error_t rc;
+      b.error_state = 0;
+      g_cdd_alloc_fail = step;
+      rc = cdd_cst_bld_ifdef(&b, "MY_GUARD_MACRO");
+      g_cdd_alloc_fail = 0;
+      ASSERT(rc == CDD_C_ERROR_MEMORY || rc == CDD_C_SUCCESS);
+    }
+    for (step = 1; step <= 3; ++step) {
+      cdd_c_error_t rc;
+      b.error_state = 0;
+      g_cdd_cst_alloc_token_fail = step;
+      rc = cdd_cst_bld_ifdef(&b, "MY_GUARD_MACRO");
+      g_cdd_cst_alloc_token_fail = 0;
+      ASSERT(rc == CDD_C_ERROR_MEMORY || rc == CDD_C_SUCCESS);
+    }
+    b.error_state = 0;
+  }
+
   g_cdd_alloc_fail = 1;
   {
     cdd_c_error_t int_rc = cdd_cst_bld_int(&b, 10);

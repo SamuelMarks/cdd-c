@@ -62,6 +62,7 @@ static cdd_c_error_t ref_base_matches_self_uri(const char *self_uri,
   const char *self_base;
   size_t self_len;
   int has_scheme = 0;
+  cdd_c_error_t rc;
 
   if (!out_matches)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -79,26 +80,25 @@ static cdd_c_error_t ref_base_matches_self_uri(const char *self_uri,
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err =
-      uri_has_scheme_prefix(self_base, self_len, &has_scheme);
+  rc = uri_has_scheme_prefix(self_base, self_len, &has_scheme);
   if (!has_scheme) {
     while (self_len >= 2 && self_base[0] == '.' && self_base[1] == '/') {
       self_base += 2;
       self_len -= 2;
     }
     if (self_len == 0)
-      return CDD_C_SUCCESS;
+      return rc;
     if (base_len >= self_len &&
         strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
       if (self_base[0] == '/' || base_len == self_len ||
           ref[base_len - self_len - 1] == '/') {
         *out_matches = 1;
-        return CDD_C_SUCCESS;
+        return rc;
       }
     }
   }
 
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -119,6 +119,7 @@ static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
   size_t prefix_len = strlen(prefix);
   const char *hash;
   int base_matches = 0;
+  cdd_c_error_t rc;
 
   if (!out_matches)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -139,12 +140,12 @@ static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
     return CDD_C_SUCCESS;
   if (!spec || !spec->self_uri)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = ref_base_matches_self_uri(
-      spec->self_uri, req_scheme, (size_t)(hash - req_scheme), &base_matches);
+  rc = ref_base_matches_self_uri(spec->self_uri, req_scheme,
+                                 (size_t)(hash - req_scheme), &base_matches);
   if (!base_matches)
-    return CDD_C_SUCCESS;
+    return rc;
   *out_matches = (strcmp(hash + prefix_len, scheme_name) == 0) ? 1 : 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -163,6 +164,7 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
                         size_t n_sets, const char *scheme_name,
                         const struct OpenAPI_Spec *spec, int *out_present) {
   size_t i, j;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!out_present)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_present = 0;
@@ -173,15 +175,14 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
     for (j = 0; j < set->n_requirements; ++j) {
       const struct OpenAPI_SecurityRequirement *req = &set->requirements[j];
       int matches = 0;
-      g_cdd_last_alloc_err =
-          scheme_ref_matches_name(req->scheme, scheme_name, spec, &matches);
+      rc = scheme_ref_matches_name(req->scheme, scheme_name, spec, &matches);
       if (matches) {
         *out_present = 1;
-        return CDD_C_SUCCESS;
+        return rc;
       }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -276,6 +277,7 @@ codegen_security_requires_query(const struct OpenAPI_Operation *op,
   size_t n_active_sets = 0;
   int security_set = 0;
   size_t i;
+  cdd_c_error_t rc;
 
   if (!out_requires)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -284,24 +286,24 @@ codegen_security_requires_query(const struct OpenAPI_Operation *op,
   if (!spec)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = resolve_active_security(op, spec, &active_sets,
-                                                 &n_active_sets, &security_set);
+  rc = resolve_active_security(op, spec, &active_sets, &n_active_sets,
+                               &security_set);
   if (security_set && n_active_sets == 0)
-    return CDD_C_SUCCESS;
+    return rc;
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     int is_active = 0;
     if (sch->type != OA_SEC_APIKEY || sch->in != OA_SEC_IN_QUERY)
       continue;
-    g_cdd_last_alloc_err = scheme_is_active(sch, active_sets, n_active_sets,
-                                            security_set, spec, &is_active);
+    rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
+                          &is_active);
     if (is_active) {
       *out_requires = 1;
-      return CDD_C_SUCCESS;
+      return rc;
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -321,6 +323,7 @@ codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
   size_t n_active_sets = 0;
   int security_set = 0;
   size_t i;
+  cdd_c_error_t rc;
 
   if (!out_requires)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -329,24 +332,24 @@ codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
   if (!spec)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = resolve_active_security(op, spec, &active_sets,
-                                                 &n_active_sets, &security_set);
+  rc = resolve_active_security(op, spec, &active_sets, &n_active_sets,
+                               &security_set);
   if (security_set && n_active_sets == 0)
-    return CDD_C_SUCCESS;
+    return rc;
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     int is_active = 0;
     if (sch->type != OA_SEC_APIKEY || sch->in != OA_SEC_IN_COOKIE)
       continue;
-    g_cdd_last_alloc_err = scheme_is_active(sch, active_sets, n_active_sets,
-                                            security_set, spec, &is_active);
+    rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
+                          &is_active);
     if (is_active) {
       *out_requires = 1;
-      return CDD_C_SUCCESS;
+      return rc;
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -376,27 +379,28 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
   size_t n_active_sets = 0;
   int security_set = 0;
+  cdd_c_error_t rc;
 
   if (!fp || !op || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err = resolve_active_security(op, spec, &active_sets,
-                                                 &n_active_sets, &security_set);
+  rc = resolve_active_security(op, spec, &active_sets, &n_active_sets,
+                               &security_set);
 
   if (security_set && n_active_sets == 0) {
-    return CDD_C_SUCCESS; /* Explicitly empty security array */
+    return rc; /* Explicitly empty security array */
   }
 
   /* Iterate security schemes defined in components */
   if (spec->security_schemes == NULL || spec->n_security_schemes == 0) {
-    return CDD_C_SUCCESS; /* No schemes defined, nothing to inject */
+    return rc; /* No schemes defined, nothing to inject */
   }
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     int is_active = 0;
-    g_cdd_last_alloc_err = scheme_is_active(sch, active_sets, n_active_sets,
-                                            security_set, spec, &is_active);
+    rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
+                          &is_active);
     if (!is_active)
       continue;
 
@@ -515,26 +519,27 @@ codegen_security_write_server_apply(FILE *fp,
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
   size_t n_active_sets = 0;
   int security_set = 0;
+  cdd_c_error_t rc;
 
   if (!fp || !op || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err = resolve_active_security(op, spec, &active_sets,
-                                                 &n_active_sets, &security_set);
+  rc = resolve_active_security(op, spec, &active_sets, &n_active_sets,
+                               &security_set);
 
   if (security_set && n_active_sets == 0) {
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
   if (spec->security_schemes == NULL || spec->n_security_schemes == 0) {
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     int is_active = 0;
-    g_cdd_last_alloc_err = scheme_is_active(sch, active_sets, n_active_sets,
-                                            security_set, spec, &is_active);
+    rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
+                          &is_active);
     if (!is_active)
       continue;
 

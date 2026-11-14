@@ -35,6 +35,9 @@ extern C_CDD_EXPORT int g_build_system_fail_io_after;
 /** @brief Prototype for client_gen_emit_url_utils_h. */
 extern C_CDD_EXPORT cdd_c_error_t
 client_gen_emit_url_utils_h(const char *dir_name);
+/** @brief Prototype for client_gen_emit_mocks. */
+extern C_CDD_EXPORT cdd_c_error_t
+client_gen_emit_mocks(const char *dir_name, const struct OpenAPI_Spec *spec);
 
 /**
  * @brief Unit test test_client_gen_defined_schemas.
@@ -160,6 +163,21 @@ TEST test_client_gen_create_tests_mocks(void) {
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
+
+  {
+    int fail_at;
+    int saw_io_err = 0;
+    for (fail_at = 0; fail_at <= 10; ++fail_at) {
+      g_io_calls = 0;
+      g_fail_io_after = fail_at;
+      rc = client_gen_emit_mocks("build/test_out", &spec);
+      g_fail_io_after = -1;
+      if (rc == CDD_C_ERROR_IO) {
+        saw_io_err = 1;
+      }
+    }
+    ASSERT_EQ(1, saw_io_err);
+  }
 
   remove("build/test_out/src/test/test_sdk.c");
   remove("build/test_out/src/test_client_sdk_models.h");

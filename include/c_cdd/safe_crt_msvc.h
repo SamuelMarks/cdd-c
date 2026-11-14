@@ -52,20 +52,13 @@ static __inline cdd_c_error_t cdd_getenv_out(const char *name, char **out_val) {
   return CDD_C_SUCCESS;
 }
 
-/**
- * @brief Retrieves the last `cdd_getenv_out` result for the `getenv` macro.
- *
- * @param[in] name The environment variable name.
- * @return Pointer to static buffer containing the value, or NULL if unset.
- */
-static __inline char *cdd_getenv_compute(const char *name) {
-  char *val = 0;
-  cdd_getenv_out(name, &val);
-  return val;
-}
+/** @brief Scratch pointer storing the result of the most recent `getenv` call
+ * on MSVC */
+static char *g_cdd_msvc_last_getenv = 0;
 
 #ifndef getenv
-#define getenv(name) cdd_getenv_compute(name)
+#define getenv(name)                                                           \
+  (cdd_getenv_out((name), &g_cdd_msvc_last_getenv), g_cdd_msvc_last_getenv)
 #endif
 #ifndef strdup
 #define strdup _strdup
@@ -105,22 +98,13 @@ static __inline cdd_c_error_t cdd_fopen_out(const char *path, const char *mode,
   return CDD_C_ERROR_IO;
 }
 
-/**
- * @brief Evaluates `cdd_fopen_out` and returns the `FILE *` for the `fopen`
- * macro.
- *
- * @param[in] path The path to the file.
- * @param[in] mode The mode string.
- * @return The opened FILE pointer, or NULL.
- */
-static __inline FILE *cdd_fopen_compute(const char *path, const char *mode) {
-  FILE *f = 0;
-  cdd_fopen_out(path, mode, &f);
-  return f;
-}
+/** @brief Scratch pointer storing the result of the most recent `fopen` call on
+ * MSVC */
+static FILE *g_cdd_msvc_last_fopen = 0;
 
 #ifndef fopen
-#define fopen(path, mode) cdd_fopen_compute((path), (mode))
+#define fopen(path, mode)                                                      \
+  (cdd_fopen_out((path), (mode), &g_cdd_msvc_last_fopen), g_cdd_msvc_last_fopen)
 #endif
 
 #endif /* defined(_MSC_VER) */

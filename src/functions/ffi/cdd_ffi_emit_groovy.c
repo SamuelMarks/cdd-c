@@ -105,6 +105,7 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
       config ? ((config->module_name) ? config->module_name : "MyLib")
              : "MyLib";
   size_t i, j;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -164,11 +165,14 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "class %s extends Structure {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *gt = NULL;
-        g_cdd_last_alloc_err = map_groovy_jna_type(&node->fields[j].type, &gt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)map_groovy_jna_type(
+                                               &node->fields[j].type, &gt));
         fprintf(f, "    public %s %s\n", gt, node->fields[j].name);
       }
       fprintf(f, "\n    @Override\n");
@@ -191,13 +195,17 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_gt = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
-      g_cdd_last_alloc_err =
-          map_groovy_jna_type(&node->return_or_base_type, &ret_gt);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)map_groovy_jna_type(
+                                    &node->return_or_base_type, &ret_gt));
       fprintf(f, "    %s %s(", ret_gt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *gt = NULL;
-        g_cdd_last_alloc_err = map_groovy_jna_type(&node->fields[j].type, &gt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)map_groovy_jna_type(
+                                               &node->fields[j].type, &gt));
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", gt, node->fields[j].name);
       }
       fprintf(f, ")\n");
@@ -257,5 +265,5 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   fprintf(f, "}\n");
   fclose(f);
 
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

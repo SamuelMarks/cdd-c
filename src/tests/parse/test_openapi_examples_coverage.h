@@ -162,6 +162,32 @@ TEST test_openapi_examples_copy_and_find(void) {
       find_component_example(&spec, "#/components/examples/comp_ex", &out_ex));
   ASSERT_EQ(&comp_ex, out_ex);
 
+  /* Relative $self resolution in find_component_example (covers
+   * resolved.resolved_ref free on match) */
+  {
+    struct OpenAPI_DocRegistry reg;
+    struct OpenAPI_Spec ext_spec;
+    memset(&reg, 0, sizeof(reg));
+    memset(&ext_spec, 0, sizeof(ext_spec));
+    ext_spec.self_uri = cdd_test_mut_str("https://example.com/ext.json");
+    ext_spec.document_uri = cdd_test_mut_str("https://example.com/ext.json");
+    ext_spec.component_examples = &comp_ex;
+    ext_spec.component_example_names = &comp_name;
+    ext_spec.n_component_examples = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_init(&reg));
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_add(&reg, &ext_spec));
+    spec.document_uri = cdd_test_mut_str("https://example.com/root.json");
+    spec.doc_registry = &reg;
+    out_ex = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              find_component_example(
+                  &spec, "ext.json#/components/examples/comp_ex", &out_ex));
+    ASSERT_EQ(&comp_ex, out_ex);
+    spec.document_uri = NULL;
+    spec.doc_registry = NULL;
+    g_cdd_last_alloc_err = openapi_doc_registry_free(&reg);
+  }
+
   /* json_pointer_unescape failure in find_component_example */
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(
@@ -169,6 +195,37 @@ TEST test_openapi_examples_copy_and_find(void) {
       find_component_example(&spec, "#/components/examples/comp_ex", &out_ex));
   ASSERT_EQ(NULL, out_ex);
   g_cdd_alloc_fail = 0;
+
+  /* json_pointer_unescape failure when resolved.resolved_ref is allocated */
+  {
+    struct OpenAPI_DocRegistry reg;
+    struct OpenAPI_Spec ext_spec;
+    memset(&reg, 0, sizeof(reg));
+    memset(&ext_spec, 0, sizeof(ext_spec));
+    ext_spec.self_uri = cdd_test_mut_str("https://example.com/ext.json");
+    ext_spec.document_uri = cdd_test_mut_str("https://example.com/ext.json");
+    ext_spec.component_examples = &comp_ex;
+    ext_spec.component_example_names = &comp_name;
+    ext_spec.n_component_examples = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_init(&reg));
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_doc_registry_add(&reg, &ext_spec));
+    spec.document_uri = cdd_test_mut_str("https://example.com/root.json");
+    spec.doc_registry = &reg;
+    out_ex = NULL;
+    {
+      int af;
+      for (af = 1; af <= 15; ++af) {
+        g_cdd_alloc_fail = af;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  find_component_example(
+                      &spec, "ext.json#/components/examples/comp_ex", &out_ex));
+        g_cdd_alloc_fail = 0;
+      }
+    }
+    spec.document_uri = NULL;
+    spec.doc_registry = NULL;
+    g_cdd_last_alloc_err = openapi_doc_registry_free(&reg);
+  }
 
   /* spec without component_example_names */
   out_ex = NULL;

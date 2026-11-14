@@ -6,6 +6,18 @@
 #define C_CDD_VERSION_PATCH @c_cdd_VERSION_PATCH@
 #define C_CDD_VERSION       "@c_cdd_VERSION@"
 
+#if !defined(_AMD64_) && !defined(_X86_) && !defined(_ARM64_) && !defined(_ARM_)
+#if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__) || defined(__amd64__)
+#define _AMD64_
+#elif defined(_M_IX86) || defined(__i386__)
+#define _X86_
+#elif defined(_M_ARM64) || defined(__aarch64__)
+#define _ARM64_
+#elif defined(_M_ARM) || defined(__arm__)
+#define _ARM_
+#else
 #define _@TARGET_ARCH@_
+#endif
+#endif
 
 #endif /* !C_CDD_CONFIG_H */

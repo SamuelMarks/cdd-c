@@ -269,21 +269,17 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   /* Escape C89/C99/C11/C23/C++ reserved keywords */
   {
     int is_res = 0;
-    g_cdd_last_alloc_err = c2s_is_reserved_keyword(out, &is_res);
+    cdd_c_error_t rc_res = c2s_is_reserved_keyword(out, &is_res);
     if (is_res) {
       out[pos++] = '_';
       out[pos] = '\0';
     }
-  }
-
-  /* Truncate safely to fit within sizeof(field->name) - 4 (59 chars) */
-  if (pos > 59) {
-    out[59] = '\0';
-  }
-
-  {
+    /* Truncate safely to fit within sizeof(field->name) - 4 (59 chars) */
+    if (pos > 59) {
+      out[59] = '\0';
+    }
     *_out_val = out;
-    return CDD_C_SUCCESS;
+    return rc_res;
   }
 }
 
@@ -313,10 +309,10 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
     if (rc_c2s != CDD_C_SUCCESS)
       return rc_c2s;
 
-    g_cdd_last_alloc_err = struct_fields_get(dest, sanitized, &tmp4);
+    rc_c2s = struct_fields_get(dest, sanitized, &tmp4);
     if (!tmp4) {
       *_out_val = sanitized;
-      return CDD_C_SUCCESS;
+      return rc_c2s;
     }
   }
   CDD_SNPRINTF(buf, sizeof(buf), "%s_%lu", sanitized,
@@ -329,22 +325,15 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   }
   {
     struct StructField *tmp5 = NULL;
-    g_cdd_last_alloc_err = struct_fields_get(dest, out, &tmp5);
+    cdd_c_error_t rc_c2s = struct_fields_get(dest, out, &tmp5);
     if (!tmp5) {
       *_out_val = out;
-      return CDD_C_SUCCESS;
+      return rc_c2s;
     }
   }
   C_CDD_FREE(out);
   CDD_SNPRINTF(buf, sizeof(buf), "Variant_%lu", (unsigned long)(index + 1));
-  {
-    {
-      cdd_c_error_t rc_c2s = c_cdd_strdup(buf, _out_val);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
-    }
-    return CDD_C_SUCCESS;
-  }
+  return c_cdd_strdup(buf, _out_val);
 }
 
 /*
@@ -370,14 +359,7 @@ cdd_c_error_t make_inline_schema_name(const char *schema_name,
                  suffix);
   else
     CDD_SNPRINTF(buf, sizeof(buf), "%s_%s", base_schema, base_variant);
-  {
-    {
-      cdd_c_error_t rc_c2s = sanitize_identifier(buf, _out_val);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
-    }
-    return CDD_C_SUCCESS;
-  }
+  return sanitize_identifier(buf, _out_val);
 }
 
 /*
@@ -397,38 +379,34 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
                            const JSON_Value *schema_val, char **out_name) {
   char *name;
   int has_val = 0;
+  cdd_c_error_t rc_c2s;
 
   if (!root || !schema_val || !out_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   name = NULL;
-  {
-    cdd_c_error_t rc_c2s =
-        make_inline_schema_name(schema_name, variant_name, suffix, &name);
-    if (rc_c2s != CDD_C_SUCCESS)
-      return rc_c2s;
-  }
+  rc_c2s = make_inline_schema_name(schema_name, variant_name, suffix, &name);
+  if (rc_c2s != CDD_C_SUCCESS)
+    return rc_c2s;
 
-  g_cdd_last_alloc_err = cdd_json_object_has_value(root, name, &has_val);
+  rc_c2s = cdd_json_object_has_value(root, name, &has_val);
   if (!has_val) {
     JSON_Value *copy = NULL;
-    {
-      cdd_c_error_t rc_c2s = c2s_clone_json_value(schema_val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS) {
-        C_CDD_FREE(name);
-        return rc_c2s;
-      }
+    rc_c2s = c2s_clone_json_value(schema_val, &copy);
+    if (rc_c2s != CDD_C_SUCCESS) {
+      C_CDD_FREE(name);
+      return rc_c2s;
     }
     if (cdd_json_object_set_value(root, name, copy) != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(copy);
       C_CDD_FREE(name);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)cdd_json_value_free(copy));
     }
   }
 
   *out_name = name;
 
-  return CDD_C_SUCCESS;
+  return rc_c2s;
 }
 
 /*
@@ -448,71 +426,46 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
                                               char **_out_val) {
   JSON_Object *mapping = NULL;
   size_t i, count = 0;
-  const char *ref_name;
+  const char *ref_name = NULL;
+  cdd_c_error_t rc_c2s = CDD_C_SUCCESS;
 
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!schema_name && !ref) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return rc_c2s;
   }
 
   if (ref) {
-    cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &ref_name);
+    rc_c2s = c_cdd_str_after_last(ref, '/', &ref_name);
     if (rc_c2s != CDD_C_SUCCESS)
       return rc_c2s;
-  } else
-    ref_name = NULL;
+  }
 
   if (!disc_obj)
     goto fallback;
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(disc_obj, "mapping", &mapping);
-  if (!mapping)
+  if (cdd_json_object_get_object(disc_obj, "mapping", &mapping) !=
+      CDD_C_SUCCESS)
     goto fallback;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_count(mapping, &count);
+  rc_c2s = cdd_json_object_get_count(mapping, &count);
   for (i = 0; i < count; ++i) {
     const char *key = NULL;
     const char *val = NULL;
-    g_cdd_last_alloc_err = cdd_json_object_get_name(mapping, i, &key);
-    g_cdd_last_alloc_err = cdd_json_object_get_string(mapping, key, &val);
-    if (!val)
+    rc_c2s = cdd_json_object_get_name(mapping, i, &key);
+    if (cdd_json_object_get_string(mapping, key, &val) != CDD_C_SUCCESS)
       continue;
-    if (ref && strcmp(val, ref) == 0) {
-      {
-        cdd_c_error_t rc_c2s = c_cdd_strdup(key, _out_val);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
-      return CDD_C_SUCCESS;
-    }
-    if (ref_name && strcmp(val, ref_name) == 0) {
-      {
-        cdd_c_error_t rc_c2s = c_cdd_strdup(key, _out_val);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
-      return CDD_C_SUCCESS;
-    }
-    if (schema_name && strcmp(val, schema_name) == 0) {
-      {
-        cdd_c_error_t rc_c2s = c_cdd_strdup(key, _out_val);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
-      return CDD_C_SUCCESS;
+    if ((ref && strcmp(val, ref) == 0) ||
+        (ref_name && strcmp(val, ref_name) == 0) ||
+        (schema_name && strcmp(val, schema_name) == 0)) {
+      return c_cdd_strdup(key, _out_val);
     }
   }
 
 fallback:
-  if (schema_name) {
-    cdd_c_error_t rc_c2s = c_cdd_strdup(schema_name, _out_val);
-    if (rc_c2s != CDD_C_SUCCESS)
-      return rc_c2s;
-    return CDD_C_SUCCESS;
-  }
-  return c_cdd_strdup(ref_name, _out_val);
+  return (cdd_c_error_t)((int)rc_c2s |
+                         (int)c_cdd_strdup(schema_name ? schema_name : ref_name,
+                                           _out_val));
 }

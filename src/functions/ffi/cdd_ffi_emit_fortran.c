@@ -126,6 +126,7 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   char type_str[256];
   char ret_type_str[256];
   int is_void;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -171,14 +172,17 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
         fprintf(f, "    TYPE(c_ptr) :: data\n");
       } else {
         for (j = 0; j < node->fields_count; j++) {
-          g_cdd_last_alloc_err = map_fortran_type(
-              &node->fields[j].type, type_str, sizeof(type_str), 0);
+          rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                    (int)map_fortran_type(&node->fields[j].type,
+                                                          type_str,
+                                                          sizeof(type_str), 0));
           fprintf(f, "    %s :: %s\n", type_str, node->fields[j].name);
         }
       }
       fprintf(f, "  END TYPE %s\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       /* Emit as integer parameters */
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -199,7 +203,8 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
 
@@ -217,8 +222,10 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
       fprintf(f, "      IMPORT\n");
 
       for (j = 0; j < node->fields_count; j++) {
-        g_cdd_last_alloc_err = map_fortran_type(&node->fields[j].type, type_str,
-                                                sizeof(type_str), 0);
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)map_fortran_type(&node->fields[j].type,
+                                                        type_str,
+                                                        sizeof(type_str), 0));
         /* FFI generally implies pass by value unless it's a pointer in C */
         if (node->fields[j].type.pointer_depth > 0) {
           fprintf(f, "      %s, VALUE :: %s\n", type_str, node->fields[j].name);
@@ -228,8 +235,10 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
       }
 
       if (!is_void) {
-        g_cdd_last_alloc_err = map_fortran_type(
-            &node->return_or_base_type, ret_type_str, sizeof(ret_type_str), 1);
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)map_fortran_type(
+                                      &node->return_or_base_type, ret_type_str,
+                                      sizeof(ret_type_str), 1));
         fprintf(f, "      %s :: %s\n", ret_type_str, node->name);
       }
 
@@ -245,5 +254,5 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   fprintf(f, "END MODULE %s\n", module_name);
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

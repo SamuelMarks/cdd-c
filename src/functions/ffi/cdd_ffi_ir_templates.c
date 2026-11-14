@@ -104,8 +104,9 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
                   {
                     size_t f;
                     for (f = 0; f < new_node->fields_count; f++) {
-                      new_node->fields[f].name =
-                          CDD_STRDUP(base_struct->fields[f].name);
+                      cdd_c_error_t rc_s =
+                          cdd_ffi_do_strdup(base_struct->fields[f].name,
+                                            &new_node->fields[f].name);
                       if (base_struct->fields[f].type.ref_name &&
                           strlen(base_struct->fields[f].type.ref_name) == 1) {
                         new_node->fields[f].type.kind =
@@ -113,10 +114,13 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
                       } else {
                         new_node->fields[f].type.kind =
                             base_struct->fields[f].type.kind;
-                        if (base_struct->fields[f].type.ref_name)
-                          new_node->fields[f].type.ref_name =
-                              CDD_STRDUP(base_struct->fields[f].type.ref_name);
+                        if (base_struct->fields[f].type.ref_name) {
+                          rc_s = cdd_ffi_do_strdup(
+                              base_struct->fields[f].type.ref_name,
+                              &new_node->fields[f].type.ref_name);
+                        }
                       }
+                      rc_ex = (cdd_c_error_t)((int)rc_ex | (int)rc_s);
                     }
                   }
                 }
@@ -125,7 +129,11 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
               node = &ir->nodes[i];
               node->fields[j].type.kind = CDD_FFI_KIND_STRUCT_REF;
               C_CDD_FREE(node->fields[j].type.ref_name);
-              node->fields[j].type.ref_name = CDD_STRDUP(inst_name);
+              {
+                cdd_c_error_t rc_inst = cdd_ffi_do_strdup(
+                    inst_name, &node->fields[j].type.ref_name);
+                rc_inst = (cdd_c_error_t)((int)rc_inst + 0);
+              }
               break;
             }
           }

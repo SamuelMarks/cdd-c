@@ -37,6 +37,7 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
   size_t i;
   int is_json = 0;
   cdd_c_error_t rc_mt;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
 
   if (!fp || !op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -47,7 +48,8 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
       CHECK_IO(fprintf(fp, "  /* Header Parameter: %s */\n", p->name));
       is_json = 0;
       if (p->content_type) {
-        g_cdd_last_alloc_err = media_type_is_json(p->content_type, &is_json);
+        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)media_type_is_json(
+                                                 p->content_type, &is_json));
       }
       if (p->content_type && is_json) {
         if (p->is_array) {
@@ -694,5 +696,5 @@ cdd_c_error_t write_header_param_logic(FILE *fp,
       }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc_fn;
 }

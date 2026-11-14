@@ -36,7 +36,7 @@ cdd_c_error_t cdd_json_object_set_value_safe(JSON_Object *obj, const char *name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Safely appends a JSON array element and frees the value on failure.
  *
  * @param[in,out] arr The target JSON array.
@@ -86,8 +86,7 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   }
   {
     int lic_invalid = 0;
-    g_cdd_last_alloc_err =
-        license_fields_invalid(&spec->info.license, &lic_invalid);
+    rc = license_fields_invalid(&spec->info.license, &lic_invalid);
     if (lic_invalid)
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -97,26 +96,27 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  rc = cdd_json_value_get_object(root_val, &root_obj);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_value_get_object(root_val, &root_obj));
 
   if (spec->swagger_version) {
     rc = cdd_json_object_set_string(root_obj, "swagger", spec->swagger_version);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
     if (spec->host) {
       rc = cdd_json_object_set_string(root_obj, "host", spec->host);
       if (rc != CDD_C_SUCCESS) {
         rc_free = cdd_json_value_free(root_val);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)rc_free);
       }
     }
     if (spec->basePath) {
       rc = cdd_json_object_set_string(root_obj, "basePath", spec->basePath);
       if (rc != CDD_C_SUCCESS) {
         rc_free = cdd_json_value_free(root_val);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)rc_free);
       }
     }
   } else {
@@ -125,14 +125,14 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
         spec->openapi_version ? spec->openapi_version : "3.2.0");
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   }
   if (spec->self_uri) {
     rc = cdd_json_object_set_string(root_obj, "$self", spec->self_uri);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   }
   if (spec->json_schema_dialect) {
@@ -140,78 +140,78 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
                                     spec->json_schema_dialect);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   }
   if (spec->extensions_json) {
     rc = merge_schema_extras_object_openapi(root_obj, spec->extensions_json);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   }
 
   rc = write_info(root_obj, spec);
   if (rc != CDD_C_SUCCESS) {
     rc_free = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)rc_free);
   }
   if (spec->external_docs.url) {
     rc = write_external_docs(root_obj, "externalDocs", &spec->external_docs);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   }
 
   rc = write_tags(root_obj, spec);
   if (rc != CDD_C_SUCCESS) {
     rc_free = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)rc_free);
   }
 
   rc = write_security_requirements(root_obj, "security", spec->security,
                                    spec->n_security, spec->security_set);
   if (rc != CDD_C_SUCCESS) {
     rc_free = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)rc_free);
   }
 
   rc = write_servers(root_obj, spec);
   if (rc != CDD_C_SUCCESS) {
     rc_free = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)rc_free);
   }
 
   rc = write_components(root_obj, spec);
   if (rc != CDD_C_SUCCESS) {
     rc_free = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)rc_free);
   }
 
   rc = write_webhooks(root_obj, spec);
   if (rc != CDD_C_SUCCESS) {
     rc_free = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)rc_free);
   }
 
   if (spec->n_paths > 0 || spec->paths_extensions_json) {
     rc = write_paths(root_obj, spec);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   } else {
     JSON_Value *empty = NULL;
     rc = cdd_json_value_init_object(&empty);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
     rc = cdd_json_object_set_value_safe(root_obj, "paths", empty);
     if (rc != CDD_C_SUCCESS) {
       rc_free = cdd_json_value_free(root_val);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)rc_free);
     }
   }
 
@@ -219,5 +219,5 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   rc = cdd_json_serialize_to_string_pretty(root_val, json_out);
   rc_free = cdd_json_value_free(root_val);
 
-  return (rc == CDD_C_SUCCESS) ? rc_free : CDD_C_ERROR_MEMORY;
+  return (cdd_c_error_t)((int)rc | (int)rc_free);
 }

@@ -329,8 +329,7 @@ cdd_c_error_t cdd_serde_parse_enum_comment(const char *comment_text,
   memset(&tmp_sf, 0, sizeof(tmp_sf));
   rc = cdd_serde_parse_container_comment(comment_text, &tmp_sf);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = struct_fields_free(&tmp_sf);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp_sf));
   }
 
   if (tmp_sf.serde_rename_all != CDD_SERDE_CASE_NONE)
@@ -340,22 +339,27 @@ cdd_c_error_t cdd_serde_parse_enum_comment(const char *comment_text,
   if (tmp_sf.cli_case_insensitive_flags)
     em->cli_case_insensitive = 1;
   if (tmp_sf.serde_replace_from[0] != '\0') {
-    rc = cdd_serde_copy_str(em->serde_replace_from,
-                            sizeof(em->serde_replace_from),
-                            tmp_sf.serde_replace_from);
-    rc = cdd_serde_copy_str(em->serde_replace_to, sizeof(em->serde_replace_to),
-                            tmp_sf.serde_replace_to);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_serde_copy_str(em->serde_replace_from,
+                                                 sizeof(em->serde_replace_from),
+                                                 tmp_sf.serde_replace_from));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_serde_copy_str(em->serde_replace_to,
+                                                 sizeof(em->serde_replace_to),
+                                                 tmp_sf.serde_replace_to));
   }
   if (tmp_sf.serde_tag[0] != '\0') {
-    rc = cdd_serde_copy_str(em->serde_tag, sizeof(em->serde_tag),
-                            tmp_sf.serde_tag);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_serde_copy_str(
+                                       em->serde_tag, sizeof(em->serde_tag),
+                                       tmp_sf.serde_tag));
   }
   if (tmp_sf.serde_content[0] != '\0') {
-    rc = cdd_serde_copy_str(em->serde_content, sizeof(em->serde_content),
-                            tmp_sf.serde_content);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_serde_copy_str(em->serde_content,
+                                                 sizeof(em->serde_content),
+                                                 tmp_sf.serde_content));
   }
   if (tmp_sf.serde_untagged)
     em->serde_untagged = 1;
-  g_cdd_last_alloc_err = struct_fields_free(&tmp_sf);
-  return rc;
+  return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp_sf));
 }

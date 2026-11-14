@@ -64,10 +64,10 @@ static __inline cdd_c_error_t cdd_suppress_gui_popups(void) {
 #endif
     _set_error_mode(_OUT_TO_STDERR);
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
-#if _MSC_VER >= 1400
-    _set_invalid_parameter_handler(destroy_cdd_invalid_parameter);
-#endif
   }
+#if _MSC_VER >= 1400
+  _set_invalid_parameter_handler(destroy_cdd_invalid_parameter);
+#endif
 #endif
   return CDD_C_SUCCESS;
 }

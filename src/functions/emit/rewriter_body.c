@@ -238,8 +238,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
   if (allocs) {
     rc = strategy_inject_safety_checks(tokens, allocs, &patches);
     if (rc != 0) {
-      g_cdd_last_alloc_err = patch_list_free(&patches);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
     }
   }
 
@@ -252,8 +251,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
         const struct RefactoredFunction *rf = NULL;
         rc = extract_token_text(id_tok, &name_str);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = patch_list_free(&patches);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
         }
         {
           cdd_c_error_t rc_rw =
@@ -729,6 +727,5 @@ cleanup:
     C_CDD_FREE(lhs_name);
   if (call_args)
     C_CDD_FREE(call_args);
-  g_cdd_last_alloc_err = patch_list_free(&patches);
-  return rc;
+  return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
 }

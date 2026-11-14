@@ -28,8 +28,7 @@ static cdd_c_error_t
 free_arazzo_expression_type(struct Arazzo_ExpressionType *et) {
   C_CDD_FREE(et->version);
   et->version = NULL;
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&et->extensions);
-  return CDD_C_SUCCESS;
+  return arazzo_extension_list_free(&et->extensions);
 }
 
 /**
@@ -39,12 +38,14 @@ free_arazzo_expression_type(struct Arazzo_ExpressionType *et) {
  * @return `CDD_C_SUCCESS`.
  */
 static cdd_c_error_t free_arazzo_criterion(struct Arazzo_Criterion *crit) {
+  cdd_c_error_t rc;
   C_CDD_FREE(crit->context);
   C_CDD_FREE(crit->condition);
-  g_cdd_last_alloc_err = free_arazzo_expression_type(&crit->expression_type);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&crit->extensions);
+  rc = free_arazzo_expression_type(&crit->expression_type);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&crit->extensions));
   memset(crit, 0, sizeof(*crit));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -54,12 +55,14 @@ static cdd_c_error_t free_arazzo_criterion(struct Arazzo_Criterion *crit) {
  * @return `CDD_C_SUCCESS`.
  */
 static cdd_c_error_t free_arazzo_selector(struct Arazzo_Selector *sel) {
+  cdd_c_error_t rc;
   C_CDD_FREE(sel->context);
   C_CDD_FREE(sel->selector);
-  g_cdd_last_alloc_err = free_arazzo_expression_type(&sel->expression_type);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&sel->extensions);
+  rc = free_arazzo_expression_type(&sel->expression_type);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&sel->extensions));
   memset(sel, 0, sizeof(*sel));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -69,10 +72,11 @@ static cdd_c_error_t free_arazzo_selector(struct Arazzo_Selector *sel) {
  * @return `CDD_C_SUCCESS`.
  */
 static cdd_c_error_t free_arazzo_reusable(struct Arazzo_Reusable *r) {
+  cdd_c_error_t rc;
   C_CDD_FREE(r->reference);
-  g_cdd_last_alloc_err = free_any_value(&r->value);
+  rc = free_any_value(&r->value);
   memset(r, 0, sizeof(*r));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -82,14 +86,17 @@ static cdd_c_error_t free_arazzo_reusable(struct Arazzo_Reusable *r) {
  * @return `CDD_C_SUCCESS`.
  */
 static cdd_c_error_t free_arazzo_parameter(struct Arazzo_Parameter *param) {
+  cdd_c_error_t rc;
   C_CDD_FREE(param->name);
-  g_cdd_last_alloc_err = free_any_value(&param->value);
-  g_cdd_last_alloc_err = free_arazzo_selector(&param->selector);
-  g_cdd_last_alloc_err = arazzo_runtime_expr_free(&param->parsed_expr);
-  g_cdd_last_alloc_err = free_arazzo_reusable(&param->reusable);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&param->extensions);
+  rc = free_any_value(&param->value);
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_selector(&param->selector));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_runtime_expr_free(&param->parsed_expr));
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_reusable(&param->reusable));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&param->extensions));
   memset(param, 0, sizeof(*param));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -102,11 +109,12 @@ static cdd_c_error_t free_arazzo_parameter(struct Arazzo_Parameter *param) {
 static cdd_c_error_t
 free_arazzo_parameters_array(struct Arazzo_Parameter *params, size_t n_params) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   for (i = 0; i < n_params; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_parameter(&params[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_parameter(&params[i]));
   }
   C_CDD_FREE(params);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -120,11 +128,12 @@ static cdd_c_error_t
 free_arazzo_criteria_array(struct Arazzo_Criterion *criteria,
                            size_t n_criteria) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   for (i = 0; i < n_criteria; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_criterion(&criteria[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_criterion(&criteria[i]));
   }
   C_CDD_FREE(criteria);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -135,17 +144,18 @@ free_arazzo_criteria_array(struct Arazzo_Criterion *criteria,
  */
 static cdd_c_error_t
 free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
+  cdd_c_error_t rc;
   C_CDD_FREE(act->name);
   C_CDD_FREE(act->workflow_id);
   C_CDD_FREE(act->step_id);
-  g_cdd_last_alloc_err =
-      free_arazzo_parameters_array(act->parameters, act->n_parameters);
-  g_cdd_last_alloc_err =
-      free_arazzo_criteria_array(act->criteria, act->n_criteria);
-  g_cdd_last_alloc_err = free_arazzo_reusable(&act->reusable);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&act->extensions);
+  rc = free_arazzo_parameters_array(act->parameters, act->n_parameters);
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_criteria_array(
+                                     act->criteria, act->n_criteria));
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_reusable(&act->reusable));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&act->extensions));
   memset(act, 0, sizeof(*act));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -156,17 +166,18 @@ free_arazzo_success_action(struct Arazzo_SuccessAction *act) {
  */
 static cdd_c_error_t
 free_arazzo_failure_action(struct Arazzo_FailureAction *act) {
+  cdd_c_error_t rc;
   C_CDD_FREE(act->name);
   C_CDD_FREE(act->workflow_id);
   C_CDD_FREE(act->step_id);
-  g_cdd_last_alloc_err =
-      free_arazzo_parameters_array(act->parameters, act->n_parameters);
-  g_cdd_last_alloc_err =
-      free_arazzo_criteria_array(act->criteria, act->n_criteria);
-  g_cdd_last_alloc_err = free_arazzo_reusable(&act->reusable);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&act->extensions);
+  rc = free_arazzo_parameters_array(act->parameters, act->n_parameters);
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_criteria_array(
+                                     act->criteria, act->n_criteria));
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_reusable(&act->reusable));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&act->extensions));
   memset(act, 0, sizeof(*act));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -180,14 +191,17 @@ static cdd_c_error_t
 free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
                           size_t n_outputs) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   for (i = 0; i < n_outputs; ++i) {
     C_CDD_FREE(outputs[i].key);
     C_CDD_FREE(outputs[i].expression_or_value);
-    g_cdd_last_alloc_err = free_arazzo_selector(&outputs[i].selector);
-    g_cdd_last_alloc_err = arazzo_runtime_expr_free(&outputs[i].parsed_expr);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)free_arazzo_selector(&outputs[i].selector));
+    rc = (cdd_c_error_t)((int)rc | (int)arazzo_runtime_expr_free(
+                                       &outputs[i].parsed_expr));
   }
   C_CDD_FREE(outputs);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -198,48 +212,57 @@ free_arazzo_outputs_array(struct Arazzo_OutputMapEntry *outputs,
  */
 static cdd_c_error_t free_arazzo_step(struct Arazzo_Step *step) {
   size_t i;
+  cdd_c_error_t rc;
   C_CDD_FREE(step->step_id);
   C_CDD_FREE(step->description);
   C_CDD_FREE(step->operation_id);
   C_CDD_FREE(step->operation_path);
   C_CDD_FREE(step->channel_path);
   C_CDD_FREE(step->workflow_id);
-  g_cdd_last_alloc_err =
-      free_arazzo_parameters_array(step->parameters, step->n_parameters);
+  rc = free_arazzo_parameters_array(step->parameters, step->n_parameters);
   C_CDD_FREE(step->request_body.content_type);
-  g_cdd_last_alloc_err = free_any_value(&step->request_body.payload);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)free_any_value(&step->request_body.payload));
   for (i = 0; i < step->request_body.n_replacements; ++i) {
     C_CDD_FREE(step->request_body.replacements[i].target);
-    g_cdd_last_alloc_err = free_arazzo_expression_type(
-        &step->request_body.replacements[i].target_expression_type);
-    g_cdd_last_alloc_err =
-        free_any_value(&step->request_body.replacements[i].value);
-    g_cdd_last_alloc_err = arazzo_runtime_expr_free(
-        &step->request_body.replacements[i].parsed_expr);
-    g_cdd_last_alloc_err = arazzo_extension_list_free(
-        &step->request_body.replacements[i].extensions);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_expression_type(
+                                       &step->request_body.replacements[i]
+                                            .target_expression_type));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)free_any_value(
+                             &step->request_body.replacements[i].value));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)arazzo_runtime_expr_free(
+                             &step->request_body.replacements[i].parsed_expr));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)arazzo_extension_list_free(
+                             &step->request_body.replacements[i].extensions));
   }
   C_CDD_FREE(step->request_body.replacements);
-  g_cdd_last_alloc_err =
-      arazzo_extension_list_free(&step->request_body.extensions);
-  g_cdd_last_alloc_err = free_arazzo_criteria_array(step->success_criteria,
-                                                    step->n_success_criteria);
+  rc = (cdd_c_error_t)((int)rc | (int)arazzo_extension_list_free(
+                                     &step->request_body.extensions));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)free_arazzo_criteria_array(
+                           step->success_criteria, step->n_success_criteria));
   for (i = 0; i < step->n_on_success; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_success_action(&step->on_success[i]);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)free_arazzo_success_action(&step->on_success[i]));
   }
   C_CDD_FREE(step->on_success);
   for (i = 0; i < step->n_on_failure; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_failure_action(&step->on_failure[i]);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)free_arazzo_failure_action(&step->on_failure[i]));
   }
   C_CDD_FREE(step->on_failure);
-  g_cdd_last_alloc_err =
-      free_arazzo_outputs_array(step->outputs, step->n_outputs);
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_outputs_array(
+                                     step->outputs, step->n_outputs));
   C_CDD_FREE(step->correlation_id);
-  g_cdd_last_alloc_err =
-      free_string_array(step->depends_on, step->n_depends_on);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&step->extensions);
+  rc = (cdd_c_error_t)((int)rc | (int)free_string_array(step->depends_on,
+                                                        step->n_depends_on));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&step->extensions));
   memset(step, 0, sizeof(*step));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -250,29 +273,35 @@ static cdd_c_error_t free_arazzo_step(struct Arazzo_Step *step) {
  */
 static cdd_c_error_t free_arazzo_workflow(struct Arazzo_Workflow *wf) {
   size_t i;
+  cdd_c_error_t rc;
   C_CDD_FREE(wf->workflow_id);
   C_CDD_FREE(wf->summary);
   C_CDD_FREE(wf->description);
-  g_cdd_last_alloc_err = free_schema_ref_content(&wf->inputs);
-  g_cdd_last_alloc_err = free_string_array(wf->depends_on, wf->n_depends_on);
+  rc = free_schema_ref_content(&wf->inputs);
+  rc = (cdd_c_error_t)((int)rc | (int)free_string_array(wf->depends_on,
+                                                        wf->n_depends_on));
   for (i = 0; i < wf->n_steps; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_step(&wf->steps[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_step(&wf->steps[i]));
   }
   C_CDD_FREE(wf->steps);
   for (i = 0; i < wf->n_success_actions; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_success_action(&wf->success_actions[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_success_action(
+                                       &wf->success_actions[i]));
   }
   C_CDD_FREE(wf->success_actions);
   for (i = 0; i < wf->n_failure_actions; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_failure_action(&wf->failure_actions[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_failure_action(
+                                       &wf->failure_actions[i]));
   }
   C_CDD_FREE(wf->failure_actions);
-  g_cdd_last_alloc_err = free_arazzo_outputs_array(wf->outputs, wf->n_outputs);
-  g_cdd_last_alloc_err =
-      free_arazzo_parameters_array(wf->parameters, wf->n_parameters);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&wf->extensions);
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_outputs_array(wf->outputs,
+                                                                wf->n_outputs));
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_parameters_array(
+                                     wf->parameters, wf->n_parameters));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&wf->extensions));
   memset(wf, 0, sizeof(*wf));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -315,29 +344,29 @@ cdd_c_error_t arazzo_runtime_expr_copy(struct Arazzo_RuntimeExpr *dst,
   if (src->source_name) {
     dst->source_name = C_CDD_STRDUP(src->source_name);
     if (!dst->source_name) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(dst);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)arazzo_runtime_expr_free(dst));
     }
   }
   if (src->step_or_workflow_id) {
     dst->step_or_workflow_id = C_CDD_STRDUP(src->step_or_workflow_id);
     if (!dst->step_or_workflow_id) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(dst);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)arazzo_runtime_expr_free(dst));
     }
   }
   if (src->property_name) {
     dst->property_name = C_CDD_STRDUP(src->property_name);
     if (!dst->property_name) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(dst);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)arazzo_runtime_expr_free(dst));
     }
   }
   if (src->json_pointer) {
     dst->json_pointer = C_CDD_STRDUP(src->json_pointer);
     if (!dst->json_pointer) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(dst);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)arazzo_runtime_expr_free(dst));
     }
   }
   return CDD_C_SUCCESS;
@@ -351,16 +380,17 @@ cdd_c_error_t arazzo_runtime_expr_copy(struct Arazzo_RuntimeExpr *dst,
  */
 cdd_c_error_t arazzo_extension_list_free(struct Arazzo_ExtensionList *list) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!list)
     return CDD_C_SUCCESS;
   for (i = 0; i < list->count; ++i) {
     C_CDD_FREE(list->items[i].key);
-    g_cdd_last_alloc_err = free_any_value(&list->items[i].val);
+    rc = (cdd_c_error_t)((int)rc | (int)free_any_value(&list->items[i].val));
   }
   C_CDD_FREE(list->items);
   list->items = NULL;
   list->count = 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -432,6 +462,7 @@ cdd_c_error_t arazzo_spec_init(struct Arazzo_Spec *spec) {
  */
 cdd_c_error_t arazzo_spec_free(struct Arazzo_Spec *spec) {
   size_t i;
+  cdd_c_error_t rc;
   if (!spec)
     return CDD_C_SUCCESS;
 
@@ -441,59 +472,69 @@ cdd_c_error_t arazzo_spec_free(struct Arazzo_Spec *spec) {
   C_CDD_FREE(spec->info.summary);
   C_CDD_FREE(spec->info.description);
   C_CDD_FREE(spec->info.version);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&spec->info.extensions);
+  rc = arazzo_extension_list_free(&spec->info.extensions);
 
   for (i = 0; i < spec->n_source_descriptions; ++i) {
     C_CDD_FREE(spec->source_descriptions[i].name);
     C_CDD_FREE(spec->source_descriptions[i].url);
     if (spec->source_descriptions[i].resolved_openapi) {
-      g_cdd_last_alloc_err =
-          openapi_spec_free(spec->source_descriptions[i].resolved_openapi);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)openapi_spec_free(
+                               spec->source_descriptions[i].resolved_openapi));
       C_CDD_FREE(spec->source_descriptions[i].resolved_openapi);
     }
-    g_cdd_last_alloc_err =
-        arazzo_extension_list_free(&spec->source_descriptions[i].extensions);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)arazzo_extension_list_free(
+                             &spec->source_descriptions[i].extensions));
   }
   C_CDD_FREE(spec->source_descriptions);
 
   for (i = 0; i < spec->n_workflows; ++i) {
-    g_cdd_last_alloc_err = free_arazzo_workflow(&spec->workflows[i]);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)free_arazzo_workflow(&spec->workflows[i]));
   }
   C_CDD_FREE(spec->workflows);
 
   for (i = 0; i < spec->components.n_inputs; ++i) {
-    g_cdd_last_alloc_err = free_schema_ref_content(&spec->components.inputs[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_schema_ref_content(
+                                       &spec->components.inputs[i]));
   }
   C_CDD_FREE(spec->components.inputs);
-  g_cdd_last_alloc_err =
-      free_string_array(spec->components.input_keys, spec->components.n_inputs);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)free_string_array(spec->components.input_keys,
+                                              spec->components.n_inputs));
 
-  g_cdd_last_alloc_err = free_arazzo_parameters_array(
-      spec->components.parameters, spec->components.n_parameters);
-  g_cdd_last_alloc_err = free_string_array(spec->components.parameter_keys,
-                                           spec->components.n_parameters);
+  rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_parameters_array(
+                                     spec->components.parameters,
+                                     spec->components.n_parameters));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)free_string_array(spec->components.parameter_keys,
+                                              spec->components.n_parameters));
 
   for (i = 0; i < spec->components.n_success_actions; ++i) {
-    g_cdd_last_alloc_err =
-        free_arazzo_success_action(&spec->components.success_actions[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_success_action(
+                                       &spec->components.success_actions[i]));
   }
   C_CDD_FREE(spec->components.success_actions);
-  g_cdd_last_alloc_err = free_string_array(spec->components.success_action_keys,
-                                           spec->components.n_success_actions);
+  rc = (cdd_c_error_t)((int)rc | (int)free_string_array(
+                                     spec->components.success_action_keys,
+                                     spec->components.n_success_actions));
 
   for (i = 0; i < spec->components.n_failure_actions; ++i) {
-    g_cdd_last_alloc_err =
-        free_arazzo_failure_action(&spec->components.failure_actions[i]);
+    rc = (cdd_c_error_t)((int)rc | (int)free_arazzo_failure_action(
+                                       &spec->components.failure_actions[i]));
   }
   C_CDD_FREE(spec->components.failure_actions);
-  g_cdd_last_alloc_err = free_string_array(spec->components.failure_action_keys,
-                                           spec->components.n_failure_actions);
+  rc = (cdd_c_error_t)((int)rc | (int)free_string_array(
+                                     spec->components.failure_action_keys,
+                                     spec->components.n_failure_actions));
 
-  g_cdd_last_alloc_err =
-      arazzo_extension_list_free(&spec->components.extensions);
-  g_cdd_last_alloc_err = arazzo_extension_list_free(&spec->extensions);
+  rc = (cdd_c_error_t)((int)rc | (int)arazzo_extension_list_free(
+                                     &spec->components.extensions));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)arazzo_extension_list_free(&spec->extensions));
   memset(spec, 0, sizeof(*spec));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*

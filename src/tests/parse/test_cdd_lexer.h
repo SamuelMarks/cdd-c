@@ -448,6 +448,18 @@ TEST test_lexer_branches(void) {
   rc = cdd_lexer_tokenize(az_span_create_from_str("int /*c1*/ \n"), &list);
   g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
 
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("1'000 + 1'+2"), &list);
+  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("1'+2 1'"), &list);
+  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("1'+2"), &list);
+  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
+
   {
     cdd_token_list_t *dummy_list = calloc(1, sizeof(cdd_token_list_t));
     g_cdd_last_alloc_err = cdd_lexer_free_token_list(dummy_list);
@@ -512,6 +524,10 @@ TEST test_lexer_branches(void) {
   list = NULL;
   rc = cdd_lexer_tokenize(az_span_create_from_str("int /*c1*/ /*c2*/ \n"),
                           &list);
+  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("1'"), &list);
   g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
   g_fail_io_after = -1;
 

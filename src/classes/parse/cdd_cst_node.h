@@ -121,6 +121,8 @@ struct cdd_cst_tree_t {
   size_t num_strings;
   /** @brief string_capacity field */
   size_t string_capacity;
+  /** @brief Optional active semantic scope environment bound to this tree */
+  struct cdd_cst_scope_env_t *active_sem_env;
 };
 
 #ifdef __cplusplus

@@ -3625,12 +3625,1243 @@ TEST test_json_dom_exhaustive_edges(void) {
 }
 
 /**
+ * @brief Tests RFC 8259 UTF-8 validation, JSONPath `\\uXXXX` & negative slices,
+ * RFC 6902 diff/move checks, and JSON Schema Draft 2020-12 validation.
+ * @return Greatest test result.
+ */
+TEST test_json_dom_rfc_and_schema_extensions(void) {
+  JSON_Value *v = NULL;
+  JSON_Value *v2 = NULL;
+  JSON_Value *patch = NULL;
+  JSON_Value *patched = NULL;
+  JSON_Value *nl = NULL;
+  const JSON_Value *fnd = NULL;
+  int eq = 0;
+
+  /* 1. Strict RFC 8259 Section 8.1 UTF-8 byte sequence validation */
+  {
+    const char valid_utf8[] = "\"\xC3\xA9\xE2\x82\xAC\xF0\x9F\x98\x80\"";
+    const char bad_cont[] = "\"\x80\"";
+    const char bad_over2[] = "\"\xC0\x80\"";
+    const char bad_trunc2[] = "\"\xC3\x20\"";
+    const char bad_over3[] = "\"\xE0\x80\x80\"";
+    const char bad_surr3[] = "\"\xED\xA0\x80\"";
+    const char bad_trunc3[] = "\"\xE2\x82\x20\"";
+    const char bad_over4[] = "\"\xF0\x80\x80\x80\"";
+    const char bad_high4[] = "\"\xF4\x90\x80\x80\"";
+    const char bad_trunc4[] = "\"\xF0\x9F\x98\x20\"";
+    const char bad_lead[] = "\"\xF5\x80\x80\x80\"";
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(valid_utf8, &v));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_cont, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_over2, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_trunc2, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_over3, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_surr3, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_trunc3, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_over4, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_high4, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_trunc4, &v));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_parse_string(bad_lead, &v));
+  }
+
+  /* 2. JSONPath \uXXXX escapes, negative slices, and @.a == @.b filters */
+  {
+    const char *jp_doc =
+        "{\"a\":1,\"\xC3\xA9\":2,\"\xE2\x82\xAC\":3,"
+        "\"\xF0\x9F\x98\x80\":4,\"nums\":[10,20,30,40],"
+        "\"pairs\":[{\"x\":1,\"y\":1,\"s\":\"k\",\"t\":\"k\",\"b\":true,\"c\":"
+        "true},{\"x\":1,\"y\":2,\"s\":\"k\",\"t\":\"m\",\"b\":true,\"c\":false}"
+        "]}";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(jp_doc, &v));
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$['\\u0061']", &fnd));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$['\\u00e9']", &fnd));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$['\\u20AC']", &fnd));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_jsonpath_get(v, "$['\\uD83D\\uDE00']", &fnd));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_get(v, "$['\\u123G']", &fnd));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_get(v, "$['\\uD800']", &fnd));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_get(v, "$['\\uDC00']", &fnd));
+
+  /* Negative slice steps in jsonpath_get and jsonpath_query */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$.nums[::-1]", &fnd));
+  ASSERT_EQ(40.0, json_value_get_number(fnd));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$.nums[2:0:-1]", &fnd));
+  ASSERT_EQ(30.0, json_value_get_number(fnd));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$.nums[-1:-4:-2]", &fnd));
+  ASSERT_EQ(40.0, json_value_get_number(fnd));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_get(v, "$.nums[10:-10:-1]", &fnd));
+  ASSERT_EQ(40.0, json_value_get_number(fnd));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            cdd_json_jsonpath_get(v, "$.nums[0:3:-1]", &fnd));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_query(v, "$.nums[::-1]", &nl));
+  ASSERT_EQ(4u, json_array_get_count(json_value_get_array(nl)));
+  ASSERT_EQ(40.0, json_array_get_number(json_value_get_array(nl), 0));
+  ASSERT_EQ(10.0, json_array_get_number(json_value_get_array(nl), 3));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(nl));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_jsonpath_query(v, "$.nums[10:-10:-2]", &nl));
+  ASSERT_EQ(2u, json_array_get_count(json_value_get_array(nl)));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(nl));
+
+  /* Relative RHS filter comparisons (@.x == @.y) */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_jsonpath_query(
+                v, "$.pairs[?(@.x == @.y && @.s == @.t && @.b == @.c)]", &nl));
+  ASSERT_EQ(1u, json_array_get_count(json_value_get_array(nl)));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(nl));
+  ASSERT_EQ(CDD_C_ERROR_NOT_SUPPORTED,
+            cdd_json_jsonpath_query(v, "$.pairs[?(@.x == @.)]", &nl));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+
+  /* 3. RFC 6902 move proper-prefix check and cdd_json_diff_patch */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string(
+                "{\"a\":{\"b\":1},\"drop\":2,\"arr\":[1,2,3]}", &v));
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_json_parse_string(
+          "[{\"op\":\"move\",\"from\":\"/a\",\"path\":\"/a/c\"}]", &patch));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_apply_patch(v, patch, &patched));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patch));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_diff_patch(v, v, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_diff_patch(NULL, v, &patch));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_diff_patch(v, v, &patch));
+  ASSERT_EQ(0u, json_array_get_count(json_value_get_array(patch)));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patch));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string(
+                "{\"a\":{\"b\":2,\"c\":3},\"add\":4,\"arr\":[1,9]}", &v2));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_diff_patch(v, v2, &patch));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_apply_patch(v, patch, &patched));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_equals(v2, patched, &eq));
+  ASSERT_EQ(1, eq);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patch));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patched));
+
+  /* Reverse diff (array grow + object remove + root replace) */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_diff_patch(v2, v, &patch));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_apply_patch(v2, patch, &patched));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_equals(v, patched, &eq));
+  ASSERT_EQ(1, eq);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patch));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patched));
+
+  {
+    int di;
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                         test_custom_free));
+    for (di = 0; di < 45; ++di) {
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = di;
+      if (cdd_json_diff_patch(v, v2, &patch) == CDD_C_SUCCESS)
+        g_cdd_last_alloc_err = cdd_json_value_free(patch);
+      g_custom_alloc_cnt = 0;
+      if (cdd_json_diff_patch(v2, v, &patch) == CDD_C_SUCCESS)
+        g_cdd_last_alloc_err = cdd_json_value_free(patch);
+    }
+    g_custom_fail_at = -1;
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v2));
+
+  /* 4. JSON Schema Draft 2020-12 validation (cdd_json_schema_validate) */
+  {
+    JSON_Value *sch = NULL;
+    JSON_Value *inst = NULL;
+    const char *sch_s1 =
+        "{\"type\":\"object\",\"required\":[\"id\",\"name\"],\"properties\":{"
+        "\"id\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":100,"
+        "\"exclusiveMinimum\":0,\"exclusiveMaximum\":101},"
+        "\"score\":{\"type\":\"number\",\"const\":9.5},"
+        "\"name\":{\"type\":[\"string\",\"null\"],\"minLength\":2,"
+        "\"maxLength\":10,\"pattern\":\"^[a-z]+$\"},\"emptyPat\":{\"type\":"
+        "\"string\",\"pattern\":\"\"},\"flag\":{\"type\":\"boolean\"},"
+        "\"nil\":{\"type\":\"null\"},\"role\":{\"enum\":[\"admin\",\"user\"]},"
+        "\"tags\":{\"type\":\"array\",\"minItems\":1,\"maxItems\":3,\"items\":"
+        "{\"type\":\"string\"}}},\"additionalProperties\":false}";
+    const char *sch_s2 =
+        "{\"allOf\":[{\"type\":\"object\"}],"
+        "\"anyOf\":[{\"type\":\"number\"},{\"type\":\"object\"}],"
+        "\"oneOf\":[{\"type\":\"object\"},{\"type\":\"array\"}],"
+        "\"not\":{\"type\":\"null\"}}";
+    const char *inst_ok =
+        "{\"id\":42,\"score\":9.5,\"name\":\"alice\",\"emptyPat\":\"x\","
+        "\"flag\":true,\"nil\":null,\"role\":\"admin\",\"tags\":[\"a\"]}";
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("true", &sch));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("123", &inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("false", &sch));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(inst, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(sch_s2, &sch));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(inst_ok, &inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(sch_s1, &sch));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    /* Failing instances against schema keywords */
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"id\":42}", &inst)); /* missing name */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"id\":0,\"name\":\"alice\"}",
+                                    &inst)); /* < minimum */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"id\":1,\"name\":\"A1\"}",
+                                                   &inst)); /* pattern fail */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"id\":1,\"name\":\"ok\",\"extra\":1}",
+                                    &inst)); /* additionalProperties: false */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"id\":1,\"name\":\"ok\",\"role\":\"x\"}",
+                                    &inst)); /* enum fail */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"id\":1,\"name\":\"ok\",\"score\":2.0}",
+                                    &inst)); /* const */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"id\":1,\"name\":\"ok\",\"tags\":[]}",
+                                    &inst)); /* minItems */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(sch, inst));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+    /* Extended 2020-12 keywords: $ref, prefixItems, propertyNames,
+     * dependentRequired, dependentSchemas, if/then/else */
+    {
+      const char *sch_ext =
+          "{\"$defs\":{\"posInt\":{\"type\":\"integer\",\"minimum\":1}},"
+          "\"type\":\"object\","
+          "\"propertyNames\":{\"minLength\":2},"
+          "\"dependentRequired\":{\"credit_card\":[\"billing_address\"]},"
+          "\"dependentSchemas\":{\"vip\":{\"required\":[\"tier\"]}},"
+          "\"properties\":{"
+          "\"count\":{\"$ref\":\"#/$defs/posInt\"},"
+          "\"self_node\":{\"$ref\":\"#\"},"
+          "\"tuple\":{\"type\":\"array\",\"prefixItems\":[{\"type\":\"number\"}"
+          ",{\"type\":\"string\"}],\"items\":{\"type\":\"boolean\"}}"
+          "},"
+          "\"if\":{\"required\":[\"kind\"]},"
+          "\"then\":{\"required\":[\"kind_val\"]},"
+          "\"else\":{\"required\":[\"fallback\"]}}";
+
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(sch_ext, &sch));
+
+      /* Valid with else branch + $ref + prefixItems + dependent* */
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string(
+              "{\"fallback\":1,\"count\":5,\"tuple\":[10,\"hi\",true],"
+              "\"credit_card\":\"123\",\"billing_address\":\"st\","
+              "\"vip\":true,\"tier\":\"gold\",\"self_node\":{\"fallback\":2}}",
+              &inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Valid with then branch */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(
+                                   "{\"kind\":\"a\",\"kind_val\":1}", &inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail then branch */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"kind\":\"a\"}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail else branch */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"count\":1}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail $ref target constraint */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"fallback\":1,\"count\":0}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail prefixItems */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string(
+                    "{\"fallback\":1,\"tuple\":[\"bad\",\"hi\"]}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail items after prefixItems */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string(
+                    "{\"fallback\":1,\"tuple\":[1,\"hi\",99]}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail propertyNames */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"fallback\":1,\"x\":1}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail dependentRequired */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string(
+                    "{\"fallback\":1,\"credit_card\":\"123\"}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail dependentSchemas */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"fallback\":1,\"vip\":true}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+      /* Invalid $ref pointer & external $ref & malformed dependentRequired */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"$ref\":\"#/missing\"}", &sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("1", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"$ref\":\"other.json\"}", &sch));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string(
+                    "{\"dependentRequired\":{\"a\":\"not_arr\"}}", &sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"a\":1}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string("{\"dependentRequired\":{\"a\":[123]}}", &sch));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* contentEncoding, contentMediaType, unevaluatedItems,
+       * unevaluatedProperties */
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string(
+              "{\"type\":\"object\",\"properties\":{"
+              "\"b64\":{\"type\":\"string\",\"contentEncoding\":\"base64\"},"
+              "\"b64u\":{\"type\":\"string\",\"contentEncoding\":"
+              "\"base64url\"},"
+              "\"jstr\":{\"type\":\"string\",\"contentMediaType\":"
+              "\"application/json\"},"
+              "\"arr\":{\"type\":\"array\",\"prefixItems\":[{\"type\":"
+              "\"number\"}],\"unevaluatedItems\":{\"type\":\"string\"}}"
+              "},\"unevaluatedProperties\":{\"type\":\"boolean\"}}",
+              &sch));
+
+      /* All valid */
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string(
+              "{\"b64\":\"SGVsbG8=+/09\",\"b64u\":\"SGVsbG8-_09\","
+              "\"jstr\":\"{\\\"x\\\":1}\",\"arr\":[1,\"extra\"],\"flag\":true}",
+              &inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Invalid base64 length */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"b64\":\"abc\"}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Invalid base64 char */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"b64\":\"ab$!\"}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Invalid base64url char */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"b64u\":\"ab+/\"}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Invalid contentMediaType application/json */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"jstr\":\"{bad\"}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Invalid unevaluatedItems */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"arr\":[1,2]}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Invalid unevaluatedProperties */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"flag\":123}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+      /* Unknown contentEncoding */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(
+                                   "{\"contentEncoding\":\"unknown\"}", &sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"abc\"", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* multipleOf, uniqueItems, patternProperties, allOf +
+       * unevaluatedProperties */
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string(
+              "{\"type\":\"object\","
+              "\"allOf\":[{\"properties\":{\"base\":{\"type\":\"number\","
+              "\"multipleOf\":2.5}}}],"
+              "\"properties\":{\"uarr\":{\"type\":\"array\",\"uniqueItems\":"
+              "true}},"
+              "\"patternProperties\":{\"^x_\":{\"type\":\"string\"},\"[a\":{"
+              "\"type\":\"string\"}},"
+              "\"unevaluatedProperties\":false}",
+              &sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"base\":5.0}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string(
+              "{\"type\":\"object\","
+              "\"allOf\":[{\"properties\":{\"base\":{\"type\":\"number\","
+              "\"multipleOf\":2.5}}}],"
+              "\"properties\":{\"uarr\":{\"type\":\"array\",\"uniqueItems\":"
+              "true}},"
+              "\"patternProperties\":{\"^x_\":{\"type\":\"string\"}},"
+              "\"unevaluatedProperties\":false}",
+              &sch));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string(
+                    "{\"base\":-5.0,\"uarr\":[1,2],\"x_ok\":\"str\"}", &inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail multipleOf */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"base\":3.1}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail uniqueItems */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"uarr\":[1,2,1]}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail patternProperties value schema */
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"x_bad\":123}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+
+      /* Fail unevaluatedProperties when not in allOf or patternProperties */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"other\":true}", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+
+      /* multipleOf <= 0 */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_parse_string("{\"multipleOf\":0}", &sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("4", &inst));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_schema_validate(sch, inst));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(sch));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(inst));
+    }
+  }
+
+  /* 5. Incremental Push Parser (cdd_json_push_parser_*) */
+  {
+    struct cdd_json_push_parser pp;
+    JSON_Value *parsed = NULL;
+    JSON_Array *karr = NULL;
+    double nval = 0.0;
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_push_parser_init(NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_push_parser_feed(NULL, "{}", 2));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_push_parser_free(NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_push_parser_finish(NULL, &parsed));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_push_parser_feed(&pp, NULL, 5));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_feed(&pp, NULL, 0));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_push_parser_finish(&pp, NULL));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_push_parser_finish(&pp, &parsed));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_push_parser_feed(&pp, "{\"s\":\"a\\\"b\",\"k\":[", 17));
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_json_push_parser_feed(
+            &pp,
+            "                                                                "
+            "           42]}",
+            79));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_finish(&pp, &parsed));
+    ASSERT_NEQ(NULL, parsed);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_object_get_array(parsed->object_val, "k", &karr));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_array_get_number(karr, 0, &nval));
+    ASSERT_EQ(42.0, nval);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(parsed));
+
+    /* Incremental push parser immediate error detection on feed */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_push_parser_feed(&pp, "}", 1));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_push_parser_feed(&pp, "{]", 2));
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_push_parser_feed(&pp, "\"\n\"", 3));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_free(&pp));
+
+    /* OOM on push parser feed */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                         test_custom_free));
+    g_custom_alloc_cnt = 0;
+    g_custom_fail_at = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_json_push_parser_feed(&pp, "{", 1));
+    g_custom_fail_at = -1;
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_free(&pp));
+  }
+
+  PASS();
+}
+
+/**
+ * @brief Unit test test_json_dom_remaining_coverage.
+ * @return Greatest test result.
+ */
+TEST test_json_dom_remaining_coverage(void) {
+  JSON_Value *v1 = NULL;
+  JSON_Value *v2 = NULL;
+  JSON_Value *dup = NULL;
+  char *ser = NULL;
+  int fi;
+
+  /* 1. Location & NULL arg checks */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_value_get_location(NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("null", &v1));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_get_location(v1, NULL, NULL, NULL));
+  ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                       test_custom_free));
+  g_custom_alloc_cnt = 0;
+  g_custom_fail_at = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_json_value_deep_copy(v1, &dup));
+  g_custom_fail_at = -1;
+  ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+  v1 = NULL;
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("true", &v1));
+  ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                       test_custom_free));
+  g_custom_alloc_cnt = 0;
+  g_custom_fail_at = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_json_value_deep_copy(v1, &dup));
+  g_custom_fail_at = -1;
+  ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+  v1 = NULL;
+
+  /* 2. UTF-8 3-byte and 4-byte boundary sequences */
+  {
+    static const char *const k_utf8_cases[] = {
+        "\"\xE0\xA0\x80\"",     "\"\xE0\x80\x80\"",     "\"\xED\x9F\xBF\"",
+        "\"\xE2\x20\x80\"",     "\"\xE2\x82\x20\"",     "\"\xF0\x90\x80\x80\"",
+        "\"\xF0\x80\x80\x80\"", "\"\xF4\x8F\xBF\xBF\"", "\"\xF4\x90\x80\x80\"",
+        "\"\xF0\x90\x20\x80\"", "\"\xF0\x90\x80\x20\""};
+    size_t ui;
+    for (ui = 0; ui < sizeof(k_utf8_cases) / sizeof(k_utf8_cases[0]); ui++) {
+      v1 = NULL;
+      if (cdd_json_parse_string(k_utf8_cases[ui], &v1) == CDD_C_SUCCESS && v1) {
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+      }
+    }
+  }
+
+  /* 3. Serializer buffer-boundary OOM sweeps (>260 chars with all escapes) */
+  {
+    char big_doc[700];
+    char pad[270];
+    memset(pad, 'x', 260);
+    pad[260] = '\0';
+    CDD_SNPRINTF(big_doc, sizeof(big_doc),
+                 "[{\"b\":\"%s\\\"\\\\/\\b\\f\\n\\r\\t\\u0001\",\"a\":[1,2,3]},"
+                 "{\"c\":true,\"d\":false}]",
+                 pad);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(big_doc, &v1));
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                         test_custom_free));
+    for (fi = 0; fi <= 20; fi++) {
+      ser = NULL;
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err = cdd_json_serialize_to_string(v1, &ser);
+      if (ser)
+        free(ser);
+
+      ser = NULL;
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err = cdd_json_serialize_to_string_pretty(v1, &ser);
+      if (ser)
+        free(ser);
+
+      ser = NULL;
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err = cdd_json_serialize_to_string_canonical(v1, &ser);
+      if (ser)
+        free(ser);
+
+      ser = NULL;
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err =
+          cdd_json_ndjson_serialize_array(v1->array_val, &ser);
+      if (ser)
+        free(ser);
+    }
+    g_custom_fail_at = -1;
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+    v1 = NULL;
+  }
+
+  /* 4. JSON Diff, Patch, Merge Patch, JSONPath slices & OOM sweeps */
+  {
+    static const char *const k_diff_pairs[][2] = {{"[1,2,3]", "[1,4,3]"},
+                                                  {"[1,2,3]", "[1]"},
+                                                  {"[1]", "[1,2,3]"},
+                                                  {"{\"a\":1}", "[1]"},
+                                                  {"[1]", "{\"a\":1}"}};
+    size_t pi;
+    for (pi = 0; pi < sizeof(k_diff_pairs) / sizeof(k_diff_pairs[0]); pi++) {
+      JSON_Value *patch_v = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(k_diff_pairs[pi][0], &v1));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(k_diff_pairs[pi][1], &v2));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_json_diff_patch(v1, NULL, &patch_v));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_diff_patch(v1, v2, &patch_v));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patch_v));
+
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                           test_custom_free));
+      for (fi = 0; fi <= 25; fi++) {
+        patch_v = NULL;
+        g_custom_alloc_cnt = 0;
+        g_custom_fail_at = fi;
+        g_cdd_last_alloc_err = cdd_json_diff_patch(v1, v2, &patch_v);
+        g_custom_fail_at = -1;
+        if (patch_v)
+          g_cdd_last_alloc_err = cdd_json_value_free(patch_v);
+      }
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v2));
+    }
+
+    /* JSONPath negative step slices and escapes */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("[10,20,30,40]", &v1));
+    {
+      static const char *const k_jpaths[] = {
+          "$[-1:0:-1]",          "$[:0:-1]",      "$[2::-1]",
+          "$['\\uD83D\\uDE00']", "$['\\uD800x']", "$['\\uDC00']"};
+      size_t ji;
+      for (ji = 0; ji < sizeof(k_jpaths) / sizeof(k_jpaths[0]); ji++) {
+        JSON_Value *res_v = NULL;
+        const JSON_Value *first_v = NULL;
+        g_cdd_last_alloc_err =
+            cdd_json_jsonpath_get(v1, k_jpaths[ji], &first_v);
+        if (cdd_json_jsonpath_query(v1, k_jpaths[ji], &res_v) ==
+                CDD_C_SUCCESS &&
+            res_v) {
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(res_v));
+        }
+      }
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+  }
+
+  /* 5. JSON Schema Draft 2020-12 remaining branches */
+  {
+    static const char *const k_sch_cases[][2] = {
+        {"{\"type\":\"integer\"}", "2.0"},
+        {"{\"type\":\"integer\"}", "2.5"},
+        {"{\"type\":\"integer\"}", "\"str\""},
+        {"{\"type\":[\"string\",\"integer\"]}", "2.0"},
+        {"{\"type\":[123,\"boolean\"]}", "true"},
+        {"{\"$ref\":\"#bad\"}", "1"},
+        {"{\"enum\":123}", "1"},
+        {"{\"maximum\":5}", "6"},
+        {"{\"exclusiveMinimum\":5}", "5"},
+        {"{\"exclusiveMaximum\":5}", "5"},
+        {"{\"multipleOf\":2}", "-4"},
+        {"{\"multipleOf\":2}", "-3"},
+        {"{\"maxLength\":2}", "\"abc\""},
+        {"{\"pattern\":\"[\"}", "\"abc\""},
+        {"{\"format\":\"base64url\"}", "\"ab-_=\""},
+        {"{\"format\":\"base64url\"}", "\"ab~=\""},
+        {"{\"contentMediaType\":\"text/plain\"}", "\"hello\""},
+        {"{\"maxItems\":1}", "[1,2]"},
+        {"{\"uniqueItems\":false}", "[1,1]"},
+        {"{\"prefixItems\":[{\"type\":\"number\"},{\"type\":\"number\"}]}",
+         "[1]"},
+        {"{\"required\":[123]}", "{}"},
+        {"{\"if\":{\"type\":\"number\"}}", "1"},
+        {"{\"if\":{\"type\":\"number\"}}", "\"s\""},
+        {"{\"allOf\":123}", "1"},
+        {"{\"anyOf\":123}", "1"},
+        {"{\"anyOf\":[{\"type\":\"number\"}]}", "\"s\""},
+        {"{\"oneOf\":123}", "1"},
+        {"{\"oneOf\":[{\"type\":\"number\"}]}", "\"s\""},
+        {"{\"not\":{\"type\":\"number\"}}", "1"}};
+    size_t si;
+    for (si = 0; si < sizeof(k_sch_cases) / sizeof(k_sch_cases[0]); si++) {
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(k_sch_cases[si][0], &v1));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(k_sch_cases[si][1], &v2));
+      g_cdd_last_alloc_err = cdd_json_schema_validate(v1, v2);
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v2));
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("true", &v1));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(v1, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+  }
+
+  /* 6. Push parser depth >= 64, multi-chunk without realloc, and len == 0 */
+  {
+    struct cdd_json_push_parser pp;
+    char deep_arr[140];
+    int di;
+    for (di = 0; di < 66; di++)
+      deep_arr[di] = '[';
+    deep_arr[66] = '1';
+    for (di = 0; di < 66; di++)
+      deep_arr[67 + di] = ']';
+    deep_arr[133] = '\0';
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_feed(&pp, "[", 1));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_feed(&pp, "", 0));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_feed(&pp, "1]", 2));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_finish(&pp, &v1));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    g_cdd_last_alloc_err = cdd_json_push_parser_feed(&pp, deep_arr, 133);
+    g_cdd_last_alloc_err = cdd_json_push_parser_free(&pp);
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_init(&pp));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_feed(&pp, " ", 1));
+    pp.len = 0;
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_push_parser_finish(&pp, &v1));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_push_parser_free(&pp));
+  }
+
+  /* 7. Exact 255-byte escape boundary OOMs + Pointer/JSONPath/Schema OOMs */
+  {
+    static const char *const k_esc_tails[] = {
+        "\\\"", "\\\\", "/", "\\b", "\\f", "\\n", "\\r", "\\t", "\\u0001"};
+    size_t ei;
+    char esc_doc[360];
+    char pad254[260];
+    FILE *ro_fp = NULL;
+    memset(pad254, 'a', 258);
+    pad254[258] = '\0';
+    for (ei = 0; ei < sizeof(k_esc_tails) / sizeof(k_esc_tails[0]); ei++) {
+      int plen;
+      for (plen = 232; plen <= 256; plen++) {
+        pad254[plen] = '\0';
+        CDD_SNPRINTF(esc_doc, sizeof(esc_doc),
+                     "[{\"b\":\"%s%s\",\"a\":1},{\"d\":2,\"c\":3}]", pad254,
+                     k_esc_tails[ei]);
+        pad254[plen] = 'a';
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(esc_doc, &v1));
+        ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                             test_custom_free));
+        for (fi = 0; fi <= 4; fi++) {
+          ser = NULL;
+          g_custom_alloc_cnt = 0;
+          g_custom_fail_at = fi;
+          g_cdd_last_alloc_err = cdd_json_serialize_to_string(v1, &ser);
+          if (ser)
+            free(ser);
+
+          ser = NULL;
+          g_custom_alloc_cnt = 0;
+          g_custom_fail_at = fi;
+          g_cdd_last_alloc_err = cdd_json_serialize_to_string_pretty(v1, &ser);
+          if (ser)
+            free(ser);
+
+          ser = NULL;
+          g_custom_alloc_cnt = 0;
+          g_custom_fail_at = fi;
+          g_cdd_last_alloc_err =
+              cdd_json_serialize_to_string_canonical(v1, &ser);
+          if (ser)
+            free(ser);
+
+          ser = NULL;
+          g_custom_alloc_cnt = 0;
+          g_custom_fail_at = fi;
+          g_cdd_last_alloc_err =
+              cdd_json_ndjson_serialize_array(v1->array_val, &ser);
+          if (ser)
+            free(ser);
+        }
+        g_custom_fail_at = -1;
+        ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+      }
+    }
+
+    /* Read-only FILE* to trigger fwrite failure in cdd_json_ser_append */
+    for (fi = 220; fi <= 256; fi++) {
+      int k_fail;
+      pad254[fi] = '\0';
+      CDD_SNPRINTF(esc_doc, sizeof(esc_doc), "{\"k\":[\"%s\"]}", pad254);
+      pad254[fi] = 'a';
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(esc_doc, &v1));
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                           test_custom_free));
+      for (k_fail = 0; k_fail <= 3; k_fail++) {
+        ser = NULL;
+        g_custom_alloc_cnt = 0;
+        g_custom_fail_at = k_fail;
+        g_cdd_last_alloc_err = cdd_json_serialize_to_string_pretty(v1, &ser);
+        if (ser)
+          free(ser);
+      }
+      g_custom_fail_at = -1;
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+
+      pad254[fi] = '\0';
+      CDD_SNPRINTF(esc_doc, sizeof(esc_doc), "{\"a\":\"%s\"}", pad254);
+      pad254[fi] = 'a';
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(esc_doc, &v1));
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                           test_custom_free));
+      for (k_fail = 0; k_fail <= 3; k_fail++) {
+        ser = NULL;
+        g_custom_alloc_cnt = 0;
+        g_custom_fail_at = k_fail;
+        g_cdd_last_alloc_err = cdd_json_serialize_to_string_pretty(v1, &ser);
+        if (ser)
+          free(ser);
+      }
+      g_custom_fail_at = -1;
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+    }
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("[1,2]", &v1));
+#if defined(_MSC_VER)
+    fopen_s(&ro_fp, "test_ro_ser.tmp", "wb");
+#else
+    ro_fp = fopen("test_ro_ser.tmp", "wb");
+#endif
+    if (ro_fp) {
+      fclose(ro_fp);
+#if defined(_MSC_VER)
+      fopen_s(&ro_fp, "test_ro_ser.tmp", "rb");
+#else
+      ro_fp = fopen("test_ro_ser.tmp", "rb");
+#endif
+      if (ro_fp) {
+        g_cdd_last_alloc_err = cdd_json_serialize_to_fp(v1, ro_fp, 1);
+        fclose(ro_fp);
+      }
+      remove("test_ro_ser.tmp");
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+
+    /* OOM sweeps on JSON Patch, JSONPath filters, and JSON Schema */
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_json_parse_string(
+            "{\"a\":{\"b\":[{\"x\":1,\"s\":\"hi\"},{\"x\":2}]},\"k\":3}", &v1));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string(
+                  "[{\"op\":\"copy\",\"from\":\"/a/b/0\",\"path\":\"/a/b/-\"},"
+                  "{\"op\":\"move\",\"from\":\"/k\",\"path\":\"/a/m\"},"
+                  "{\"op\":\"replace\",\"path\":\"/a/b/1/x\",\"value\":9},"
+                  "{\"op\":\"remove\",\"path\":\"/a/b/0\"}]",
+                  &v2));
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                         test_custom_free));
+    for (fi = 0; fi <= 40; fi++) {
+      JSON_Value *res_v = NULL;
+      JSON_Value *patched_v = NULL;
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err = cdd_json_apply_patch(v1, v2, &patched_v);
+      g_custom_fail_at = -1;
+      if (patched_v)
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patched_v));
+
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err = cdd_json_jsonpath_query(
+          v1, "$..b[?(@.x == 1 || @.s =~ /h.*/ && !(@.x < 0))]", &res_v);
+      g_custom_fail_at = -1;
+      if (res_v)
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(res_v));
+
+      res_v = NULL;
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err =
+          cdd_json_jsonpath_query(v1, "$['a']['b'][0,1]", &res_v);
+      g_custom_fail_at = -1;
+      if (res_v)
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(res_v));
+    }
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v2));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string(
+                  "{\"properties\":{\"a\":{\"type\":\"object\"}},"
+                  "\"patternProperties\":{\"^k\":{\"type\":\"integer\"}},"
+                  "\"unevaluatedProperties\":false}",
+                  &v2));
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(test_custom_malloc,
+                                                         test_custom_free));
+    for (fi = 0; fi <= 25; fi++) {
+      g_custom_alloc_cnt = 0;
+      g_custom_fail_at = fi;
+      g_cdd_last_alloc_err = cdd_json_schema_validate(v2, v1);
+      g_custom_fail_at = -1;
+    }
+    ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v2));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v1));
+  }
+
+  PASS();
+}
+
+/**
+ * @brief Unit test test_json_dom_branch_completion.
+ * @return Greatest test result.
+ */
+TEST test_json_dom_branch_completion(void) {
+  JSON_Value *v = NULL;
+  JSON_Value *s = NULL;
+  JSON_Value *res = NULL;
+  int di;
+
+  /* 4-byte UTF-8 with invalid second byte ((b1 & 0xC0) != 0x80) */
+  {
+    const unsigned char bad_u4_raw[] = {'"',   0xF0u, 0x20u, 0x80u,
+                                        0x80u, '"',   0u};
+    ASSERT_EQ(CDD_C_ERROR_PARSE,
+              cdd_json_parse_string((const char *)bad_u4_raw, &v));
+  }
+
+  /* JSONPath quoted selector surrogate-pair and BMP > 0xDFFF edges */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"a\":1}", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_query(v, "$['\\uD83D\\n']", &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_query(v, "$['\\uD83D\\uZZZZ']", &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_query(v, "$['\\uD83D\\u0041']", &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_query(v, "$['\\uD83D\\uE000']", &res));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_jsonpath_query(v, "$['\\uE000']", &res));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(res));
+  res = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  v = NULL;
+
+  /* I-Regexp '*' quantifier followed by malformed sub-branch */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("[{\"s\":\"aaa\"}]", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_json_jsonpath_query(v, "$[?match(@.s, 'a*[')]", &res));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  v = NULL;
+
+  /* JSON Schema unknown type string, non-string/non-array type, unmatched
+     type array, negative multipleOf remainder, base64/base64url chars,
+     valid additionalProperties, and unevaluatedProperties allOf variants */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("42", &v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"type\":\"bogus\"}", &s));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"type\":123}", &s));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string("{\"type\":[\"string\",\"boolean\"]}", &s));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("2.8", &v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"multipleOf\":1.0}", &s));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string("{\"contentEncoding\":\"base64\"}", &s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"A_a0\"", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"Aa0:\"", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"Aa0{\"", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"Aa0!\"", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string("{\"contentEncoding\":\"base64url\"}", &s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"A-_=a0\"", &v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"A-_!\"", &v));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("{\"extra\":12}", &v));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string(
+                "{\"additionalProperties\":{\"type\":\"number\"}}", &s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_parse_string(
+                "{\"allOf\":[true,{\"required\":[]}],\"unevaluatedProperties"
+                "\":{\"type\":\"number\"}}",
+                &s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_schema_validate(s, v));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(v));
+
+  /* Deep > 2048 JSON trees in apply_patch test op, diff_patch, uniqueItems */
+  {
+    JSON_Value *da = NULL;
+    JSON_Value *db = NULL;
+    JSON_Value *cur_a = NULL;
+    JSON_Value *cur_b = NULL;
+    JSON_Value *patch_doc = NULL;
+    JSON_Value *op_obj = NULL;
+    JSON_Value *u_arr_v = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&da));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&db));
+    cur_a = da;
+    cur_b = db;
+    for (di = 0; di < 2052; di++) {
+      JSON_Value *na = NULL;
+      JSON_Value *nb = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&na));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&nb));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_array_append_value(json_value_get_array(cur_a), na));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_array_append_value(json_value_get_array(cur_b), nb));
+      cur_a = na;
+      cur_b = nb;
+    }
+
+    /* diff_patch exceeding CDD_JSON_MAX_DEPTH */
+    res = NULL;
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_diff_patch(da, db, &res));
+
+    /* apply_patch "test" op exceeding CDD_JSON_MAX_DEPTH */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&patch_doc));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_object(&op_obj));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_object_set_string(
+                                 json_value_get_object(op_obj), "op", "test"));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_object_set_string(
+                                 json_value_get_object(op_obj), "path", ""));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_object_set_value(
+                                 json_value_get_object(op_obj), "value", db));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_array_append_value(
+                                 json_value_get_array(patch_doc), op_obj));
+    res = NULL;
+    ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_json_apply_patch(da, patch_doc, &res));
+
+    /* Re-build a second 2052-deep array for uniqueItems validation */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&db));
+    cur_b = db;
+    for (di = 0; di < 2052; di++) {
+      JSON_Value *nb = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&nb));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_array_append_value(json_value_get_array(cur_b), nb));
+      cur_b = nb;
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&u_arr_v));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_array_append_value(json_value_get_array(u_arr_v), da));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_array_append_value(json_value_get_array(u_arr_v), db));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"uniqueItems\":true}", &s));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_schema_validate(s, u_arr_v));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(s));
+    /* Free shallow wrapper before deep iterative cleanup */
+    {
+      int pi;
+      for (pi = 2051; pi >= 0; pi--) {
+        JSON_Value *pa = da;
+        JSON_Value *pb = db;
+        int pk;
+        for (pk = 0; pk < pi; pk++) {
+          pa = json_array_get_value(json_value_get_array(pa), 0);
+          pb = json_array_get_value(json_value_get_array(pb), 0);
+        }
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_json_array_clear(json_value_get_array(pa)));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_json_array_clear(json_value_get_array(pb)));
+      }
+      /* Clear db inside patch_doc as well */
+      {
+        JSON_Value *pv = NULL;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_json_object_get_value(json_value_get_object(op_obj),
+                                            "value", &pv));
+        for (pi = 2051; pi >= 0; pi--) {
+          JSON_Value *pp = pv;
+          int pk;
+          for (pk = 0; pk < pi; pk++) {
+            pp = json_array_get_value(json_value_get_array(pp), 0);
+          }
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_json_array_clear(json_value_get_array(pp)));
+        }
+      }
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(patch_doc));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(u_arr_v));
+  }
+
+  /* Valid 3-byte UTF-8 boundary U+0800 (\xE0\xA0\x80) */
+  {
+    JSON_Value *utf_v = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string("\"\xE0\xA0\x80\"", &utf_v));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(utf_v));
+  }
+
+  PASS();
+}
+
+/**
  * @brief Executes the standalone_json_suite test suite.
  */
 SUITE(standalone_json_suite) {
   RUN_TEST(test_standalone_json_gen);
   RUN_TEST(test_json_dom_comprehensive);
   RUN_TEST(test_json_dom_exhaustive_edges);
+  RUN_TEST(test_json_dom_rfc_and_schema_extensions);
+  RUN_TEST(test_json_dom_remaining_coverage);
+  RUN_TEST(test_json_dom_branch_completion);
 }
 
 #ifdef __cplusplus

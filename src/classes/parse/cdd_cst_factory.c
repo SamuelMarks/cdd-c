@@ -201,12 +201,14 @@ cdd_c_error_t cdd_cst_free_node_only(cdd_cst_node_t *node) {
  */
 cdd_c_error_t cdd_cst_free_node(cdd_cst_node_t *node) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!node)
     return CDD_C_SUCCESS;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      g_cdd_last_alloc_err = cdd_cst_free_node(node->children[i].val.node);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)cdd_cst_free_node(node->children[i].val.node));
     }
   }
-  return cdd_cst_free_node_only(node);
+  return (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node_only(node));
 }

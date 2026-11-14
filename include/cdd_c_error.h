@@ -2,12 +2,15 @@
  * @file cdd_c_error.h
  * @brief Core cdd c error definitions and implementation.
  */
-/* clang-format off */
-#include "c_cdd/no_discard.h"
-#include "c_cdd_export.h"
-/* clang-format on */
 #ifndef CDD_C_ERROR_H
 #define CDD_C_ERROR_H
+
+/* clang-format off */
+#include "c_cdd/no_discard.h"
+#ifndef C_CDD_EXPORT
+#include "c_cdd_export.h"
+#endif
+/* clang-format on */
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +37,7 @@ typedef enum NO_DISCARD_TYPE cdd_c_error {
   CDD_C_ERROR_PARSE = 6,
   /** @brief Unknown or unspecified error. */
   CDD_C_ERROR_UNKNOWN = 7
-} cdd_c_error_t;
+} cdd_c_error_t NO_DISCARD_TYPEDEF;
 
 /** @brief Alias for unsupported specification features or selectors. */
 #define CDD_C_ERROR_NOT_SUPPORTED CDD_C_ERROR_UNKNOWN

@@ -134,7 +134,7 @@ enum cdd_c_error HazE_cleanup(struct HazE *haz_e) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Initializes a HazE instance with default values.
  * @param[in,out] haz_e Parameter haz_e.
  * @return Result status or value.
@@ -150,7 +150,7 @@ enum cdd_c_error HazE_default(struct HazE **haz_e) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Performs a deep copy of a HazE instance.
  * @param[in] haz_e_original Parameter haz_e_original.
  * @param[in,out] haz_e_dest Parameter haz_e_dest.
@@ -250,7 +250,7 @@ enum cdd_c_error HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
   return c_str_eq(haz_e0->bzr, haz_e1->bzr);
 }
 
-/**
+/*
  * @brief Serializes a HazE instance to a JSON string.
  * @param[in] haz_e Parameter haz_e.
  * @param[in,out] json Parameter json.
@@ -303,7 +303,7 @@ cleanup:
   return rc;
 }
 
-/**
+/*
  * @brief Deserializes a HazE instance from a Parson JSON_Object.
  * @param[in] jsonObject Parameter jsonObject.
  * @param[in,out] haz_e Parameter haz_e.
@@ -348,7 +348,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Deserializes a HazE instance from a JSON string.
  * @param[in] json Parameter json.
  * @param[in,out] haz_e Parameter haz_e.

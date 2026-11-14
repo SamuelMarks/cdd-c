@@ -103,9 +103,10 @@ static cdd_c_error_t map_scheme_type(cdd_ffi_type_t *t, char *out_type,
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
       char scheme_name[512];
-      g_cdd_last_alloc_err =
+      cdd_c_error_t rc_s =
           schemify_name(t->ref_name, scheme_name, sizeof(scheme_name));
       CDD_SNPRINTF(out_type, out_sz, "(* %s)", scheme_name);
+      return rc_s;
     } else {
       CDD_SNPRINTF(out_type, out_sz, "void*");
     }
@@ -114,9 +115,10 @@ static cdd_c_error_t map_scheme_type(cdd_ffi_type_t *t, char *out_type,
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
       char scheme_name[512];
-      g_cdd_last_alloc_err =
+      cdd_c_error_t rc_s =
           schemify_name(t->ref_name, scheme_name, sizeof(scheme_name));
       CDD_SNPRINTF(out_type, out_sz, "%s", scheme_name);
+      return rc_s;
     } else {
       CDD_SNPRINTF(out_type, out_sz, "void*");
     }
@@ -151,14 +153,16 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
   char type_str[256];
   char var_name[256];
   char ret_type_str[256];
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = (config->library_name) ? config->library_name : "mylib";
-  g_cdd_last_alloc_err =
-      schemify_name(lib_name, scheme_lib_name, sizeof(scheme_lib_name));
+  rc_emit = (cdd_c_error_t)((int)rc_emit |
+                            (int)schemify_name(lib_name, scheme_lib_name,
+                                               sizeof(scheme_lib_name)));
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.ss", config->output_dir,
@@ -187,10 +191,12 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
   /* Export list */
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
-    g_cdd_last_alloc_err =
-        schemify_name(node->name, scheme_node_name, sizeof(scheme_node_name));
+    rc_emit = (cdd_c_error_t)((int)rc_emit |
+                              (int)schemify_name(node->name, scheme_node_name,
+                                                 sizeof(scheme_node_name)));
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "    %s\n", scheme_node_name);
     }
   }
@@ -207,18 +213,23 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
 
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
-    g_cdd_last_alloc_err =
-        schemify_name(node->name, scheme_node_name, sizeof(scheme_node_name));
+    rc_emit = (cdd_c_error_t)((int)rc_emit |
+                              (int)schemify_name(node->name, scheme_node_name,
+                                                 sizeof(scheme_node_name)));
 
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
       fprintf(f, "  (define-ftype %s\n", scheme_node_name);
       if (node->kind == CDD_FFI_NODE_UNION) {
         fprintf(f, "    (union\n");
         for (j = 0; j < node->fields_count; j++) {
-          g_cdd_last_alloc_err = schemify_name(node->fields[j].name, field_name,
-                                               sizeof(field_name));
-          g_cdd_last_alloc_err = map_scheme_type(&node->fields[j].type,
-                                                 type_str, sizeof(type_str));
+          rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                    (int)schemify_name(node->fields[j].name,
+                                                       field_name,
+                                                       sizeof(field_name)));
+          rc_emit =
+              (cdd_c_error_t)((int)rc_emit |
+                              (int)map_scheme_type(&node->fields[j].type,
+                                                   type_str, sizeof(type_str)));
           fprintf(f, "      [%s %s]\n", field_name, type_str);
         }
         if (node->fields_count == 0) {
@@ -229,21 +240,27 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
       } else {
         fprintf(f, "    (struct\n");
         for (j = 0; j < node->fields_count; j++) {
-          g_cdd_last_alloc_err = schemify_name(node->fields[j].name, field_name,
-                                               sizeof(field_name));
-          g_cdd_last_alloc_err = map_scheme_type(&node->fields[j].type,
-                                                 type_str, sizeof(type_str));
+          rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                    (int)schemify_name(node->fields[j].name,
+                                                       field_name,
+                                                       sizeof(field_name)));
+          rc_emit =
+              (cdd_c_error_t)((int)rc_emit |
+                              (int)map_scheme_type(&node->fields[j].type,
+                                                   type_str, sizeof(type_str)));
           fprintf(f, "      [%s %s]\n", field_name, type_str);
         }
         fprintf(f, "    ))\n\n");
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       /* Chez does not have define-enum natively in ftype, so map to int */
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
-        g_cdd_last_alloc_err =
-            schemify_name(var->name, var_name, sizeof(var_name));
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)schemify_name(var->name, var_name,
+                                                     sizeof(var_name)));
         if (var->value) {
           fprintf(f, "  (define %s %s)\n", var_name, var->value);
         } else {
@@ -252,19 +269,25 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      g_cdd_last_alloc_err = map_scheme_type(&node->return_or_base_type,
-                                             type_str, sizeof(type_str));
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)map_scheme_type(
+                                                   &node->return_or_base_type,
+                                                   type_str, sizeof(type_str)));
       /* define-ftype alias */
       fprintf(f, "  (define-ftype %s %s)\n\n", scheme_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
-      g_cdd_last_alloc_err = map_scheme_type(
-          &node->return_or_base_type, ret_type_str, sizeof(ret_type_str));
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)map_scheme_type(&node->return_or_base_type,
+                                                     ret_type_str,
+                                                     sizeof(ret_type_str)));
       fprintf(f, "  (define %s\n", scheme_node_name);
       fprintf(f, "    (foreign-procedure \"%s\" (", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        g_cdd_last_alloc_err =
-            map_scheme_type(&node->fields[j].type, type_str, sizeof(type_str));
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_scheme_type(&node->fields[j].type,
+                                                 type_str, sizeof(type_str)));
         fprintf(f, "%s%s", type_str, j + 1 < node->fields_count ? " " : "");
       }
       fprintf(f, ") %s))\n\n", ret_type_str);
@@ -273,5 +296,5 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
 
   fprintf(f, ")\n");
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

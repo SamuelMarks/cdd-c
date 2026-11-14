@@ -46,14 +46,14 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
   int next_c;
   size_t next_con;
   size_t cur_pos;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!base || !pos || !list) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   cur_pos = *pos + consumed;
-  g_cdd_last_alloc_err = peek_logical(base, len, cur_pos, &next_con, &next_c);
+  rc = peek_logical(base, len, cur_pos, &next_con, &next_c);
 
   switch (c) {
   case '{':
@@ -111,27 +111,32 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
       while (cur_pos < len) {
         size_t c_con;
         int lc = -1;
-        g_cdd_last_alloc_err = peek_logical(base, len, cur_pos, &c_con, &lc);
+        rc = (cdd_c_error_t)((int)rc | (int)peek_logical(base, len, cur_pos,
+                                                         &c_con, &lc));
         if (lc == '\n' || lc == -1) {
           break;
         }
         cur_pos += c_con;
       }
       *pos = cur_pos;
-      rc = token_list_add(list, TOKEN_COMMENT, base + start, cur_pos - start);
+      rc = (cdd_c_error_t)((int)rc | (int)token_list_add(list, TOKEN_COMMENT,
+                                                         base + start,
+                                                         cur_pos - start));
       return rc;
     } else if (next_c == '*') {
       cur_pos += next_con;
       while (cur_pos < len) {
         size_t c_con;
         int lc = -1;
-        g_cdd_last_alloc_err = peek_logical(base, len, cur_pos, &c_con, &lc);
+        rc = (cdd_c_error_t)((int)rc | (int)peek_logical(base, len, cur_pos,
+                                                         &c_con, &lc));
         cur_pos += c_con;
         if (lc == '*') {
           size_t slash_con;
           int slash_c = -1;
-          g_cdd_last_alloc_err =
-              peek_logical(base, len, cur_pos, &slash_con, &slash_c);
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)peek_logical(base, len, cur_pos, &slash_con,
+                                                 &slash_c));
           if (slash_c == '/') {
             cur_pos += slash_con;
             break;
@@ -142,7 +147,9 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
         }
       }
       *pos = cur_pos;
-      rc = token_list_add(list, TOKEN_COMMENT, base + start, cur_pos - start);
+      rc = (cdd_c_error_t)((int)rc | (int)token_list_add(list, TOKEN_COMMENT,
+                                                         base + start,
+                                                         cur_pos - start));
       return rc;
     } else if (next_c == '=') {
       k = TOKEN_DIV_ASSIGN;
@@ -216,11 +223,14 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     } else if (next_c == ':') {
       size_t c3_con = 0, c4_con = 0;
       int c3 = -1, c4 = -1;
-      g_cdd_last_alloc_err =
-          peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)peek_logical(base, len, cur_pos + next_con,
+                                             &c3_con, &c3));
       if (c3 == '%') {
-        g_cdd_last_alloc_err =
-            peek_logical(base, len, cur_pos + next_con + c3_con, &c4_con, &c4);
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)peek_logical(base, len,
+                                               cur_pos + next_con + c3_con,
+                                               &c4_con, &c4));
       }
       if (c3 == '%' && c4 == ':') {
         k = TOKEN_HASH_HASH;
@@ -241,8 +251,9 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     } else if (next_c == '<') {
       size_t c3_con;
       int c3 = -1;
-      g_cdd_last_alloc_err =
-          peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)peek_logical(base, len, cur_pos + next_con,
+                                             &c3_con, &c3));
       if (c3 == '=') {
         k = TOKEN_LSHIFT_ASSIGN;
         extra = next_con + c3_con;
@@ -268,8 +279,9 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     } else if (next_c == '>') {
       size_t c3_con;
       int c3 = -1;
-      g_cdd_last_alloc_err =
-          peek_logical(base, len, cur_pos + next_con, &c3_con, &c3);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)peek_logical(base, len, cur_pos + next_con,
+                                             &c3_con, &c3));
       if (c3 == '=') {
         k = TOKEN_RSHIFT_ASSIGN;
         extra = next_con + c3_con;
@@ -319,8 +331,9 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
     size_t peek_con = 0;
     int peek_c = -1;
     if (next_c == '.') {
-      g_cdd_last_alloc_err =
-          peek_logical(base, len, cur_pos + next_con, &peek_con, &peek_c);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)peek_logical(base, len, cur_pos + next_con,
+                                             &peek_con, &peek_c));
     }
     if (next_c == '.' && peek_c == '.') {
       k = TOKEN_ELLIPSIS;
@@ -338,6 +351,7 @@ cdd_c_error_t tokenize_punct(const uint8_t *base, size_t len, size_t *pos,
 
   cur_pos += extra;
   *pos = cur_pos;
-  rc = token_list_add(list, k, base + start, cur_pos - start);
+  rc = (cdd_c_error_t)((int)rc | (int)token_list_add(list, k, base + start,
+                                                     cur_pos - start));
   return rc;
 }

@@ -114,6 +114,7 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   cdd_ffi_enum_variant_t *var;
   char type_str[256];
   char ret_type_str[256];
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -235,15 +236,18 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
           fprintf(f, "        struct end\n");
         }
         for (j = 0; j < node->fields_count; j++) {
-          g_cdd_last_alloc_err = map_fsharp_type(&node->fields[j].type,
-                                                 type_str, sizeof(type_str));
+          rc_emit =
+              (cdd_c_error_t)((int)rc_emit |
+                              (int)map_fsharp_type(&node->fields[j].type,
+                                                   type_str, sizeof(type_str)));
           fprintf(f, "        val mutable %s: %s\n", node->fields[j].name,
                   type_str);
         }
       }
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "    type %s =\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -255,8 +259,9 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      g_cdd_last_alloc_err = map_fsharp_type(&node->return_or_base_type,
-                                             type_str, sizeof(type_str));
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)map_fsharp_type(
+                                                   &node->return_or_base_type,
+                                                   type_str, sizeof(type_str)));
       fprintf(f, "    type %s = %s\n\n", node->name, type_str);
     }
   }
@@ -265,18 +270,23 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f,
               "    [<DllImport(\"%s\", CallingConvention = "
               "CallingConvention.Cdecl)>]\n",
               lib_name);
       fprintf(f, "    extern ");
-      g_cdd_last_alloc_err = map_fsharp_type(
-          &node->return_or_base_type, ret_type_str, sizeof(ret_type_str));
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)map_fsharp_type(&node->return_or_base_type,
+                                                     ret_type_str,
+                                                     sizeof(ret_type_str)));
       fprintf(f, "%s %s(", ret_type_str, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        g_cdd_last_alloc_err =
-            map_fsharp_type(&node->fields[j].type, type_str, sizeof(type_str));
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_fsharp_type(&node->fields[j].type,
+                                                 type_str, sizeof(type_str)));
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", type_str,
                 node->fields[j].name);
       }
@@ -285,5 +295,5 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   }
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

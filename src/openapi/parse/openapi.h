@@ -124,6 +124,8 @@ extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_OAuthFlow_type_info;
 extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Example_type_info;
 /** @brief Runtime reflection descriptor for `OpenAPI_Link`. */
 extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_Link_type_info;
+/** @brief Runtime reflection descriptor for `OpenAPI_SecurityScheme`. */
+extern C_CDD_EXPORT const struct cdd_type_info OpenAPI_SecurityScheme_type_info;
 
 /**
  * @brief Table-driven helper to populate reflected `char *` string fields from

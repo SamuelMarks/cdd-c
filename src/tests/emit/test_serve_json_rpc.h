@@ -999,10 +999,70 @@ TEST test_serve_json_rpc_http_requests(void) {
 #endif /* !__EMSCRIPTEN__ */
 
 /**
+ * @brief Routes JSON DOM allocations through C_CDD_MALLOC for RPC OOM testing.
+ * @param[in] sz Allocation byte count.
+ * @return Allocated pointer or NULL on simulated OOM.
+ */
+static void *rpc_test_json_malloc(size_t sz) { return C_CDD_MALLOC(sz); }
+
+/**
+ * @brief Tests OOM error percolation across all branches of
+ * `CddJsonRpcResponse_to_json`.
+ * @return Test result.
+ */
+TEST test_json_rpc_response_to_json_oom(void) {
+  struct CddJsonRpcResponse resp;
+  JSON_Value *id_v = NULL;
+  char *out = NULL;
+  int i;
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_number(42.0, &id_v));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_set_allocation_functions(rpc_test_json_malloc, free));
+
+  /* 1. result_json + id_val path across every allocation site */
+  memset(&resp, 0, sizeof(resp));
+  resp.jsonrpc = "2.0";
+  resp.result_json = "{\"ok\":true}";
+  resp.id_val = id_v;
+  for (i = 1; i <= 25; i++) {
+    out = NULL;
+    g_cdd_alloc_fail = i;
+    if (CddJsonRpcResponse_to_json(&resp, &out) == CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_free_serialized_string(out));
+      break;
+    }
+  }
+  g_cdd_alloc_fail = 0;
+
+  /* 2. error + NULL id_val path across every allocation site */
+  memset(&resp, 0, sizeof(resp));
+  resp.jsonrpc = "2.0";
+  resp.result_json = NULL;
+  resp.error.code = -32601;
+  resp.error.message = "Method not found";
+  resp.id_val = NULL;
+  for (i = 1; i <= 25; i++) {
+    out = NULL;
+    g_cdd_alloc_fail = i;
+    if (CddJsonRpcResponse_to_json(&resp, &out) == CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_free_serialized_string(out));
+      break;
+    }
+  }
+  g_cdd_alloc_fail = 0;
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(id_v));
+  PASS();
+}
+
+/**
  * @brief Executes the serve_json_rpc_suite test suite.
  */
 SUITE(serve_json_rpc_suite) {
   RUN_TEST(test_serve_json_rpc_basic);
+  RUN_TEST(test_json_rpc_response_to_json_oom);
 #ifndef __EMSCRIPTEN__
   RUN_TEST(test_serve_json_rpc_http_requests);
   RUN_TEST(test_serve_json_rpc_bad_port);

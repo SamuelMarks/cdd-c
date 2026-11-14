@@ -107,6 +107,7 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   cdd_ffi_ir_node_t *node;
   cdd_ffi_enum_variant_t *var;
   int is_void;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -170,14 +171,17 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "   type %s is record\n", node->name);
       if (node->fields_count == 0) {
         fprintf(f, "      null;\n");
       }
       for (j = 0; j < node->fields_count; j++) {
         const char *atype = NULL;
-        g_cdd_last_alloc_err = map_ada_type(&node->fields[j].type, &atype);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_ada_type(&node->fields[j].type, &atype));
         fprintf(f, "      %s : %s;\n", node->fields[j].name, atype);
       }
       fprintf(f, "   end record;\n");
@@ -192,7 +196,8 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       fprintf(f, "   end record;\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "   type %s is (\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -202,7 +207,8 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       fprintf(f, "   );\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
 
@@ -214,7 +220,9 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
 
       for (j = 0; j < node->fields_count; j++) {
         const char *atype = NULL;
-        g_cdd_last_alloc_err = map_ada_type(&node->fields[j].type, &atype);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_ada_type(&node->fields[j].type, &atype));
         fprintf(f, "      %s : %s%s\n", node->fields[j].name, atype,
                 j + 1 < node->fields_count ? ";" : "");
       }
@@ -230,8 +238,9 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
         }
       } else {
         const char *ret_atype = NULL;
-        g_cdd_last_alloc_err =
-            map_ada_type(&node->return_or_base_type, &ret_atype);
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)map_ada_type(&node->return_or_base_type,
+                                                    &ret_atype));
         if (node->fields_count == 0) {
           fprintf(f, "   return %s;\n", ret_atype);
           fprintf(f, "   pragma Import (C, %s, \"%s\");\n\n", node->name,
@@ -256,5 +265,5 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   fprintf(gpr_f, "end %s;\n", lib_name);
   fclose(gpr_f);
 
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

@@ -4,7 +4,7 @@
  *
  * Emits C code.
  * - Serialization: Manual string concatenation (using `jasprintf`).
- * - Deserialization: Uses `parson` library API (`json_object_get_...`).
+ * - Deserialization: Uses `c_cdd/json_dom.h` API (`cdd_json_object_get_...`).
  *
  * @author Samuel Marks
  */
@@ -538,6 +538,224 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
 }
 
 /*
+ * @brief Emits C source code for `_to_jsonObject` using `c_cdd/json_dom.h` API.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the C struct.
+ * @param[in] sf Struct fields descriptor container.
+ * @param[in] config Optional code generation configuration.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+cdd_c_error_t
+write_struct_to_jsonObject_func(FILE *fp, const char *struct_name,
+                                const struct StructFields *sf,
+                                const struct CodegenJsonConfig *config) {
+  size_t i;
+  cdd_c_error_t rc_h = CDD_C_SUCCESS;
+
+  if (!fp || !struct_name || !sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  if (config)
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "cdd_c_error_t %s_to_jsonObject(const struct %s *obj, JSON_Object "
+      "*jsonObject) {\n"
+      "  cdd_c_error_t _rc = CDD_C_SUCCESS;\n"
+      "  if (!obj || !jsonObject) return CDD_C_ERROR_INVALID_ARGUMENT;\n",
+      struct_name, struct_name));
+
+  for (i = 0; i < sf->size; ++i) {
+    const struct StructField *f = &sf->fields[i];
+    const char *n = f->name;
+    const char *t = f->type;
+    const char *r = f->ref;
+    char kn[128];
+    char raw_kn[128];
+
+    if (f->write_only || f->serde_skip || f->serde_skip_serializing)
+      continue;
+
+    rc_h = (cdd_c_error_t)((int)rc_h |
+                           (int)cdd_serde_resolve_field_names(
+                               sf, i, raw_kn, sizeof(raw_kn), NULL, 0));
+    rc_h = (cdd_c_error_t)((int)rc_h |
+                           (int)cdd_escape_json_c_str(raw_kn, kn, sizeof(kn)));
+
+    if (strcmp(t, "int64") == 0 ||
+        (strcmp(t, "integer") == 0 && strcmp(f->format, "int64") == 0)) {
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "  _rc = cdd_json_object_set_int64(jsonObject, \"%s\", "
+                       "(int64_t)obj->%s);\n"
+                       "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+                       kn, n));
+    } else if (strcmp(t, "uint64") == 0 || (strcmp(t, "integer") == 0 &&
+                                            strcmp(f->format, "uint64") == 0)) {
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "  _rc = cdd_json_object_set_uint64(jsonObject, \"%s\", "
+                       "(uint64_t)obj->%s);\n"
+                       "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+                       kn, n));
+    } else if (strcmp(t, "int128") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  _rc = cdd_json_object_set_int128(jsonObject, \"%s\", obj->%s);\n"
+          "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+          kn, n));
+    } else if (strcmp(t, "uint128") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  _rc = cdd_json_object_set_uint128(jsonObject, \"%s\", obj->%s);\n"
+          "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+          kn, n));
+    } else if (strcmp(t, "integer") == 0 || strcmp(t, "number") == 0) {
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "  _rc = cdd_json_object_set_number(jsonObject, \"%s\", "
+                       "(double)obj->%s);\n"
+                       "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+                       kn, n));
+    } else if (strcmp(t, "boolean") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  _rc = cdd_json_object_set_boolean(jsonObject, \"%s\", "
+          "obj->%s ? 1 : 0);\n"
+          "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+          kn, n));
+    } else if (strcmp(t, "string") == 0) {
+      if (f->fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  _rc = cdd_json_object_set_string(jsonObject, \"%s\", obj->%s);\n"
+            "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+            kn, n));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "  if (obj->%s) _rc = cdd_json_object_set_string(jsonObject, "
+            "\"%s\", obj->%s);\n"
+            "  else _rc = cdd_json_object_set_null(jsonObject, \"%s\");\n"
+            "  if (_rc != CDD_C_SUCCESS) return _rc;\n",
+            n, kn, n, kn));
+      }
+    } else if (strcmp(t, "object") == 0) {
+      const char *tn = NULL;
+      rc_h = (cdd_c_error_t)((int)rc_h | (int)get_type_from_ref(r, &tn));
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "  if (obj->%s) {\n"
+                       "    JSON_Value *_sub_v = NULL;\n"
+                       "    JSON_Object *_sub_o = NULL;\n"
+                       "    _rc = cdd_json_value_init_object(&_sub_v);\n"
+                       "    if (_rc != CDD_C_SUCCESS) return _rc;\n"
+                       "    _rc = cdd_json_value_get_object(_sub_v, &_sub_o);\n"
+                       "    _rc = %s_to_jsonObject(obj->%s, _sub_o);\n",
+                       n, tn, n));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "    if (_rc != CDD_C_SUCCESS || "
+          "cdd_json_object_set_value(jsonObject, \"%s\", _sub_v) != "
+          "CDD_C_SUCCESS) {\n"
+          "      _rc = cdd_json_value_free(_sub_v);\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "  } else {\n"
+          "    _rc = cdd_json_object_set_null(jsonObject, \"%s\");\n"
+          "    if (_rc != CDD_C_SUCCESS) return _rc;\n"
+          "  }\n",
+          kn, kn));
+    } else if (strcmp(t, "enum") == 0) {
+      const char *tn = NULL;
+      rc_h = (cdd_c_error_t)((int)rc_h | (int)get_type_from_ref(r, &tn));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  { char *_es = NULL;\n"
+          "    _rc = %s_to_str(obj->%s, &_es);\n"
+          "    if (_rc != CDD_C_SUCCESS) { free(_es); return _rc; }\n"
+          "    _rc = cdd_json_object_set_string(jsonObject, \"%s\", _es);\n"
+          "    free(_es);\n"
+          "    if (_rc != CDD_C_SUCCESS) return _rc; }\n",
+          tn, n, kn));
+    } else if (strcmp(t, "array") == 0) {
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  {\n"
+                           "    JSON_Value *_av = NULL;\n"
+                           "    JSON_Array *_aa = NULL;\n"
+                           "    size_t _ai;\n"
+                           "    _rc = cdd_json_value_init_array(&_av);\n"
+                           "    if (_rc != CDD_C_SUCCESS) return _rc;\n"
+                           "    _rc = cdd_json_value_get_array(_av, &_aa);\n"));
+      if (f->fixed_array_len > 0) {
+        CHECK_IO(FPRINTF_HOOK(fp, "    for (_ai = 0; _ai < %lu; ++_ai) {\n",
+                              (unsigned long)f->fixed_array_len));
+      } else {
+        CHECK_IO(FPRINTF_HOOK(
+            fp, "    for (_ai = 0; _ai < obj->n_%s; ++_ai) {\n", n));
+      }
+      if (strcmp(r, "integer") == 0 || strcmp(r, "number") == 0) {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "      _rc = cdd_json_array_append_number(_aa, "
+                              "(double)obj->%s[_ai]);\n",
+                              n));
+      } else if (strcmp(r, "boolean") == 0) {
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "      _rc = cdd_json_array_append_boolean(_aa, "
+                              "obj->%s[_ai] ? 1 : 0);\n",
+                              n));
+      } else if (strcmp(r, "string") == 0) {
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "      if (obj->%s[_ai]) _rc = cdd_json_array_append_string(_aa, "
+            "obj->%s[_ai]);\n"
+            "      else _rc = cdd_json_array_append_null(_aa);\n",
+            n, n));
+      } else {
+        const char *tn = NULL;
+        rc_h = (cdd_c_error_t)((int)rc_h | (int)get_type_from_ref(r, &tn));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "      { JSON_Value *_ev = NULL; JSON_Object *_eo = NULL;\n"
+            "        _rc = cdd_json_value_init_object(&_ev);\n"
+            "        if (_rc == CDD_C_SUCCESS) _rc = "
+            "cdd_json_value_get_object(_ev, &_eo);\n"
+            "        if (_rc == CDD_C_SUCCESS) _rc = "
+            "%s_to_jsonObject(obj->%s[_ai], _eo);\n"
+            "        if (_rc != CDD_C_SUCCESS || "
+            "cdd_json_array_append_value(_aa, _ev) != CDD_C_SUCCESS) {\n"
+            "          _rc = cdd_json_value_free(_ev);\n"
+            "          _rc = cdd_json_value_free(_av);\n"
+            "          return CDD_C_ERROR_MEMORY;\n"
+            "        } }\n",
+            tn, n));
+      }
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      if (_rc != CDD_C_SUCCESS) { _rc = cdd_json_value_free(_av); "
+          "return CDD_C_ERROR_MEMORY; }\n"
+          "    }\n"
+          "    if (cdd_json_object_set_value(jsonObject, \"%s\", _av) != "
+          "CDD_C_SUCCESS) {\n"
+          "      _rc = cdd_json_value_free(_av);\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "  }\n",
+          kn));
+    }
+  }
+
+  CHECK_IO(FPRINTF_HOOK(fp, "  return _rc;\n}\n"));
+
+  if (config)
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
+
+  return rc_h;
+}
+
+/*
  * @brief Emits C source code for struct from json func.
  *
  * @param[in] fp Output file stream.
@@ -752,13 +970,16 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         if (cdd_serde_resolve_field_names(sf, j, NULL, 0, dname,
                                           sizeof(dname)) != CDD_C_SUCCESS)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        rc_h = cdd_escape_json_c_str(dname, esc_dname, sizeof(esc_dname));
+        rc_h = (cdd_c_error_t)((int)rc_h |
+                               (int)cdd_escape_json_c_str(dname, esc_dname,
+                                                          sizeof(esc_dname)));
         CHECK_IO(FPRINTF_HOOK(fp, " && strcmp(_jn, \"%s\") != 0", esc_dname));
       }
       for (a = 0; a < jf->n_serde_aliases; ++a) {
         char esc_al[256];
-        rc_h =
-            cdd_escape_json_c_str(jf->serde_aliases[a], esc_al, sizeof(esc_al));
+        rc_h = (cdd_c_error_t)((int)rc_h | (int)cdd_escape_json_c_str(
+                                               jf->serde_aliases[a], esc_al,
+                                               sizeof(esc_al)));
         CHECK_IO(FPRINTF_HOOK(fp, " && strcmp(_jn, \"%s\") != 0", esc_al));
       }
     }
@@ -819,7 +1040,8 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           cdd_serde_resolve_field_names(sf, i, NULL, 0, raw_kn, sizeof(raw_kn));
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
-      rc_h = cdd_escape_json_c_str(raw_kn, kn, sizeof(kn));
+      rc_h = (cdd_c_error_t)((int)rc_h | (int)cdd_escape_json_c_str(
+                                             raw_kn, kn, sizeof(kn)));
     }
 
     if (f->serde_flatten && strcmp(t, "object") == 0) {
@@ -1431,8 +1653,10 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     }
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (_rc != CDD_C_SUCCESS) {}\n"
-                            "  *out = ret;\n  return CDD_C_SUCCESS;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  if (_rc != CDD_C_SUCCESS && _rc != CDD_C_ERROR_INVALID_ARGUMENT) "
+          "return _rc;\n"
+          "  *out = ret;\n  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));

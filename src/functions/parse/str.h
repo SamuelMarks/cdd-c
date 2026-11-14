@@ -13,9 +13,6 @@
 #ifndef C_CDD_STR_UTILS_H
 #define C_CDD_STR_UTILS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 /* clang-format off */
 #include <stddef.h>
 #include <stdio.h>
@@ -24,25 +21,33 @@ extern "C" {
 #include "cdd_c_error.h"
 #include "c_cdd_stdbool.h"
 
-/* --- Platform Compatibility Macros --- */
-
-#if defined(__WATCOMC__) || defined(__DOS__)
-#define strtok_r(str, delim, saveptr) ((void)(saveptr), strtok((str), (delim)))
-#define strtok_s(str, delim, saveptr) ((void)(saveptr), strtok((str), (delim)))
-#endif
-
 #if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
 /* Standard libraries have asprintf */
 #else
 /* Fallback for systems without asprintf (e.g. MSVC, pure C89) */
 #include <c89stringutils_string_extras.h>
+#endif
 /* clang-format on */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/* --- Platform Compatibility Macros --- */
+
+#if defined(__WATCOMC__) || defined(__DOS__)
+#define strtok_r(str, delim, saveptr)                                          \
+  ((saveptr) ? strtok((str), (delim)) : strtok((str), (delim)))
+#define strtok_s(str, delim, saveptr)                                          \
+  ((saveptr) ? strtok((str), (delim)) : strtok((str), (delim)))
 #endif
 
 /**
  * @brief Format specifier for size_t/ssize_t.
  */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#define NUM_LONG_FMT "I"
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define NUM_LONG_FMT "z"
 #else
 #define NUM_LONG_FMT "l"

@@ -62,6 +62,7 @@ cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
  */
 cdd_c_error_t type_def_list_free(struct TypeDefList *list) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!list)
     return CDD_C_SUCCESS;
   if (list->items) {
@@ -70,14 +71,16 @@ cdd_c_error_t type_def_list_free(struct TypeDefList *list) {
         C_CDD_FREE(list->items[i].name);
       if (list->items[i].kind == KIND_ENUM) {
         if (list->items[i].details.enum_members) {
-          g_cdd_last_alloc_err =
-              enum_members_free(list->items[i].details.enum_members);
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)enum_members_free(
+                                   list->items[i].details.enum_members));
           C_CDD_FREE(list->items[i].details.enum_members);
         }
       } else {
         if (list->items[i].details.struct_fields) {
-          g_cdd_last_alloc_err =
-              struct_fields_free(list->items[i].details.struct_fields);
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)struct_fields_free(
+                                   list->items[i].details.struct_fields));
           C_CDD_FREE(list->items[i].details.struct_fields);
         }
       }
@@ -87,7 +90,7 @@ cdd_c_error_t type_def_list_free(struct TypeDefList *list) {
   }
   list->size = 0;
   list->capacity = 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -289,7 +292,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
       if (state == ST_NONE) {
         int starts1 = false, starts2 = false;
         int is_cmt = 0;
-        g_cdd_last_alloc_err = is_comment_start(p, &is_cmt);
+        rc = is_comment_start(p, &is_cmt);
         /* Collect standalone or leading comment lines before struct/enum */
         if (in_block_comment || is_cmt) {
           int is_blk = in_block_comment || (p[1] == '*');
@@ -324,21 +327,8 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             is_typedef = 1;
             p += 8;
           }
-          {
-            cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "enum ", &starts1);
-            if (rc_str != CDD_C_SUCCESS) {
-              rc = rc_str;
-              break;
-            }
-          }
-          {
-            cdd_c_error_t rc_str =
-                c_cdd_str_starts_with(p, "struct ", &starts2);
-            if (rc_str != CDD_C_SUCCESS) {
-              rc = rc_str;
-              break;
-            }
-          }
+          rc = c_cdd_str_starts_with(p, "enum ", &starts1);
+          rc = c_cdd_str_starts_with(p, "struct ", &starts2);
           if (!starts1 && strncmp(p, "enum{", 5) == 0)
             starts1 = 1;
           if (!starts2 && strncmp(p, "struct{", 7) == 0)
@@ -347,7 +337,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         if (starts1 || starts2) {
           char *brace = NULL;
           int is_enum = starts1;
-          g_cdd_last_alloc_err = find_code_char(p, '{', &brace);
+          rc = find_code_char(p, '{', &brace);
 
           if (*p != '{') {
             const char *name_start =
@@ -450,7 +440,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         p++;
       } else {
         /* Inside a definition block */
-        g_cdd_last_alloc_err = find_code_char(p, '}', &close_brace);
+        rc = find_code_char(p, '}', &close_brace);
 
         if (close_brace && state == ST_STRUCT && in_union_sub) {
           /* Closing `}` of nested `union { ... } data;` inside a tagged union
@@ -475,7 +465,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         /* For enums on one line: "A, B" */
         if (state == ST_ENUM && *p) {
           int is_cmt = 0;
-          g_cdd_last_alloc_err = is_comment_start(p, &is_cmt);
+          rc = is_comment_start(p, &is_cmt);
           if (is_cmt) {
             size_t clen = strlen(p);
             size_t k;
@@ -498,7 +488,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             {
               char *ctx = copy;
               char *tok = NULL;
-              g_cdd_last_alloc_err = next_delim_tok(&ctx, ',', &tok);
+              rc = next_delim_tok(&ctx, ',', &tok);
               while (tok) {
                 char var_cmt[512];
                 size_t vc_pos = 0;
@@ -539,7 +529,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 eq = strchr(tok, '=');
                 if (eq)
                   *eq = 0;
-                g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(tok);
+                rc = c_cdd_str_trim_trailing_whitespace(tok);
                 while (*tok && isspace((unsigned char)*tok))
                   tok++;
                 if (*tok) {
@@ -571,13 +561,13 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                     char tmp_v[128];
                     CDD_STRCPY(tmp_v, sizeof(tmp_v), member_tok);
                     if (var_case != CDD_SERDE_CASE_NONE) {
-                      g_cdd_last_alloc_err = cdd_serde_transform_case(
+                      rc_str = cdd_serde_transform_case(
                           tmp_v, var_case, effective_rename,
                           sizeof(effective_rename));
                       CDD_STRCPY(tmp_v, sizeof(tmp_v), effective_rename);
                     }
                     if (var_rep_from[0] != '\0') {
-                      g_cdd_last_alloc_err = cdd_serde_replace_str(
+                      rc_str = cdd_serde_replace_str(
                           tmp_v, var_rep_from, var_rep_to, effective_rename,
                           sizeof(effective_rename));
                     }
@@ -608,7 +598,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                     }
                   }
                 }
-                g_cdd_last_alloc_err = next_delim_tok(&ctx, ',', &tok);
+                rc = next_delim_tok(&ctx, ',', &tok);
               }
               if (copy) {
                 C_CDD_FREE(copy);
@@ -642,7 +632,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             }
             /* If the line is purely a comment, accumulate into
              * pending_comment for the next field */
-            g_cdd_last_alloc_err = is_comment_start(p, &is_cmt);
+            rc = is_comment_start(p, &is_cmt);
             if (is_cmt) {
               size_t clen = strlen(p);
               size_t k;
@@ -668,7 +658,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               {
                 char *ctx = copy;
                 char *tok = NULL;
-                g_cdd_last_alloc_err = next_delim_tok(&ctx, ';', &tok);
+                rc = next_delim_tok(&ctx, ';', &tok);
                 while (tok) {
                   /* Ensure not just whitespace */
                   char *chk = tok;
@@ -714,7 +704,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                       }
                     }
                   }
-                  g_cdd_last_alloc_err = next_delim_tok(&ctx, ';', &tok);
+                  rc = next_delim_tok(&ctx, ';', &tok);
                 }
                 if (copy) {
                   C_CDD_FREE(copy);
@@ -746,28 +736,28 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
               if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0) {
-                g_cdd_last_alloc_err = enum_members_free(curr_em);
+                rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                     (int)enum_members_free(curr_em));
                 C_CDD_FREE(curr_em);
-                rc = CDD_C_ERROR_MEMORY;
               }
               curr_em = NULL;
             } else {
-              g_cdd_last_alloc_err = c2s_collapse_arrays(curr_sf);
+              rc = c2s_collapse_arrays(curr_sf);
               if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0) {
-                g_cdd_last_alloc_err = struct_fields_free(curr_sf);
+                rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                     (int)struct_fields_free(curr_sf));
                 C_CDD_FREE(curr_sf);
-                rc = CDD_C_ERROR_MEMORY;
               }
               curr_sf = NULL;
             }
           } else {
             if (curr_em) {
-              g_cdd_last_alloc_err = enum_members_free(curr_em);
+              rc = (cdd_c_error_t)((int)rc | (int)enum_members_free(curr_em));
               C_CDD_FREE(curr_em);
               curr_em = NULL;
             }
             if (curr_sf) {
-              g_cdd_last_alloc_err = struct_fields_free(curr_sf);
+              rc = (cdd_c_error_t)((int)rc | (int)struct_fields_free(curr_sf));
               C_CDD_FREE(curr_sf);
               curr_sf = NULL;
             }
@@ -786,15 +776,15 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
   /* Cleanup leftovers */
   if (curr_em) {
-    g_cdd_last_alloc_err = enum_members_free(curr_em);
+    rc = (cdd_c_error_t)((int)rc | (int)enum_members_free(curr_em));
     C_CDD_FREE(curr_em);
   }
   if (curr_sf) {
-    g_cdd_last_alloc_err = struct_fields_free(curr_sf);
+    rc = (cdd_c_error_t)((int)rc | (int)struct_fields_free(curr_sf));
     C_CDD_FREE(curr_sf);
   }
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = type_def_list_free(out);
+    rc = (cdd_c_error_t)((int)rc | (int)type_def_list_free(out));
   }
   fclose(fp);
   return rc;
@@ -911,8 +901,7 @@ static cdd_c_error_t copy_token_span_trimmed(const struct TokenList *tokens,
     }
   }
   dst[pos] = '\0';
-  g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(dst);
-  return CDD_C_SUCCESS;
+  return c_cdd_str_trim_trailing_whitespace(dst);
 }
 
 /*
@@ -938,8 +927,9 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
     rc = parse_tokens(tl, &cst);
   }
   if (rc != CDD_C_SUCCESS) {
-    if (tl)
-      g_cdd_last_alloc_err = free_token_list(tl);
+    if (tl) {
+      rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tl));
+    }
     return rc;
   }
 
@@ -1006,15 +996,15 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
 
         memset(&out->items[out->size], 0, sizeof(struct FuncSignature));
         out->items[out->size].name = NULL;
-        g_cdd_last_alloc_err = extract_span_text(tl, name_idx, name_idx + 1,
-                                                 &out->items[out->size].name);
+        rc = extract_span_text(tl, name_idx, name_idx + 1,
+                               &out->items[out->size].name);
         out->items[out->size].sig = NULL;
-        g_cdd_last_alloc_err = extract_span_text(tl, start_idx, sig_end_idx,
-                                                 &out->items[out->size].sig);
+        rc = extract_span_text(tl, start_idx, sig_end_idx,
+                               &out->items[out->size].sig);
         out->items[out->size].doc = NULL;
         if (found_comment) {
-          g_cdd_last_alloc_err = extract_span_text(
-              tl, comment_idx, comment_idx + 1, &out->items[out->size].doc);
+          rc = extract_span_text(tl, comment_idx, comment_idx + 1,
+                                 &out->items[out->size].doc);
         }
         out->items[out->size].is_variadic = is_variadic;
 
@@ -1033,9 +1023,9 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
         out->items[out->size].params = NULL;
         out->items[out->size].n_params = 0;
         out->items[out->size].params_capacity = 0;
-        g_cdd_last_alloc_err = copy_token_span_trimmed(
-            tl, start_idx, name_idx, out->items[out->size].return_type,
-            sizeof(out->items[out->size].return_type));
+        rc = copy_token_span_trimmed(tl, start_idx, name_idx,
+                                     out->items[out->size].return_type,
+                                     sizeof(out->items[out->size].return_type));
         {
           size_t p_start = lparen_idx + 1;
           int depth = 1;
@@ -1080,11 +1070,11 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
                 }
                 memset(&out->items[out->size].params[pidx], 0,
                        sizeof(struct FuncParamReflection));
-                g_cdd_last_alloc_err = copy_token_span_trimmed(
+                rc = copy_token_span_trimmed(
                     tl, p_start, last_id,
                     out->items[out->size].params[pidx].type,
                     sizeof(out->items[out->size].params[pidx].type));
-                g_cdd_last_alloc_err = copy_token_span_trimmed(
+                rc = copy_token_span_trimmed(
                     tl, last_id, last_id + 1,
                     out->items[out->size].params[pidx].name,
                     sizeof(out->items[out->size].params[pidx].name));
@@ -1101,7 +1091,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
   }
 
 cleanup:
-  g_cdd_last_alloc_err = free_cst_node_list(&cst);
-  g_cdd_last_alloc_err = free_token_list(tl);
+  rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst) |
+                       (int)free_token_list(tl));
   return rc;
 }

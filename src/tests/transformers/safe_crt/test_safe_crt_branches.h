@@ -100,7 +100,19 @@ TEST test_cdd_transform_safe_crt_oom(void) {
       'g',  'e', 't', 'e',  'n', 'v',  '(', 'L', '"',  'A', '"', ')',  ';',
       ' ',  's', 't', 'r',  'c', 'p',  'y', '(', 'b',  'u', 'f', ',',  ' ',
       '"',  'a', 'b', 'c',  '"', ')',  ';', ' ', '}',  '\0'};
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 

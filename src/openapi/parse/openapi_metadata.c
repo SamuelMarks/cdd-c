@@ -1778,7 +1778,191 @@ const struct cdd_type_info OpenAPI_Link_type_info = {
     sizeof(g_openapi_link_fields) / sizeof(g_openapi_link_fields[0]),
     0};
 
-/**
+/** @brief Reflected string fields for `OpenAPI_SecurityScheme`. */
+static const struct cdd_field_info g_openapi_security_scheme_fields[] = {
+    {"description",
+     "description",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_SecurityScheme, description),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"bearerFormat",
+     "bearerFormat",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_SecurityScheme, bearer_format),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"openIdConnectUrl",
+     "openIdConnectUrl",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_SecurityScheme, open_id_connect_url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"oauth2MetadataUrl",
+     "oauth2MetadataUrl",
+     "char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct OpenAPI_SecurityScheme, oauth2_metadata_url),
+     sizeof(char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info OpenAPI_SecurityScheme_type_info = {
+    "OpenAPI_SecurityScheme",
+    sizeof(struct OpenAPI_SecurityScheme),
+    0,
+    g_openapi_security_scheme_fields,
+    sizeof(g_openapi_security_scheme_fields) /
+        sizeof(g_openapi_security_scheme_fields[0]),
+    0};
+
+/*
  * @brief Table-driven helper to populate reflected fields from a `JSON_Object`
  * using `cdd_reflect_from_json_object`.
  *
@@ -1810,9 +1994,14 @@ OpenAPI_License_from_jsonObject(const JSON_Object *license_obj,
   const char *lic_identifier = NULL;
   const char *lic_url = NULL;
   cdd_c_error_t rc;
-  rc = cdd_json_object_get_string(license_obj, "name", &lic_name);
-  rc = cdd_json_object_get_string(license_obj, "identifier", &lic_identifier);
-  rc = cdd_json_object_get_string(license_obj, "url", &lic_url);
+  if (cdd_json_object_get_string(license_obj, "name", &lic_name) !=
+      CDD_C_SUCCESS)
+    lic_name = NULL;
+  if (cdd_json_object_get_string(license_obj, "identifier", &lic_identifier) !=
+      CDD_C_SUCCESS)
+    lic_identifier = NULL;
+  if (cdd_json_object_get_string(license_obj, "url", &lic_url) != CDD_C_SUCCESS)
+    lic_url = NULL;
 
   if (!lic_name || !*lic_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1866,13 +2055,13 @@ cdd_c_error_t OpenAPI_Info_from_jsonObject(const JSON_Object *info_obj,
 static cdd_c_error_t parse_info_inner(const JSON_Object *root_obj,
                                       struct OpenAPI_Spec *out) {
   JSON_Object *info_obj = NULL;
+  cdd_c_error_t rc;
 
   if (!root_obj || !out)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(root_obj, "info", &info_obj);
-  if (!info_obj)
+  rc = cdd_json_object_get_object(root_obj, "info", &info_obj);
+  if (rc != CDD_C_SUCCESS)
     return CDD_C_SUCCESS;
 
   return OpenAPI_Info_from_jsonObject(info_obj, &out->info);
@@ -1888,8 +2077,9 @@ static cdd_c_error_t parse_info_inner(const JSON_Object *root_obj,
 cdd_c_error_t parse_info(const JSON_Object *root_obj,
                          struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = parse_info_inner(root_obj, out);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = openapi_spec_free(out);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
+  }
   return rc;
 }
 
@@ -1967,11 +2157,11 @@ parse_discriminator_object_inner(const JSON_Object *obj,
   rc = cdd_json_object_get_object(obj, "mapping", &mapping_obj);
   if (mapping_obj) {
     count = 0;
-    g_cdd_last_alloc_err = cdd_json_object_get_count(mapping_obj, &count);
+    rc = cdd_json_object_get_count(mapping_obj, &count);
     used = 0;
     for (i = 0; i < count; ++i) {
       const char *name = NULL;
-      g_cdd_last_alloc_err = cdd_json_object_get_name(mapping_obj, i, &name);
+      rc = cdd_json_object_get_name(mapping_obj, i, &name);
       if (strncmp(name, "x-", 2) == 0)
         continue;
       used++;
@@ -1986,7 +2176,7 @@ parse_discriminator_object_inner(const JSON_Object *obj,
       for (i = 0; i < count; ++i) {
         const char *name = NULL;
         const char *val = NULL;
-        g_cdd_last_alloc_err = cdd_json_object_get_name(mapping_obj, i, &name);
+        rc = cdd_json_object_get_name(mapping_obj, i, &name);
         if (strncmp(name, "x-", 2) == 0)
           continue;
         rc = cdd_json_object_get_string(mapping_obj, name, &val);
@@ -2065,19 +2255,17 @@ static cdd_c_error_t parse_xml_object_inner(const JSON_Object *obj,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  g_cdd_last_alloc_err = cdd_json_object_has_value(obj, "attribute", &has_attr);
+  rc = cdd_json_object_has_value(obj, "attribute", &has_attr);
   if (has_attr) {
     out->attribute_set = 1;
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_boolean(obj, "attribute", &attr_val);
+    rc = cdd_json_object_get_boolean(obj, "attribute", &attr_val);
     out->attribute = (attr_val == 1);
   }
 
-  g_cdd_last_alloc_err = cdd_json_object_has_value(obj, "wrapped", &has_wrap);
+  rc = cdd_json_object_has_value(obj, "wrapped", &has_wrap);
   if (has_wrap) {
     out->wrapped_set = 1;
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_boolean(obj, "wrapped", &wrap_val);
+    rc = cdd_json_object_get_boolean(obj, "wrapped", &wrap_val);
     out->wrapped = (wrap_val == 1);
   }
 
@@ -2119,15 +2307,16 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
                                       struct OpenAPI_Spec *out) {
   JSON_Array *tags_arr = NULL;
   size_t count = 0, i;
+  cdd_c_error_t rc;
 
   if (!root_obj || !out)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_array(root_obj, "tags", &tags_arr);
+  rc = cdd_json_object_get_array(root_obj, "tags", &tags_arr);
   if (!tags_arr)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_array_get_count(tags_arr, &count);
+  rc = cdd_json_array_get_count(tags_arr, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -2141,12 +2330,10 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
     JSON_Object *tag_obj = NULL;
     const char *name = NULL;
     JSON_Object *ext = NULL;
-    cdd_c_error_t rc;
 
-    g_cdd_last_alloc_err = cdd_json_array_get_object(tags_arr, i, &tag_obj);
-    g_cdd_last_alloc_err = cdd_json_object_get_string(tag_obj, "name", &name);
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_object(tag_obj, "externalDocs", &ext);
+    rc = cdd_json_array_get_object(tags_arr, i, &tag_obj);
+    rc = cdd_json_object_get_string(tag_obj, "name", &name);
+    rc = cdd_json_object_get_object(tag_obj, "externalDocs", &ext);
 
     if (!name || !*name)
       return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -2188,8 +2375,9 @@ static cdd_c_error_t parse_tags_inner(const JSON_Object *root_obj,
 cdd_c_error_t parse_tags(const JSON_Object *root_obj,
                          struct OpenAPI_Spec *out) {
   cdd_c_error_t rc = parse_tags_inner(root_obj, out);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = openapi_spec_free(out);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
+  }
   return rc;
 }
 
@@ -2230,6 +2418,7 @@ cdd_c_error_t detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
                                int *state, int *out_has_cycle) {
   size_t parent_idx = 0;
   const char *parent;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!out_has_cycle)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_has_cycle = 0;
@@ -2246,16 +2435,15 @@ cdd_c_error_t detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
   if (parent && *parent) {
     if (tag_index_by_name(spec, parent, &parent_idx) == CDD_C_SUCCESS) {
       int sub_cycle = 0;
-      g_cdd_last_alloc_err =
-          detect_tag_cycle(spec, parent_idx, state, &sub_cycle);
+      rc = detect_tag_cycle(spec, parent_idx, state, &sub_cycle);
       if (sub_cycle) {
         *out_has_cycle = 1;
-        return CDD_C_SUCCESS;
+        return rc;
       }
     }
   }
   state[idx] = 2;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -2267,6 +2455,7 @@ cdd_c_error_t detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
 cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
   size_t i;
   int *state;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!spec || !spec->tags || spec->n_tags == 0)
     return CDD_C_SUCCESS;
 
@@ -2275,14 +2464,14 @@ cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
     return CDD_C_ERROR_MEMORY;
   for (i = 0; i < spec->n_tags; ++i) {
     int has_cycle = 0;
-    g_cdd_last_alloc_err = detect_tag_cycle(spec, i, state, &has_cycle);
+    rc = detect_tag_cycle(spec, i, state, &has_cycle);
     if (has_cycle) {
       C_CDD_FREE(state);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   }
   C_CDD_FREE(state);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -2351,9 +2540,10 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
   char **seen = NULL;
   size_t seen_count = 0;
   size_t seen_cap = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!srv || !srv->url)
-    return CDD_C_SUCCESS;
+    return rc;
 
   url = srv->url;
   for (i = 0; url[i]; ++i) {
@@ -2374,13 +2564,12 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
         goto oom;
       memcpy(name, url + i + 1, len);
       name[len] = '\0';
-      g_cdd_last_alloc_err = server_variable_defined(srv, name, &is_def);
+      rc = server_variable_defined(srv, name, &is_def);
       if (!is_def) {
         C_CDD_FREE(name);
         goto invalid;
       }
-      g_cdd_last_alloc_err =
-          server_variable_seen(seen, seen_count, name, &is_seen);
+      rc = server_variable_seen(seen, seen_count, name, &is_seen);
       if (is_seen) {
         C_CDD_FREE(name);
         goto invalid;
@@ -2406,7 +2595,7 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
   for (i = 0; i < seen_count; ++i)
     C_CDD_FREE(seen[i]);
   C_CDD_FREE(seen);
-  return CDD_C_SUCCESS;
+  return rc;
 
 invalid:
   for (i = 0; i < seen_count; ++i)
@@ -2445,7 +2634,7 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
 
   {
     int has_qf = 0;
-    g_cdd_last_alloc_err = url_has_query_or_fragment(url, &has_qf);
+    rc = url_has_query_or_fragment(url, &has_qf);
     if (has_qf)
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -2465,7 +2654,7 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
   if (vars) {
     size_t vcount = 0;
     size_t v;
-    g_cdd_last_alloc_err = cdd_json_object_get_count(vars, &vcount);
+    rc = cdd_json_object_get_count(vars, &vcount);
     if (vcount > 0) {
       out_srv->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
           vcount, sizeof(struct OpenAPI_ServerVariable));
@@ -2477,19 +2666,17 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
         JSON_Value *v_val = NULL;
         JSON_Object *v_obj = NULL;
         struct OpenAPI_ServerVariable *curr = &out_srv->variables[v];
-        g_cdd_last_alloc_err = cdd_json_object_get_name(vars, v, &vname);
-        g_cdd_last_alloc_err = cdd_json_object_get_value_at(vars, v, &v_val);
-        g_cdd_last_alloc_err = cdd_json_value_get_object(v_val, &v_obj);
+        rc = cdd_json_object_get_name(vars, v, &vname);
+        rc = cdd_json_object_get_value_at(vars, v, &v_val);
+        rc = cdd_json_value_get_object(v_val, &v_obj);
         rc = c_cdd_strdup(vname, &curr->name);
         if (rc != CDD_C_SUCCESS)
           return CDD_C_ERROR_MEMORY;
         if (v_obj) {
           const char *def_val = NULL;
           JSON_Array *enum_arr = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_string(v_obj, "default", &def_val);
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_array(v_obj, "enum", &enum_arr);
+          rc = cdd_json_object_get_string(v_obj, "default", &def_val);
+          rc = cdd_json_object_get_array(v_obj, "enum", &enum_arr);
           if (!def_val || !*def_val)
             return CDD_C_ERROR_INVALID_ARGUMENT;
           rc = openapi_parse_reflected_strings(
@@ -2500,7 +2687,7 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
             size_t ecount = 0;
             size_t e;
             int found_default = 0;
-            g_cdd_last_alloc_err = cdd_json_array_get_count(enum_arr, &ecount);
+            rc = cdd_json_array_get_count(enum_arr, &ecount);
             if (ecount == 0)
               return CDD_C_ERROR_INVALID_ARGUMENT;
             {
@@ -2510,8 +2697,7 @@ static cdd_c_error_t parse_server_object_inner(const JSON_Object *srv_obj,
               curr->n_enum_values = ecount;
               for (e = 0; e < ecount; ++e) {
                 const char *e_val = NULL;
-                g_cdd_last_alloc_err =
-                    cdd_json_array_get_string(enum_arr, e, &e_val);
+                rc = cdd_json_array_get_string(enum_arr, e, &e_val);
                 if (e_val) {
                   rc = c_cdd_strdup(e_val, &curr->enum_values[e]);
                   if (rc != CDD_C_SUCCESS)
@@ -2590,6 +2776,7 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
                           size_t *out_count) {
   JSON_Array *servers = NULL;
   size_t count = 0, i;
+  cdd_c_error_t rc;
 
   if (!parent || !key || !out_servers || !out_count)
     return CDD_C_SUCCESS;
@@ -2597,11 +2784,11 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
   *out_servers = NULL;
   *out_count = 0;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_array(parent, key, &servers);
+  rc = cdd_json_object_get_array(parent, key, &servers);
   if (!servers)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_array_get_count(servers, &count);
+  rc = cdd_json_array_get_count(servers, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -2613,9 +2800,9 @@ parse_servers_array_inner(const JSON_Object *parent, const char *key,
 
   for (i = 0; i < count; ++i) {
     JSON_Object *srv_obj = NULL;
-    g_cdd_last_alloc_err = cdd_json_array_get_object(servers, i, &srv_obj);
+    rc = cdd_json_array_get_object(servers, i, &srv_obj);
     if (srv_obj) {
-      cdd_c_error_t rc = parse_server_object(srv_obj, &(*out_servers)[i]);
+      rc = parse_server_object(srv_obj, &(*out_servers)[i]);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
@@ -2655,7 +2842,8 @@ cdd_c_error_t parse_servers_array(const JSON_Object *parent, const char *key,
   cdd_c_error_t rc =
       parse_servers_array_inner(parent, key, out_servers, out_count);
   if (rc != CDD_C_SUCCESS && *out_servers) {
-    g_cdd_last_alloc_err = openapi_free_servers_array(*out_servers, *out_count);
+    rc = (cdd_c_error_t)((int)rc | (int)openapi_free_servers_array(*out_servers,
+                                                                   *out_count));
     *out_servers = NULL;
     *out_count = 0;
   }

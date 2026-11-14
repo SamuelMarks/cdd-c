@@ -854,7 +854,7 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
     g_cdd_fail_json_serialize = 1;
     rc = merge_struct_field(&dest, &src);
     g_cdd_fail_json_serialize = 0;
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
     dest.schema_extra_json = NULL;
     src.schema_extra_json = NULL;
@@ -863,7 +863,7 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
     g_cdd_fail_json_serialize = 1;
     rc = merge_struct_field(&dest, &src);
     g_cdd_fail_json_serialize = 0;
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     dest.items_extra_json = NULL;
     src.items_extra_json = NULL;
 
@@ -926,7 +926,7 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
       g_cdd_alloc_fail = 1;
       rc = merge_struct_field(&dest, &src);
       g_cdd_alloc_fail = 0;
-      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       src.type_union = NULL;
       src.n_type_union = 0;
     }
@@ -943,7 +943,7 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
       g_cdd_alloc_fail = 1;
       rc = merge_struct_field(&dest, &src);
       g_cdd_alloc_fail = 0;
-      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       src.items_type_union = NULL;
       src.n_items_type_union = 0;
     }

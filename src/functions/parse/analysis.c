@@ -115,10 +115,10 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
   list->sites[list->size].spec = spec;
 
   if (var_name) {
-    g_cdd_last_alloc_err =
+    cdd_c_error_t rc_dup =
         c_cdd_strdup(var_name, &list->sites[list->size].var_name);
-    if (!list->sites[list->size].var_name)
-      return CDD_C_ERROR_MEMORY;
+    if (rc_dup != CDD_C_SUCCESS)
+      return rc_dup;
   } else {
     list->sites[list->size].var_name = NULL;
   }
@@ -354,7 +354,7 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
 
     if (tok->kind == TOKEN_IDENTIFIER) {
       int matched = 0;
-      g_cdd_last_alloc_err = token_matches_string(tok, var_name, &matched);
+      cdd_c_error_t rc_m = token_matches_string(tok, var_name, &matched);
       if (matched) {
         int is_inside = 0;
         {
@@ -364,7 +364,7 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
         }
         if (is_inside) {
           *out_is_checked = 1;
-          return CDD_C_SUCCESS;
+          return rc_m;
         }
         if (spec->check_style == CHECK_PTR_NULL) {
           int is_deref = 0;
@@ -376,7 +376,7 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
           if (is_deref) {
             if (used_before_check)
               *used_before_check = 1;
-            return CDD_C_SUCCESS;
+            return rc_m;
           }
         }
       }
@@ -397,7 +397,7 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
 cdd_c_error_t find_allocations(const struct TokenList *tokens,
                                struct AllocationSiteList *out) {
   size_t i;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -415,7 +415,8 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
 
       while (spec->name != NULL) {
         int matched = 0;
-        g_cdd_last_alloc_err = token_matches_string(tok, spec->name, &matched);
+        rc = (cdd_c_error_t)((int)rc | (int)token_matches_string(
+                                           tok, spec->name, &matched));
         if (matched) {
           char *var_name = NULL;
           int is_return = 0;
@@ -435,7 +436,8 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
           }
 
           if (is_return) {
-            rc = allocation_site_list_add(out, i, NULL, 0, 0, 1, spec);
+            rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_add(
+                                               out, i, NULL, 0, 0, 1, spec));
             if (rc != CDD_C_SUCCESS)
               return rc;
             break;
@@ -453,8 +455,8 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
               case TOKEN_RBRACE:
                 break;
               case TOKEN_ASSIGN:
-                g_cdd_last_alloc_err =
-                    get_assigned_var(tokens, prev, &var_name);
+                rc = (cdd_c_error_t)((int)rc | (int)get_assigned_var(
+                                                   tokens, prev, &var_name));
                 break;
               default:
                 continue;
@@ -474,8 +476,9 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
                 return rc_an;
               }
             }
-            rc = allocation_site_list_add(out, i, var_name, checked,
-                                          used_before, 0, spec);
+            rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_add(
+                                               out, i, var_name, checked,
+                                               used_before, 0, spec));
             C_CDD_FREE(var_name);
             if (rc != CDD_C_SUCCESS)
               return rc;
@@ -486,7 +489,9 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
               if (rc_an != CDD_C_SUCCESS)
                 return rc_an;
             }
-            rc = allocation_site_list_add(out, i, NULL, checked, 0, 0, spec);
+            rc = (cdd_c_error_t)((int)rc |
+                                 (int)allocation_site_list_add(
+                                     out, i, NULL, checked, 0, 0, spec));
             if (rc != CDD_C_SUCCESS)
               return rc;
           }
@@ -496,5 +501,5 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
       }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }

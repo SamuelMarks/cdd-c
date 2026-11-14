@@ -333,6 +333,26 @@ TEST test_scan_for_vlas_edge_cases(void) {
                   g_cdd_last_alloc_err = scan_for_vlas(&mock_tokens, &list);
                   g_cdd_last_alloc_err = vla_site_list_free(&list);
 
+                  /* Test 3b: VLA declaration without semicolon (hits i <
+                   * tokens->size false at semicolon check) */
+                  {
+                    struct Token mock_vla_toks[5];
+                    mock_vla_toks[0].kind = TOKEN_KEYWORD_INT;
+                    mock_vla_toks[1].kind = TOKEN_IDENTIFIER;
+                    mock_vla_toks[1].start = (const uint8_t *)"a";
+                    mock_vla_toks[1].length = 1;
+                    mock_vla_toks[2].kind = TOKEN_LBRACKET;
+                    mock_vla_toks[3].kind = TOKEN_IDENTIFIER;
+                    mock_vla_toks[3].start = (const uint8_t *)"n";
+                    mock_vla_toks[3].length = 1;
+                    mock_vla_toks[4].kind = TOKEN_RBRACKET;
+                    mock_tokens.tokens = mock_vla_toks;
+                    mock_tokens.size = 5;
+                    ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
+                    g_cdd_last_alloc_err = scan_for_vlas(&mock_tokens, &list);
+                    g_cdd_last_alloc_err = vla_site_list_free(&list);
+                  }
+
                   /* Test 4: Semicolon, LBRACE, RBRACE to hit line 209-211 */
                   ASSERT_EQ(0, tokenize(az_span_create_from_str(
                                             "int a[; int a[{ int a[}"),

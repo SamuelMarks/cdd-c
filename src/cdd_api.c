@@ -112,7 +112,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     }
 
     rc = openapi_load_from_json(root, &spec);
-    g_cdd_last_alloc_err = cdd_json_value_free(root);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root));
 
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to load openapi spec from %s\n", config->input);
@@ -122,8 +122,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     if (config->output) {
       rc = fs_path_join(config->output, "generated_client", &alloc_path);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(&spec);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
       }
       client_cfg.filename_base = alloc_path;
     } else {
@@ -146,7 +145,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     if (alloc_path) {
       C_CDD_FREE(alloc_path);
     }
-    g_cdd_last_alloc_err = openapi_spec_free(&spec);
+    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
   }
 
   return rc;
@@ -436,13 +435,18 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
     JSON_Value *workflows_val = NULL;
     JSON_Object *workflows_obj = NULL;
 
-    g_cdd_last_alloc_err = cdd_json_value_free(parsed_root);
-    rc = cdd_json_value_init_object(&workflows_val);
-    rc = cdd_json_value_get_object(workflows_val, &workflows_obj);
-    rc = cdd_json_value_init_object(&root_val);
-    rc = cdd_json_value_get_object(root_val, &root_obj);
-    rc = cdd_json_value_init_object(&endpoints_val);
-    rc = cdd_json_object_set_value(root_obj, "endpoints", endpoints_val);
+    rc = cdd_json_value_free(parsed_root);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_init_object(&workflows_val));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
+                                       workflows_val, &workflows_obj));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&root_val));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_get_object(root_val, &root_obj));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_init_object(&endpoints_val));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                       root_obj, "endpoints", endpoints_val));
 
     for (w = 0; w < az_spec.n_workflows; w++) {
       const char *wf_id = az_spec.workflows[w].workflow_id;
@@ -475,58 +479,78 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
                      ind, wf_id, ind, wf_id, ind, ind, wf_id, ind, ind, ind,
                      ind, wf_id);
       }
-      rc = cdd_docs_build_code_val(snippet, no_imports, no_wrapping, &code_val);
-      rc = cdd_json_object_set_value(workflows_obj, wf_id, code_val);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)cdd_docs_build_code_val(
+                               snippet, no_imports, no_wrapping, &code_val));
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                         workflows_obj, wf_id, code_val));
     }
-    rc = cdd_json_object_set_value(root_obj, "workflows", workflows_val);
-    g_cdd_last_alloc_err = arazzo_spec_free(&az_spec);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                       root_obj, "workflows", workflows_val));
+    rc = (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&az_spec));
   } else {
-    g_cdd_last_alloc_err = arazzo_spec_free(&az_spec);
-    rc = openapi_load_from_json(parsed_root, &spec);
-    g_cdd_last_alloc_err = cdd_json_value_free(parsed_root);
+    rc = arazzo_spec_free(&az_spec);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)openapi_load_from_json(parsed_root, &spec));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(parsed_root));
     if (rc != CDD_C_SUCCESS)
       return rc;
 
     rc = cdd_json_value_init_object(&root_val);
-    rc = cdd_json_value_get_object(root_val, &root_obj);
-    rc = cdd_json_value_init_object(&endpoints_val);
-    rc = cdd_json_value_get_object(endpoints_val, &endpoints_obj);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_get_object(root_val, &root_obj));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_init_object(&endpoints_val));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
+                                       endpoints_val, &endpoints_obj));
 
-    rc = cdd_docs_populate_path_map(endpoints_obj, spec.paths, spec.n_paths,
-                                    no_imports, no_wrapping);
-    rc = cdd_json_object_set_value(root_obj, "endpoints", endpoints_val);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_docs_populate_path_map(
+                                       endpoints_obj, spec.paths, spec.n_paths,
+                                       no_imports, no_wrapping));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                       root_obj, "endpoints", endpoints_val));
 
     if (spec.n_webhooks > 0) {
       JSON_Value *webhooks_val = NULL;
       JSON_Object *webhooks_obj = NULL;
-      rc = cdd_json_value_init_object(&webhooks_val);
-      rc = cdd_json_value_get_object(webhooks_val, &webhooks_obj);
-      rc = cdd_docs_populate_path_map(webhooks_obj, spec.webhooks,
-                                      spec.n_webhooks, no_imports, no_wrapping);
-      rc = cdd_json_object_set_value(root_obj, "webhooks", webhooks_val);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)cdd_json_value_init_object(&webhooks_val));
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
+                                         webhooks_val, &webhooks_obj));
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_docs_populate_path_map(
+                                         webhooks_obj, spec.webhooks,
+                                         spec.n_webhooks, no_imports,
+                                         no_wrapping));
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                         root_obj, "webhooks", webhooks_val));
     }
-    g_cdd_last_alloc_err = openapi_spec_free(&spec);
+    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
   }
 
-  rc = cdd_json_serialize_to_string_pretty(root_val, &serialized);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_serialize_to_string_pretty(
+                                     root_val, &serialized));
   if (config->output) {
     int is_dir = 0;
-    rc = fs_is_directory(config->output, &is_dir);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)fs_is_directory(config->output, &is_dir));
     if (is_dir) {
       char *out_file = NULL;
-      rc = fs_path_join(config->output, "docs.json", &out_file);
+      rc = (cdd_c_error_t)((int)rc | (int)fs_path_join(config->output,
+                                                       "docs.json", &out_file));
       if (rc == CDD_C_SUCCESS) {
         rc = fs_write_to_file(out_file, serialized);
         C_CDD_FREE(out_file);
       }
     } else {
-      rc = fs_write_to_file(config->output, serialized);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)fs_write_to_file(config->output, serialized));
     }
   } else {
     printf("%s\n", serialized);
   }
-  g_cdd_last_alloc_err = cdd_json_free_serialized_string(serialized);
-  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_free_serialized_string(serialized));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   return rc;
 }
 
@@ -643,7 +667,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     return rc;
 
   rc = cdd_dsl_parse(&tokens, &ir);
-  g_cdd_last_alloc_err = cdd_dsl_token_list_free(&tokens);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_dsl_token_list_free(&tokens));
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -652,7 +676,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     rc = cdd_ffi_emit_dsl(ir, config);
   }
 
-  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
   C_CDD_FREE(ir);
   return rc;
 }
@@ -700,7 +724,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   /* Sort IR dependencies */
   rc = cdd_ffi_ir_topological_sort(ir);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
     C_CDD_FREE(ir);
     C_CDD_FREE(file_content);
     return rc;
@@ -716,22 +740,24 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         should_emit = 1;
       } else {
         int out_result = 0;
-        rc = cdd_target_langs_contains(config->target_langs, EMITTERS[i].name,
-                                       &out_result);
+        rc = (cdd_c_error_t)((int)rc | (int)cdd_target_langs_contains(
+                                           config->target_langs,
+                                           EMITTERS[i].name, &out_result));
         if (out_result) {
           should_emit = 1;
         } else if (EMITTERS[i].alias) {
-          rc = cdd_target_langs_contains(config->target_langs,
-                                         EMITTERS[i].alias, &out_result);
+          rc = (cdd_c_error_t)((int)rc | (int)cdd_target_langs_contains(
+                                             config->target_langs,
+                                             EMITTERS[i].alias, &out_result));
           if (out_result)
             should_emit = 1;
         }
       }
       if (should_emit) {
-        rc = EMITTERS[i].emit(ir, config);
+        rc = (cdd_c_error_t)((int)rc | (int)EMITTERS[i].emit(ir, config));
         if (rc != CDD_C_SUCCESS) {
           printf("Failed at %s, rc = %d\n", EMITTERS[i].name, rc);
-          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+          rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
           C_CDD_FREE(ir);
           C_CDD_FREE(file_content);
           return rc;
@@ -741,11 +767,11 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   }
 
   /* Cleanup */
-  g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
   C_CDD_FREE(ir);
   C_CDD_FREE(file_content);
 
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -775,7 +801,7 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
     return CDD_C_ERROR_IO;
   }
   rc = arazzo_load_from_json_value(root, &arazzo_spec);
-  g_cdd_last_alloc_err = cdd_json_value_free(root);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root));
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
@@ -786,7 +812,7 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
       if (openapi_load_from_json(oa_root, &openapi_spec) == CDD_C_SUCCESS) {
         has_openapi = 1;
       }
-      g_cdd_last_alloc_err = cdd_json_value_free(oa_root);
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(oa_root));
     }
   }
 
@@ -795,22 +821,28 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
   client_cfg.func_prefix = config->func_prefix ? config->func_prefix : "api_";
 
   if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI) {
-    rc = arazzo_cli_generate(&arazzo_spec, has_openapi ? &openapi_spec : NULL,
-                             &client_cfg);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)arazzo_cli_generate(
+                             &arazzo_spec, has_openapi ? &openapi_spec : NULL,
+                             &client_cfg));
   } else if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SERVER) {
-    rc = arazzo_server_generate(
-        &arazzo_spec, has_openapi ? &openapi_spec : NULL, &client_cfg);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)arazzo_server_generate(
+                             &arazzo_spec, has_openapi ? &openapi_spec : NULL,
+                             &client_cfg));
   } else if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK) {
-    rc = arazzo_client_generate(
-        &arazzo_spec, has_openapi ? &openapi_spec : NULL, &client_cfg);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)arazzo_client_generate(
+                             &arazzo_spec, has_openapi ? &openapi_spec : NULL,
+                             &client_cfg));
   } else {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (has_openapi) {
-    g_cdd_last_alloc_err = openapi_spec_free(&openapi_spec);
+    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&openapi_spec));
   }
-  g_cdd_last_alloc_err = arazzo_spec_free(&arazzo_spec);
+  rc = (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&arazzo_spec));
   return rc;
 }
 
@@ -838,20 +870,18 @@ cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {
   }
   rc = c2arazzo_parse_dir(config->input, &spec);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = arazzo_spec_free(&spec);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&spec));
   }
   if (config->self_uri && *config->self_uri) {
     C_CDD_FREE(spec.self_uri);
     spec.self_uri = NULL;
     rc = c_cdd_strdup(config->self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = arazzo_spec_free(&spec);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&spec));
     }
   }
   rc = arazzo_write_spec_to_json(&spec, &json);
-  g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+  rc = (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&spec));
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
@@ -1130,6 +1160,9 @@ const struct cdd_type_info cdd_from_openapi_config_type_info = {
         sizeof(g_cdd_from_openapi_config_fields[0]),
     0};
 
+/** @brief Deserialization aliases for `dialect_uri`. */
+static const char *const g_cdd_dialect_aliases[] = {"jsonSchemaDialect"};
+
 /** @brief Reflected fields for `cdd_to_openapi_config_t`. */
 static const struct cdd_field_info g_cdd_to_openapi_config_fields[] = {
     {"input",
@@ -1315,7 +1348,7 @@ static const struct cdd_field_info g_cdd_to_openapi_config_fields[] = {
      0,
      1,
      0,
-     "jsonSchemaDialect",
+     NULL,
      1,
      0,
      0,
@@ -1326,8 +1359,8 @@ static const struct cdd_field_info g_cdd_to_openapi_config_fields[] = {
      NULL,
      0,
      CDD_FIELD_KIND_UNKNOWN,
-     NULL,
-     0,
+     g_cdd_dialect_aliases,
+     1,
      NULL,
      NULL,
      NULL,
@@ -1599,6 +1632,49 @@ static const struct cdd_field_info g_cdd_serve_json_rpc_config_fields[] = {
      0,
      "l",
      1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"max_requests",
+     "max-requests",
+     "size_t",
+     NULL,
+     CDD_FIELD_KIND_INTEGER,
+     offsetof(cdd_serve_json_rpc_config_t, max_requests),
+     sizeof(size_t),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     0,
      0,
      0,
      0,
@@ -1984,6 +2060,49 @@ static const struct cdd_field_info g_cdd_generate_bindings_config_fields[] = {
      0,
      0,
      0,
+     0},
+    {"recursive_includes",
+     "recursive",
+     "c_cdd_bool_t",
+     NULL,
+     CDD_FIELD_KIND_BOOLEAN,
+     offsetof(cdd_generate_bindings_config_t, recursive_includes),
+     sizeof(c_cdd_bool_t),
+     0,
+     0,
+     0,
+     0,
+     "r",
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
      0}};
 
 const struct cdd_type_info cdd_generate_bindings_config_type_info = {
@@ -2095,6 +2214,49 @@ static const struct cdd_field_info g_cdd_from_arazzo_config_fields[] = {
      1,
      0,
      "o",
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"func_prefix",
+     "prefix",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(cdd_from_arazzo_config_t, func_prefix),
+     sizeof(const char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
      1,
      0,
      0,

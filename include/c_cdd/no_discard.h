@@ -10,6 +10,14 @@
 #ifndef NO_DISCARD_H
 #define NO_DISCARD_H
 
+#if !defined(NO_DISCARD) && !defined(__STDC_VERSION__) &&                      \
+    !defined(__cplusplus) && !defined(__GNUC__) && !defined(__clang__) &&      \
+    defined(_MSC_VER) && _MSC_VER >= 1700
+/* clang-format off */
+#include <sal.h>
+/* clang-format on */
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -27,7 +35,8 @@ extern "C" {
  *
  * @par Example Usage on a typedef:
  * @code
- *   typedef enum NO_DISCARD { OK, ERR } my_error_t;
+ *   typedef enum NO_DISCARD_TYPE my_err { OK, ERR } my_error_t
+ * NO_DISCARD_TYPEDEF;
  * @endcode
  *
  * @par Example Usage on a function:
@@ -51,9 +60,6 @@ extern "C" {
 #define NO_DISCARD __attribute__((warn_unused_result))
 #elif defined(_MSC_VER) && _MSC_VER >= 1700
 /* MSVC (Requires SAL) */
-/* clang-format off */
-#include <sal.h>
-/* clang-format on */
 #define NO_DISCARD _Check_return_
 #else
 /* Fallback for unsupported compilers */
@@ -63,12 +69,21 @@ extern "C" {
 #if defined(__cplusplus) && __cplusplus >= 201703L
 /** @brief Type-level nodiscard attribute for C++17+. */
 #define NO_DISCARD_TYPE [[nodiscard]]
-#elif defined(__clang__)
-/** @brief Type-level nodiscard attribute for Clang. */
-#define NO_DISCARD_TYPE __attribute__((warn_unused_result))
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+/** @brief Type-level nodiscard attribute for C23+. */
+#define NO_DISCARD_TYPE [[nodiscard]]
 #else
-/** @brief Fallback type-level nodiscard attribute for GCC C mode and MSVC. */
+/** @brief Empty enum-tag nodiscard attribute for C89/C99/C11 and MSVC. */
 #define NO_DISCARD_TYPE
+#endif
+
+#if !defined(__cplusplus) && defined(__clang__)
+/** @brief Typedef-level warn_unused_result attribute for Clang in C mode. */
+#define NO_DISCARD_TYPEDEF __attribute__((warn_unused_result))
+#else
+/** @brief Empty typedef-level nodiscard attribute when handled by
+ * NO_DISCARD_TYPE or unsupported. */
+#define NO_DISCARD_TYPEDEF
 #endif
 
 #ifdef __cplusplus

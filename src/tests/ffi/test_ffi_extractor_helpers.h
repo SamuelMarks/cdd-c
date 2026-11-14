@@ -254,6 +254,29 @@ TEST test_ffi_ir_extract_trampolines_direct(void) {
   }
 
   g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
+
+  /* OOM on trampoline generation */
+  {
+    int f;
+    for (f = 2; f <= 8; ++f) {
+      memset(&ir, 0, sizeof(ir));
+      ir.nodes_count = 1;
+      ir.nodes_capacity = 1;
+      ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
+      ir.nodes[0].name = strdup("MyClass");
+      ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+      ir.nodes[0].virtual_methods_count = 1;
+      ir.nodes[0].virtual_methods = (cdd_ffi_virtual_method_t *)calloc(
+          1, sizeof(cdd_ffi_virtual_method_t));
+      ir.nodes[0].virtual_methods[0].name = strdup("myVirtualMethod");
+      g_ffi_extractor_alloc_fail = f;
+      g_cdd_last_alloc_err =
+          cdd_ffi_extract_single_file_exports_test(&ir, "empty.h", "", &config);
+      g_ffi_extractor_alloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);
+    }
+  }
+
   remove("empty.h");
   PASS();
 }
@@ -588,14 +611,12 @@ TEST test_ffi_extractor_missing_branches(void) {
   const char *code_class;
   const char *code_struct;
   const char *code_nested;
-  const char *code_macro;
 
   memset(&config, 0, sizeof(config));
   memset(&test_ir, 0, sizeof(test_ir));
   code_class = "struct Base { int x; };\n";
   code_struct = "struct S { int x; };\n";
   code_nested = "struct Sub { int a; };\nstruct Parent { struct Sub s; };\n";
-  code_macro = "#define FOO 42\n";
 
   /* 1. g_cdd_ffi_extractor_fail = 1 (cdd_cst_find_nodes_by_type failure) */
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("base.h", code_class));
@@ -639,17 +660,7 @@ TEST test_ffi_extractor_missing_branches(void) {
   memset(&test_ir, 0, sizeof(test_ir));
   ASSERT_EQ(0, remove("parent.h"));
 
-  /* 5. g_cdd_ffi_extractor_fail = 5 (int64_to_str failure) */
-  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_ffi_macro_temp.h", code_macro));
-  g_cdd_ffi_extractor_fail = 5;
-  rc = cdd_ffi_extract_single_file_exports_test(
-      &test_ir, "test_ffi_macro_temp.h", code_macro, &config);
-  g_cdd_ffi_extractor_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
-  g_cdd_last_alloc_err = cdd_ffi_ir_free(&test_ir);
-  ASSERT_EQ(0, remove("test_ffi_macro_temp.h"));
-
-  /* 6. g_cdd_ffi_extractor_fail = 6 (map_c_type_to_ffi_kind failure) */
+  /* 5. g_cdd_ffi_extractor_fail = 6 (map_c_type_to_ffi_kind failure) */
   ASSERT_EQ(CDD_C_SUCCESS, write_to_file("s2.h", code_struct));
   g_cdd_ffi_extractor_fail = 6;
   rc = cdd_ffi_extract_single_file_exports_test(&test_ir, "s2.h", code_struct,

@@ -393,8 +393,7 @@ static cdd_c_error_t apply_updates(const char *filename,
 
       rc = find_function_node(cst, tokens, func_name, &node);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = patch_list_free(&patches);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
       }
 
       if (node) {
@@ -415,15 +414,13 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = generate_expected_sig(op, cfg, &expected_sig);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = patch_list_free(&patches);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
         }
 
         rc = extract_current_sig(tokens, node, &sig_end_idx, &actual_sig);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(expected_sig);
-          g_cdd_last_alloc_err = patch_list_free(&patches);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
         }
 
         if (actual_sig) {
@@ -433,16 +430,14 @@ static cdd_c_error_t apply_updates(const char *filename,
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(expected_sig);
               C_CDD_FREE(actual_sig);
-              g_cdd_last_alloc_err = patch_list_free(&patches);
-              return rc;
+              return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
             }
             rc = patch_list_add(&patches, node->start_token, sig_end_idx,
                                 sig_copy);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(expected_sig);
               C_CDD_FREE(actual_sig);
-              g_cdd_last_alloc_err = patch_list_free(&patches);
-              return rc;
+              return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
             }
           }
           C_CDD_FREE(actual_sig);
@@ -451,14 +446,12 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = apply_query_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = patch_list_free(&patches);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
         }
 
         rc = apply_header_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = patch_list_free(&patches);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
         }
 
         /* 4. Sync URL Builder */
@@ -501,14 +494,14 @@ static cdd_c_error_t apply_updates(const char *filename,
               char *new_block = NULL;
               rc = generate_expected_url(p->route, op, cfg, &new_block);
               if (rc != CDD_C_SUCCESS) {
-                g_cdd_last_alloc_err = patch_list_free(&patches);
-                return rc;
+                return (cdd_c_error_t)((int)rc |
+                                       (int)patch_list_free(&patches));
               }
               rc = patch_list_add(&patches, asprintf_idx, stmt_end_idx,
                                   new_block);
               if (rc != CDD_C_SUCCESS) {
-                g_cdd_last_alloc_err = patch_list_free(&patches);
-                return rc;
+                return (cdd_c_error_t)((int)rc |
+                                       (int)patch_list_free(&patches));
               }
             }
           }
@@ -518,7 +511,7 @@ static cdd_c_error_t apply_updates(const char *filename,
   }
 
   rc = patch_list_apply(&patches, tokens, &result);
-  g_cdd_last_alloc_err = patch_list_free(&patches);
+  rc = (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
 
   if (rc == CDD_C_SUCCESS) {
     FILE *f = NULL;
@@ -593,15 +586,15 @@ cdd_c_error_t api_sync_file(const char *filename,
 
   rc = parse_tokens(tokens, &cst);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_token_list(tokens);
+    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     C_CDD_FREE(content);
     return rc;
   }
 
   rc = apply_updates(filename, tokens, &cst, spec, cfg);
 
-  g_cdd_last_alloc_err = free_cst_node_list(&cst);
-  g_cdd_last_alloc_err = free_token_list(tokens);
+  rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
+  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   C_CDD_FREE(content);
 
   return rc;

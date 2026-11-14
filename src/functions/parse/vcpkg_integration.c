@@ -73,34 +73,29 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
   {
     cdd_c_error_t rc_vc = my_strdup(project_name, &builder->project_name);
     if (rc_vc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = vcpkg_builder_free(builder);
-      return rc_vc;
+      return (cdd_c_error_t)((int)rc_vc | (int)vcpkg_builder_free(builder));
     }
   }
   if (version_string) {
     cdd_c_error_t rc_vc = my_strdup(version_string, &builder->version_string);
     if (rc_vc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = vcpkg_builder_free(builder);
-      return rc_vc;
+      return (cdd_c_error_t)((int)rc_vc | (int)vcpkg_builder_free(builder));
     }
   } else {
     cdd_c_error_t rc_vc = my_strdup("0.0.1", &builder->version_string);
     if (rc_vc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = vcpkg_builder_free(builder);
-      return rc_vc;
+      return (cdd_c_error_t)((int)rc_vc | (int)vcpkg_builder_free(builder));
     }
   }
   if (description) {
     cdd_c_error_t rc_vc = my_strdup(description, &builder->description);
     if (rc_vc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = vcpkg_builder_free(builder);
-      return rc_vc;
+      return (cdd_c_error_t)((int)rc_vc | (int)vcpkg_builder_free(builder));
     }
   } else {
     cdd_c_error_t rc_vc = my_strdup("", &builder->description);
     if (rc_vc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = vcpkg_builder_free(builder);
-      return rc_vc;
+      return (cdd_c_error_t)((int)rc_vc | (int)vcpkg_builder_free(builder));
     }
   }
   builder->deps = NULL;
@@ -231,8 +226,8 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
               size_t inc_len = (size_t)(inc_end - inc_start);
               char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
               if (!inc_str) {
-                g_cdd_last_alloc_err = free_token_list(tokens);
-                return CDD_C_ERROR_MEMORY;
+                return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                       (int)free_token_list(tokens));
               }
               memcpy(inc_str, inc_start, inc_len);
               inc_str[inc_len] = '\0';
@@ -241,24 +236,24 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                 cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "pthreads");
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(inc_str);
-                  g_cdd_last_alloc_err = free_token_list(tokens);
-                  return rc;
+                  return (cdd_c_error_t)((int)rc |
+                                         (int)free_token_list(tokens));
                 }
               }
               if (strstr(inc_str, "dirent.h")) {
                 cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "dirent");
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(inc_str);
-                  g_cdd_last_alloc_err = free_token_list(tokens);
-                  return rc;
+                  return (cdd_c_error_t)((int)rc |
+                                         (int)free_token_list(tokens));
                 }
               }
               if (strstr(inc_str, "zlib.h")) {
                 cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "zlib");
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(inc_str);
-                  g_cdd_last_alloc_err = free_token_list(tokens);
-                  return rc;
+                  return (cdd_c_error_t)((int)rc |
+                                         (int)free_token_list(tokens));
                 }
               }
 
@@ -269,8 +264,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
       }
     }
   }
-  g_cdd_last_alloc_err = free_token_list(tokens);
-  return CDD_C_SUCCESS;
+  return free_token_list(tokens);
 }
 
 /*
@@ -298,24 +292,23 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  g_cdd_last_alloc_err = cdd_json_value_get_object(root_val, &root_obj);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_value_get_object(root_val, &root_obj));
 
-  rc = cdd_json_object_set_string(root_obj, "name", builder->project_name);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
+                                     root_obj, "name", builder->project_name));
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   }
   rc = cdd_json_object_set_string(root_obj, "version-string",
                                   builder->version_string);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   }
   rc =
       cdd_json_object_set_string(root_obj, "description", builder->description);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   }
 
   if (builder->deps_count > 0) {
@@ -323,33 +316,33 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
     JSON_Array *deps_arr = NULL;
     rc = cdd_json_value_init_array(&deps_val);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)cdd_json_value_free(root_val));
     }
-    g_cdd_last_alloc_err = cdd_json_value_get_array(deps_val, &deps_arr);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_get_array(deps_val, &deps_arr));
     for (i = 0; i < builder->deps_count; i++) {
       rc = cdd_json_array_append_string(deps_arr, builder->deps[i].name);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = cdd_json_value_free(deps_val);
-        g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-        return rc;
+        rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(deps_val));
+        return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
       }
     }
     if (cdd_json_object_set_value(root_obj, "dependencies", deps_val) !=
         CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(deps_val);
-      g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-      return CDD_C_ERROR_MEMORY;
+      rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                           (int)cdd_json_value_free(deps_val));
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
     }
   }
 
   *out_json = NULL;
   rc = cdd_json_serialize_to_string_pretty(root_val, &ser);
-  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   if (rc != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
   rc = my_strdup(ser, &res);
-  g_cdd_last_alloc_err = cdd_json_free_serialized_string(ser);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_free_serialized_string(ser));
   if (rc != CDD_C_SUCCESS)
     return rc;
   *out_json = res;

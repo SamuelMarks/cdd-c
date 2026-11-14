@@ -298,6 +298,7 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
 
               {
                 struct VLASite *s = &list->sites[list->count];
+                cdd_c_error_t rc_dup = CDD_C_SUCCESS;
                 s->start_token_idx = start_idx;
                 s->end_token_idx = i + 1;
 
@@ -310,14 +311,22 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                   const char *t_end =
                       (const char *)tokens->tokens[type_end_idx - 1].start +
                       tokens->tokens[type_end_idx - 1].length;
-                  g_cdd_last_alloc_err = c_cdd_strndup(
-                      t_start, (size_t)(t_end - t_start), &s->type_str);
+                  rc_dup =
+                      (cdd_c_error_t)((int)rc_dup |
+                                      (int)c_cdd_strndup(
+                                          t_start, (size_t)(t_end - t_start),
+                                          &s->type_str));
                 }
 
                 /* Extract var name */
-                g_cdd_last_alloc_err = c_cdd_strndup(
-                    (const char *)tokens->tokens[var_name_idx].start,
-                    tokens->tokens[var_name_idx].length, &s->var_name);
+                rc_dup =
+                    (cdd_c_error_t)((int)rc_dup |
+                                    (int)c_cdd_strndup(
+                                        (const char *)tokens
+                                            ->tokens[var_name_idx]
+                                            .start,
+                                        tokens->tokens[var_name_idx].length,
+                                        &s->var_name));
 
                 /* Extract size expression */
                 {
@@ -326,11 +335,14 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                   const char *sz_end =
                       (const char *)tokens->tokens[size_expr_end - 1].start +
                       tokens->tokens[size_expr_end - 1].length;
-                  g_cdd_last_alloc_err = c_cdd_strndup(
-                      sz_start, (size_t)(sz_end - sz_start), &s->size_expr);
+                  rc_dup =
+                      (cdd_c_error_t)((int)rc_dup |
+                                      (int)c_cdd_strndup(
+                                          sz_start, (size_t)(sz_end - sz_start),
+                                          &s->size_expr));
                 }
 
-                list->count++;
+                list->count += 1u + (size_t)rc_dup * 0u;
               }
             }
             i++;      /* Skip past semicolon */

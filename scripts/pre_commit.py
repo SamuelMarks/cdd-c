@@ -101,7 +101,36 @@ def main():
 
         test_lint_errors = 0
         void_rc_re = re.compile(r"\(void\)\s*rc\b")
+        void_var_re = re.compile(r"\(void\)\s*[a-zA-Z_][a-zA-Z0-9_]*\s*;")
+        alloc_err_re = re.compile(r"\bg_cdd_last_alloc_err\s*=")
         taut_re = re.compile(r"ASSERT\s*\([^)]*==[^)]*\|\|[^)]*!=[^)]*\)")
+        for root_dir in ["src", "include"]:
+            for dp, _, fns in os.walk(root_dir):
+                for fn in fns:
+                    if fn.endswith((".c", ".h")):
+                        fpath = os.path.join(dp, fn)
+                        norm_fpath = fpath.replace("\\", "/")
+                        with open(
+                            fpath, "r", encoding="utf-8", errors="ignore"
+                        ) as f:
+                            content = f.read()
+                        if "tests" not in dp and "transformers" not in dp:
+                            for m in void_var_re.finditer(content):
+                                print(
+                                    f"Forbidden (void) discard in {fpath}: {m.group(0)}"
+                                )
+                                test_lint_errors += 1
+                        if (
+                            "tests" not in dp
+                            and norm_fpath != "include/c_cdd/memory.h"
+                            and norm_fpath != "include/c_cdd/log.h"
+                            and norm_fpath != "src/cdd_c_error.c"
+                        ):
+                            for m in alloc_err_re.finditer(content):
+                                print(
+                                    f"Forbidden g_cdd_last_alloc_err = assignment in {fpath}"
+                                )
+                                test_lint_errors += 1
         for dp, _, fns in os.walk("src/tests"):
             for fn in fns:
                 if fn.endswith((".c", ".h")):

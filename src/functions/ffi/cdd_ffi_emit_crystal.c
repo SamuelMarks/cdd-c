@@ -106,6 +106,7 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       config ? ((config->module_name) ? config->module_name : "MyLib")
              : "MyLib";
   size_t i, j;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -139,11 +140,14 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "  struct %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        g_cdd_last_alloc_err = map_crystal_type(&node->fields[j].type, &ct);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_crystal_type(&node->fields[j].type, &ct));
         fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
@@ -151,12 +155,15 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       fprintf(f, "  union %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        g_cdd_last_alloc_err = map_crystal_type(&node->fields[j].type, &ct);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_crystal_type(&node->fields[j].type, &ct));
         fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "  enum %s\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -169,15 +176,19 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ct = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "  fun %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        g_cdd_last_alloc_err = map_crystal_type(&node->fields[j].type, &ct);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_crystal_type(&node->fields[j].type, &ct));
         fprintf(f, "%s%s : %s", j > 0 ? ", " : "", node->fields[j].name, ct);
       }
-      g_cdd_last_alloc_err =
-          map_crystal_type(&node->return_or_base_type, &ret_ct);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)map_crystal_type(
+                                    &node->return_or_base_type, &ret_ct));
       fprintf(f, ") : %s\n", ret_ct);
     }
   }
@@ -187,5 +198,5 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
   /* Optional idiomatic wrapper generator logic could go here */
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

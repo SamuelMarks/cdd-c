@@ -223,6 +223,7 @@ static cdd_c_error_t free_trivia_chain(cdd_ffi_trivia_t *trivia) {
  * @return CDD_C_SUCCESS.
  */
 static cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
+  cdd_c_error_t rc;
   if (type->ref_name) {
     C_CDD_FREE(type->ref_name);
     type->ref_name = NULL;
@@ -231,17 +232,17 @@ static cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
     C_CDD_FREE(type->raw_spelling);
     type->raw_spelling = NULL;
   }
-  g_cdd_last_alloc_err = free_trivia_chain(type->leading_trivia);
-  g_cdd_last_alloc_err = free_trivia_chain(type->trailing_trivia);
+  rc = free_trivia_chain(type->leading_trivia);
+  rc = free_trivia_chain(type->trailing_trivia);
   if (type->template_args) {
     size_t i;
     for (i = 0; i < type->template_args_count; i++) {
-      g_cdd_last_alloc_err = free_type_recursive(&type->template_args[i]);
+      rc = free_type_recursive(&type->template_args[i]);
     }
     C_CDD_FREE(type->template_args);
     type->template_args = NULL;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -252,6 +253,7 @@ static cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
  */
 cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
   size_t i, j;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!ir) {
     return CDD_C_SUCCESS;
@@ -272,9 +274,9 @@ cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     if (node->raw_body) {
       C_CDD_FREE(node->raw_body);
     }
-    g_cdd_last_alloc_err = free_trivia_chain(node->leading_trivia);
-    g_cdd_last_alloc_err = free_trivia_chain(node->trailing_trivia);
-    g_cdd_last_alloc_err = free_type_recursive(&node->return_or_base_type);
+    rc = free_trivia_chain(node->leading_trivia);
+    rc = free_trivia_chain(node->trailing_trivia);
+    rc = free_type_recursive(&node->return_or_base_type);
 
     /* Free fields / arguments */
     if (node->fields) {
@@ -288,11 +290,9 @@ cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         if (node->fields[j].array_length_ref) {
           C_CDD_FREE(node->fields[j].array_length_ref);
         }
-        g_cdd_last_alloc_err =
-            free_trivia_chain(node->fields[j].leading_trivia);
-        g_cdd_last_alloc_err =
-            free_trivia_chain(node->fields[j].trailing_trivia);
-        g_cdd_last_alloc_err = free_type_recursive(&node->fields[j].type);
+        rc = free_trivia_chain(node->fields[j].leading_trivia);
+        rc = free_trivia_chain(node->fields[j].trailing_trivia);
+        rc = free_type_recursive(&node->fields[j].type);
       }
       C_CDD_FREE(node->fields);
     }
@@ -317,8 +317,7 @@ cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         if (node->virtual_methods[j].name) {
           C_CDD_FREE(node->virtual_methods[j].name);
         }
-        g_cdd_last_alloc_err =
-            free_type_recursive(&node->virtual_methods[j].return_type);
+        rc = free_type_recursive(&node->virtual_methods[j].return_type);
         if (node->virtual_methods[j].args) {
           for (a = 0; a < node->virtual_methods[j].args_count; a++) {
             if (node->virtual_methods[j].args[a].name) {
@@ -327,8 +326,7 @@ cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
             if (node->virtual_methods[j].args[a].doc) {
               C_CDD_FREE(node->virtual_methods[j].args[a].doc);
             }
-            g_cdd_last_alloc_err =
-                free_type_recursive(&node->virtual_methods[j].args[a].type);
+            rc = free_type_recursive(&node->virtual_methods[j].args[a].type);
           }
           C_CDD_FREE(node->virtual_methods[j].args);
         }
@@ -357,10 +355,8 @@ cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
           }
           C_CDD_FREE(node->variants[j].number_details);
         }
-        g_cdd_last_alloc_err =
-            free_trivia_chain(node->variants[j].leading_trivia);
-        g_cdd_last_alloc_err =
-            free_trivia_chain(node->variants[j].trailing_trivia);
+        rc = free_trivia_chain(node->variants[j].leading_trivia);
+        rc = free_trivia_chain(node->variants[j].trailing_trivia);
       }
       C_CDD_FREE(node->variants);
     }
@@ -393,5 +389,5 @@ cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
   ir->nodes = NULL;
   ir->nodes_count = 0;
   ir->nodes_capacity = 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }

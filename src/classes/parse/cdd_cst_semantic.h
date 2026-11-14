@@ -13,16 +13,30 @@ extern "C" {
 #include "cdd_c_error.h"
 #include "cdd_cst_node.h"
 #include "cdd_cst_scope.h"
+#include <stddef.h>
 /* clang-format on */
 
 /**
  * @brief Build semantic scope and symbol information from a CST.
  * @param[in,out] tree The CST tree to analyze.
  * @param[out] out_env The populated scope environment.
- * @return 0 on success.
+ * @return CDD_C_SUCCESS on success, or an error code.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_cst_build_semantic_info(
     cdd_cst_tree_t *tree, cdd_cst_scope_env_t **out_env);
+
+/**
+ * @brief Build semantic scope and symbol information from a CST with optional
+ * `-I` include directory header pre-scanning.
+ * @param[in,out] tree The CST tree to analyze.
+ * @param[in] include_dirs Optional array of header search directory paths.
+ * @param[in] num_include_dirs Number of entries in `include_dirs`.
+ * @param[out] out_env The populated scope environment.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_cst_build_semantic_info_ex(
+    cdd_cst_tree_t *tree, const char *const *include_dirs,
+    size_t num_include_dirs, cdd_cst_scope_env_t **out_env);
 
 #ifdef __cplusplus
 }

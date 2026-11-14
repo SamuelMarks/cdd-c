@@ -106,6 +106,7 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   size_t i, j;
   const char *lib_name =
       (config->library_name) ? config->library_name : "mylib";
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.zig", config->output_dir,
@@ -141,15 +142,18 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     for (i = 0; i < ir->nodes_count; i++) {
       cdd_ffi_ir_node_t *node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
-        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+        rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                     f, node->leading_trivia));
         fprintf(f, "pub const %s = c.%s;\n", node->name, node->name);
       } else if (node->kind == CDD_FFI_NODE_STRUCT) {
-        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+        rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                     f, node->leading_trivia));
         fprintf(f, "pub const %s = c.%s;\n", node->name, node->name);
         fprintf(f, "pub const struct_%s = c.struct_%s;\n", node->name,
                 node->name);
       } else if (node->kind == CDD_FFI_NODE_ENUM) {
-        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+        rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                     f, node->leading_trivia));
         fprintf(f, "pub const %s = c.%s;\n", node->name, node->name);
       }
     }
@@ -161,7 +165,8 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     for (i = 0; i < ir->nodes_count; i++) {
       cdd_ffi_ir_node_t *node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_STRUCT) {
-        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+        rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                     f, node->leading_trivia));
         if (node->doc)
           fprintf(f, "/// %s\n", node->doc);
         fprintf(f, "pub const %s = extern struct {\n", node->name);
@@ -169,7 +174,9 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           const char *fname =
               node->fields[j].name ? node->fields[j].name : "field";
           const char *zt = NULL;
-          g_cdd_last_alloc_err = get_zig_type(node->fields[j].type, &zt);
+          rc_emit =
+              (cdd_c_error_t)((int)rc_emit |
+                              (int)get_zig_type(node->fields[j].type, &zt));
           fprintf(f, "    %s: %s,\n", fname, zt);
         }
         fprintf(f, "};\n\n");
@@ -181,7 +188,8 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       cdd_ffi_ir_node_t *node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
         const char *ret_zt = NULL;
-        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+        rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                     f, node->leading_trivia));
         if (node->doc)
           fprintf(f, "/// %s\n", node->doc);
         fprintf(f, "pub extern fn %s(", node->name);
@@ -193,19 +201,23 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
             arg_name = "err";
           if (strcmp(arg_name, "type") == 0)
             arg_name = "type_";
-          g_cdd_last_alloc_err = get_zig_type(node->fields[j].type, &zt);
+          rc_emit =
+              (cdd_c_error_t)((int)rc_emit |
+                              (int)get_zig_type(node->fields[j].type, &zt));
           fprintf(f, "%s: %s", arg_name, zt);
           if (j < node->fields_count - 1)
             fprintf(f, ", ");
         }
-        g_cdd_last_alloc_err = get_zig_type(node->return_or_base_type, &ret_zt);
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)get_zig_type(node->return_or_base_type,
+                                                    &ret_zt));
         fprintf(f, ") %s;\n\n", ret_zt);
       }
     }
   }
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*

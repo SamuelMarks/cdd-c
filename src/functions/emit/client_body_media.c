@@ -81,66 +81,65 @@ cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
 cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
                                                  const char **_out_val) {
   int eq = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!method) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "get", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "get", &eq));
   if (eq) {
     *_out_val = "HTTP_GET";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "post", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "post", &eq));
   if (eq) {
     *_out_val = "HTTP_POST";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "put", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "put", &eq));
   if (eq) {
     *_out_val = "HTTP_PUT";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "delete", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "delete", &eq));
   if (eq) {
     *_out_val = "HTTP_DELETE";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "patch", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "patch", &eq));
   if (eq) {
     *_out_val = "HTTP_PATCH";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "head", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "head", &eq));
   if (eq) {
     *_out_val = "HTTP_HEAD";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "options", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "options", &eq));
   if (eq) {
     *_out_val = "HTTP_OPTIONS";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "trace", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "trace", &eq));
   if (eq) {
     *_out_val = "HTTP_TRACE";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "query", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "query", &eq));
   if (eq) {
     *_out_val = "HTTP_QUERY";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = c_cdd_str_iequal(method, "connect", &eq);
+  rc = (cdd_c_error_t)((int)rc | (int)c_cdd_str_iequal(method, "connect", &eq));
   if (eq) {
     *_out_val = "HTTP_CONNECT";
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = NULL;
+  return rc;
 }
 
 /**
@@ -376,6 +375,7 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
   size_t i;
   size_t len = 0;
   size_t pre_len;
+  cdd_c_error_t rc;
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -383,11 +383,11 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
   if (!media_type || !prefix)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_base_len(media_type, &len);
+  rc = media_type_base_len(media_type, &len);
 
   pre_len = strlen(prefix);
   if (len < pre_len)
-    return CDD_C_SUCCESS;
+    return rc;
 
   for (i = 0; i < pre_len; ++i) {
     char a = media_type[i];
@@ -397,10 +397,10 @@ cdd_c_error_t media_type_has_prefix(const char *media_type, const char *prefix,
     if (b >= 'A' && b <= 'Z')
       b = (char)(b - 'A' + 'a');
     if (a != b)
-      return CDD_C_SUCCESS;
+      return rc;
   }
   *out = 1;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -418,6 +418,7 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
   size_t len = 0;
   size_t suf_len;
   size_t start;
+  cdd_c_error_t rc;
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -425,11 +426,11 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
   if (!media_type || !suffix)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_base_len(media_type, &len);
+  rc = media_type_base_len(media_type, &len);
 
   suf_len = strlen(suffix);
   if (len < suf_len)
-    return CDD_C_SUCCESS;
+    return rc;
 
   start = len - suf_len;
   for (i = 0; i < suf_len; ++i) {
@@ -440,10 +441,10 @@ cdd_c_error_t media_type_has_suffix(const char *media_type, const char *suffix,
     if (b >= 'A' && b <= 'Z')
       b = (char)(b - 'A' + 'a');
     if (a != b)
-      return CDD_C_SUCCESS;
+      return rc;
   }
   *out = 1;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -460,6 +461,7 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
   size_t i;
   size_t len = 0;
   size_t exp_len;
+  cdd_c_error_t rc;
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -467,11 +469,11 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
   if (!media_type || !expected)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_base_len(media_type, &len);
+  rc = media_type_base_len(media_type, &len);
 
   exp_len = strlen(expected);
   if (len != exp_len)
-    return CDD_C_SUCCESS;
+    return rc;
 
   for (i = 0; i < len; ++i) {
     char a = media_type[i];
@@ -481,10 +483,10 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
     if (b >= 'A' && b <= 'Z')
       b = (char)(b - 'A' + 'a');
     if (a != b)
-      return CDD_C_SUCCESS;
+      return rc;
   }
   *out = 1;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -497,6 +499,7 @@ cdd_c_error_t media_type_ieq(const char *media_type, const char *expected,
 cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   int eq = 0;
   int suf = 0;
+  cdd_c_error_t rc;
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -504,15 +507,16 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   if (!media_type)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_ieq(media_type, "application/json", &eq);
+  rc = media_type_ieq(media_type, "application/json", &eq);
   if (eq) {
     *out = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
-  g_cdd_last_alloc_err = media_type_has_suffix(media_type, "+json", &suf);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)media_type_has_suffix(media_type, "+json", &suf));
   *out = suf;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -648,13 +652,13 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
                                           const char *field,
                                           const char *header) {
   char hdr_sanitized[128];
+  cdd_c_error_t rc;
   if (!out || outsz == 0 || !field || !header)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out[0] = '\0';
-  g_cdd_last_alloc_err =
-      sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
+  rc = sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
   CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -666,14 +670,15 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
  */
 cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
   int eq = 0;
+  cdd_c_error_t rc;
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = c_cdd_str_iequal(name, "Content-Type", &eq);
+  rc = c_cdd_str_iequal(name, "Content-Type", &eq);
   *out = eq;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -686,6 +691,7 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
  */
 cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   int res = 0;
+  cdd_c_error_t rc;
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -693,27 +699,30 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   if (!media_type)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_is_text_plain(media_type, &res);
+  rc = media_type_is_text_plain(media_type, &res);
   if (res) {
     *out = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
-  g_cdd_last_alloc_err = media_type_has_prefix(media_type, "text/", &res);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)media_type_has_prefix(media_type, "text/", &res));
   if (res) {
     *out = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
-  g_cdd_last_alloc_err = media_type_ieq(media_type, "application/xml", &res);
+  rc = (cdd_c_error_t)((int)rc | (int)media_type_ieq(media_type,
+                                                     "application/xml", &res));
   if (res) {
     *out = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
-  g_cdd_last_alloc_err = media_type_has_suffix(media_type, "+xml", &res);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)media_type_has_suffix(media_type, "+xml", &res));
   *out = res;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -725,6 +734,7 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
  */
 cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
   int res = 0;
+  cdd_c_error_t rc;
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -732,24 +742,25 @@ cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
   if (!media_type)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_is_json(media_type, &res);
+  rc = media_type_is_json(media_type, &res);
   if (res)
-    return CDD_C_SUCCESS;
+    return rc;
 
-  g_cdd_last_alloc_err = media_type_is_form(media_type, &res);
+  rc = (cdd_c_error_t)((int)rc | (int)media_type_is_form(media_type, &res));
   if (res)
-    return CDD_C_SUCCESS;
+    return rc;
 
-  g_cdd_last_alloc_err = media_type_is_multipart(media_type, &res);
+  rc =
+      (cdd_c_error_t)((int)rc | (int)media_type_is_multipart(media_type, &res));
   if (res)
-    return CDD_C_SUCCESS;
+    return rc;
 
-  g_cdd_last_alloc_err = media_type_is_textual(media_type, &res);
+  rc = (cdd_c_error_t)((int)rc | (int)media_type_is_textual(media_type, &res));
   if (res)
-    return CDD_C_SUCCESS;
+    return rc;
 
   *out = 1;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -783,6 +794,7 @@ cdd_c_error_t schema_inline_is_string(const struct OpenAPI_SchemaRef *schema,
 cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
                                          int *out_is_textual_string) {
   int is_textual = 0;
+  cdd_c_error_t rc;
 
   if (!out_is_textual_string)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -790,11 +802,12 @@ cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
   if (!resp || !resp->content_type)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = media_type_is_textual(resp->content_type, &is_textual);
+  rc = media_type_is_textual(resp->content_type, &is_textual);
   if (!is_textual)
-    return CDD_C_SUCCESS;
+    return rc;
 
-  return schema_inline_is_string(&resp->schema, out_is_textual_string);
+  return (cdd_c_error_t)((int)rc | (int)schema_inline_is_string(
+                                       &resp->schema, out_is_textual_string));
 }
 
 /**
@@ -826,6 +839,7 @@ cdd_c_error_t response_is_binary(const struct OpenAPI_Response *resp,
 cdd_c_error_t schema_has_payload(const struct OpenAPI_SchemaRef *schema,
                                  int *out_has_payload) {
   int has_inline = 0;
+  cdd_c_error_t rc;
 
   if (!out_has_payload)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -836,10 +850,10 @@ cdd_c_error_t schema_has_payload(const struct OpenAPI_SchemaRef *schema,
     *out_has_payload = 1;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err = schema_has_inline(schema, &has_inline);
+  rc = schema_has_inline(schema, &has_inline);
   if (has_inline) {
     *out_has_payload = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }

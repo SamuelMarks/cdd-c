@@ -120,6 +120,11 @@ extern C_CDD_EXPORT const struct cdd_type_info Arazzo_FailureAction_type_info;
 extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Step_type_info;
 /** @brief Runtime reflection descriptor for `Arazzo_Workflow`. */
 extern C_CDD_EXPORT const struct cdd_type_info Arazzo_Workflow_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_RequestBody`. */
+extern C_CDD_EXPORT const struct cdd_type_info Arazzo_RequestBody_type_info;
+/** @brief Runtime reflection descriptor for `Arazzo_PayloadReplacement`. */
+extern C_CDD_EXPORT const struct cdd_type_info
+    Arazzo_PayloadReplacement_type_info;
 
 #ifdef __cplusplus
 }

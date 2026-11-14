@@ -454,7 +454,11 @@ cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
       size_t width = 0;
       int is_unsigned = 0;
       rc = cdd_reflect_resolve_field_scalar_width(f, &width, &is_unsigned);
-      if (width == 8 && is_unsigned) {
+      if (width == 16) {
+        const void *aa = (const void *)((const unsigned char *)a + f->offset);
+        const void *ab = (const void *)((const unsigned char *)b + f->offset);
+        *out_eq = (memcmp(aa, ab, 16) == 0) ? 1 : 0;
+      } else if (width == 8 && is_unsigned) {
         uint64_t ua = 0, ub = 0;
         rc = cdd_reflect_get_uint64(a, f, &ua);
         rc = cdd_reflect_get_uint64(b, f, &ub);

@@ -22,42 +22,23 @@
 #ifndef C_CDD_NUMERIC_PARSER_H
 #define C_CDD_NUMERIC_PARSER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <stddef.h>
-
-#if defined(_MSC_VER) && _MSC_VER < 1600
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "msvc/stdint.h"
-#else
 #if defined(_MSC_VER) && _MSC_VER < 1600
 #include "msvc/stdint.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "c_cdd/msvc/stdint.h"
 #else
 #include <stdint.h>
 #endif
-#endif
 /* clang-format on */
-#endif
-#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /* Fallback for Pre-C99 environments missing stdint.h */
-#if !defined(UINT64_MAX)
+#if !defined(UINT64_MAX) && !defined(_MSC_VER)
 /** @brief uint64_t definition */
 typedef unsigned long long uint64_t;
 /** @brief int64_t definition */

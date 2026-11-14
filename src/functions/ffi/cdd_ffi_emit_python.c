@@ -88,6 +88,7 @@ static cdd_c_error_t get_ctypes_primitive(cdd_ffi_primitive_kind_t kind,
  */
 static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
   const char *prim = NULL;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
   if (type->pointer_depth > 0) {
     cdd_ffi_type_t sub_type;
     if (type->kind == CDD_FFI_KIND_INT8 || type->kind == CDD_FFI_KIND_UINT8 ||
@@ -101,9 +102,9 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
     fprintf(f, "ctypes.POINTER(");
     sub_type = *type;
     sub_type.pointer_depth--;
-    g_cdd_last_alloc_err = emit_type(f, &sub_type);
+    rc_emit = emit_type(f, &sub_type);
     fprintf(f, ")");
-    return CDD_C_SUCCESS;
+    return rc_emit;
   }
 
   if (type->ref_name) {
@@ -116,9 +117,9 @@ static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err = get_ctypes_primitive(type->kind, &prim);
+  rc_emit = get_ctypes_primitive(type->kind, &prim);
   fprintf(f, "%s", prim);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*
@@ -135,6 +136,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   size_t i, j;
   char filepath[1024];
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -249,7 +251,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "    _fields_ = [\n");
         for (j = 0; j < node->fields_count; j++) {
           fprintf(f, "        (\"%s\", ", node->fields[j].name);
-          g_cdd_last_alloc_err = emit_type(f, &node->fields[j].type);
+          rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                    (int)emit_type(f, &node->fields[j].type));
           fprintf(f, "),\n");
         }
         fprintf(f, "    ]\n");
@@ -312,14 +315,16 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
       /* args */
       fprintf(f, "    _%s.argtypes = [", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        g_cdd_last_alloc_err = emit_type(f, &node->fields[j].type);
+        rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                  (int)emit_type(f, &node->fields[j].type));
         fprintf(f, ", ");
       }
       fprintf(f, "ctypes.POINTER(CddFfiError)]\n");
 
       /* return type */
       fprintf(f, "    _%s.restype = ", node->name);
-      g_cdd_last_alloc_err = emit_type(f, &node->return_or_base_type);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)emit_type(f, &node->return_or_base_type));
       fprintf(f, "\n");
 
       if (node->is_variadic) {
@@ -343,7 +348,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
             base_t = node->fields[j].type;
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
-            g_cdd_last_alloc_err = emit_type(f, &base_t);
+            rc_emit =
+                (cdd_c_error_t)((int)rc_emit | (int)emit_type(f, &base_t));
             fprintf(f, "()\n");
           }
         }
@@ -388,7 +394,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
-              g_cdd_last_alloc_err = emit_type(f, &base_t);
+              rc_emit =
+                  (cdd_c_error_t)((int)rc_emit | (int)emit_type(f, &base_t));
               fprintf(f, " * %s)()\n", node->fields[j].array_length_ref);
             } else {
               cdd_ffi_type_t base_t;
@@ -396,7 +403,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
-              g_cdd_last_alloc_err = emit_type(f, &base_t);
+              rc_emit =
+                  (cdd_c_error_t)((int)rc_emit | (int)emit_type(f, &base_t));
               fprintf(f, "()\n");
             }
             if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
@@ -571,5 +579,5 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     }
   }
 
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

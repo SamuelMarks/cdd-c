@@ -681,6 +681,260 @@ TEST test_gnu_standardizer_error_branches(void) {
 }
 
 /**
+ * @brief Unit test test_gnu_unroll_complete_coverage.
+ * @return Greatest test result.
+ */
+TEST test_gnu_unroll_complete_coverage(void) {
+  static const char *const k_unroll_srcs[] = {
+      "void vfn(void);\n"
+      "typedef int my_int_t;\n"
+      "int g_se = ({ int a = 1; a; });\n"
+      "void f_se(void) {\n"
+      "  ({ ; });\n"
+      "  ({ vfn(); });\n"
+      "  int bad_se = ({ int a = 1; } + 1);\n"
+      "  int void_se = ({ vfn(); });\n"
+      "  ({ if (1) {} });\n"
+      "  ({ lbl: ; });\n"
+      "  ({ my_int_t tx = 1; });\n"
+      "  ({ double dd = 2.0; });\n"
+      "  ({ int dy = 2; });\n"
+      "  ({ });\n"
+      "  const char *p = ({ const char *q = \"hi\"; (q); });\n"
+      "  int arr_se = ({ int b[2] = {1, 2}; b[0] + (1 + 2); });\n"
+      "}\n",
+      "void cl_fn(int *p);\n"
+      "struct Box { int v; };\n"
+      "const char *f_cl_ptr(const char *in, int n) {\n"
+      "  int __attribute__((cleanup(cl_fn))) top_v = 1;\n"
+      "  while (n > 0) {\n"
+      "    int __attribute((__cleanup__(cl_fn))) inner_v = 2;\n"
+      "    int vla[n];\n"
+      "    switch (n) { case 9: break; default: break; }\n"
+      "    if (n == 2) break;\n"
+      "    if (n == 3) continue;\n"
+      "    vla[0] = inner_v;\n"
+      "    n--;\n"
+      "  }\n"
+      "  return in;\n"
+      "}\n"
+      "struct Box f_cl_box(struct Box b) {\n"
+      "  int __attribute__((cleanup(cl_fn))) x = 0;\n"
+      "  return b;\n"
+      "}\n",
+      "void cl_fn2(int *p);\n"
+      "f_kr() {\n"
+      "  int __attribute__((cleanup(cl_fn2))) x = 0;\n"
+      "  return (void)1;\n"
+      "}\n",
+      "int g_only_se = ({ int a = 1; a; });\n",
+      "void f_one_val_se(void) { for (; ({ int a = 1; ((a)); }); ) { break; } "
+      "}\n",
+      "void f_one_void_se(void) { ({ int a = 1; }); ({ int b = 1; } + 1); }\n",
+      "void *f_cg(int c) {\n"
+      "  void *tbl[] = { &&l1, &&l2 };\n"
+      "  void *p = (c > 0) ? &&l1 : &&l2;\n"
+      "  goto *p;\n"
+      "l1:\n"
+      "  p = &&l2;\n"
+      "  goto *p;\n"
+      "l2:\n"
+      "  return &&l1;\n"
+      "}\n"
+      "void *f_cg_undef(void) {\n"
+      "  void *arr[] = { &&undef2 };\n"
+      "  void *q = &&undef_lbl;\n"
+      "  if (!q) return &&undef3;\n"
+      "  goto *q;\n"
+      "}\n"
+      "void f_many_lbls(void) {\n"
+      "  __label__ a, b, c, d, e, f;\n"
+      "  a: b: c: d: e: f: ;\n"
+      "}\n"};
+  size_t si;
+  int fi;
+  cdd_transform_config_t cfg;
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.fallback_vla_to_malloc = 1;
+
+  for (si = 0; si < sizeof(k_unroll_srcs) / sizeof(k_unroll_srcs[0]); si++) {
+    cdd_cst_tree_t *tree = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+    tree = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, gnu_standardize_unroll_ctx(tree, NULL));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  }
+
+  for (si = 0; si < sizeof(k_unroll_srcs) / sizeof(k_unroll_srcs[0]); si++) {
+    for (fi = 1; fi <= 25; fi++) {
+      cdd_cst_tree_t *tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_gnu_alloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_gnu_alloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_gnu_replace_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_gnu_replace_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_gnu_bld_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_gnu_bld_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_gnu_malloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_gnu_malloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_cdd_strdup_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_strdup_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_cdd_cst_alloc_token_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_cst_alloc_token_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_cdd_cst_realloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_cst_realloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_unroll_srcs[si]), &tree));
+      g_cdd_cst_alloc_node_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_cst_alloc_node_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    }
+  }
+  PASS();
+}
+
+/**
+ * @brief Covers long numeric/identifier truncation caps, 10-char format-checked
+ * function name, `__declspec` constructor, and unmatched bracket inside
+ * `typeof` across `gnu_standardizer_{builtins,ranges,types}.c`.
+ * @return Greatest test result.
+ */
+TEST test_gnu_standardizer_remaining_cap_and_typeof_branches(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_transform_config_t cfg;
+  char num70[72];
+  char num135[140];
+  char id70[72];
+  char id135[140];
+  char src[2048];
+  size_t ti;
+
+  memset(num70, '0', 69);
+  num70[69] = '1';
+  num70[70] = '\0';
+
+  memset(num135, '0', 134);
+  num135[134] = '1';
+  num135[135] = '\0';
+
+  memset(id70, 'p', 70);
+  id70[70] = '\0';
+
+  memset(id135, 'c', 135);
+  id135[135] = '\0';
+
+  CDD_SNPRINTF(
+      src, sizeof(src),
+      "#define VMAC(%s, rest...) (%s)\n"
+      "__attribute__((format(printf, 1, 2))) void my_fmt_log(const char *f, "
+      "...);\n"
+      "__attribute__((constructor)) __declspec(dllexport) void ctor_d(void) "
+      "{}\n"
+      "__attribute__((constructor)) void %s(void) {}\n"
+      "__attribute__((aligned(%s))) int g_al;\n"
+      "int fn_caps(int x) {\n"
+      "  int cp = __builtin_constant_p(%s);\n"
+      "  switch (x) { case %s ... 2: return cp; default: break; }\n"
+      "  return 0;\n"
+      "}\n",
+      id70, id70, id135, num70, num70, num135);
+
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.target_profile = CDD_TARGET_PROFILE_MSVC_MODERN;
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_parse(az_span_create_from_str(src), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+  tree = NULL;
+
+  cfg.target_profile = CDD_TARGET_PROFILE_ISO_C89;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_parse(az_span_create_from_str(src), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+  tree = NULL;
+
+  /* Unmatched `[` inside `typeof(...)` attached to a valid CST function body */
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_cst_parse(az_span_create_from_str(
+                        "void f_to(void) { int a[2]; typeof(a[0]) b; }\n"),
+                    &tree));
+  for (ti = 0; ti < tree->base_tokens->size; ti++) {
+    if (tree->base_tokens->tokens[ti].kind == CDD_TOKEN_RBRACKET && ti > 12) {
+      tree->base_tokens->tokens[ti].kind = CDD_TOKEN_IDENTIFIER;
+      break;
+    }
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+  tree = NULL;
+
+  /* Unclosed `typeof(int x` reaching EOF in paren scan loop */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cst_parse(az_span_create_from_str("typeof(int x"), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+  PASS();
+}
+
+/**
  * @brief Executes the transformer_gnu_standardizer_branches_suite test suite.
  */
 SUITE(transformer_gnu_standardizer_branches_suite) {
@@ -694,6 +948,8 @@ SUITE(transformer_gnu_standardizer_branches_suite) {
   RUN_TEST(test_gnu_standardizer_more_cases);
   RUN_TEST(test_gnu_standardizer_more_cases_100);
   RUN_TEST(test_gnu_standardizer_error_branches);
+  RUN_TEST(test_gnu_unroll_complete_coverage);
+  RUN_TEST(test_gnu_standardizer_remaining_cap_and_typeof_branches);
 }
 #ifdef __cplusplus
 }

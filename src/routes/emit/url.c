@@ -55,14 +55,15 @@ cdd_c_error_t is_primitive_type_url(const char *type, int *out_is_prim) {
 cdd_c_error_t param_is_object_kv_url(const struct OpenAPI_Parameter *p,
                                      int *out_is_kv) {
   int is_prim = 0;
+  cdd_c_error_t rc;
   if (!out_is_kv)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_kv = 0;
   if (!p || p->is_array || p->in != OA_PARAM_IN_QUERY || !p->type)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = is_primitive_type_url(p->type, &is_prim);
+  rc = is_primitive_type_url(p->type, &is_prim);
   *out_is_kv = !is_prim;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -101,15 +102,16 @@ cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected,
   size_t i;
   size_t len = 0;
   size_t exp_len;
+  cdd_c_error_t rc;
   if (!out_eq)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_eq = 0;
   if (!media_type || !expected)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_base_len_url(media_type, &len);
+  rc = media_type_base_len_url(media_type, &len);
   exp_len = strlen(expected);
   if (len != exp_len)
-    return CDD_C_SUCCESS;
+    return rc;
   for (i = 0; i < len; ++i) {
     char a = media_type[i];
     char b = expected[i];
@@ -135,20 +137,20 @@ cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected,
 cdd_c_error_t media_type_is_json_url(const char *media_type, int *out_is_json) {
   size_t len = 0;
   int eq = 0;
+  cdd_c_error_t rc;
   if (!out_is_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_json = 0;
   if (!media_type)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err =
-      media_type_ieq_url(media_type, "application/json", &eq);
+  rc = media_type_ieq_url(media_type, "application/json", &eq);
   if (eq) {
     *out_is_json = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err = media_type_base_len_url(media_type, &len);
+  rc = media_type_base_len_url(media_type, &len);
   if (len < 5)
-    return CDD_C_SUCCESS;
+    return rc;
   {
     const char *suffix = "+json";
     size_t start = len - 5;
@@ -191,14 +193,15 @@ cdd_c_error_t
 querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
                                  int *out_is_form_obj) {
   int is_form = 0;
+  cdd_c_error_t rc;
   if (!out_is_form_obj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_form_obj = 0;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_form_url(p->content_type, &is_form);
+  rc = media_type_is_form_url(p->content_type, &is_form);
   if (!is_form)
-    return CDD_C_SUCCESS;
+    return rc;
   if (p->schema.ref_name ||
       (p->schema.inline_type && strcmp(p->schema.inline_type, "object") == 0) ||
       (p->type && strcmp(p->type, "object") == 0)) {
@@ -219,14 +222,15 @@ querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
 cdd_c_error_t querystring_param_is_json_ref(const struct OpenAPI_Parameter *p,
                                             int *out_is_json_ref) {
   int is_json = 0;
+  cdd_c_error_t rc;
   if (!out_is_json_ref)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_json_ref = 0;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  rc = media_type_is_json_url(p->content_type, &is_json);
   if (!is_json)
-    return CDD_C_SUCCESS;
+    return rc;
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
     return CDD_C_SUCCESS;
   *out_is_json_ref = (p->schema.ref_name != NULL) ? 1 : 0;
@@ -246,14 +250,15 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
                                       const char **_out_val) {
   const char *type = NULL;
   int is_json = 0;
+  cdd_c_error_t rc;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  rc = media_type_is_json_url(p->content_type, &is_json);
   if (!is_json)
-    return CDD_C_SUCCESS;
+    return rc;
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
     return CDD_C_SUCCESS;
   if (p->schema.inline_type)
@@ -282,14 +287,15 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
                                        const char **_out_val) {
   const char *item_type = NULL;
   int is_json = 0;
+  cdd_c_error_t rc;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  rc = media_type_is_json_url(p->content_type, &is_json);
   if (!is_json)
-    return CDD_C_SUCCESS;
+    return rc;
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
         p->is_array)) {
     return CDD_C_SUCCESS;
@@ -320,14 +326,15 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
                                       const char **_out_val) {
   const char *item_type = NULL;
   int is_json = 0;
+  cdd_c_error_t rc;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  rc = media_type_is_json_url(p->content_type, &is_json);
   if (!is_json)
-    return CDD_C_SUCCESS;
+    return rc;
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
         p->is_array)) {
     return CDD_C_SUCCESS;
@@ -359,17 +366,18 @@ C_CDD_EXPORT cdd_c_error_t querystring_param_raw_primitive_type(
   const char *type = NULL;
   int is_json = 0;
   int is_form = 0;
+  cdd_c_error_t rc;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING || !p->content_type)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  rc = media_type_is_json_url(p->content_type, &is_json);
   if (is_json)
-    return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_form_url(p->content_type, &is_form);
+    return rc;
+  rc = media_type_is_form_url(p->content_type, &is_form);
   if (is_form)
-    return CDD_C_SUCCESS;
+    return rc;
   if (p->schema.inline_type)
     type = p->schema.inline_type;
   else if (p->type)

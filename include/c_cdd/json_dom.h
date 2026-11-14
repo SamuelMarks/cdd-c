@@ -186,6 +186,12 @@ struct json_value_t {
   JSON_Object *object_val;
   /** @brief Array pointer when type == JSONArray. */
   JSON_Array *array_val;
+  /** @brief 1-based source line number (0 if not parsed from source). */
+  size_t src_line;
+  /** @brief 1-based source column number (0 if not parsed from source). */
+  size_t src_col;
+  /** @brief 0-based source byte offset (0 if not parsed from source). */
+  size_t src_offset;
 };
 
 /**
@@ -1841,6 +1847,133 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_json_merge_patch(const JSON_Value *target,
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_json_apply_patch(
     const JSON_Value *doc, const JSON_Value *patch_arr, JSON_Value **out);
+
+/**
+ * @brief Computes an RFC 6902 JSON Patch array of operations (`add`, `remove`,
+ * `replace`) that transforms `src` into `dst`.
+ *
+ * @param[in] src Source JSON_Value document.
+ * @param[in] dst Target JSON_Value document.
+ * @param[out] out_patch Output pointer receiving newly allocated JSONArray of
+ * patch operations.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_json_diff_patch(const JSON_Value *src,
+                                                      const JSON_Value *dst,
+                                                      JSON_Value **out_patch);
+
+/**
+ * @brief Retrieves the source line, column, and byte offset of a parsed
+ * JSON_Value node.
+ *
+ * @param[in] val JSON_Value to inspect.
+ * @param[out] out_line Optional output pointer receiving 1-based line number.
+ * @param[out] out_col Optional output pointer receiving 1-based column number.
+ * @param[out] out_offset Optional output pointer receiving 0-based byte offset.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if val is
+ * NULL.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_json_value_get_location(const JSON_Value *val, size_t *out_line,
+                            size_t *out_col, size_t *out_offset);
+
+/**
+ * @brief Evaluates an RFC 9535 JSONPath query against a root JSON_Value and
+ * returns a newly allocated JSONArray containing deep copies of all matching
+ * nodes.
+ *
+ * @param[in] root Root JSON_Value document.
+ * @param[in] jsonpath Null-terminated JSONPath expression starting with `$`.
+ * @param[out] out_array Output pointer receiving newly allocated JSON_Value of
+ * type JSONArray.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_json_path_query(const JSON_Value *root,
+                                                      const char *jsonpath,
+                                                      JSON_Value **out_array);
+
+/**
+ * @brief Validates a JSON_Value `instance` against a JSON Schema Draft 2020-12
+ * / OpenAPI 3.2 `schema` DOM node.
+ *
+ * Supports boolean schemas (`true`/`false`), `$ref` / `$defs`, `type` (string
+ * or array of strings including `"integer"`), `enum`, `const`, `minimum`,
+ * `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `minLength`, `maxLength`,
+ * `pattern` (RFC 9485 I-Regexp), `format`, `items`, `minItems`, `maxItems`,
+ * `contains`, `minContains`, `maxContains`, `unevaluatedItems`, `required`,
+ * `dependentRequired`, `dependentSchemas`, `propertyNames`, `properties`,
+ * `additionalProperties`, `unevaluatedProperties`, `allOf`, `anyOf`, `oneOf`,
+ * and `not`.
+ *
+ * @param[in] schema JSON Schema DOM node (JSONObject or JSONBoolean).
+ * @param[in] instance JSON instance DOM node to validate.
+ * @return CDD_C_SUCCESS if valid, CDD_C_ERROR_INVALID_ARGUMENT if validation
+ * fails or arguments are NULL.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_json_schema_validate(const JSON_Value *schema, const JSON_Value *instance);
+
+/**
+ * @brief Incremental non-blocking push JSON parser state.
+ */
+struct cdd_json_push_parser {
+  /** @brief Dynamic accumulator buffer for incoming chunks. */
+  char *buf;
+  /** @brief Current byte length in `buf`. */
+  size_t len;
+  /** @brief Allocated byte capacity of `buf`. */
+  size_t cap;
+  /** @brief Non-zero if currently inside a double-quoted string literal. */
+  int in_string;
+  /** @brief Non-zero if the previous byte inside a string was a backslash. */
+  int in_escape;
+  /** @brief Current bracket/brace nesting depth. */
+  int depth;
+  /** @brief Stack of open container characters ('{' or '['). */
+  char stack[64];
+};
+
+/**
+ * @brief Initializes an incremental push JSON parser.
+ *
+ * @param[out] parser Push parser state to initialize.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_json_push_parser_init(struct cdd_json_push_parser *parser);
+
+/**
+ * @brief Feeds a chunk of UTF-8 JSON bytes into the incremental push parser.
+ *
+ * @param[in,out] parser Active push parser.
+ * @param[in] chunk Input chunk bytes.
+ * @param[in] chunk_len Number of bytes in `chunk`.
+ * @return CDD_C_SUCCESS on success, or error code (`CDD_C_ERROR_MEMORY`,
+ * `CDD_C_ERROR_INVALID_ARGUMENT`).
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_json_push_parser_feed(
+    struct cdd_json_push_parser *parser, const char *chunk, size_t chunk_len);
+
+/**
+ * @brief Finalizes the incremental push parser and constructs the `JSON_Value`
+ * DOM tree.
+ *
+ * @param[in,out] parser Active push parser.
+ * @param[out] out Output pointer receiving the parsed `JSON_Value` tree.
+ * @return CDD_C_SUCCESS on success, or error code (`CDD_C_ERROR_PARSE`,
+ * `CDD_C_ERROR_INVALID_ARGUMENT`).
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_json_push_parser_finish(
+    struct cdd_json_push_parser *parser, JSON_Value **out);
+
+/**
+ * @brief Frees internal buffer resources of an incremental push parser.
+ *
+ * @param[in,out] parser Push parser to clean up (safe if NULL).
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_json_push_parser_free(struct cdd_json_push_parser *parser);
 
 #ifdef __cplusplus
 }

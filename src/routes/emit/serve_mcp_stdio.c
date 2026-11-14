@@ -371,6 +371,539 @@ const struct cdd_type_info CddMcpToolCallParams_type_info = {
         sizeof(g_cdd_mcp_tool_call_params_fields[0]),
     0};
 
+/** @brief Reflected fields for `CddMcpReadResourceParams`. */
+static const struct cdd_field_info g_cdd_mcp_read_resource_params_fields[] = {
+    {"uri",
+     "uri",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpReadResourceParams, uri),
+     sizeof(const char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info CddMcpReadResourceParams_type_info = {
+    "CddMcpReadResourceParams",
+    sizeof(struct CddMcpReadResourceParams),
+    0,
+    g_cdd_mcp_read_resource_params_fields,
+    sizeof(g_cdd_mcp_read_resource_params_fields) /
+        sizeof(g_cdd_mcp_read_resource_params_fields[0]),
+    0};
+
+/** @brief Reflected fields for `CddMcpGetPromptParams`. */
+static const struct cdd_field_info g_cdd_mcp_get_prompt_params_fields[] = {
+    {"name",
+     "name",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpGetPromptParams, name),
+     sizeof(const char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info CddMcpGetPromptParams_type_info = {
+    "CddMcpGetPromptParams",
+    sizeof(struct CddMcpGetPromptParams),
+    0,
+    g_cdd_mcp_get_prompt_params_fields,
+    sizeof(g_cdd_mcp_get_prompt_params_fields) /
+        sizeof(g_cdd_mcp_get_prompt_params_fields[0]),
+    0};
+
+/** @brief Reflected fields for `CddMcpCreateMessageParams`. */
+static const struct cdd_field_info g_cdd_mcp_create_message_params_fields[] = {
+    {"includeContext",
+     "includeContext",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpCreateMessageParams, includeContext),
+     sizeof(const char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"systemPrompt",
+     "systemPrompt",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpCreateMessageParams, systemPrompt),
+     sizeof(const char *),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"maxTokens",
+     "maxTokens",
+     "double",
+     NULL,
+     CDD_FIELD_KIND_NUMBER,
+     offsetof(struct CddMcpCreateMessageParams, maxTokens),
+     sizeof(double),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"temperature",
+     "temperature",
+     "double",
+     NULL,
+     CDD_FIELD_KIND_NUMBER,
+     offsetof(struct CddMcpCreateMessageParams, temperature),
+     sizeof(double),
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info CddMcpCreateMessageParams_type_info = {
+    "CddMcpCreateMessageParams",
+    sizeof(struct CddMcpCreateMessageParams),
+    0,
+    g_cdd_mcp_create_message_params_fields,
+    sizeof(g_cdd_mcp_create_message_params_fields) /
+        sizeof(g_cdd_mcp_create_message_params_fields[0]),
+    0};
+
+/** @brief Reflected fields for `CddMcpResourceContent`. */
+static const struct cdd_field_info g_cdd_mcp_resource_content_fields[] = {
+    {"uri",
+     "uri",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpResourceContent, uri),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"mimeType",
+     "mimeType",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpResourceContent, mimeType),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"text",
+     "text",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpResourceContent, text),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info CddMcpResourceContent_type_info = {
+    "CddMcpResourceContent",
+    sizeof(struct CddMcpResourceContent),
+    0,
+    g_cdd_mcp_resource_content_fields,
+    sizeof(g_cdd_mcp_resource_content_fields) /
+        sizeof(g_cdd_mcp_resource_content_fields[0]),
+    0};
+
+/** @brief Reflected fields for `CddMcpTextContent`. */
+static const struct cdd_field_info g_cdd_mcp_text_content_fields[] = {
+    {"type",
+     "type",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpTextContent, type),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"text",
+     "text",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct CddMcpTextContent, text),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+const struct cdd_type_info CddMcpTextContent_type_info = {
+    "CddMcpTextContent",
+    sizeof(struct CddMcpTextContent),
+    0,
+    g_cdd_mcp_text_content_fields,
+    sizeof(g_cdd_mcp_text_content_fields) /
+        sizeof(g_cdd_mcp_text_content_fields[0]),
+    0};
+
 cdd_c_error_t CddJsonRpcResponse_to_json(const struct CddJsonRpcResponse *resp,
                                          char **out_json) {
   JSON_Value *root_val = NULL;
@@ -379,30 +912,61 @@ cdd_c_error_t CddJsonRpcResponse_to_json(const struct CddJsonRpcResponse *resp,
   cdd_c_error_t rc;
 
   rc = cdd_json_value_init_object(&root_val);
-  rc = cdd_json_value_get_object(root_val, &root_obj);
-  rc = cdd_json_object_set_string(root_obj, "jsonrpc", resp->jsonrpc);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_value_get_object(root_val, &root_obj));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
+                                     root_obj, "jsonrpc", resp->jsonrpc));
+  if (rc != CDD_C_SUCCESS)
+    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   if (resp->result_json) {
     JSON_Value *res_val = NULL;
     rc = cdd_json_parse_string(resp->result_json, &res_val);
+    if (rc != CDD_C_SUCCESS)
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
     rc = cdd_json_object_set_value(root_obj, "result", res_val);
+    if (rc != CDD_C_SUCCESS) {
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(res_val));
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    }
   } else {
     JSON_Value *err_val = NULL;
     JSON_Object *err_obj = NULL;
     rc = cdd_json_value_init_object(&err_val);
-    rc = cdd_json_value_get_object(err_val, &err_obj);
-    rc = cdd_reflect_to_json_object(&resp->error, &CddJsonRpcErrorObj_type_info,
-                                    err_obj);
+    if (rc != CDD_C_SUCCESS)
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_value_get_object(err_val, &err_obj));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_reflect_to_json_object(
+                                       &resp->error,
+                                       &CddJsonRpcErrorObj_type_info, err_obj));
+    if (rc != CDD_C_SUCCESS) {
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(err_val));
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    }
     rc = cdd_json_object_set_value(root_obj, "error", err_val);
+    if (rc != CDD_C_SUCCESS) {
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(err_val));
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    }
   }
   if (resp->id_val) {
     rc = cdd_json_value_deep_copy(resp->id_val, &id_copy);
+    if (rc != CDD_C_SUCCESS)
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
     rc = cdd_json_object_set_value(root_obj, "id", id_copy);
+    if (rc != CDD_C_SUCCESS) {
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(id_copy));
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    }
   } else {
     rc = cdd_json_object_set_null(root_obj, "id");
+    if (rc != CDD_C_SUCCESS)
+      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   }
   rc = cdd_json_serialize_to_string(root_val, out_json);
-  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-  return rc;
+  return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
 }
 
 cdd_c_error_t
@@ -472,7 +1036,8 @@ static cdd_c_error_t send_stdio_rpc_response(JSON_Value *id_val,
 
 cdd_c_error_t build_mcp_resources_read(const JSON_Object *params,
                                        char **out_json) {
-  const char *uri = NULL;
+  struct CddMcpReadResourceParams rp;
+  struct CddMcpResourceContent item_data;
   const char *target_uri;
   const char *file_path = NULL;
   char *content = NULL;
@@ -481,14 +1046,18 @@ cdd_c_error_t build_mcp_resources_read(const JSON_Object *params,
   JSON_Value *arr_val = NULL;
   JSON_Value *item_val = NULL;
   char *serialized = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  rc = cdd_json_object_get_string(params, "uri", &uri);
-  target_uri = uri ? uri : "file:///openapi.json";
+  memset(&rp, 0, sizeof(rp));
+  if (params) {
+    rc = cdd_reflect_from_json_object(params,
+                                      &CddMcpReadResourceParams_type_info, &rp);
+  }
+  target_uri = rp.uri ? rp.uri : "file:///openapi.json";
 
-  rc = cdd_json_value_init_object(&res_val);
-  rc = cdd_json_value_init_array(&arr_val);
-  rc = cdd_json_value_init_object(&item_val);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&res_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_array(&arr_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&item_val));
 
   if (strncmp(target_uri, "file:///", 8) == 0) {
     file_path = target_uri + 8;
@@ -498,29 +1067,39 @@ cdd_c_error_t build_mcp_resources_read(const JSON_Object *params,
     file_path = target_uri;
   }
 
-  rc = cdd_json_object_set_string(item_val->object_val, "uri", target_uri);
-  rc = cdd_json_object_set_string(item_val->object_val, "mimeType",
-                                  "application/json");
+  item_data.uri = target_uri;
+  item_data.mimeType = "application/json";
   if (read_to_file(file_path, "rb", &content, &sz) == CDD_C_SUCCESS) {
-    rc = cdd_json_object_set_string(item_val->object_val, "text", content);
-    C_CDD_FREE(content);
+    item_data.text = content;
   } else {
-    rc = cdd_json_object_set_string(
-        item_val->object_val, "text",
+    item_data.text =
         "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"cdd-c\",\"version\":"
-        "\"0.0.5\"},\"paths\":{}}");
+        "\"0.0.5\"},\"paths\":{}}";
   }
-  rc = cdd_json_array_append_value(arr_val->array_val, item_val);
-  rc = cdd_json_object_set_value(res_val->object_val, "contents", arr_val);
-  rc = cdd_json_serialize_to_string(res_val, &serialized);
-  g_cdd_last_alloc_err = cdd_json_value_free(res_val);
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_reflect_to_json_object(
+                           &item_data, &CddMcpResourceContent_type_info,
+                           item_val->object_val));
+  if (content) {
+    C_CDD_FREE(content);
+  }
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_array_append_value(
+                                     arr_val->array_val, item_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                     res_val->object_val, "contents", arr_val));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_serialize_to_string(res_val, &serialized));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(res_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_reflect_struct_cleanup(
+                                     &rp, &CddMcpReadResourceParams_type_info));
   *out_json = serialized;
   return rc;
 }
 
 cdd_c_error_t build_mcp_prompts_get(const JSON_Object *params,
                                     char **out_json) {
-  const char *prompt_name = NULL;
+  struct CddMcpGetPromptParams pp;
+  struct CddMcpTextContent cnt_data;
   const char *name;
   char desc_buf[256];
   char text_buf[256];
@@ -529,10 +1108,14 @@ cdd_c_error_t build_mcp_prompts_get(const JSON_Object *params,
   JSON_Value *msg_val = NULL;
   JSON_Value *cnt_val = NULL;
   char *serialized = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  rc = cdd_json_object_get_string(params, "name", &prompt_name);
-  name = prompt_name ? prompt_name : "generate_sdk";
+  memset(&pp, 0, sizeof(pp));
+  if (params) {
+    rc = cdd_reflect_from_json_object(params, &CddMcpGetPromptParams_type_info,
+                                      &pp);
+  }
+  name = pp.name ? pp.name : "generate_sdk";
 #if defined(_MSC_VER)
   sprintf_s(desc_buf, sizeof(desc_buf), "Prompt %s", name);
   sprintf_s(text_buf, sizeof(text_buf), "Execute %s", name);
@@ -540,19 +1123,32 @@ cdd_c_error_t build_mcp_prompts_get(const JSON_Object *params,
   CDD_SNPRINTF(desc_buf, sizeof(desc_buf), "Prompt %s", name);
   CDD_SNPRINTF(text_buf, sizeof(text_buf), "Execute %s", name);
 #endif
-  rc = cdd_json_value_init_object(&res_val);
-  rc = cdd_json_value_init_array(&msgs_val);
-  rc = cdd_json_value_init_object(&msg_val);
-  rc = cdd_json_value_init_object(&cnt_val);
-  rc = cdd_json_object_set_string(res_val->object_val, "description", desc_buf);
-  rc = cdd_json_object_set_string(msg_val->object_val, "role", "user");
-  rc = cdd_json_object_set_string(cnt_val->object_val, "type", "text");
-  rc = cdd_json_object_set_string(cnt_val->object_val, "text", text_buf);
-  rc = cdd_json_object_set_value(msg_val->object_val, "content", cnt_val);
-  rc = cdd_json_array_append_value(msgs_val->array_val, msg_val);
-  rc = cdd_json_object_set_value(res_val->object_val, "messages", msgs_val);
-  rc = cdd_json_serialize_to_string(res_val, &serialized);
-  g_cdd_last_alloc_err = cdd_json_value_free(res_val);
+  cnt_data.type = "text";
+  cnt_data.text = text_buf;
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&res_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_array(&msgs_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&msg_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&cnt_val));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_object_set_string(
+                           res_val->object_val, "description", desc_buf));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
+                                     msg_val->object_val, "role", "user"));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_reflect_to_json_object(
+                                     &cnt_data, &CddMcpTextContent_type_info,
+                                     cnt_val->object_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                     msg_val->object_val, "content", cnt_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_array_append_value(
+                                     msgs_val->array_val, msg_val));
+  rc =
+      (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
+                                    res_val->object_val, "messages", msgs_val));
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_serialize_to_string(res_val, &serialized));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(res_val));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_reflect_struct_cleanup(
+                                     &pp, &CddMcpGetPromptParams_type_info));
   *out_json = serialized;
   return rc;
 }
@@ -579,12 +1175,15 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   }
 
   rc = cdd_json_value_get_object(root_val, &root_obj);
-  rc = cdd_json_object_get_string(root_obj, "method", &method);
-  rc = cdd_json_object_get_value(root_obj, "id", &id_val);
+  if (cdd_json_object_get_string(root_obj, "method", &method) != CDD_C_SUCCESS)
+    method = NULL;
+  if (cdd_json_object_get_value(root_obj, "id", &id_val) != CDD_C_SUCCESS)
+    id_val = NULL;
 
   if (!method) {
-    g_cdd_last_alloc_err = cdd_json_value_free(root_val);
-    return send_stdio_rpc_error(id_val, -32600, "Invalid Request");
+    rc = send_stdio_rpc_error(id_val, -32600, "Invalid Request");
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    return rc;
   }
 
   if (strcmp(method, "version") == 0) {
@@ -639,10 +1238,14 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   } else if (strcmp(method, "resources/read") == 0) {
     JSON_Object *params = NULL;
     char *res_str = NULL;
-    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    if (cdd_json_object_get_object(root_obj, "params", &params) !=
+        CDD_C_SUCCESS)
+      params = NULL;
     rc = build_mcp_resources_read(params, &res_str);
-    rc = send_stdio_rpc_response(id_val, res_str);
-    g_cdd_last_alloc_err = cdd_json_free_serialized_string(res_str);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)send_stdio_rpc_response(id_val, res_str));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_free_serialized_string(res_str));
   } else if (strcmp(method, "resources/subscribe") == 0) {
     rc = send_stdio_rpc_response(id_val, "{}");
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
@@ -671,10 +1274,14 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   } else if (strcmp(method, "prompts/get") == 0) {
     JSON_Object *params = NULL;
     char *prompt_str = NULL;
-    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    if (cdd_json_object_get_object(root_obj, "params", &params) !=
+        CDD_C_SUCCESS)
+      params = NULL;
     rc = build_mcp_prompts_get(params, &prompt_str);
-    rc = send_stdio_rpc_response(id_val, prompt_str);
-    g_cdd_last_alloc_err = cdd_json_free_serialized_string(prompt_str);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)send_stdio_rpc_response(id_val, prompt_str));
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_free_serialized_string(prompt_str));
   } else if (strcmp(method, "completion/complete") == 0) {
     rc = send_stdio_rpc_response(
         id_val,
@@ -684,7 +1291,9 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
   } else if (strcmp(method, "tools/call") == 0) {
     JSON_Object *params = NULL;
     struct CddMcpToolCallParams tc_params;
-    rc = cdd_json_object_get_object(root_obj, "params", &params);
+    if (cdd_json_object_get_object(root_obj, "params", &params) !=
+        CDD_C_SUCCESS)
+      params = NULL;
 
     if (CddMcpToolCallParams_from_jsonObject(params, &tc_params) !=
         CDD_C_SUCCESS) {
@@ -696,58 +1305,80 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
       rc = cdd_reflect_from_json_object(tc_params.arguments,
                                         &cdd_to_openapi_config_type_info, &cfg);
       if (!cfg.input || !cfg.output) {
-        rc = send_stdio_rpc_error(id_val, -32602,
-                                  "Invalid arguments for to_openapi");
+        rc = (cdd_c_error_t)((int)rc | (int)send_stdio_rpc_error(
+                                           id_val, -32602,
+                                           "Invalid arguments for to_openapi"));
       } else {
         cdd_c_error_t rc_rpc = cdd_generate_to_openapi(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
-          rc =
-              send_stdio_rpc_error(id_val, -32603, "OpenAPI generation failed");
+          rc = (cdd_c_error_t)((int)rc | (int)send_stdio_rpc_error(
+                                             id_val, -32603,
+                                             "OpenAPI generation failed"));
         } else {
-          rc = send_stdio_rpc_response(
-              id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI "
-                      "generation successful\"}],\"isError\":false}");
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)send_stdio_rpc_response(
+                                   id_val,
+                                   "{\"content\":[{\"type\":\"text\",\"text\":"
+                                   "\"OpenAPI generation "
+                                   "successful\"}],\"isError\":false}"));
         }
       }
-      rc = cdd_reflect_struct_cleanup(&cfg, &cdd_to_openapi_config_type_info);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)cdd_reflect_struct_cleanup(
+                               &cfg, &cdd_to_openapi_config_type_info));
     } else if (strcmp(tc_params.name, "to_docs_json") == 0) {
       cdd_docs_json_config_t cfg;
       memset(&cfg, 0, sizeof(cfg));
       rc = cdd_reflect_from_json_object(tc_params.arguments,
                                         &cdd_docs_json_config_type_info, &cfg);
       if (!cfg.input) {
-        rc = send_stdio_rpc_error(id_val, -32602,
-                                  "Invalid arguments for to_docs_json");
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)send_stdio_rpc_error(
+                                 id_val, -32602,
+                                 "Invalid arguments for to_docs_json"));
       } else {
         cdd_c_error_t rc_rpc = cdd_generate_docs_json(&cfg);
         if (rc_rpc != CDD_C_SUCCESS) {
-          rc = send_stdio_rpc_error(id_val, -32603, "Docs generation failed");
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)send_stdio_rpc_error(
+                                   id_val, -32603, "Docs generation failed"));
         } else {
-          rc = send_stdio_rpc_response(
-              id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"Docs "
-                      "generation successful\"}],\"isError\":false}");
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)send_stdio_rpc_response(
+                                   id_val,
+                                   "{\"content\":[{\"type\":\"text\",\"text\":"
+                                   "\"Docs generation "
+                                   "successful\"}],\"isError\":false}"));
         }
       }
-      rc = cdd_reflect_struct_cleanup(&cfg, &cdd_docs_json_config_type_info);
+      rc =
+          (cdd_c_error_t)((int)rc | (int)cdd_reflect_struct_cleanup(
+                                        &cfg, &cdd_docs_json_config_type_info));
     } else if (strcmp(tc_params.name, "to_arazzo") == 0) {
       cdd_to_arazzo_config_t cfg;
       memset(&cfg, 0, sizeof(cfg));
       rc = cdd_reflect_from_json_object(tc_params.arguments,
                                         &cdd_to_arazzo_config_type_info, &cfg);
       if (cdd_generate_to_arazzo(&cfg) != CDD_C_SUCCESS) {
-        rc = send_stdio_rpc_error(id_val, -32603, "Arazzo extraction failed");
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)send_stdio_rpc_error(
+                                 id_val, -32603, "Arazzo extraction failed"));
       } else {
-        rc = send_stdio_rpc_response(
-            id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"Arazzo "
-                    "extraction successful\"}],\"isError\":false}");
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)send_stdio_rpc_response(
+                                 id_val,
+                                 "{\"content\":[{\"type\":\"text\",\"text\":"
+                                 "\"Arazzo extraction "
+                                 "successful\"}],\"isError\":false}"));
       }
-      rc = cdd_reflect_struct_cleanup(&cfg, &cdd_to_arazzo_config_type_info);
+      rc =
+          (cdd_c_error_t)((int)rc | (int)cdd_reflect_struct_cleanup(
+                                        &cfg, &cdd_to_arazzo_config_type_info));
     } else if (strcmp(tc_params.name, "from_arazzo") == 0) {
       cdd_from_arazzo_config_t cfg;
       const char *subcmd = NULL;
-      rc = cdd_json_object_get_string(tc_params.arguments, "subcommand",
-                                      &subcmd);
-      if (!subcmd)
+      if (cdd_json_object_get_string(tc_params.arguments, "subcommand",
+                                     &subcmd) != CDD_C_SUCCESS)
         subcmd = "";
       memset(&cfg, 0, sizeof(cfg));
       rc = cdd_reflect_from_json_object(
@@ -760,13 +1391,20 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
         cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
       }
       if (cdd_generate_from_arazzo(&cfg) != CDD_C_SUCCESS) {
-        rc = send_stdio_rpc_error(id_val, -32603, "Arazzo generation failed");
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)send_stdio_rpc_error(
+                                 id_val, -32603, "Arazzo generation failed"));
       } else {
-        rc = send_stdio_rpc_response(
-            id_val, "{\"content\":[{\"type\":\"text\",\"text\":\"Arazzo "
-                    "generation successful\"}],\"isError\":false}");
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)send_stdio_rpc_response(
+                                 id_val,
+                                 "{\"content\":[{\"type\":\"text\",\"text\":"
+                                 "\"Arazzo generation "
+                                 "successful\"}],\"isError\":false}"));
       }
-      rc = cdd_reflect_struct_cleanup(&cfg, &cdd_from_arazzo_config_type_info);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)cdd_reflect_struct_cleanup(
+                               &cfg, &cdd_from_arazzo_config_type_info));
     } else {
       rc = send_stdio_rpc_error(id_val, -32601, "Tool not found");
     }
@@ -774,7 +1412,7 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
     rc = send_stdio_rpc_error(id_val, -32601, "Method not found");
   }
 
-  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
   return rc;
 }
 
@@ -788,9 +1426,24 @@ C_CDD_EXPORT cdd_c_error_t handle_stdio_request(const char *body) {
  */
 C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
   char buffer[65536];
+  struct CddMcpToolCallParams dummy_cfg;
   const char *sug = NULL;
-  cdd_c_error_t rc_rpc = cdd_cli_suggest_closest(
-      argv[0], (const char *const *)argv, (size_t)argc, &sug);
+  int is_help = 0;
+  cdd_c_error_t rc_rpc;
+
+  memset(&dummy_cfg, 0, sizeof(dummy_cfg));
+  rc_rpc = cdd_cli_suggest_closest(argv[0], (const char *const *)argv,
+                                   (size_t)argc, &sug);
+  if (argc > 1) {
+    rc_rpc = (cdd_c_error_t)((int)rc_rpc |
+                             (int)cdd_cli_parse_reflected_argv(
+                                 argc, argv, 0, &CddMcpToolCallParams_type_info,
+                                 &dummy_cfg, &is_help, NULL));
+    if (is_help) {
+      puts("Usage: cdd-c serve_mcp_stdio");
+      return CDD_C_SUCCESS;
+    }
+  }
 
   while (fgets(buffer, sizeof(buffer), stdin)) {
     rc_rpc = handle_stdio_request(buffer);

@@ -64,6 +64,58 @@ struct CddMcpToolCallParams {
   const JSON_Object *arguments;
 };
 
+/**
+ * @brief MCP `resources/read` parameters struct.
+ */
+struct CddMcpReadResourceParams {
+  /** @brief Resource URI */
+  const char *uri;
+};
+
+/**
+ * @brief MCP `prompts/get` parameters struct.
+ */
+struct CddMcpGetPromptParams {
+  /** @brief Prompt name */
+  const char *name;
+};
+
+/**
+ * @brief MCP `sampling/createMessage` parameters struct.
+ */
+struct CddMcpCreateMessageParams {
+  /** @brief Context inclusion mode */
+  const char *includeContext;
+  /** @brief System prompt string */
+  const char *systemPrompt;
+  /** @brief Max tokens to sample */
+  double maxTokens;
+  /** @brief Sampling temperature */
+  double temperature;
+};
+
+/**
+ * @brief MCP `resources/read` content item struct.
+ */
+struct CddMcpResourceContent {
+  /** @brief Resource URI */
+  const char *uri;
+  /** @brief Resource MIME type */
+  const char *mimeType;
+  /** @brief Resource text content */
+  const char *text;
+};
+
+/**
+ * @brief MCP text content item struct.
+ */
+struct CddMcpTextContent {
+  /** @brief Content type ("text") */
+  const char *type;
+  /** @brief Text payload */
+  const char *text;
+};
+
 /** @brief Runtime reflection descriptor for `CddJsonRpcRequest`. */
 extern C_CDD_EXPORT const struct cdd_type_info CddJsonRpcRequest_type_info;
 /** @brief Runtime reflection descriptor for `CddJsonRpcErrorObj`. */
@@ -72,6 +124,18 @@ extern C_CDD_EXPORT const struct cdd_type_info CddJsonRpcErrorObj_type_info;
 extern C_CDD_EXPORT const struct cdd_type_info CddJsonRpcResponse_type_info;
 /** @brief Runtime reflection descriptor for `CddMcpToolCallParams`. */
 extern C_CDD_EXPORT const struct cdd_type_info CddMcpToolCallParams_type_info;
+/** @brief Runtime reflection descriptor for `CddMcpReadResourceParams`. */
+extern C_CDD_EXPORT const struct cdd_type_info
+    CddMcpReadResourceParams_type_info;
+/** @brief Runtime reflection descriptor for `CddMcpGetPromptParams`. */
+extern C_CDD_EXPORT const struct cdd_type_info CddMcpGetPromptParams_type_info;
+/** @brief Runtime reflection descriptor for `CddMcpCreateMessageParams`. */
+extern C_CDD_EXPORT const struct cdd_type_info
+    CddMcpCreateMessageParams_type_info;
+/** @brief Runtime reflection descriptor for `CddMcpResourceContent`. */
+extern C_CDD_EXPORT const struct cdd_type_info CddMcpResourceContent_type_info;
+/** @brief Runtime reflection descriptor for `CddMcpTextContent`. */
+extern C_CDD_EXPORT const struct cdd_type_info CddMcpTextContent_type_info;
 
 /**
  * @brief Builds a dynamic JSON result string for MCP `resources/read`.

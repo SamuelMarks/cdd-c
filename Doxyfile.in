@@ -19,5 +19,5 @@ GENERATE_LATEX         = NO
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
-PREDEFINED             = NO_DISCARD_TYPE=
+PREDEFINED             = NO_DISCARD_TYPE= NO_DISCARD_TYPEDEF= CDD_INT128_INLINE=
 ALIASES                = "cdd=@par cdd:" "serde=@par serde:" "cli=@par cli:"

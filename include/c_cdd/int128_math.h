@@ -6,14 +6,15 @@
 #ifndef C_CDD_INT128_MATH_H
 #define C_CDD_INT128_MATH_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 /* clang-format off */
 #include "cdd_c_error.h"
 #include "int128.h"
 #include <stddef.h>
 /* clang-format on */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /**
  * @brief Adds two 128-bit unsigned integers.
@@ -23,8 +24,11 @@ extern "C" {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_add(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_add(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low + b.low;
   out->high = a.high + b.high + (out->low < a.low ? 1 : 0);
   return CDD_C_SUCCESS;
@@ -38,8 +42,11 @@ static cdd_c_error_t cdd_uint128_add(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_add(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_add(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low + b.low;
   out->high = a.high + b.high + (out->low < a.low ? 1 : 0);
   return CDD_C_SUCCESS;
@@ -53,8 +60,11 @@ static cdd_c_error_t cdd_int128_add(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_sub(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_sub(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low - b.low;
   out->high = a.high - b.high - (a.low < b.low ? 1 : 0);
   return CDD_C_SUCCESS;
@@ -68,8 +78,11 @@ static cdd_c_error_t cdd_uint128_sub(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_sub(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_sub(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low - b.low;
   out->high = a.high - b.high - (a.low < b.low ? 1 : 0);
   return CDD_C_SUCCESS;
@@ -83,21 +96,35 @@ static cdd_c_error_t cdd_int128_sub(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
-  uint64_t a_lo = a.low & 0xFFFFFFFF;
-  uint64_t a_hi = a.low >> 32;
-  uint64_t b_lo = b.low & 0xFFFFFFFF;
-  uint64_t b_hi = b.low >> 32;
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_mul(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  uint64_t a_lo;
+  uint64_t a_hi;
+  uint64_t b_lo;
+  uint64_t b_hi;
+  uint64_t p00;
+  uint64_t p01;
+  uint64_t p10;
+  uint64_t p11;
+  uint64_t mid1;
+  uint64_t mid2;
+  uint64_t carry;
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  a_lo = a.low & 0xFFFFFFFF;
+  a_hi = a.low >> 32;
+  b_lo = b.low & 0xFFFFFFFF;
+  b_hi = b.low >> 32;
 
-  uint64_t p00 = a_lo * b_lo;
-  uint64_t p01 = a_lo * b_hi;
-  uint64_t p10 = a_hi * b_lo;
-  uint64_t p11 = a_hi * b_hi;
+  p00 = a_lo * b_lo;
+  p01 = a_lo * b_hi;
+  p10 = a_hi * b_lo;
+  p11 = a_hi * b_hi;
 
-  uint64_t mid1 = p01 + (p00 >> 32);
-  uint64_t mid2 = mid1 + p10;
-  uint64_t carry = (mid2 < mid1) ? ((uint64_t)1) : ((uint64_t)0);
+  mid1 = p01 + (p00 >> 32);
+  mid2 = mid1 + p10;
+  carry = (mid2 < mid1) ? ((uint64_t)1) : ((uint64_t)0);
 
   out->low = (mid2 << 32) | (p00 & 0xFFFFFFFF);
   out->high =
@@ -113,22 +140,23 @@ static cdd_c_error_t cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_mul(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_mul(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
   cdd_c_error_t rc;
   cdd_uint128_t ua;
   cdd_uint128_t ub;
   cdd_uint128_t uout;
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   ua.low = a.low;
   ua.high = (uint64_t)a.high;
   ub.low = b.low;
   ub.high = (uint64_t)b.high;
   rc = cdd_uint128_mul(ua, ub, &uout);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
   out->low = uout.low;
   out->high = (int64_t)uout.high;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -139,8 +167,11 @@ static cdd_c_error_t cdd_int128_mul(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_shl(cdd_uint128_t a, unsigned int shift,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_shl(cdd_uint128_t a,
+                                                       unsigned int shift,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -162,8 +193,11 @@ static cdd_c_error_t cdd_uint128_shl(cdd_uint128_t a, unsigned int shift,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_shr(cdd_uint128_t a, unsigned int shift,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_shr(cdd_uint128_t a,
+                                                       unsigned int shift,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -185,19 +219,20 @@ static cdd_c_error_t cdd_uint128_shr(cdd_uint128_t a, unsigned int shift,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_shl(cdd_int128_t a, unsigned int shift,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_shl(cdd_int128_t a,
+                                                      unsigned int shift,
+                                                      cdd_int128_t *out) {
   cdd_c_error_t rc;
   cdd_uint128_t ua;
   cdd_uint128_t uout;
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   ua.low = a.low;
   ua.high = (uint64_t)a.high;
   rc = cdd_uint128_shl(ua, shift, &uout);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
   out->low = uout.low;
   out->high = (int64_t)uout.high;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -208,8 +243,11 @@ static cdd_c_error_t cdd_int128_shl(cdd_int128_t a, unsigned int shift,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_shr(cdd_int128_t a, unsigned int shift,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_shr(cdd_int128_t a,
+                                                      unsigned int shift,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -232,27 +270,22 @@ static cdd_c_error_t cdd_int128_shr(cdd_int128_t a, unsigned int shift,
  * @param[out] rem Pointer to remainder (can be NULL).
  * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static cdd_c_error_t cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
-                                        cdd_uint128_t *quot,
-                                        cdd_uint128_t *rem) {
-  cdd_c_error_t rc;
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_divmod(cdd_uint128_t num,
+                                                          cdd_uint128_t den,
+                                                          cdd_uint128_t *quot,
+                                                          cdd_uint128_t *rem) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_uint128_t q;
   cdd_uint128_t r;
   int i;
   if (den.high == 0 && den.low == 0) {
     return CDD_C_ERROR_INVALID_ARGUMENT; /* Division by zero error */
   }
-  rc = cdd_make_uint128(0, 0, &q);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = cdd_make_uint128(0, 0, &r);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &q));
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &r));
 
   for (i = 127; i >= 0; i--) {
-    rc = cdd_uint128_shl(r, 1, &r);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_shl(r, 1, &r));
 
     /* Get i-th bit of num */
     {
@@ -267,9 +300,7 @@ static cdd_c_error_t cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
 
     /* if r >= den */
     if (r.high > den.high || (r.high == den.high && r.low >= den.low)) {
-      rc = cdd_uint128_sub(r, den, &r);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(r, den, &r));
       if (i < 64) {
         q.low |= (((uint64_t)1) << i);
       } else {
@@ -282,7 +313,7 @@ static cdd_c_error_t cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
     *quot = q;
   if (rem)
     *rem = r;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -293,8 +324,11 @@ static cdd_c_error_t cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static cdd_c_error_t cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_div(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return cdd_uint128_divmod(a, b, out, NULL);
 }
 
@@ -306,8 +340,11 @@ static cdd_c_error_t cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static cdd_c_error_t cdd_uint128_mod(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_mod(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return cdd_uint128_divmod(a, b, NULL, out);
 }
 
@@ -319,27 +356,27 @@ static cdd_c_error_t cdd_uint128_mod(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static cdd_c_error_t cdd_int128_div(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_div(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
   cdd_uint128_t ua;
   cdd_uint128_t ub;
   cdd_uint128_t uq;
   int sign_a = (a.high < 0);
   int sign_b = (b.high < 0);
   int sign_res = sign_a ^ sign_b;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (sign_a) {
     cdd_uint128_t zero;
     cdd_uint128_t tmp;
-    rc = cdd_make_uint128(0, 0, &zero);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &zero));
     tmp.high = (uint64_t)a.high;
     tmp.low = a.low;
-    rc = cdd_uint128_sub(zero, tmp, &ua);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, tmp, &ua));
   } else {
     ua.high = (uint64_t)a.high;
     ua.low = a.low;
@@ -348,36 +385,28 @@ static cdd_c_error_t cdd_int128_div(cdd_int128_t a, cdd_int128_t b,
   if (sign_b) {
     cdd_uint128_t zero;
     cdd_uint128_t tmp;
-    rc = cdd_make_uint128(0, 0, &zero);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &zero));
     tmp.high = (uint64_t)b.high;
     tmp.low = b.low;
-    rc = cdd_uint128_sub(zero, tmp, &ub);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, tmp, &ub));
   } else {
     ub.high = (uint64_t)b.high;
     ub.low = b.low;
   }
 
-  rc = cdd_uint128_divmod(ua, ub, &uq, NULL);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_divmod(ua, ub, &uq, NULL));
   if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (sign_res) {
     cdd_uint128_t zero;
-    rc = cdd_make_uint128(0, 0, &zero);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = cdd_uint128_sub(zero, uq, &uq);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &zero));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, uq, &uq));
   }
 
   out->high = (int64_t)uq.high;
   out->low = uq.low;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -388,26 +417,26 @@ static cdd_c_error_t cdd_int128_div(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success, non-zero on division by zero.
  */
-static cdd_c_error_t cdd_int128_mod(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_mod(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
   cdd_uint128_t ua;
   cdd_uint128_t ub;
   cdd_uint128_t ur;
   int sign_a = (a.high < 0);
   int sign_b = (b.high < 0);
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (sign_a) {
     cdd_uint128_t zero;
     cdd_uint128_t tmp;
-    rc = cdd_make_uint128(0, 0, &zero);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &zero));
     tmp.high = (uint64_t)a.high;
     tmp.low = a.low;
-    rc = cdd_uint128_sub(zero, tmp, &ua);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, tmp, &ua));
   } else {
     ua.high = (uint64_t)a.high;
     ua.low = a.low;
@@ -416,36 +445,28 @@ static cdd_c_error_t cdd_int128_mod(cdd_int128_t a, cdd_int128_t b,
   if (sign_b) {
     cdd_uint128_t zero;
     cdd_uint128_t tmp;
-    rc = cdd_make_uint128(0, 0, &zero);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &zero));
     tmp.high = (uint64_t)b.high;
     tmp.low = b.low;
-    rc = cdd_uint128_sub(zero, tmp, &ub);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, tmp, &ub));
   } else {
     ub.high = (uint64_t)b.high;
     ub.low = b.low;
   }
 
-  rc = cdd_uint128_divmod(ua, ub, NULL, &ur);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_divmod(ua, ub, NULL, &ur));
   if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (sign_a) {
     cdd_uint128_t zero;
-    rc = cdd_make_uint128(0, 0, &zero);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    rc = cdd_uint128_sub(zero, ur, &ur);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_make_uint128(0, 0, &zero));
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, ur, &ur));
   }
 
   out->high = (int64_t)ur.high;
   out->low = ur.low;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -456,8 +477,11 @@ static cdd_c_error_t cdd_int128_mod(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_and(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_and(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low & b.low;
   out->high = a.high & b.high;
   return CDD_C_SUCCESS;
@@ -471,8 +495,11 @@ static cdd_c_error_t cdd_uint128_and(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_and(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_and(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low & b.low;
   out->high = a.high & b.high;
   return CDD_C_SUCCESS;
@@ -486,8 +513,11 @@ static cdd_c_error_t cdd_int128_and(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_or(cdd_uint128_t a, cdd_uint128_t b,
-                                    cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_or(cdd_uint128_t a,
+                                                      cdd_uint128_t b,
+                                                      cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low | b.low;
   out->high = a.high | b.high;
   return CDD_C_SUCCESS;
@@ -501,8 +531,11 @@ static cdd_c_error_t cdd_uint128_or(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_or(cdd_int128_t a, cdd_int128_t b,
-                                   cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_or(cdd_int128_t a,
+                                                     cdd_int128_t b,
+                                                     cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low | b.low;
   out->high = a.high | b.high;
   return CDD_C_SUCCESS;
@@ -516,8 +549,11 @@ static cdd_c_error_t cdd_int128_or(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_xor(cdd_uint128_t a, cdd_uint128_t b,
-                                     cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_xor(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low ^ b.low;
   out->high = a.high ^ b.high;
   return CDD_C_SUCCESS;
@@ -531,8 +567,11 @@ static cdd_c_error_t cdd_uint128_xor(cdd_uint128_t a, cdd_uint128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_xor(cdd_int128_t a, cdd_int128_t b,
-                                    cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_xor(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = a.low ^ b.low;
   out->high = a.high ^ b.high;
   return CDD_C_SUCCESS;
@@ -545,7 +584,10 @@ static cdd_c_error_t cdd_int128_xor(cdd_int128_t a, cdd_int128_t b,
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_not(cdd_uint128_t a, cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_not(cdd_uint128_t a,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = ~a.low;
   out->high = ~a.high;
   return CDD_C_SUCCESS;
@@ -558,9 +600,91 @@ static cdd_c_error_t cdd_uint128_not(cdd_uint128_t a, cdd_uint128_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_not(cdd_int128_t a, cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_not(cdd_int128_t a,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = ~a.low;
   out->high = ~a.high;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Two's-complement negation of a 128-bit unsigned integer.
+ *
+ * @param[in] a Input operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
+ */
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_neg(cdd_uint128_t a,
+                                                       cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  out->low = ~a.low + (uint64_t)1;
+  out->high = ~a.high + (out->low == 0 ? (uint64_t)1 : (uint64_t)0);
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Two's-complement negation of a 128-bit signed integer.
+ *
+ * @param[in] a Input operand.
+ * @param[out] out Pointer to result.
+ * @return CDD_C_SUCCESS on success.
+ */
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_neg(cdd_int128_t a,
+                                                      cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  out->low = ~a.low + (uint64_t)1;
+  out->high = (int64_t)((uint64_t)(~a.high) +
+                        (out->low == 0 ? (uint64_t)1 : (uint64_t)0));
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Three-way comparison of two 128-bit unsigned integers.
+ *
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Receives -1 if `a < b`, 0 if `a == b`, or 1 if `a > b`.
+ * @return CDD_C_SUCCESS on success.
+ */
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_cmp(cdd_uint128_t a,
+                                                       cdd_uint128_t b,
+                                                       int *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (a.high != b.high) {
+    *out = (a.high < b.high) ? -1 : 1;
+  } else if (a.low != b.low) {
+    *out = (a.low < b.low) ? -1 : 1;
+  } else {
+    *out = 0;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Three-way comparison of two 128-bit signed integers.
+ *
+ * @param[in] a First operand.
+ * @param[in] b Second operand.
+ * @param[out] out Receives -1 if `a < b`, 0 if `a == b`, or 1 if `a > b`.
+ * @return CDD_C_SUCCESS on success.
+ */
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_cmp(cdd_int128_t a,
+                                                      cdd_int128_t b,
+                                                      int *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (a.high != b.high) {
+    *out = (a.high < b.high) ? -1 : 1;
+  } else if (a.low != b.low) {
+    *out = (a.low < b.low) ? -1 : 1;
+  } else {
+    *out = 0;
+  }
   return CDD_C_SUCCESS;
 }
 
@@ -571,7 +695,10 @@ static cdd_c_error_t cdd_int128_not(cdd_int128_t a, cdd_int128_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t
+cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = val;
   out->high = 0;
   return CDD_C_SUCCESS;
@@ -584,7 +711,10 @@ static cdd_c_error_t cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int64_to_int128(int64_t val,
+                                                           cdd_int128_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out->low = (uint64_t)(int64_t)val;
   out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
   return CDD_C_SUCCESS;
@@ -597,7 +727,10 @@ static cdd_c_error_t cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_uint128_to_uint64(cdd_uint128_t val, uint64_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_uint128_to_uint64(cdd_uint128_t val,
+                                                             uint64_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = val.low;
   return CDD_C_SUCCESS;
 }
@@ -609,7 +742,10 @@ static cdd_c_error_t cdd_uint128_to_uint64(cdd_uint128_t val, uint64_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_to_int64(cdd_int128_t val,
+                                                           int64_t *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = (int64_t)val.low;
   return CDD_C_SUCCESS;
 }
@@ -621,7 +757,8 @@ static cdd_c_error_t cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success, error code on NaN/Inf or overflow.
  */
-static cdd_c_error_t cdd_float_to_int128(float val, cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_float_to_int128(float val,
+                                                           cdd_int128_t *out) {
   union {
     float f;    /**< Float representation */
     uint32_t u; /**< Raw 32-bit IEEE-754 representation */
@@ -631,7 +768,10 @@ static cdd_c_error_t cdd_float_to_int128(float val, cdd_int128_t *out) {
   int exp;
   uint32_t frac;
   cdd_uint128_t res;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (val == 0.0f) {
     out->low = 0;
@@ -670,10 +810,10 @@ static cdd_c_error_t cdd_float_to_int128(float val, cdd_int128_t *out) {
   if (exp > 126) {
     /* Overflow */
     if (sign) {
-      out->high = ((int64_t)1) << 63; /* MIN */
+      out->high = (int64_t)(((uint64_t)1) << 63); /* MIN */
       out->low = 0;
     } else {
-      out->high = ~(((int64_t)1) << 63); /* MAX */
+      out->high = (int64_t)(~(((uint64_t)1) << 63)); /* MAX */
       out->low = ~(uint64_t)0;
     }
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -683,27 +823,23 @@ static cdd_c_error_t cdd_float_to_int128(float val, cdd_int128_t *out) {
   res.low = frac;
 
   if (exp > 23) {
-    rc = cdd_uint128_shl(res, (unsigned int)(exp - 23), &res);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_shl(
+                                       res, (unsigned int)(exp - 23), &res));
   } else if (exp < 23) {
-    rc = cdd_uint128_shr(res, (unsigned int)(23 - exp), &res);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_shr(
+                                       res, (unsigned int)(23 - exp), &res));
   }
 
   if (sign) {
     cdd_uint128_t zero;
     zero.high = 0;
     zero.low = 0;
-    rc = cdd_uint128_sub(zero, res, &res);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, res, &res));
   }
 
   out->high = (int64_t)res.high;
   out->low = res.low;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -713,7 +849,8 @@ static cdd_c_error_t cdd_float_to_int128(float val, cdd_int128_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success, error code on NaN/Inf or overflow.
  */
-static cdd_c_error_t cdd_double_to_int128(double val, cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_double_to_int128(double val,
+                                                            cdd_int128_t *out) {
   union {
     double d;   /**< Double representation */
     uint64_t u; /**< Raw 64-bit IEEE-754 representation */
@@ -723,7 +860,10 @@ static cdd_c_error_t cdd_double_to_int128(double val, cdd_int128_t *out) {
   int exp;
   uint64_t frac;
   cdd_uint128_t res;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (val == 0.0) {
     out->low = 0;
@@ -762,10 +902,10 @@ static cdd_c_error_t cdd_double_to_int128(double val, cdd_int128_t *out) {
   if (exp > 126) {
     /* Overflow */
     if (sign) {
-      out->high = ((int64_t)1) << 63; /* MIN */
+      out->high = (int64_t)(((uint64_t)1) << 63); /* MIN */
       out->low = 0;
     } else {
-      out->high = ~(((int64_t)1) << 63); /* MAX */
+      out->high = (int64_t)(~(((uint64_t)1) << 63)); /* MAX */
       out->low = ~(uint64_t)0;
     }
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -775,27 +915,23 @@ static cdd_c_error_t cdd_double_to_int128(double val, cdd_int128_t *out) {
   res.low = frac;
 
   if (exp > 52) {
-    rc = cdd_uint128_shl(res, (unsigned int)(exp - 52), &res);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_shl(
+                                       res, (unsigned int)(exp - 52), &res));
   } else if (exp < 52) {
-    rc = cdd_uint128_shr(res, (unsigned int)(52 - exp), &res);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_shr(
+                                       res, (unsigned int)(52 - exp), &res));
   }
 
   if (sign) {
     cdd_uint128_t zero;
     zero.high = 0;
     zero.low = 0;
-    rc = cdd_uint128_sub(zero, res, &res);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc = (cdd_c_error_t)((int)rc | (int)cdd_uint128_sub(zero, res, &res));
   }
 
   out->high = (int64_t)res.high;
   out->low = res.low;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -805,14 +941,21 @@ static cdd_c_error_t cdd_double_to_int128(double val, cdd_int128_t *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_to_float(cdd_int128_t val, float *out) {
-  uint64_t hi = (uint64_t)val.high;
-  uint64_t lo = val.low;
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_to_float(cdd_int128_t val,
+                                                           float *out) {
+  uint64_t hi;
+  uint64_t lo;
   int sign = 0;
   float f = 0.0f;
   float p2_32 = 4294967296.0f;
   float p2_64 = p2_32 * p2_32;
   float p2_96 = p2_64 * p2_32;
+
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  hi = (uint64_t)val.high;
+  lo = val.low;
 
   if (val.high < 0) {
     sign = 1;
@@ -838,14 +981,21 @@ static cdd_c_error_t cdd_int128_to_float(cdd_int128_t val, float *out) {
  * @param[out] out Pointer to result.
  * @return CDD_C_SUCCESS on success.
  */
-static cdd_c_error_t cdd_int128_to_double(cdd_int128_t val, double *out) {
-  uint64_t hi = (uint64_t)val.high;
-  uint64_t lo = val.low;
+static CDD_INT128_INLINE cdd_c_error_t cdd_int128_to_double(cdd_int128_t val,
+                                                            double *out) {
+  uint64_t hi;
+  uint64_t lo;
   int sign = 0;
   double d = 0.0;
   double p2_32 = 4294967296.0;
   double p2_64 = p2_32 * p2_32;
   double p2_96 = p2_64 * p2_32;
+
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  hi = (uint64_t)val.high;
+  lo = val.low;
 
   if (val.high < 0) {
     sign = 1;

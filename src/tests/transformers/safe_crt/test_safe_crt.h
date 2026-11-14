@@ -296,7 +296,19 @@ TEST test_cdd_transform_safe_crt(void) {
       '"',  'h',  '"',  ')',  ';',  ' ',  '}',  '\n', '\0'};
   char *out = NULL;
   int rc = 0;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
@@ -550,7 +562,19 @@ TEST test_cdd_transform_safe_crt(void) {
  */
 TEST test_cdd_transform_safe_crt_extended_functions(void) {
   cdd_cst_tree_t *tree = NULL;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
   char *out = NULL;
 
   const char code[] = {
@@ -779,15 +803,41 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
       ' ',  'w',  'i',  't',  'h',  'o', 'u',  't',  ' ',  'a',  'r',  'g',
       's',  ' ',  '*',  '/',  '\n', ' ', ' ',  ' ',  ' ',  ' ',  ' ',  '"',
       '#',  'e',  'n',  'd',  'i',  'f', '\n', '}',  '\n', '\0'};
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_safe_crt(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
-
   g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  {
+    const char *guarded_src =
+        "void f(void) { char dst[16]; strcpy(dst, \"hi\"); }\n";
+    config.safe_crt_mode = CDD_SAFE_CRT_GUARDED;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(guarded_src), &tree));
+    ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(guarded_src), &tree));
+    ASSERT_EQ(0, cdd_transform_safe_crt(tree, NULL));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  }
   g_fail_io_after = -1;
   PASS();
 }

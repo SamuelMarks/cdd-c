@@ -41,7 +41,19 @@ TEST test_extern_c_late_include(void) {
                                       "<late.h>\nvoid func2();\n");
   char *out = NULL;
   int rc = 0;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
   rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_transform_extern_c(tree, &config);
@@ -85,7 +97,19 @@ TEST test_cdd_transform_extern_c_builder_fails(void) {
   int rc = 0;
   int i;
   const char *code = cdd_test_mut_str("void func();");
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   for (i = 1; i <= 15; i++) {
     rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
@@ -108,7 +132,19 @@ TEST test_extern_c_bot_node_insert_oom(void) {
   const char *code = cdd_test_mut_str("void func();"); /* This has EOF */
   int rc = 0;
   cdd_token_t *eof_tok = NULL;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
@@ -157,7 +193,19 @@ TEST test_extern_c_bot_node_append_oom(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = cdd_test_mut_str("void func();");
   int rc = 0;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
@@ -197,7 +245,19 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
 TEST test_extern_c_top_node_oom(void) {
 #ifdef CDD_BUILD_TESTS
   const char *code = cdd_test_mut_str("int main() { return 0; }\n");
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
   int i;
   for (i = 1; i < 80; i++) {
     cdd_cst_tree_t *tree = NULL;

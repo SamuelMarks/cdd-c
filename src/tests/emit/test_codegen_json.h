@@ -2224,6 +2224,138 @@ TEST test_json_int64_and_int128_codegen(void) {
 }
 
 /**
+ * @brief Tests `write_struct_to_jsonObject_func` emission for all field types
+ * and error paths.
+ *
+ * @return Greatest test result.
+ */
+TEST test_json_to_jsonObject_codegen(void) {
+  struct StructFields sf;
+  struct CodegenJsonConfig cfg;
+  FILE *tmp = cdd_test_tmpfile_global();
+  char *content = NULL;
+  long sz;
+  int io_step;
+
+  ASSERT(tmp != NULL);
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.guard_macro = "GUARD_DOM_TO_JSON";
+
+  g_cdd_last_alloc_err = struct_fields_init(&sf);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_jsonObject_func(NULL, "DomModel", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_jsonObject_func(tmp, NULL, &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_jsonObject_func(tmp, "DomModel", NULL, NULL));
+
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "id64", "int64", NULL, NULL, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "fmt_i64", "integer", NULL, NULL, NULL));
+#if defined(_MSC_VER)
+  strcpy_s(sf.fields[sf.size - 1].format, sizeof(sf.fields[sf.size - 1].format),
+           "int64");
+#else
+  strcpy(sf.fields[sf.size - 1].format, "int64");
+#endif
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "u64", "uint64", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            struct_fields_add(&sf, "fmt_u64", "integer", NULL, NULL, NULL));
+#if defined(_MSC_VER)
+  strcpy_s(sf.fields[sf.size - 1].format, sizeof(sf.fields[sf.size - 1].format),
+           "uint64");
+#else
+  strcpy(sf.fields[sf.size - 1].format, "uint64");
+#endif
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "i128", "int128", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "u128", "uint128", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "count", "integer", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "score", "number", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "active", "boolean", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "label", "string", NULL, NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "fixed_str", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 16;
+  g_cdd_last_alloc_err = struct_fields_add(
+      &sf, "sub", "object", "#/components/schemas/Sub", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &sf, "status", "enum", "#/components/schemas/Status", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "nums", "array", "integer", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "floats", "array", "number", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "flags", "array", "boolean", NULL, NULL);
+  sf.fields[sf.size - 1].fixed_array_len = 4;
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
+  g_cdd_last_alloc_err = struct_fields_add(
+      &sf, "items", "array", "#/components/schemas/Item", NULL, NULL);
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "secret", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].write_only = 1;
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "skipped", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip = 1;
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "skip_ser", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].serde_skip_serializing = 1;
+  g_cdd_last_alloc_err =
+      struct_fields_add(&sf, "unk", "custom_unknown", NULL, NULL, NULL);
+
+  for (io_step = 0; io_step <= 45; ++io_step) {
+    cdd_c_error_t rc_io;
+    rewind(tmp);
+    g_io_calls = 0;
+    g_fail_io_after = io_step;
+    rc_io = write_struct_to_jsonObject_func(tmp, "DomModel", &sf, &cfg);
+    g_fail_io_after = -1;
+    if (rc_io == CDD_C_SUCCESS)
+      break;
+  }
+
+  rewind(tmp);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_to_jsonObject_func(tmp, "DomModel", &sf, NULL));
+  rewind(tmp);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_struct_to_jsonObject_func(tmp, "DomModel", &sf, &cfg));
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, (size_t)sz + 1);
+  ASSERT(content != NULL);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
+
+  ASSERT(strstr(content, "DomModel_to_jsonObject"));
+  ASSERT(strstr(content, "cdd_json_object_set_int64"));
+  ASSERT(strstr(content, "cdd_json_object_set_uint64"));
+  ASSERT(strstr(content, "cdd_json_object_set_int128"));
+  ASSERT(strstr(content, "cdd_json_object_set_uint128"));
+  ASSERT(strstr(content, "cdd_json_object_set_number"));
+  ASSERT(strstr(content, "cdd_json_object_set_boolean"));
+  ASSERT(strstr(content, "cdd_json_object_set_string"));
+  ASSERT(strstr(content, "Sub_to_jsonObject"));
+  ASSERT(strstr(content, "Status_to_str"));
+  ASSERT(strstr(content, "Item_to_jsonObject"));
+
+  free(content);
+  fclose(tmp);
+  g_cdd_last_alloc_err = struct_fields_free(&sf);
+  PASS();
+}
+
+/**
  * @brief codegen_json_suite
  */
 
@@ -2243,6 +2375,7 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_cdd_serde_exhaustive);
   RUN_TEST(test_json_string_escaping_and_oom);
   RUN_TEST(test_json_int64_and_int128_codegen);
+  RUN_TEST(test_json_to_jsonObject_codegen);
 }
 
 #ifdef __cplusplus

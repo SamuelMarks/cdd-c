@@ -198,14 +198,28 @@ def check_file(
         return 1
 
     file_lines = []
-    if use_default_symbol_exceptions:
-        try:
-            with open(filename, "r", encoding="utf-8", errors="ignore") as f:
-                file_lines = f.readlines()
-        except Exception:
-            pass
+    try:
+        with open(filename, "r", encoding="utf-8", errors="ignore") as f:
+            file_lines = f.readlines()
+    except Exception:
+        pass
 
     errors = 0
+    norm_filename = filename.replace("\\", "/")
+    if (
+        not norm_filename.endswith("include/c_cdd/memory.h")
+        and not norm_filename.endswith("include/c_cdd/log.h")
+        and not norm_filename.endswith("src/cdd_c_error.c")
+        and "/tests/" not in norm_filename
+    ):
+        for line_idx, line in enumerate(file_lines, start=1):
+            if "g_cdd_last_alloc_err =" in line or "g_cdd_last_alloc_err=" in line:
+                if print_errors:
+                    print(
+                        f"{filename}:{line_idx}:1: error: Forbidden 'g_cdd_last_alloc_err =' error-swallowing assignment outside include/c_cdd/memory.h."
+                    )
+                errors += 1
+
     # Walk the AST
     for cursor in tu.cursor.walk_preorder():
         if cursor.kind == CursorKind.FUNCTION_DECL:

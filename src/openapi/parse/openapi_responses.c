@@ -34,59 +34,54 @@ static cdd_c_error_t parse_request_body_object_inner(
   if (!rb_obj || !out_rb)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_string(rb_obj, "$ref", &ref);
+  rc = cdd_json_object_get_string(rb_obj, "$ref", &ref);
   if (ref) {
-    g_cdd_last_alloc_err = c_cdd_strdup(ref, &out_rb->ref);
+    rc = c_cdd_strdup(ref, &out_rb->ref);
     if (!out_rb->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
       struct OpenAPI_RequestBody *comp = NULL;
-      g_cdd_last_alloc_err = find_component_request_body(spec, ref, &comp);
+      rc = find_component_request_body(spec, ref, &comp);
       if (comp) {
         rc = copy_request_body_fields(out_rb, comp);
         if (rc != CDD_C_SUCCESS)
           return rc;
       }
     }
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_string(rb_obj, "description", &desc);
+    rc = cdd_json_object_get_string(rb_obj, "description", &desc);
     if (desc) {
       if (out_rb->description) {
         C_CDD_FREE(out_rb->description);
         out_rb->description = NULL;
       }
-      g_cdd_last_alloc_err = c_cdd_strdup(desc, &out_rb->description);
+      rc = c_cdd_strdup(desc, &out_rb->description);
       if (!out_rb->description)
         return CDD_C_ERROR_MEMORY;
     }
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_string(rb_obj, "description", &desc);
+  rc = cdd_json_object_get_string(rb_obj, "description", &desc);
   if (desc) {
     if (out_rb->description) {
       C_CDD_FREE(out_rb->description);
       out_rb->description = NULL;
     }
-    g_cdd_last_alloc_err = c_cdd_strdup(desc, &out_rb->description);
+    rc = c_cdd_strdup(desc, &out_rb->description);
     if (!out_rb->description)
       return CDD_C_ERROR_MEMORY;
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_has_value(rb_obj, "required", &required_present);
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_boolean(rb_obj, "required", &required_val);
+  rc = cdd_json_object_has_value(rb_obj, "required", &required_present);
+  rc = cdd_json_object_get_boolean(rb_obj, "required", &required_val);
   if (required_present) {
     out_rb->required_set = 1;
     out_rb->required = (required_val == 1);
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(rb_obj, "content", &content);
+  rc = cdd_json_object_get_object(rb_obj, "content", &content);
   if (content)
-    g_cdd_last_alloc_err = cdd_json_object_get_count(content, &content_count);
+    rc = cdd_json_object_get_count(content, &content_count);
   if (!content || content_count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
@@ -96,16 +91,17 @@ static cdd_c_error_t parse_request_body_object_inner(
     if (rc != CDD_C_SUCCESS) {
       size_t k;
       for (k = 0; k < out_rb->n_content_media_types; k++) {
-        g_cdd_last_alloc_err = free_media_type(&out_rb->content_media_types[k]);
+        rc = (cdd_c_error_t)((int)rc | (int)free_media_type(
+                                           &out_rb->content_media_types[k]));
       }
       C_CDD_FREE(out_rb->content_media_types);
       out_rb->content_media_types = NULL;
       out_rb->n_content_media_types = 0;
       return rc;
     }
-    g_cdd_last_alloc_err = select_primary_media_type_index(
-        out_rb->content_media_types, out_rb->n_content_media_types,
-        &primary_idx);
+    rc = select_primary_media_type_index(out_rb->content_media_types,
+                                         out_rb->n_content_media_types,
+                                         &primary_idx);
     if (primary_idx >= 0) {
       primary = &out_rb->content_media_types[primary_idx];
     }
@@ -116,35 +112,28 @@ static cdd_c_error_t parse_request_body_object_inner(
         JSON_Value *item_schema_val = NULL;
         JSON_Object *schema_obj = NULL;
         JSON_Object *item_schema_obj = NULL;
-        g_cdd_last_alloc_err =
-            find_media_object_by_name(content, primary->name, &media_obj);
-        g_cdd_last_alloc_err =
-            cdd_json_object_get_value(media_obj, "schema", &schema_val);
-        g_cdd_last_alloc_err = cdd_json_object_get_value(
-            media_obj, "itemSchema", &item_schema_val);
+        rc = find_media_object_by_name(content, primary->name, &media_obj);
+        rc = cdd_json_object_get_value(media_obj, "schema", &schema_val);
+        rc = cdd_json_object_get_value(media_obj, "itemSchema",
+                                       &item_schema_val);
         if (schema_val)
-          g_cdd_last_alloc_err =
-              cdd_json_value_get_object(schema_val, &schema_obj);
+          rc = cdd_json_value_get_object(schema_val, &schema_obj);
         if (item_schema_val)
-          g_cdd_last_alloc_err =
-              cdd_json_value_get_object(item_schema_val, &item_schema_obj);
+          rc = cdd_json_value_get_object(item_schema_val, &item_schema_obj);
         if (primary->schema_set && schema_obj) {
           int is_obj = 0;
           if (primary->schema.is_array) {
             JSON_Value *items_val = NULL;
             JSON_Object *items_obj = NULL;
-            g_cdd_last_alloc_err =
-                cdd_json_object_get_value(schema_obj, "items", &items_val);
+            rc = cdd_json_object_get_value(schema_obj, "items", &items_val);
             if (items_val)
-              g_cdd_last_alloc_err =
-                  cdd_json_value_get_object(items_val, &items_obj);
+              rc = cdd_json_value_get_object(items_val, &items_obj);
             if (items_obj)
-              g_cdd_last_alloc_err =
-                  schema_object_is_object_like(items_obj, &is_obj);
+              rc = schema_object_is_object_like(items_obj, &is_obj);
             if (items_obj && is_obj) {
               char *base = NULL;
               char *registered = NULL;
-              g_cdd_last_alloc_err = build_inline_request_name(op_id, 1, &base);
+              rc = build_inline_request_name(op_id, 1, &base);
               if (base) {
                 if (register_inline_schema(spec, base, items_obj, items_val,
                                            &registered) == CDD_C_SUCCESS) {
@@ -160,12 +149,11 @@ static cdd_c_error_t parse_request_body_object_inner(
               }
             }
           } else {
-            g_cdd_last_alloc_err =
-                schema_object_is_object_like(schema_obj, &is_obj);
+            rc = schema_object_is_object_like(schema_obj, &is_obj);
             if (is_obj) {
               char *base = NULL;
               char *registered = NULL;
-              g_cdd_last_alloc_err = build_inline_request_name(op_id, 0, &base);
+              rc = build_inline_request_name(op_id, 0, &base);
               if (base) {
                 if (register_inline_schema(spec, base, schema_obj, schema_val,
                                            &registered) == CDD_C_SUCCESS) {
@@ -186,12 +174,11 @@ static cdd_c_error_t parse_request_body_object_inner(
         }
         if (primary->item_schema_set && item_schema_obj) {
           int is_item_obj = 0;
-          g_cdd_last_alloc_err =
-              schema_object_is_object_like(item_schema_obj, &is_item_obj);
+          rc = schema_object_is_object_like(item_schema_obj, &is_item_obj);
           if (is_item_obj) {
             char *base = NULL;
             char *registered = NULL;
-            g_cdd_last_alloc_err = build_inline_request_name(op_id, 1, &base);
+            rc = build_inline_request_name(op_id, 1, &base);
             if (base) {
               if (register_inline_schema(spec, base, item_schema_obj,
                                          item_schema_val,
@@ -212,7 +199,7 @@ static cdd_c_error_t parse_request_body_object_inner(
         }
       }
       if (primary->ref) {
-        g_cdd_last_alloc_err = c_cdd_strdup(primary->ref, &out_rb->content_ref);
+        rc = c_cdd_strdup(primary->ref, &out_rb->content_ref);
         if (!out_rb->content_ref)
           return CDD_C_ERROR_MEMORY;
       }
@@ -246,8 +233,7 @@ static cdd_c_error_t parse_request_body_object_inner(
           return rc;
         out_rb->example_set = 1;
       }
-      g_cdd_last_alloc_err =
-          c_cdd_strdup(primary->name, &out_rb->schema.content_type);
+      rc = c_cdd_strdup(primary->name, &out_rb->schema.content_type);
       if (!out_rb->schema.content_type)
         return CDD_C_ERROR_MEMORY;
     }
@@ -276,8 +262,9 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
                                         int resolve_refs, const char *op_id) {
   cdd_c_error_t rc = parse_request_body_object_inner(rb_obj, out_rb, spec,
                                                      resolve_refs, op_id);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = free_request_body(out_rb);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)free_request_body(out_rb));
+  }
   return rc;
 }
 
@@ -307,14 +294,14 @@ parse_response_object_inner(const JSON_Object *resp_obj,
   if (!resp_obj || !out_resp)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_string(resp_obj, "$ref", &ref);
+  rc = cdd_json_object_get_string(resp_obj, "$ref", &ref);
   if (ref) {
-    g_cdd_last_alloc_err = c_cdd_strdup(ref, &out_resp->ref);
+    rc = c_cdd_strdup(ref, &out_resp->ref);
     if (!out_resp->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
       struct OpenAPI_Response *comp = NULL;
-      g_cdd_last_alloc_err = find_component_response(spec, ref, &comp);
+      rc = find_component_response(spec, ref, &comp);
       if (comp) {
         rc = copy_response_fields(out_resp, comp);
         if (rc != CDD_C_SUCCESS)
@@ -323,22 +310,20 @@ parse_response_object_inner(const JSON_Object *resp_obj,
     }
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_string(resp_obj, "summary", &summary);
+  rc = cdd_json_object_get_string(resp_obj, "summary", &summary);
   if (summary) {
     C_CDD_FREE(out_resp->summary);
     out_resp->summary = NULL;
-    g_cdd_last_alloc_err = c_cdd_strdup(summary, &out_resp->summary);
+    rc = c_cdd_strdup(summary, &out_resp->summary);
     if (!out_resp->summary)
       return CDD_C_ERROR_MEMORY;
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_string(resp_obj, "description", &desc);
+  rc = cdd_json_object_get_string(resp_obj, "description", &desc);
   if (desc) {
     C_CDD_FREE(out_resp->description);
     out_resp->description = NULL;
-    g_cdd_last_alloc_err = c_cdd_strdup(desc, &out_resp->description);
+    rc = c_cdd_strdup(desc, &out_resp->description);
     if (!out_resp->description)
       return CDD_C_ERROR_MEMORY;
   }
@@ -355,10 +340,9 @@ parse_response_object_inner(const JSON_Object *resp_obj,
   if (spec && spec->swagger_version) {
     JSON_Value *schema_val = NULL;
     JSON_Object *schema_obj = NULL;
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_value(resp_obj, "schema", &schema_val);
+    rc = cdd_json_object_get_value(resp_obj, "schema", &schema_val);
     if (schema_val)
-      g_cdd_last_alloc_err = cdd_json_value_get_object(schema_val, &schema_obj);
+      rc = cdd_json_value_get_object(schema_val, &schema_obj);
     if (schema_obj) {
       rc = parse_schema_ref(schema_obj, &out_resp->schema, spec);
       if (rc != CDD_C_SUCCESS)
@@ -367,8 +351,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
     }
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(resp_obj, "headers", &headers);
+  rc = cdd_json_object_get_object(resp_obj, "headers", &headers);
   if (headers) {
     rc = parse_headers_object(headers, &out_resp->headers, &out_resp->n_headers,
                               spec, resolve_refs, 1);
@@ -376,7 +359,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
       return rc;
   }
 
-  g_cdd_last_alloc_err = cdd_json_object_get_object(resp_obj, "links", &links);
+  rc = cdd_json_object_get_object(resp_obj, "links", &links);
   if (links) {
     rc = parse_links_object(links, &out_resp->links, &out_resp->n_links, spec,
                             resolve_refs);
@@ -384,8 +367,7 @@ parse_response_object_inner(const JSON_Object *resp_obj,
       return rc;
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(resp_obj, "content", &content);
+  rc = cdd_json_object_get_object(resp_obj, "content", &content);
   if (content) {
     struct OpenAPI_MediaType *primary = NULL;
     int primary_idx = -1;
@@ -394,9 +376,9 @@ parse_response_object_inner(const JSON_Object *resp_obj,
                               resolve_refs);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    g_cdd_last_alloc_err = select_primary_media_type_index(
-        out_resp->content_media_types, out_resp->n_content_media_types,
-        &primary_idx);
+    rc = select_primary_media_type_index(out_resp->content_media_types,
+                                         out_resp->n_content_media_types,
+                                         &primary_idx);
     if (primary_idx >= 0) {
       primary = &out_resp->content_media_types[primary_idx];
     }
@@ -407,36 +389,28 @@ parse_response_object_inner(const JSON_Object *resp_obj,
         JSON_Value *item_schema_val = NULL;
         JSON_Object *schema_obj = NULL;
         JSON_Object *item_schema_obj = NULL;
-        g_cdd_last_alloc_err =
-            find_media_object_by_name(content, primary->name, &media_obj);
-        g_cdd_last_alloc_err =
-            cdd_json_object_get_value(media_obj, "schema", &schema_val);
-        g_cdd_last_alloc_err = cdd_json_object_get_value(
-            media_obj, "itemSchema", &item_schema_val);
+        rc = find_media_object_by_name(content, primary->name, &media_obj);
+        rc = cdd_json_object_get_value(media_obj, "schema", &schema_val);
+        rc = cdd_json_object_get_value(media_obj, "itemSchema",
+                                       &item_schema_val);
         if (schema_val)
-          g_cdd_last_alloc_err =
-              cdd_json_value_get_object(schema_val, &schema_obj);
+          rc = cdd_json_value_get_object(schema_val, &schema_obj);
         if (item_schema_val)
-          g_cdd_last_alloc_err =
-              cdd_json_value_get_object(item_schema_val, &item_schema_obj);
+          rc = cdd_json_value_get_object(item_schema_val, &item_schema_obj);
         if (primary->schema_set && schema_obj) {
           int is_obj = 0;
           if (primary->schema.is_array) {
             JSON_Value *items_val = NULL;
             JSON_Object *items_obj = NULL;
-            g_cdd_last_alloc_err =
-                cdd_json_object_get_value(schema_obj, "items", &items_val);
+            rc = cdd_json_object_get_value(schema_obj, "items", &items_val);
             if (items_val)
-              g_cdd_last_alloc_err =
-                  cdd_json_value_get_object(items_val, &items_obj);
+              rc = cdd_json_value_get_object(items_val, &items_obj);
             if (items_obj)
-              g_cdd_last_alloc_err =
-                  schema_object_is_object_like(items_obj, &is_obj);
+              rc = schema_object_is_object_like(items_obj, &is_obj);
             if (items_obj && is_obj) {
               char *base = NULL;
               char *registered = NULL;
-              g_cdd_last_alloc_err =
-                  build_inline_response_name(op_id, resp_code, 1, &base);
+              rc = build_inline_response_name(op_id, resp_code, 1, &base);
               if (base) {
                 if (register_inline_schema(spec, base, items_obj, items_val,
                                            &registered) == CDD_C_SUCCESS) {
@@ -452,13 +426,11 @@ parse_response_object_inner(const JSON_Object *resp_obj,
               }
             }
           } else {
-            g_cdd_last_alloc_err =
-                schema_object_is_object_like(schema_obj, &is_obj);
+            rc = schema_object_is_object_like(schema_obj, &is_obj);
             if (is_obj) {
               char *base = NULL;
               char *registered = NULL;
-              g_cdd_last_alloc_err =
-                  build_inline_response_name(op_id, resp_code, 0, &base);
+              rc = build_inline_response_name(op_id, resp_code, 0, &base);
               if (base) {
                 if (register_inline_schema(spec, base, schema_obj, schema_val,
                                            &registered) == CDD_C_SUCCESS) {
@@ -479,13 +451,11 @@ parse_response_object_inner(const JSON_Object *resp_obj,
         }
         if (primary->item_schema_set && item_schema_obj) {
           int is_item_obj = 0;
-          g_cdd_last_alloc_err =
-              schema_object_is_object_like(item_schema_obj, &is_item_obj);
+          rc = schema_object_is_object_like(item_schema_obj, &is_item_obj);
           if (is_item_obj) {
             char *base = NULL;
             char *registered = NULL;
-            g_cdd_last_alloc_err =
-                build_inline_response_name(op_id, resp_code, 1, &base);
+            rc = build_inline_response_name(op_id, resp_code, 1, &base);
             if (base) {
               if (register_inline_schema(spec, base, item_schema_obj,
                                          item_schema_val,
@@ -505,13 +475,11 @@ parse_response_object_inner(const JSON_Object *resp_obj,
           }
         }
       }
-      g_cdd_last_alloc_err =
-          c_cdd_strdup(primary->name, &out_resp->content_type);
+      rc = c_cdd_strdup(primary->name, &out_resp->content_type);
       if (!out_resp->content_type)
         return CDD_C_ERROR_MEMORY;
       if (primary->ref) {
-        g_cdd_last_alloc_err =
-            c_cdd_strdup(primary->ref, &out_resp->content_ref);
+        rc = c_cdd_strdup(primary->ref, &out_resp->content_ref);
         if (!out_resp->content_ref)
           return CDD_C_ERROR_MEMORY;
       }
@@ -569,8 +537,9 @@ cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
                                     const char *op_id, const char *resp_code) {
   cdd_c_error_t rc = parse_response_object_inner(
       resp_obj, out_resp, spec, resolve_refs, op_id, resp_code);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = free_response(out_resp);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)free_response(out_resp));
+  }
   return rc;
 }
 
@@ -625,7 +594,7 @@ static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
   if (!responses || !out_op)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_count(responses, &count);
+  rc = cdd_json_object_get_count(responses, &count);
   if (count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -635,7 +604,7 @@ static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
 
   for (i = 0; i < count; ++i) {
     const char *code = NULL;
-    g_cdd_last_alloc_err = cdd_json_object_get_name(responses, i, &code);
+    rc = cdd_json_object_get_name(responses, i, &code);
     if (strncmp(code, "x-", 2) != 0)
       valid++;
   }
@@ -655,17 +624,17 @@ static cdd_c_error_t parse_responses_inner(const JSON_Object *responses,
     struct OpenAPI_Response *curr;
     int is_valid_code = 0;
 
-    g_cdd_last_alloc_err = cdd_json_object_get_name(responses, i, &code);
-    g_cdd_last_alloc_err = cdd_json_object_get_value_at(responses, i, &val);
-    g_cdd_last_alloc_err = cdd_json_value_get_object(val, &resp_obj);
+    rc = cdd_json_object_get_name(responses, i, &code);
+    rc = cdd_json_object_get_value_at(responses, i, &val);
+    rc = cdd_json_value_get_object(val, &resp_obj);
 
     if (strncmp(code, "x-", 2) == 0)
       continue;
-    g_cdd_last_alloc_err = is_valid_response_code_key(code, &is_valid_code);
+    rc = is_valid_response_code_key(code, &is_valid_code);
     if (!is_valid_code)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     curr = &out_op->responses[resp_idx++];
-    g_cdd_last_alloc_err = c_cdd_strdup(code, &curr->code);
+    rc = c_cdd_strdup(code, &curr->code);
     if (!curr->code)
       return CDD_C_ERROR_MEMORY;
 
@@ -692,8 +661,9 @@ cdd_c_error_t parse_responses(const JSON_Object *responses,
                               struct OpenAPI_Operation *out_op,
                               struct OpenAPI_Spec *spec, const char *op_id) {
   cdd_c_error_t rc = parse_responses_inner(responses, out_op, spec, op_id);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = free_operation(out_op);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)free_operation(out_op));
+  }
   return rc;
 }
 
@@ -718,39 +688,37 @@ parse_callback_object_inner(const JSON_Object *cb_obj,
   if (!cb_obj || !out_cb)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_string(cb_obj, "$ref", &ref);
+  rc = cdd_json_object_get_string(cb_obj, "$ref", &ref);
   if (ref) {
-    g_cdd_last_alloc_err = c_cdd_strdup(ref, &out_cb->ref);
+    rc = c_cdd_strdup(ref, &out_cb->ref);
     if (!out_cb->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
       struct OpenAPI_Callback *comp = NULL;
-      g_cdd_last_alloc_err = find_component_callback(spec, ref, &comp);
+      rc = find_component_callback(spec, ref, &comp);
       if (comp) {
         rc = copy_callback_fields(out_cb, comp);
         if (rc != CDD_C_SUCCESS)
           return rc;
       }
     }
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_string(cb_obj, "summary", &summary);
+    rc = cdd_json_object_get_string(cb_obj, "summary", &summary);
     if (summary) {
       if (out_cb->summary) {
         C_CDD_FREE(out_cb->summary);
         out_cb->summary = NULL;
       }
-      g_cdd_last_alloc_err = c_cdd_strdup(summary, &out_cb->summary);
+      rc = c_cdd_strdup(summary, &out_cb->summary);
       if (!out_cb->summary)
         return CDD_C_ERROR_MEMORY;
     }
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_string(cb_obj, "description", &desc);
+    rc = cdd_json_object_get_string(cb_obj, "description", &desc);
     if (desc) {
       if (out_cb->description) {
         C_CDD_FREE(out_cb->description);
         out_cb->description = NULL;
       }
-      g_cdd_last_alloc_err = c_cdd_strdup(desc, &out_cb->description);
+      rc = c_cdd_strdup(desc, &out_cb->description);
       if (!out_cb->description)
         return CDD_C_ERROR_MEMORY;
     }
@@ -780,8 +748,9 @@ cdd_c_error_t parse_callback_object(const JSON_Object *cb_obj,
                                     int resolve_refs) {
   cdd_c_error_t rc =
       parse_callback_object_inner(cb_obj, out_cb, spec, resolve_refs);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = free_callback(out_cb);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)free_callback(out_cb));
+  }
   return rc;
 }
 
@@ -801,6 +770,7 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
                                      struct OpenAPI_Spec *spec,
                                      int resolve_refs) {
   size_t i, count = 0;
+  cdd_c_error_t rc;
   if (!out_callbacks || !out_count)
     return CDD_C_SUCCESS;
 
@@ -810,7 +780,7 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
   if (!callbacks)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_count(callbacks, &count);
+  rc = cdd_json_object_get_count(callbacks, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -825,26 +795,30 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
     JSON_Value *val_at = NULL;
     JSON_Object *cb_obj = NULL;
     struct OpenAPI_Callback *curr = &(*out_callbacks)[i];
-    g_cdd_last_alloc_err = cdd_json_object_get_name(callbacks, i, &name);
-    g_cdd_last_alloc_err = cdd_json_object_get_value_at(callbacks, i, &val_at);
-    g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &cb_obj);
-    g_cdd_last_alloc_err = c_cdd_strdup(name, &curr->name);
+    rc = cdd_json_object_get_name(callbacks, i, &name);
+    rc = cdd_json_object_get_value_at(callbacks, i, &val_at);
+    rc = cdd_json_value_get_object(val_at, &cb_obj);
+    rc = c_cdd_strdup(name, &curr->name);
     if (!curr->name) {
       size_t j;
-      for (j = 0; j < count; ++j)
-        g_cdd_last_alloc_err = free_callback(&(*out_callbacks)[j]);
+      cdd_c_error_t rc_free = CDD_C_ERROR_MEMORY;
+      for (j = 0; j < count; ++j) {
+        rc_free = (cdd_c_error_t)((int)rc_free |
+                                  (int)free_callback(&(*out_callbacks)[j]));
+      }
       C_CDD_FREE(*out_callbacks);
       *out_callbacks = NULL;
       *out_count = 0;
-      return CDD_C_ERROR_MEMORY;
+      return rc_free;
     }
     if (cb_obj) {
-      cdd_c_error_t rc =
-          parse_callback_object(cb_obj, curr, spec, resolve_refs);
+      rc = parse_callback_object(cb_obj, curr, spec, resolve_refs);
       if (rc != CDD_C_SUCCESS) {
         size_t j;
-        for (j = 0; j < count; ++j)
-          g_cdd_last_alloc_err = free_callback(&(*out_callbacks)[j]);
+        for (j = 0; j < count; ++j) {
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)free_callback(&(*out_callbacks)[j]));
+        }
         C_CDD_FREE(*out_callbacks);
         *out_callbacks = NULL;
         *out_count = 0;

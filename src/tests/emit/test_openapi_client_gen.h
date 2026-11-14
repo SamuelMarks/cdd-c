@@ -847,7 +847,7 @@ TEST test_mcp_raw_schemas_io_fail(void) {
   spec.defined_schema_names = (char **)malloc(1 * sizeof(char *));
   spec.defined_schema_names[0] = cdd_test_mut_str("TestStruct");
 
-  for (i = 0; i < 30; ++i) {
+  for (i = 0; i < 250; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
     g_cdd_last_alloc_err = openapi_client_generate(&spec, &config);

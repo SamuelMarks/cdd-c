@@ -18,6 +18,24 @@ extern "C" {
 #include "emit/test_codegen_struct_reflect_adv.h"
 /* clang-format on */
 
+/** @brief Countdown counter for custom JSON serialization OOM injection. */
+static int g_reflect_json_alloc_fail = -1;
+
+/**
+ * @brief Custom JSON malloc callback that returns NULL when countdown hits 0.
+ *
+ * @param[in] sz Allocation size in bytes.
+ * @return Allocated memory block or NULL on injected failure.
+ */
+static void *reflect_json_oom_malloc(size_t sz) {
+  if (g_reflect_json_alloc_fail >= 0) {
+    if (g_reflect_json_alloc_fail == 0)
+      return NULL;
+    g_reflect_json_alloc_fail--;
+  }
+  return malloc(sz);
+}
+
 /**
  * @brief Tests exhaustive reflection edge cases, OOM paths, and error branches.
  *
@@ -527,6 +545,29 @@ TEST test_reflection_edge_cases_and_oom(void) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
                 cdd_reflect_merge_patch(p_def, p_copy, &parent_ti, &oom_str));
       g_cdd_alloc_fail = 0;
+
+      /* Test OOM inside cdd_json_serialize_to_string across reflection APIs */
+      ASSERT_EQ(JSONSuccess,
+                json_set_allocation_functions(reflect_json_oom_malloc, free));
+      {
+        int j_oom;
+        struct AdvChild c_ser;
+        memset(&c_ser, 0, sizeof(c_ser));
+        for (j_oom = 0; j_oom <= 30; ++j_oom) {
+          g_reflect_json_alloc_fail = j_oom;
+          if (cdd_reflect_to_json(&c_ser, &child_ti, &oom_str) == CDD_C_SUCCESS)
+            C_CDD_FREE(oom_str);
+          g_reflect_json_alloc_fail = j_oom;
+          if (cdd_reflect_merge_patch(&c_ser, &c_ser, &child_ti, &oom_str) ==
+              CDD_C_SUCCESS)
+            C_CDD_FREE(oom_str);
+          g_reflect_json_alloc_fail = j_oom;
+          if (cdd_reflect_to_json_schema(&child_ti, &oom_str) == CDD_C_SUCCESS)
+            C_CDD_FREE(oom_str);
+        }
+        g_reflect_json_alloc_fail = -1;
+      }
+      ASSERT_EQ(JSONSuccess, json_set_allocation_functions(NULL, NULL));
     }
 
     /* Additional format/regex/bitfield/union/eq/serde edge-case tests */
@@ -843,6 +884,18 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 cdd_reflect_get_uint64(&extra_inst, &extra_f[0], &v_u64));
       ASSERT_EQ(999U, v_u64);
 
+      extra_f[1].name = "bf";
+      extra_f[1].c_type = NULL;
+      extra_f[1].kind = CDD_FIELD_KIND_INTEGER;
+      extra_f[1].is_pointer = 1;
+      extra_f[1].elem_size = 0;
+      extra_f[1].offset = offsetof(struct ExtraStruct, pu64);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_reflect_get_int64(&extra_inst, &extra_f[1], &v_i64));
+      extra_f[1].c_type = "int *";
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_reflect_get_int64(&extra_inst, &extra_f[1], &v_i64));
+      memset(&extra_f[1], 0, sizeof(extra_f[1]));
       extra_f[1].name = "bf";
       extra_f[1].c_type = "int";
       extra_f[1].kind = CDD_FIELD_KIND_INTEGER;

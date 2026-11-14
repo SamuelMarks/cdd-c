@@ -72,8 +72,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   /* 1. Inspect Header */
   rc = c_inspector_scan_file_types(header_filename, &types);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = type_def_list_free(&types);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)type_def_list_free(&types));
   }
 
   /* 2. Open Output */
@@ -106,14 +105,14 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   }
 #endif
   if (!out) {
-    g_cdd_last_alloc_err = type_def_list_free(&types);
+    cdd_c_error_t rc_free = type_def_list_free(&types);
     if (errno == ENOENT)
-      return CDD_C_ERROR_NOT_FOUND;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_NOT_FOUND | (int)rc_free);
     if (errno == ENOMEM)
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY | (int)rc_free);
     if (errno == EINVAL)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    return CDD_C_ERROR_IO;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT | (int)rc_free);
+    return (cdd_c_error_t)((int)CDD_C_ERROR_IO | (int)rc_free);
   }
 
   /* 3. Emit Preamble */
@@ -139,8 +138,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
 #endif
       if (rc_sync != CDD_C_SUCCESS) {
         fclose(out);
-        g_cdd_last_alloc_err = type_def_list_free(&types);
-        return rc_sync;
+        return (cdd_c_error_t)((int)rc_sync | (int)type_def_list_free(&types));
       }
     }
 #ifdef CDD_BUILD_TESTS
@@ -187,8 +185,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_enum_to_str_func(out, def->name, em, NULL);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -196,8 +194,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_enum_from_str_func(out, def->name, em, NULL);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -205,8 +203,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_enum_reflect_func(out, def->name, em, NULL);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
     } else if (def->details.struct_fields->is_union) {
@@ -215,33 +213,28 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
       rc_sync = write_union_cleanup_func(out, def->name, sf, &types_cfg);
       if (rc_sync != CDD_C_SUCCESS) {
         fclose(out);
-        g_cdd_last_alloc_err = type_def_list_free(&types);
-        return rc_sync;
+        return (cdd_c_error_t)((int)rc_sync | (int)type_def_list_free(&types));
       }
       rc_sync =
           write_union_from_jsonObject_func(out, def->name, sf, &types_cfg);
       if (rc_sync != CDD_C_SUCCESS) {
         fclose(out);
-        g_cdd_last_alloc_err = type_def_list_free(&types);
-        return rc_sync;
+        return (cdd_c_error_t)((int)rc_sync | (int)type_def_list_free(&types));
       }
       rc_sync = write_union_from_json_func(out, def->name, sf, &types_cfg);
       if (rc_sync != CDD_C_SUCCESS) {
         fclose(out);
-        g_cdd_last_alloc_err = type_def_list_free(&types);
-        return rc_sync;
+        return (cdd_c_error_t)((int)rc_sync | (int)type_def_list_free(&types));
       }
       rc_sync = write_union_to_json_func(out, def->name, sf, &types_cfg);
       if (rc_sync != CDD_C_SUCCESS) {
         fclose(out);
-        g_cdd_last_alloc_err = type_def_list_free(&types);
-        return rc_sync;
+        return (cdd_c_error_t)((int)rc_sync | (int)type_def_list_free(&types));
       }
       rc_sync = write_struct_reflect_func(out, def->name, sf, &struct_cfg);
       if (rc_sync != CDD_C_SUCCESS) {
         fclose(out);
-        g_cdd_last_alloc_err = type_def_list_free(&types);
-        return rc_sync;
+        return (cdd_c_error_t)((int)rc_sync | (int)type_def_list_free(&types));
       }
     } else {
       struct StructFields *sf = def->details.struct_fields;
@@ -251,8 +244,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_cleanup_func(out, def->name, sf, &struct_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -260,8 +253,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_deepcopy_func(out, def->name, sf, &struct_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -269,8 +262,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_eq_func(out, def->name, sf, &struct_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -278,8 +271,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_default_func(out, def->name, sf, &struct_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -287,8 +280,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_debug_func(out, def->name, sf, &struct_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -296,8 +289,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_reflect_func(out, def->name, sf, &struct_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
 
@@ -307,8 +300,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_to_json_func(out, def->name, sf, &json_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -316,8 +309,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_from_jsonObject_func(out, def->name, sf, &json_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
       {
@@ -325,8 +318,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
             write_struct_from_json_func(out, def->name, &json_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
 
@@ -339,18 +332,18 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
         rc_sync = write_struct_cli_all_funcs(out, def->name, sf, &cli_cfg);
         if (rc_sync != CDD_C_SUCCESS) {
           fclose(out);
-          g_cdd_last_alloc_err = type_def_list_free(&types);
-          return rc_sync;
+          return (cdd_c_error_t)((int)rc_sync |
+                                 (int)type_def_list_free(&types));
         }
       }
     }
   }
 
   fclose(out);
-  g_cdd_last_alloc_err = type_def_list_free(&types);
+  rc = type_def_list_free(&types);
   printf("Synced %s\n", impl_filename);
 
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -399,8 +392,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
   rc = patch_list_init(&patches);
 #endif
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = func_sig_list_free(&sigs);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)func_sig_list_free(&sigs));
   }
 
   /* 1. Extract signatures from implementation source code */
@@ -578,9 +570,9 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
   }
 
 cleanup:
-  g_cdd_last_alloc_err = func_sig_list_free(&sigs);
-  g_cdd_last_alloc_err = patch_list_free(&patches);
-  g_cdd_last_alloc_err = free_token_list(hdr_tokens);
+  rc = (cdd_c_error_t)((int)rc | (int)func_sig_list_free(&sigs));
+  rc = (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(hdr_tokens));
   if (hdr_content)
     C_CDD_FREE(hdr_content);
   if (new_header)

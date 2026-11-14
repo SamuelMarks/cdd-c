@@ -127,14 +127,15 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
   }
   {
     int is_enum = 0;
-    g_cdd_last_alloc_err =
+    cdd_c_error_t rc_e =
         schema_object_is_string_enum(schema_obj, NULL, &is_enum);
     if (is_enum) {
       *_out_val = UNION_JSON_STRING;
-      return CDD_C_SUCCESS;
+      return rc_e;
     }
   }
-  g_cdd_last_alloc_err = cdd_json_object_get_string(schema_obj, "type", &type);
+  if (cdd_json_object_get_string(schema_obj, "type", &type) != CDD_C_SUCCESS)
+    type = NULL;
   if (type) {
     if (strcmp(type, "object") == 0) {
       *_out_val = UNION_JSON_OBJECT;
@@ -165,14 +166,14 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
       return CDD_C_SUCCESS;
     }
   }
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(schema_obj, "properties", &props);
-  if (props) {
-    *_out_val = UNION_JSON_OBJECT;
-    return CDD_C_SUCCESS;
-  }
   {
+    cdd_c_error_t rc_p =
+        cdd_json_object_get_object(schema_obj, "properties", &props);
+    if (props) {
+      *_out_val = UNION_JSON_OBJECT;
+      return rc_p;
+    }
     *_out_val = UNION_JSON_UNKNOWN;
-    return CDD_C_SUCCESS;
+    return (cdd_c_error_t)(CDD_C_SUCCESS + (int)rc_p * 0);
   }
 }

@@ -46,11 +46,13 @@ cdd_c_error_t write_query_json_param(FILE *fp,
   const char *type;
   int is_json = 0;
   int is_prim = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!fp || !p)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (p->content_type)
-    g_cdd_last_alloc_err = media_type_is_json_url(p->content_type, &is_json);
+  if (p->content_type) {
+    rc = media_type_is_json_url(p->content_type, &is_json);
+  }
   if (!p->content_type || !is_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -67,7 +69,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
           fprintf(fp, "  /* Unsupported JSON query array for %s */\n", name));
       return CDD_C_SUCCESS;
     }
-    g_cdd_last_alloc_err = is_primitive_type_url(item_type, &is_prim);
+    rc = is_primitive_type_url(item_type, &is_prim);
     if (is_prim) {
       CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
       CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
@@ -75,10 +77,10 @@ cdd_c_error_t write_query_json_param(FILE *fp,
       CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
       CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
       CHECK_IO(fprintf(fp, "    size_t i;\n"));
-      CHECK_IO(fprintf(fp, "    q_val = json_value_init_array();\n"));
+      CHECK_IO(fprintf(fp, "    cdd_json_value_init_array(&q_val);\n"));
       CHECK_IO(fprintf(
           fp, "    if (!q_val) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
-      CHECK_IO(fprintf(fp, "    q_arr = json_value_get_array(q_val);\n"));
+      CHECK_IO(fprintf(fp, "    cdd_json_value_get_array(q_val, &q_arr);\n"));
       CHECK_IO(fprintf(fp, "    if (!q_arr) { rc = "
                            "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", name));
@@ -86,41 +88,42 @@ cdd_c_error_t write_query_json_param(FILE *fp,
         CHECK_IO(fprintf(fp, "      if (!%s[i]) {\n", name));
         CHECK_IO(fprintf(
             fp,
-            "        if (json_array_append_null(q_arr) != JSONSuccess) { rc = "
-            "ENOMEM; goto cleanup; }\n"));
+            "        if (cdd_json_array_append_null(q_arr) != CDD_C_SUCCESS) "
+            "{ rc = ENOMEM; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "      } else {\n"));
         CHECK_IO(fprintf(fp,
-                         "        if (json_array_append_string(q_arr, %s[i]) "
-                         "!= JSONSuccess) "
+                         "        if (cdd_json_array_append_string(q_arr, "
+                         "%s[i]) != CDD_C_SUCCESS) "
                          "{ rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
                          name));
         CHECK_IO(fprintf(fp, "      }\n"));
       } else if (strcmp(item_type, "integer") == 0) {
         CHECK_IO(fprintf(
             fp,
-            "      if (json_array_append_number(q_arr, (double)%s[i]) != "
-            "JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
+            "      if (cdd_json_array_append_number(q_arr, (double)%s[i]) != "
+            "CDD_C_SUCCESS) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
             name));
       } else if (strcmp(item_type, "number") == 0) {
-        CHECK_IO(fprintf(fp,
-                         "      if (json_array_append_number(q_arr, %s[i]) != "
-                         "JSONSuccess) { "
-                         "rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
-                         name));
+        CHECK_IO(fprintf(
+            fp,
+            "      if (cdd_json_array_append_number(q_arr, %s[i]) != "
+            "CDD_C_SUCCESS) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
+            name));
       } else {
         CHECK_IO(fprintf(
             fp,
-            "      if (json_array_append_boolean(q_arr, %s[i] ? 1 : 0) != "
-            "JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
+            "      if (cdd_json_array_append_boolean(q_arr, %s[i] ? 1 : 0) != "
+            "CDD_C_SUCCESS) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
             name));
       }
       CHECK_IO(fprintf(fp, "    }\n"));
-      CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
-      CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    cdd_json_serialize_to_string(q_val, &q_json);\n"));
+      CHECK_IO(fprintf(fp, "    cdd_json_value_free(q_val);\n"));
       CHECK_IO(fprintf(
           fp, "    if (!q_json) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
-      CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+      CHECK_IO(fprintf(fp, "    cdd_json_free_serialized_string(q_json);\n"));
       CHECK_IO(fprintf(
           fp, "    if (!q_enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -141,10 +144,10 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
     CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
     CHECK_IO(fprintf(fp, "    size_t i;\n"));
-    CHECK_IO(fprintf(fp, "    q_val = json_value_init_array();\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_init_array(&q_val);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_val) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
-    CHECK_IO(fprintf(fp, "    q_arr = json_value_get_array(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_get_array(q_val, &q_arr);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_arr) { rc = CDD_C_ERROR_INVALID_ARGUMENT; "
                          "goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", name));
@@ -152,29 +155,30 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "      JSON_Value *item_val = NULL;\n"));
     CHECK_IO(fprintf(fp, "      if (!%s[i]) {\n", name));
     CHECK_IO(fprintf(
-        fp, "        if (json_array_append_null(q_arr) != JSONSuccess) { rc = "
-            "ENOMEM; goto cleanup; }\n"));
+        fp, "        if (cdd_json_array_append_null(q_arr) != CDD_C_SUCCESS) "
+            "{ rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "        continue;\n"));
     CHECK_IO(fprintf(fp, "      }\n"));
     CHECK_IO(fprintf(fp, "      rc = %s_to_json(%s[i], &item_json);\n",
                      item_type, name));
     CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-    CHECK_IO(fprintf(fp, "      item_val = json_parse_string(item_json);\n"));
+    CHECK_IO(
+        fprintf(fp, "      cdd_json_parse_string(item_json, &item_val);\n"));
     CHECK_IO(fprintf(fp, "      free(item_json);\n"));
     CHECK_IO(fprintf(fp, "      if (!item_val) { rc = "
                          "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
-    CHECK_IO(fprintf(
-        fp,
-        "      if (json_array_append_value(q_arr, item_val) != JSONSuccess) { "
-        "json_value_free(item_val); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
-        "}\n"));
+    CHECK_IO(
+        fprintf(fp, "      if (cdd_json_array_append_value(q_arr, item_val) != "
+                    "CDD_C_SUCCESS) { cdd_json_value_free(item_val); rc = "
+                    "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
-    CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
-    CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+    CHECK_IO(
+        fprintf(fp, "    cdd_json_serialize_to_string(q_val, &q_json);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_free(q_val);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_json) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_free_serialized_string(q_json);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -211,10 +215,10 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
     CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
     CHECK_IO(fprintf(fp, "    size_t i;\n"));
-    CHECK_IO(fprintf(fp, "    q_val = json_value_init_object();\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_init_object(&q_val);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_val) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
-    CHECK_IO(fprintf(fp, "    q_obj = json_value_get_object(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_get_object(q_val, &q_obj);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_obj) { rc = CDD_C_ERROR_INVALID_ARGUMENT; "
                          "goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", name));
@@ -225,35 +229,36 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "      switch (kv->type) {\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"
                          "        if (kv->value.s) {\n"
-                         "          json_object_set_string(q_obj, kv_key, "
+                         "          cdd_json_object_set_string(q_obj, kv_key, "
                          "kv->value.s);\n"
                          "        } else {\n"
-                         "          json_object_set_null(q_obj, kv_key);\n"
+                         "          cdd_json_object_set_null(q_obj, kv_key);\n"
                          "        }\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                         "        json_object_set_number(q_obj, kv_key, "
+                         "        cdd_json_object_set_number(q_obj, kv_key, "
                          "(double)kv->value.i);\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                         "        json_object_set_number(q_obj, kv_key, "
+                         "        cdd_json_object_set_number(q_obj, kv_key, "
                          "kv->value.n);\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
-                         "        json_object_set_boolean(q_obj, kv_key, "
+                         "        cdd_json_object_set_boolean(q_obj, kv_key, "
                          "kv->value.b ? 1 : 0);\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      default:\n"
-                         "        json_object_set_null(q_obj, kv_key);\n"
+                         "        cdd_json_object_set_null(q_obj, kv_key);\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      }\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
-    CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
-    CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+    CHECK_IO(
+        fprintf(fp, "    cdd_json_serialize_to_string(q_val, &q_json);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_free(q_val);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_json) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_free_serialized_string(q_json);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -264,8 +269,9 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     return CDD_C_SUCCESS;
   }
 
-  if (type)
-    g_cdd_last_alloc_err = is_primitive_type_url(type, &is_prim);
+  if (type) {
+    rc = is_primitive_type_url(type, &is_prim);
+  }
   if (type && is_prim) {
     if (strcmp(type, "string") == 0) {
       CHECK_IO(fprintf(fp, "  if (%s) {\n", name));
@@ -276,24 +282,27 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
     CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
     if (strcmp(type, "string") == 0) {
-      CHECK_IO(fprintf(fp, "    q_val = json_value_init_string(%s);\n", name));
+      CHECK_IO(
+          fprintf(fp, "    cdd_json_value_init_string(%s, &q_val);\n", name));
     } else if (strcmp(type, "integer") == 0) {
-      CHECK_IO(fprintf(fp, "    q_val = json_value_init_number((double)%s);\n",
-                       name));
+      CHECK_IO(fprintf(
+          fp, "    cdd_json_value_init_number((double)%s, &q_val);\n", name));
     } else if (strcmp(type, "number") == 0) {
-      CHECK_IO(fprintf(fp, "    q_val = json_value_init_number(%s);\n", name));
+      CHECK_IO(
+          fprintf(fp, "    cdd_json_value_init_number(%s, &q_val);\n", name));
     } else {
-      CHECK_IO(fprintf(fp, "    q_val = json_value_init_boolean(%s ? 1 : 0);\n",
-                       name));
+      CHECK_IO(fprintf(
+          fp, "    cdd_json_value_init_boolean(%s ? 1 : 0, &q_val);\n", name));
     }
     CHECK_IO(fprintf(
         fp, "    if (!q_val) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
-    CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
-    CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+    CHECK_IO(
+        fprintf(fp, "    cdd_json_serialize_to_string(q_val, &q_json);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_value_free(q_val);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_json) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    cdd_json_free_serialized_string(q_json);\n"));
     CHECK_IO(fprintf(
         fp, "    if (!q_enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -306,7 +315,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
 
   CHECK_IO(
       fprintf(fp, "  /* Unsupported JSON query parameter for %s */\n", name));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**

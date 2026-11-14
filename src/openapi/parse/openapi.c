@@ -31,8 +31,8 @@ cdd_c_error_t openapi_load_from_json_internal(
   if (!root || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
-  g_cdd_last_alloc_err = cdd_json_value_get_type(root, &root_type);
+  rc = cdd_json_value_get_object(root, &root_obj);
+  rc = cdd_json_value_get_type(root, &root_type);
   if (!root_obj && root_type != JSONBoolean)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -47,66 +47,58 @@ cdd_c_error_t openapi_load_from_json_internal(
     const char *version = NULL;
     const char *swagger_version = NULL;
     if (root_obj) {
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(root_obj, "openapi", &version);
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(root_obj, "swagger", &swagger_version);
+      rc = cdd_json_object_get_string(root_obj, "openapi", &version);
+      rc = cdd_json_object_get_string(root_obj, "swagger", &swagger_version);
     }
     if (!version && !swagger_version) {
       int is_schema = 0;
-      g_cdd_last_alloc_err =
-          root_is_schema_document(root, root_obj, &is_schema);
+      rc = root_is_schema_document(root, root_obj, &is_schema);
       if (!is_schema) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return CDD_C_ERROR_INVALID_ARGUMENT;
+        return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                               (int)openapi_spec_free(out));
       }
       out->is_schema_document = 1;
       {
         const char *schema_id = NULL;
         if (root_obj)
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_string(root_obj, "$id", &schema_id);
+          rc = cdd_json_object_get_string(root_obj, "$id", &schema_id);
         if ((schema_id && *schema_id) || out->retrieval_uri != NULL) {
           rc = compute_document_uri(schema_id, out->retrieval_uri,
                                     &out->document_uri);
           if (rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = openapi_spec_free(out);
-            return CDD_C_ERROR_MEMORY;
+            return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                   (int)openapi_spec_free(out));
           }
         }
       }
       rc = store_schema_root_json(out, root);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       if (registry) {
         rc = openapi_doc_registry_add(registry, out);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
         }
       }
       return CDD_C_SUCCESS;
     }
     if (version) {
       int is_supported = 0;
-      g_cdd_last_alloc_err = openapi_version_supported(version, &is_supported);
+      rc = openapi_version_supported(version, &is_supported);
       if (!is_supported) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return CDD_C_ERROR_INVALID_ARGUMENT;
+        return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                               (int)openapi_spec_free(out));
       }
       rc = c_cdd_strdup(version, &out->openapi_version);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
     if (swagger_version) {
       rc = c_cdd_strdup(swagger_version, &out->swagger_version);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
 
@@ -118,85 +110,69 @@ cdd_c_error_t openapi_load_from_json_internal(
       JSON_Array *produces_arr = NULL;
       size_t i;
 
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(root_obj, "host", &host);
+      rc = cdd_json_object_get_string(root_obj, "host", &host);
       if (host) {
         rc = c_cdd_strdup(host, &out->host);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
         }
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(root_obj, "basePath", &basePath);
+      rc = cdd_json_object_get_string(root_obj, "basePath", &basePath);
       if (basePath) {
         rc = c_cdd_strdup(basePath, &out->basePath);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
         }
       }
 
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_array(root_obj, "schemes", &schemes_arr);
+      rc = cdd_json_object_get_array(root_obj, "schemes", &schemes_arr);
       if (schemes_arr) {
-        g_cdd_last_alloc_err =
-            cdd_json_array_get_count(schemes_arr, &out->n_schemes);
+        rc = cdd_json_array_get_count(schemes_arr, &out->n_schemes);
         out->schemes = (char **)C_CDD_CALLOC(out->n_schemes, sizeof(char *));
         if (!out->schemes) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return CDD_C_ERROR_MEMORY;
+          return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                 (int)openapi_spec_free(out));
         }
         for (i = 0; i < out->n_schemes; i++) {
           const char *s_str = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_array_get_string(schemes_arr, i, &s_str);
+          rc = cdd_json_array_get_string(schemes_arr, i, &s_str);
           rc = c_cdd_strdup(s_str, &out->schemes[i]);
           if (rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = openapi_spec_free(out);
-            return rc;
+            return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
           }
         }
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_array(root_obj, "consumes", &consumes_arr);
+      rc = cdd_json_object_get_array(root_obj, "consumes", &consumes_arr);
       if (consumes_arr) {
-        g_cdd_last_alloc_err =
-            cdd_json_array_get_count(consumes_arr, &out->n_consumes);
+        rc = cdd_json_array_get_count(consumes_arr, &out->n_consumes);
         out->consumes = (char **)C_CDD_CALLOC(out->n_consumes, sizeof(char *));
         if (!out->consumes) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return CDD_C_ERROR_MEMORY;
+          return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                 (int)openapi_spec_free(out));
         }
         for (i = 0; i < out->n_consumes; i++) {
           const char *c_str = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_array_get_string(consumes_arr, i, &c_str);
+          rc = cdd_json_array_get_string(consumes_arr, i, &c_str);
           rc = c_cdd_strdup(c_str, &out->consumes[i]);
           if (rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = openapi_spec_free(out);
-            return rc;
+            return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
           }
         }
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_array(root_obj, "produces", &produces_arr);
+      rc = cdd_json_object_get_array(root_obj, "produces", &produces_arr);
       if (produces_arr) {
-        g_cdd_last_alloc_err =
-            cdd_json_array_get_count(produces_arr, &out->n_produces);
+        rc = cdd_json_array_get_count(produces_arr, &out->n_produces);
         out->produces = (char **)C_CDD_CALLOC(out->n_produces, sizeof(char *));
         if (!out->produces) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return CDD_C_ERROR_MEMORY;
+          return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                 (int)openapi_spec_free(out));
         }
         for (i = 0; i < out->n_produces; i++) {
           const char *p_str = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_array_get_string(produces_arr, i, &p_str);
+          rc = cdd_json_array_get_string(produces_arr, i, &p_str);
           rc = c_cdd_strdup(p_str, &out->produces[i]);
           if (rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = openapi_spec_free(out);
-            return rc;
+            return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
           }
         }
       }
@@ -204,13 +180,11 @@ cdd_c_error_t openapi_load_from_json_internal(
 
     {
       const char *self_uri = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(root_obj, "$self", &self_uri);
+      rc = cdd_json_object_get_string(root_obj, "$self", &self_uri);
       if (self_uri) {
         rc = c_cdd_strdup(self_uri, &out->self_uri);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
         }
       }
     }
@@ -218,87 +192,72 @@ cdd_c_error_t openapi_load_from_json_internal(
       rc = compute_document_uri(out->self_uri, out->retrieval_uri,
                                 &out->document_uri);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
     {
       const char *dialect = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(root_obj, "jsonSchemaDialect", &dialect);
+      rc = cdd_json_object_get_string(root_obj, "jsonSchemaDialect", &dialect);
       if (dialect) {
         rc = c_cdd_strdup(dialect, &out->json_schema_dialect);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
         }
       }
     }
     rc = collect_extensions(root_obj, &out->extensions_json);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
 
     rc = parse_info(root_obj, out);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
     /* info check removed */
     {
       JSON_Object *ext_docs = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_object(root_obj, "externalDocs", &ext_docs);
+      rc = cdd_json_object_get_object(root_obj, "externalDocs", &ext_docs);
       if (ext_docs) {
         cdd_c_error_t rc_ext =
             parse_external_docs(ext_docs, &out->external_docs);
         if (rc_ext != 0) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return rc_ext;
+          return (cdd_c_error_t)((int)rc_ext | (int)openapi_spec_free(out));
         }
       }
     }
     rc = parse_tags(root_obj, out);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
     rc = validate_tag_parents(out);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
 
     rc = parse_security_field(root_obj, "security", &out->security,
                               &out->n_security, &out->security_set);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
 
     rc = parse_servers(root_obj, out);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
 
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_object(root_obj, "paths", &paths_obj);
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_object(root_obj, "webhooks", &webhooks_obj);
+    rc = cdd_json_object_get_object(root_obj, "paths", &paths_obj);
+    rc = cdd_json_object_get_object(root_obj, "webhooks", &webhooks_obj);
     if (out->swagger_version)
       comps_obj = root_obj;
     else
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_object(root_obj, "components", &comps_obj);
+      rc = cdd_json_object_get_object(root_obj, "components", &comps_obj);
     if (paths_obj) {
       {
         cdd_c_error_t _rc =
             collect_extensions(paths_obj, &out->paths_extensions_json);
         if (_rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return _rc;
+          return (cdd_c_error_t)((int)_rc | (int)openapi_spec_free(out));
         }
       }
     }
@@ -307,8 +266,7 @@ cdd_c_error_t openapi_load_from_json_internal(
         cdd_c_error_t _rc =
             collect_extensions(webhooks_obj, &out->webhooks_extensions_json);
         if (_rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return _rc;
+          return (cdd_c_error_t)((int)_rc | (int)openapi_spec_free(out));
         }
       }
     }
@@ -317,35 +275,31 @@ cdd_c_error_t openapi_load_from_json_internal(
         cdd_c_error_t _rc =
             collect_extensions(comps_obj, &out->components_extensions_json);
         if (_rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = openapi_spec_free(out);
-          return _rc;
+          return (cdd_c_error_t)((int)_rc | (int)openapi_spec_free(out));
         }
       }
     }
     if (!paths_obj && !webhooks_obj && !comps_obj) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                             (int)openapi_spec_free(out));
     }
 
     /* Load Schemas First */
     if (comps_obj) {
       int has_oauth2 = 0;
       JSON_Object *schemes = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_object(comps_obj, "securitySchemes", &schemes);
+      rc = cdd_json_object_get_object(comps_obj, "securitySchemes", &schemes);
       if (schemes) {
         size_t scount = 0;
         size_t sk;
-        g_cdd_last_alloc_err = cdd_json_object_get_count(schemes, &scount);
+        rc = cdd_json_object_get_count(schemes, &scount);
         for (sk = 0; sk < scount; ++sk) {
           JSON_Value *sec_val = NULL;
           JSON_Object *sec_obj = NULL;
           const char *type = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_value_at(schemes, sk, &sec_val);
-          g_cdd_last_alloc_err = cdd_json_value_get_object(sec_val, &sec_obj);
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_string(sec_obj, "type", &type);
+          rc = cdd_json_object_get_value_at(schemes, sk, &sec_val);
+          rc = cdd_json_value_get_object(sec_val, &sec_obj);
+          rc = cdd_json_object_get_string(sec_obj, "type", &type);
           if (type && strcmp(type, "oauth2") == 0) {
             has_oauth2 = 1;
             break;
@@ -356,8 +310,7 @@ cdd_c_error_t openapi_load_from_json_internal(
         JSON_Object *mut_comps = comps_obj;
         JSON_Object *schemas = NULL;
         int has_val = 0;
-        g_cdd_last_alloc_err =
-            cdd_json_object_get_object(mut_comps, "schemas", &schemas);
+        rc = cdd_json_object_get_object(mut_comps, "schemas", &schemas);
         if (!schemas) {
           JSON_Value *schemas_val = NULL;
 #ifdef CDD_BUILD_TESTS
@@ -365,50 +318,47 @@ cdd_c_error_t openapi_load_from_json_internal(
             schemas_val = NULL;
           else
 #endif
-            g_cdd_last_alloc_err = cdd_json_value_init_object(&schemas_val);
+            rc = cdd_json_value_init_object(&schemas_val);
           if (!schemas_val) {
-            g_cdd_last_alloc_err = openapi_spec_free(out);
-            return CDD_C_ERROR_MEMORY;
+            return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                   (int)openapi_spec_free(out));
           }
-          g_cdd_last_alloc_err =
+          rc =
               cdd_json_object_set_value_safe(mut_comps, "schemas", schemas_val);
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_object(mut_comps, "schemas", &schemas);
+          rc = cdd_json_object_get_object(mut_comps, "schemas", &schemas);
         }
         has_val = 0;
-        g_cdd_last_alloc_err =
-            cdd_json_object_has_value(schemas, "OAuth2TokenRequest", &has_val);
+        rc = cdd_json_object_has_value(schemas, "OAuth2TokenRequest", &has_val);
         if (!has_val) {
           JSON_Value *parsed_val = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_parse_string("{\"type\":\"object\",\"properties\":{"
-                                    "\"grant_type\":{\"type\":"
-                                    "\"string\",\"enum\":[\"password\","
-                                    "\"authorization_code\","
-                                    "\"client_credentials\",\"refresh_"
-                                    "token\"]},\"username\":{"
-                                    "\"type\":\"string\"},\"password\":{"
-                                    "\"type\":\"string\",\"writeOnly\":true},"
-                                    "\"scope\":{\"type\":"
-                                    "\"string\"},\"client_"
-                                    "id\":{\"type\":\"string\"},\"client_"
-                                    "secret\":{\"type\":"
-                                    "\"string\",\"writeOnly\":true},"
-                                    "\"refresh_token\":{\"type\":"
-                                    "\"string\"},\"code\":{"
-                                    "\"type\":\"string\"},\"redirect_uri\":{"
-                                    "\"type\":\"string\"}},"
-                                    "\"required\":[\"grant_type\"]}",
-                                    &parsed_val);
-          g_cdd_last_alloc_err = cdd_json_object_set_value_safe(
-              schemas, "OAuth2TokenRequest", parsed_val);
+          rc = cdd_json_parse_string("{\"type\":\"object\",\"properties\":{"
+                                     "\"grant_type\":{\"type\":"
+                                     "\"string\",\"enum\":[\"password\","
+                                     "\"authorization_code\","
+                                     "\"client_credentials\",\"refresh_"
+                                     "token\"]},\"username\":{"
+                                     "\"type\":\"string\"},\"password\":{"
+                                     "\"type\":\"string\",\"writeOnly\":true},"
+                                     "\"scope\":{\"type\":"
+                                     "\"string\"},\"client_"
+                                     "id\":{\"type\":\"string\"},\"client_"
+                                     "secret\":{\"type\":"
+                                     "\"string\",\"writeOnly\":true},"
+                                     "\"refresh_token\":{\"type\":"
+                                     "\"string\"},\"code\":{"
+                                     "\"type\":\"string\"},\"redirect_uri\":{"
+                                     "\"type\":\"string\"}},"
+                                     "\"required\":[\"grant_type\"]}",
+                                     &parsed_val);
+          rc = cdd_json_object_set_value_safe(schemas, "OAuth2TokenRequest",
+                                              parsed_val);
         }
         has_val = 0;
-        g_cdd_last_alloc_err =
+        rc =
             cdd_json_object_has_value(schemas, "OAuth2TokenResponse", &has_val);
         if (!has_val) {
           JSON_Value *parsed_val = NULL;
-          g_cdd_last_alloc_err = cdd_json_parse_string(
+          rc = cdd_json_parse_string(
               "{\"type\":\"object\",\"properties\":{\"access_token\":"
               "{"
               "\"type\":\"string\"},\"token_type\":{\"type\":"
@@ -418,15 +368,14 @@ cdd_c_error_t openapi_load_from_json_internal(
               "\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},"
               "\"required\":[\"access_token\",\"token_type\"]}",
               &parsed_val);
-          g_cdd_last_alloc_err = cdd_json_object_set_value_safe(
-              schemas, "OAuth2TokenResponse", parsed_val);
+          rc = cdd_json_object_set_value_safe(schemas, "OAuth2TokenResponse",
+                                              parsed_val);
         }
         has_val = 0;
-        g_cdd_last_alloc_err =
-            cdd_json_object_has_value(schemas, "OAuth2Client", &has_val);
+        rc = cdd_json_object_has_value(schemas, "OAuth2Client", &has_val);
         if (!has_val) {
           JSON_Value *parsed_val = NULL;
-          g_cdd_last_alloc_err = cdd_json_parse_string(
+          rc = cdd_json_parse_string(
               "{\"type\":\"object\",\"properties\":{\"client_id\":{"
               "\"type\":"
               "\"string\",\"description\":\"[UNIQUE]\"},\"client_"
@@ -441,15 +390,14 @@ cdd_c_error_t openapi_load_from_json_internal(
               "secret_hash\"]"
               "}",
               &parsed_val);
-          g_cdd_last_alloc_err = cdd_json_object_set_value_safe(
-              schemas, "OAuth2Client", parsed_val);
+          rc = cdd_json_object_set_value_safe(schemas, "OAuth2Client",
+                                              parsed_val);
         }
         has_val = 0;
-        g_cdd_last_alloc_err =
-            cdd_json_object_has_value(schemas, "OAuth2User", &has_val);
+        rc = cdd_json_object_has_value(schemas, "OAuth2User", &has_val);
         if (!has_val) {
           JSON_Value *parsed_val = NULL;
-          g_cdd_last_alloc_err = cdd_json_parse_string(
+          rc = cdd_json_parse_string(
               "{\"type\":\"object\",\"properties\":{\"username\":{"
               "\"type\":"
               "\"string\",\"description\":\"[UNIQUE]\"},\"password_"
@@ -460,15 +408,14 @@ cdd_c_error_t openapi_load_from_json_internal(
               "\"required\":[\"username\",\"password_hash\"]"
               "}",
               &parsed_val);
-          g_cdd_last_alloc_err =
+          rc =
               cdd_json_object_set_value_safe(schemas, "OAuth2User", parsed_val);
         }
         has_val = 0;
-        g_cdd_last_alloc_err =
-            cdd_json_object_has_value(schemas, "OAuth2Token", &has_val);
+        rc = cdd_json_object_has_value(schemas, "OAuth2Token", &has_val);
         if (!has_val) {
           JSON_Value *parsed_val = NULL;
-          g_cdd_last_alloc_err = cdd_json_parse_string(
+          rc = cdd_json_parse_string(
               "{\"type\":\"object\",\"properties\":{\"access_token\":"
               "{"
               "\"type\":"
@@ -485,43 +432,37 @@ cdd_c_error_t openapi_load_from_json_internal(
               "token\"]"
               "}",
               &parsed_val);
-          g_cdd_last_alloc_err = cdd_json_object_set_value_safe(
-              schemas, "OAuth2Token", parsed_val);
+          rc = cdd_json_object_set_value_safe(schemas, "OAuth2Token",
+                                              parsed_val);
         }
       }
       rc = parse_components(comps_obj, out);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
 
     if (paths_obj) {
       rc = parse_paths_object(paths_obj, &out->paths, &out->n_paths, out, 1, 1);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_path_templates(out->paths, out->n_paths);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_path_template_collisions(out->paths, out->n_paths);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_querystring_usage(out->paths, out->n_paths);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_querystring_usage_in_paths_callbacks(out->paths,
                                                          out->n_paths);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
 
@@ -529,19 +470,16 @@ cdd_c_error_t openapi_load_from_json_internal(
       rc = parse_paths_object(webhooks_obj, &out->webhooks, &out->n_webhooks,
                               out, 0, 1);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_querystring_usage(out->webhooks, out->n_webhooks);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_querystring_usage_in_paths_callbacks(out->webhooks,
                                                          out->n_webhooks);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
 
@@ -549,34 +487,29 @@ cdd_c_error_t openapi_load_from_json_internal(
       rc = validate_querystring_usage(out->component_path_items,
                                       out->n_component_path_items);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
       rc = validate_querystring_usage_in_paths_callbacks(
           out->component_path_items, out->n_component_path_items);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
 
     rc = validate_querystring_usage_in_component_callbacks(out);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
 
     rc = validate_unique_operation_ids(out);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = openapi_spec_free(out);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
     }
 
     if (registry) {
       rc = openapi_doc_registry_add(registry, out);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = openapi_spec_free(out);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(out));
       }
     }
 

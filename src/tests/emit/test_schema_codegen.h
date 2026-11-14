@@ -498,13 +498,17 @@ TEST test_schema_codegen_enum_output(void) {
           generate_source("enum_san_out", "enum_san_out", schemas_obj, NULL);
       g_cdd_alloc_fail = 0;
     }
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_header("enum_san_out", "enum_san_out", NULL, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_source("enum_san_out", "enum_san_out", NULL, NULL));
     ASSERT_EQ(CDD_C_SUCCESS, generate_header("enum_san_out", "enum_san_out",
                                              schemas_obj, NULL));
     ASSERT_EQ(CDD_C_SUCCESS, generate_source("enum_san_out", "enum_san_out",
                                              schemas_obj, NULL));
     remove("enum_san_out.h");
     remove("enum_san_out.c");
-    g_cdd_last_alloc_err = json_value_free(root_v);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(root_v));
   }
   g_fail_io_after = -1;
   PASS();

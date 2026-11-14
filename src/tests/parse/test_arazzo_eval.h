@@ -26,6 +26,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * @brief Routes JSON DOM allocations through C_CDD_MALLOC for OOM fault
+ * injection.
+ * @param[in] sz Allocation byte count.
+ * @return Allocated pointer or NULL on fault.
+ */
+static void *arazzo_test_json_malloc(size_t sz) { return C_CDD_MALLOC(sz); }
+
+/**
  * @brief Tests `arazzo_eval_json_pointer` including RFC 6901 unescaping (`~0`,
  * `~1`), arrays, errors, and OOM.
  * @return Test or helper result.
@@ -242,9 +250,12 @@ TEST test_arazzo_eval_jsonpath_and_xpath(void) {
   ASSERT_EQ(
       CDD_C_ERROR_NOT_SUPPORTED,
       arazzo_eval_jsonpath(root_val, "$.store.book[?(@.price ~= 10)]", &out));
-  ASSERT_EQ(CDD_C_ERROR_NOT_SUPPORTED,
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_eval_jsonpath(root_val,
                                  "$.store.book[?(@.price == @.other)]", &out));
+  ASSERT_EQ(CDD_C_ERROR_NOT_SUPPORTED,
+            arazzo_eval_jsonpath(root_val,
+                                 "$.store.book[?(@.price == unknown)]", &out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             arazzo_eval_jsonpath(root_val,
                                  "$.store.book[?(@.title == 'unterm)]", &out));
@@ -619,6 +630,37 @@ TEST test_arazzo_eval_runtime_expr_all_roots(void) {
                                "$message.header.corr", &ctx, &out));
   ASSERT_STR_EQ("c1", out);
   C_CDD_FREE(out);
+
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_runtime_expr_to_str(
+                                       "$message.header.missing", &ctx, &out));
+
+  {
+    const JSON_Value *saved_mh = ctx.msg_header;
+    JSON_Value *str_mh = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_string("raw", &str_mh));
+    ctx.msg_header = str_mh;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_runtime_expr_to_str(
+                                         "$message.header.corr", &ctx, &out));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(str_mh));
+    ctx.msg_header = saved_mh;
+  }
+
+  {
+    int k;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_set_allocation_functions(arazzo_test_json_malloc, free));
+    for (k = 1; k <= 15; k++) {
+      out = NULL;
+      g_cdd_alloc_fail = k;
+      if (arazzo_eval_runtime_expr_to_str("$request.body", &ctx, &out) ==
+          CDD_C_SUCCESS) {
+        C_CDD_FREE(out);
+        break;
+      }
+    }
+    g_cdd_alloc_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+  }
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_eval_runtime_expr_to_str(
                                "$message.header#/corr", &ctx, &out));

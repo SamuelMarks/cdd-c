@@ -261,6 +261,9 @@ set_target_properties(
         C
 )
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
+if(MSVC)
+    set_property(TARGET "${EXEC_NAME}" APPEND_STRING PROPERTY LINK_FLAGS " /STACK:8388608")
+endif()
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     target_compile_definitions("${EXEC_NAME}" PRIVATE CDD_BUILD_TESTS)
 endif()
@@ -299,6 +302,25 @@ add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
 add_test(NAME test_cdd_c_fail COMMAND cdd-c non_existent_command)
 set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
 
+if(TARGET cdd-c-transform)
+    add_test(NAME test_cdd_c_transform_help COMMAND cdd-c-transform --help)
+    add_test(NAME test_cdd_c_transform_fail COMMAND cdd-c-transform non_existent_command)
+    set_tests_properties(test_cdd_c_transform_fail PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME test_cdd_c_transform_torture
+        COMMAND "${CMAKE_COMMAND}"
+                "-DTRANSFORM_BIN=$<TARGET_FILE:cdd-c-transform>"
+                "-DTORTURE_INPUT=${CMAKE_CURRENT_SOURCE_DIR}/transformers/torture_gnu_c23.c.in"
+                "-DWORK_DIR=${CMAKE_BINARY_DIR}/torture_test_work"
+                "-DINCLUDE_DIR=${CMAKE_SOURCE_DIR}/include"
+                "-DC_COMPILER=${CMAKE_C_COMPILER}"
+                "-DCOMPILER_ID=${CMAKE_C_COMPILER_ID}"
+                "-DTARGET_WIN32=${WIN32}"
+                "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}"
+                -P "${CMAKE_SOURCE_DIR}/cmake/modules/RunTransformTortureTest.cmake"
+    )
+endif()
+
 add_test(NAME test_mocks COMMAND mocks WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 add_test(NAME test_mocks_arg COMMAND mocks --foo WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 add_test(NAME test_mocks_fail COMMAND mocks --fail-alloc WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
@@ -312,7 +334,7 @@ if(TARGET test_c_cdd)
     endif()
 endif()
 
-foreach(_tgt IN ITEMS "${LIBRARY_NAME}" cdd-c cdd_test_helpers simple_mocks mocks test_c_cdd test_simple_json)
+foreach(_tgt IN ITEMS "${LIBRARY_NAME}" cdd-c cdd-c-transform cdd_test_helpers simple_mocks mocks test_c_cdd test_simple_json)
     if(TARGET "${_tgt}")
         set_target_properties("${_tgt}" PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

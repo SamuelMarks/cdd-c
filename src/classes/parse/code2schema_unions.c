@@ -20,6 +20,7 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
                                                     struct StructFields *dest,
                                                     const JSON_Object *root) {
   size_t i, count = 0;
+  cdd_c_error_t rc_top = CDD_C_SUCCESS;
 
   if (!union_arr || !dest)
     return CDD_C_SUCCESS;
@@ -27,7 +28,7 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
   if (dest->size > 0)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_array_get_count(union_arr, &count);
+  rc_top = cdd_json_array_get_count(union_arr, &count);
   for (i = 0; i < count; ++i) {
     JSON_Object *sub = NULL;
     const JSON_Object *resolved = NULL;
@@ -35,12 +36,14 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
     struct StructFields tmp;
     cdd_c_error_t rc;
 
-    g_cdd_last_alloc_err = cdd_json_array_get_object(union_arr, i, &sub);
+    if (cdd_json_array_get_object(union_arr, i, &sub) != CDD_C_SUCCESS)
+      sub = NULL;
     resolved = sub;
     if (!sub)
       continue;
 
-    g_cdd_last_alloc_err = cdd_json_object_get_string(sub, "$ref", &ref);
+    if (cdd_json_object_get_string(sub, "$ref", &ref) != CDD_C_SUCCESS)
+      ref = NULL;
     if (ref && root) {
       cdd_c_error_t rc_c2s = resolve_schema_ref_object(root, ref, &resolved);
       if (rc_c2s != CDD_C_SUCCESS)
@@ -55,20 +58,18 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
 
     rc = json_object_to_struct_fields(resolved, &tmp, root);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = struct_fields_free(&tmp);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp));
     }
 
     if (tmp.size > 0) {
       rc = merge_struct_fields(dest, &tmp);
-      g_cdd_last_alloc_err = struct_fields_free(&tmp);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp));
     }
 
-    g_cdd_last_alloc_err = struct_fields_free(&tmp);
+    rc_top = struct_fields_free(&tmp);
   }
 
-  return CDD_C_SUCCESS;
+  return rc_top;
 }
 
 /*
@@ -99,12 +100,11 @@ cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
   if (!schema_obj)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(schema_obj, "items", &items);
-  if (!items)
+  if (cdd_json_object_get_object(schema_obj, "items", &items) != CDD_C_SUCCESS)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_object_get_string(items, "$ref", &item_ref);
+  if (cdd_json_object_get_string(items, "$ref", &item_ref) != CDD_C_SUCCESS)
+    item_ref = NULL;
   if (item_ref && root) {
     int is_enum = 0;
     cdd_c_error_t rc_c2s = ref_points_to_string_enum(root, item_ref, &is_enum);
@@ -116,50 +116,43 @@ cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
     }
   }
 
-  g_cdd_last_alloc_err = cdd_json_object_get_string(items, "type", &item_type);
+  if (cdd_json_object_get_string(items, "type", &item_type) != CDD_C_SUCCESS)
+    item_type = NULL;
   if (!item_ref && !item_type) {
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_array(items, "type", &item_type_arr);
+    if (cdd_json_object_get_array(items, "type", &item_type_arr) !=
+        CDD_C_SUCCESS)
+      item_type_arr = NULL;
     if (item_type_arr) {
-      g_cdd_last_alloc_err = parse_type_union_array_code2schema(
+      cdd_c_error_t rc_tu = parse_type_union_array_code2schema(
           item_type_arr, &items_type_union, &n_items_type_union, &primary,
           NULL);
+      if (rc_tu != CDD_C_SUCCESS)
+        return rc_tu;
       item_type = primary;
     } else {
       JSON_Object *item_props = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_object(items, "properties", &item_props);
-      if (item_props)
+      if (cdd_json_object_get_object(items, "properties", &item_props) ==
+          CDD_C_SUCCESS)
         item_type = "object";
     }
   }
 
   if (item_ref) {
-    g_cdd_last_alloc_err =
-        free_string_array_code2schema(items_type_union, n_items_type_union);
     *out_supported = 1;
-    return CDD_C_SUCCESS;
+    return free_string_array_code2schema(items_type_union, n_items_type_union);
   }
   if (!item_type) {
-    g_cdd_last_alloc_err =
-        free_string_array_code2schema(items_type_union, n_items_type_union);
-    return CDD_C_SUCCESS;
+    return free_string_array_code2schema(items_type_union, n_items_type_union);
   }
   if (strcmp(item_type, "array") == 0) {
-    g_cdd_last_alloc_err =
-        free_string_array_code2schema(items_type_union, n_items_type_union);
-    return CDD_C_SUCCESS;
+    return free_string_array_code2schema(items_type_union, n_items_type_union);
   }
   if (strcmp(item_type, "object") == 0 && (!allow_inline || !root)) {
-    g_cdd_last_alloc_err =
-        free_string_array_code2schema(items_type_union, n_items_type_union);
-    return CDD_C_SUCCESS;
+    return free_string_array_code2schema(items_type_union, n_items_type_union);
   }
 
-  g_cdd_last_alloc_err =
-      free_string_array_code2schema(items_type_union, n_items_type_union);
   *out_supported = 1;
-  return CDD_C_SUCCESS;
+  return free_string_array_code2schema(items_type_union, n_items_type_union);
 }
 
 /*
@@ -183,6 +176,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
     int is_anyof, const JSON_Object *schema_obj, int allow_inline) {
   size_t i, count = 0;
   JSON_Object *disc_obj = NULL;
+  cdd_c_error_t rc_top = CDD_C_SUCCESS;
 
   if (!union_arr || !dest)
     return CDD_C_SUCCESS;
@@ -190,34 +184,36 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
   if (dest->size > 0)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_array_get_count(union_arr, &count);
+  rc_top = cdd_json_array_get_count(union_arr, &count);
   if (count == 0)
-    return CDD_C_SUCCESS;
+    return rc_top;
 
   /* Validate variant support */
   for (i = 0; i < count; ++i) {
     JSON_Object *sub = NULL;
     const JSON_Object *resolved = NULL;
     const char *ref = NULL;
-    enum UnionVariantJsonType jtype;
-    g_cdd_last_alloc_err = cdd_json_array_get_object(union_arr, i, &sub);
+    enum UnionVariantJsonType jtype = UNION_JSON_UNKNOWN;
+    if (cdd_json_array_get_object(union_arr, i, &sub) != CDD_C_SUCCESS)
+      sub = NULL;
     resolved = sub;
     if (!sub)
       continue;
-    g_cdd_last_alloc_err = cdd_json_object_get_string(sub, "$ref", &ref);
+    if (cdd_json_object_get_string(sub, "$ref", &ref) != CDD_C_SUCCESS)
+      ref = NULL;
     if (ref && root) {
-      cdd_c_error_t rc_c2s = resolve_schema_ref_object(root, ref, &resolved);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
+      rc_top = resolve_schema_ref_object(root, ref, &resolved);
+      if (rc_top != CDD_C_SUCCESS)
+        return rc_top;
     }
-    g_cdd_last_alloc_err = c2s_detect_union_json_type(resolved, &jtype);
+    rc_top = c2s_detect_union_json_type(resolved, &jtype);
     if (jtype == UNION_JSON_ARRAY) {
       int supported = 0;
       if (!allow_inline)
         return CDD_C_SUCCESS;
       {
         cdd_c_error_t rc_c2s = c2s_union_array_items_supported(
-            resolved, root_mut ? root_mut : NULL, allow_inline, &supported);
+            resolved, root_mut, allow_inline, &supported);
         if (rc_c2s != CDD_C_SUCCESS)
           return rc_c2s;
       }
@@ -235,13 +231,16 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
   dest->is_union = 1;
   dest->union_is_anyof = is_anyof ? 1 : 0;
 
-  if (schema_obj)
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_object(schema_obj, "discriminator", &disc_obj);
+  if (schema_obj) {
+    if (cdd_json_object_get_object(schema_obj, "discriminator", &disc_obj) !=
+        CDD_C_SUCCESS)
+      disc_obj = NULL;
+  }
   if (disc_obj) {
     const char *prop = NULL;
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_string(disc_obj, "propertyName", &prop);
+    if (cdd_json_object_get_string(disc_obj, "propertyName", &prop) !=
+        CDD_C_SUCCESS)
+      prop = NULL;
     if (prop && *prop) {
       dest->union_discriminator = NULL;
       {
@@ -265,7 +264,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
     JSON_Object *sub = NULL;
     const JSON_Object *resolved = NULL;
     const char *ref = NULL;
-    enum UnionVariantJsonType jtype;
+    enum UnionVariantJsonType jtype = UNION_JSON_UNKNOWN;
     const char *type_name = NULL;
     const char *name_hint = NULL;
     char *variant_name = NULL;
@@ -279,35 +278,36 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
     struct UnionVariantMeta *meta = &dest->union_variants[i];
     cdd_c_error_t rc;
 
-    g_cdd_last_alloc_err = cdd_json_array_get_value(union_arr, i, &sub_val);
-    g_cdd_last_alloc_err = cdd_json_value_get_object(sub_val, &sub);
+    rc = cdd_json_array_get_value(union_arr, i, &sub_val);
+    if (cdd_json_value_get_object(sub_val, &sub) != CDD_C_SUCCESS)
+      sub = NULL;
     resolved = sub;
 
     if (!sub)
       continue;
 
-    g_cdd_last_alloc_err = cdd_json_object_get_string(sub, "$ref", &ref);
+    if (cdd_json_object_get_string(sub, "$ref", &ref) != CDD_C_SUCCESS)
+      ref = NULL;
     if (ref) {
-      cdd_c_error_t rc_c2s = resolve_schema_ref_object(root, ref, &resolved);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
+      rc = resolve_schema_ref_object(root, ref, &resolved);
     }
 
-    g_cdd_last_alloc_err = c2s_detect_union_json_type(resolved, &jtype);
+    rc = c2s_detect_union_json_type(resolved, &jtype);
     meta->json_type = jtype;
 
     if (ref) {
-      {
-        cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &name_hint);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
+      rc = c_cdd_str_after_last(ref, '/', &name_hint);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else {
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(resolved, "title", &name_hint);
-      if (!name_hint)
-        g_cdd_last_alloc_err =
-            cdd_json_object_get_string(resolved, "type", &name_hint);
+      if (cdd_json_object_get_string(resolved, "title", &name_hint) !=
+          CDD_C_SUCCESS)
+        name_hint = NULL;
+      if (!name_hint) {
+        if (cdd_json_object_get_string(resolved, "type", &name_hint) !=
+            CDD_C_SUCCESS)
+          name_hint = NULL;
+      }
     }
     if (!name_hint)
       name_hint = schema_name ? schema_name : "Variant";
@@ -334,53 +334,50 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
       JSON_Value *items_val = NULL;
       JSON_Array *item_type_arr = NULL;
 
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_object(resolved, "items", &items);
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_value(resolved, "items", &items_val);
+      rc = cdd_json_object_get_object(resolved, "items", &items);
+      rc = cdd_json_object_get_value(resolved, "items", &items_val);
 
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(items, "$ref", &item_ref);
+      if (cdd_json_object_get_string(items, "$ref", &item_ref) != CDD_C_SUCCESS)
+        item_ref = NULL;
       if (item_ref && root) {
         int is_enum = 0;
-        g_cdd_last_alloc_err =
-            ref_points_to_string_enum(root, item_ref, &is_enum);
+        rc = ref_points_to_string_enum(root, item_ref, &is_enum);
         if (is_enum) {
           item_ref = NULL;
           item_type = "string";
         }
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_string(items, "type", &item_type);
+      if (!item_type) {
+        if (cdd_json_object_get_string(items, "type", &item_type) !=
+            CDD_C_SUCCESS)
+          item_type = NULL;
+      }
       if (!item_ref && !item_type) {
-        g_cdd_last_alloc_err =
-            cdd_json_object_get_array(items, "type", &item_type_arr);
+        if (cdd_json_object_get_array(items, "type", &item_type_arr) !=
+            CDD_C_SUCCESS)
+          item_type_arr = NULL;
         if (item_type_arr) {
           rc = parse_type_union_array_code2schema(
               item_type_arr, &items_type_union, &n_items_type_union, &item_type,
               NULL);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(variant_name);
-            C_CDD_FREE(inline_ref_name);
             return rc;
           }
         } else {
           JSON_Object *item_props = NULL;
-          g_cdd_last_alloc_err =
-              cdd_json_object_get_object(items, "properties", &item_props);
-          if (item_props)
-            item_type = "object";
+          rc = cdd_json_object_get_object(items, "properties", &item_props);
+          item_type = "object";
         }
       }
-      if (!item_ref && item_type && strcmp(item_type, "object") == 0) {
+      if (!item_ref && strcmp(item_type, "object") == 0) {
         rc = register_inline_schema_c2s(root_mut, schema_name, variant_name,
                                         "Item", items_val, &inline_item_ref);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(variant_name);
-          C_CDD_FREE(inline_ref_name);
-          g_cdd_last_alloc_err = free_string_array_code2schema(
-              items_type_union, n_items_type_union);
-          return rc;
+          return (cdd_c_error_t)((int)rc |
+                                 (int)free_string_array_code2schema(
+                                     items_type_union, n_items_type_union));
         }
         item_ref = inline_item_ref;
       }
@@ -419,9 +416,9 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
       C_CDD_FREE(variant_name);
       C_CDD_FREE(inline_ref_name);
       C_CDD_FREE(inline_item_ref);
-      g_cdd_last_alloc_err =
-          free_string_array_code2schema(items_type_union, n_items_type_union);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)free_string_array_code2schema(
+                                 items_type_union, n_items_type_union));
     }
     field = &dest->fields[dest->size - 1];
 
@@ -436,22 +433,17 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
 
     if (jtype == UNION_JSON_OBJECT) {
       JSON_Array *required = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_array(resolved, "required", &required);
+      if (cdd_json_object_get_array(resolved, "required", &required) !=
+          CDD_C_SUCCESS)
+        required = NULL;
       if (c2s_collect_string_array(required, &meta->required_props,
                                    &meta->n_required_props) != 0) {
         C_CDD_FREE(inline_ref_name);
-        C_CDD_FREE(inline_item_ref);
-        g_cdd_last_alloc_err =
-            free_string_array_code2schema(items_type_union, n_items_type_union);
         return CDD_C_ERROR_MEMORY;
       }
       if (c2s_collect_property_names(resolved, &meta->property_names,
                                      &meta->n_property_names) != 0) {
         C_CDD_FREE(inline_ref_name);
-        C_CDD_FREE(inline_item_ref);
-        g_cdd_last_alloc_err =
-            free_string_array_code2schema(items_type_union, n_items_type_union);
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -460,27 +452,22 @@ cdd_c_error_t apply_union_to_struct_fields_ex_mut(
       const char *ref_al = NULL;
       char *disc_val = NULL;
       if (ref) {
-        cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &ref_al);
-        if (rc_c2s != CDD_C_SUCCESS) {
-          C_CDD_FREE(inline_ref_name);
-          C_CDD_FREE(inline_item_ref);
-          g_cdd_last_alloc_err = free_string_array_code2schema(
-              items_type_union, n_items_type_union);
-          return rc_c2s;
-        }
+        rc = c_cdd_str_after_last(ref, '/', &ref_al);
       }
-      g_cdd_last_alloc_err = discriminator_value_for_variant(
-          disc_obj, ref ? ref_al : name_hint, ref, &disc_val);
+      rc = discriminator_value_for_variant(disc_obj, ref ? ref_al : name_hint,
+                                           ref, &disc_val);
+      if (rc != CDD_C_SUCCESS)
+        disc_val = NULL;
       meta->disc_value = disc_val;
     }
 
     C_CDD_FREE(inline_ref_name);
     C_CDD_FREE(inline_item_ref);
-    g_cdd_last_alloc_err =
+    rc_top =
         free_string_array_code2schema(items_type_union, n_items_type_union);
   }
 
-  return CDD_C_SUCCESS;
+  return rc_top;
 }
 
 /*

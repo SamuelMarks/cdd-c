@@ -77,13 +77,15 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   size_t i, j;
   const char *lib_name = "mylib";
   char module_name[256];
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (config->library_name) {
     lib_name = config->library_name;
   }
 
-  g_cdd_last_alloc_err =
-      to_camel_case(lib_name, module_name, sizeof(module_name));
+  rc_emit =
+      (cdd_c_error_t)((int)rc_emit | (int)to_camel_case(lib_name, module_name,
+                                                        sizeof(module_name)));
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.jl", config->output_dir,
@@ -114,7 +116,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "@enum %s::Cint begin\n", node->name);
@@ -134,7 +137,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "mutable struct %s\n", node->name);
@@ -142,7 +146,9 @@ emit_julia_file(cdd_ffi_ir_t *ir,
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *jt = NULL;
-        g_cdd_last_alloc_err = get_julia_type(node->fields[j].type, &jt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)get_julia_type(node->fields[j].type, &jt));
         fprintf(f, "    %s::%s\n", fname, jt);
       }
       fprintf(f, "    %s() = new()\n", node->name);
@@ -155,7 +161,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_jt = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "function %s(", node->name);
@@ -171,11 +178,15 @@ emit_julia_file(cdd_ffi_ir_t *ir,
       }
       fprintf(f, ")\n");
 
-      g_cdd_last_alloc_err = get_julia_type(node->return_or_base_type, &ret_jt);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)get_julia_type(node->return_or_base_type,
+                                                    &ret_jt));
       fprintf(f, "    ccall((:%s, lib_path), %s, (", node->name, ret_jt);
       for (j = 0; j < node->fields_count; j++) {
         const char *jt = NULL;
-        g_cdd_last_alloc_err = get_julia_type(node->fields[j].type, &jt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)get_julia_type(node->fields[j].type, &jt));
         fprintf(f, "%s", jt);
         if (j < node->fields_count - 1 || node->fields_count == 1)
           fprintf(f, ", ");
@@ -203,7 +214,7 @@ emit_julia_file(cdd_ffi_ir_t *ir,
 
   fprintf(f, "end # module\n");
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*

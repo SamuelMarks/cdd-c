@@ -424,14 +424,14 @@ cdd_c_error_t cdd_cli_expand_response_files(int argc, char **argv,
     if (i > 0 && arg[0] == '@' && arg[1] != '\0') {
       rc = cli_expand_rsp_file(arg + 1, 1, &new_argc, &cap, &new_argv);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = cdd_cli_free_argv(new_argc, new_argv);
-        return rc;
+        return (cdd_c_error_t)((int)rc |
+                               (int)cdd_cli_free_argv(new_argc, new_argv));
       }
     } else {
       rc = cli_argv_push(&new_argc, &cap, &new_argv, arg);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = cdd_cli_free_argv(new_argc, new_argv);
-        return rc;
+        return (cdd_c_error_t)((int)rc |
+                               (int)cdd_cli_free_argv(new_argc, new_argv));
       }
     }
   }
@@ -487,7 +487,22 @@ cdd_c_error_t cdd_cli_parse_reflected_argv(int argc, char **argv, int start_idx,
       return CDD_C_SUCCESS;
     }
     if (arg[0] != '-') {
-      if (out_first_unknown && *out_first_unknown < 0)
+      size_t fi;
+      int assigned_pos = 0;
+      for (fi = 0; fi < ti->n_fields; ++fi) {
+        const struct cdd_field_info *pf = &ti->fields[fi];
+        if (pf->kind == CDD_FIELD_KIND_STRING && pf->required) {
+          const char *cur_val = NULL;
+          memcpy(&cur_val, (const unsigned char *)target + pf->offset,
+                 sizeof(cur_val));
+          if (!cur_val) {
+            memcpy((unsigned char *)target + pf->offset, &arg, sizeof(arg));
+            assigned_pos = 1;
+            break;
+          }
+        }
+      }
+      if (!assigned_pos && out_first_unknown && *out_first_unknown < 0)
         *out_first_unknown = i;
       continue;
     }

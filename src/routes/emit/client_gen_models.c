@@ -44,18 +44,14 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
   if (fprintf(mhfile, "#ifndef %s\n", model_guard) < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
   if (fprintf(mhfile, "#define %s\n\n", model_guard) < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
@@ -64,9 +60,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
@@ -74,18 +68,14 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
                       "\"lib_export.h\"\n\n") < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
   if (fprintf(mhfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n") < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
@@ -102,9 +92,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     if (print_rc < 0) {
       rc = CDD_C_SUCCESS;
       {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
         goto cleanup;
       }
     }
@@ -115,18 +103,14 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
               "<c89stringutils_string_extras.h>\n") < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
   if (fprintf(mcfile, "#include <string.h>\n\n") < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
@@ -150,8 +134,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       int needs_san = 0;
       if (!raw_name)
         continue;
-      g_cdd_last_alloc_err =
-          c2s_needs_identifier_sanitization(raw_name, &needs_san);
+      rc = c2s_needs_identifier_sanitization(raw_name, &needs_san);
       if (needs_san) {
         rc = sanitize_identifier(raw_name, &san_name);
         if (rc != CDD_C_SUCCESS) {
@@ -165,9 +148,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
 
       rc = write_forward_decl(mhfile, name);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
         goto cleanup;
       }
     }
@@ -175,9 +156,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     if (fprintf(mhfile, "\n") < 0) {
       rc = CDD_C_SUCCESS;
       {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
         goto cleanup;
       }
     }
@@ -190,8 +169,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       int needs_san = 0;
       if (!raw_name)
         continue;
-      g_cdd_last_alloc_err =
-          c2s_needs_identifier_sanitization(raw_name, &needs_san);
+      rc = c2s_needs_identifier_sanitization(raw_name, &needs_san);
       if (needs_san) {
         rc = sanitize_identifier(raw_name, &san_name);
         if (rc != CDD_C_SUCCESS) {
@@ -209,118 +187,86 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       if (sf->is_enum) {
         rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
       } else if (sf->is_union) {
         rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
 
         rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
       } else {
         rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
 
         rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_from_json_func(mcfile, name, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
         rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
           goto cleanup;
         }
       }
@@ -330,18 +276,14 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
   if (fprintf(mhfile, "\n#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }
   if (fprintf(mhfile, "#endif /* %s */\n", model_guard) < 0) {
     rc = CDD_C_SUCCESS;
     {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
+      C_CDD_LOG_DEBUG("goto cleanup in client_gen_models.c\n");
       goto cleanup;
     }
   }

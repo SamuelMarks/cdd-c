@@ -51,7 +51,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   strncpy(buf, line, sizeof(buf) - 1);
 #endif
   buf[sizeof(buf) - 1] = '\0';
-  g_cdd_last_alloc_err = trim_trailing(buf);
+  rc = trim_trailing(buf);
 
   /* Extract any C89 block comments (leading, inline, or trailing) */
   {
@@ -120,7 +120,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 
       *cmt = '\0';
     }
-    g_cdd_last_alloc_err = trim_trailing(buf);
+    rc = trim_trailing(buf);
     {
       char *lead = buf;
       while (*lead && isspace((unsigned char)*lead))
@@ -143,7 +143,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       strncpy(bit_width, w, sizeof(bit_width) - 1);
 #endif
       *colon_ptr = '\0';
-      g_cdd_last_alloc_err = trim_trailing(buf);
+      rc = trim_trailing(buf);
     }
   }
 
@@ -216,8 +216,6 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 
   /* --- Use Mapper --- */
   rc = c_mapping_map_type(type_raw, name, &mapping);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
   /* Translate Mapper Result to StructFields format */
   /* StructFields uses "type" string and "ref" string. */
@@ -273,8 +271,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
         cdd_c_error_t rc_serde =
             cdd_serde_parse_field_comment(serde_comments, field);
         if (rc_serde != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = c_mapping_free(&mapping);
-          return rc_serde;
+          return (cdd_c_error_t)((int)rc_serde | (int)c_mapping_free(&mapping));
         }
       }
 
@@ -293,8 +290,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
           cdd_c_error_t rc_c2s = c2s_merge_schema_extras_strings(
               &field->schema_extra_json, cdd_json);
           if (rc_c2s != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = c_mapping_free(&mapping);
-            return rc_c2s;
+            return (cdd_c_error_t)((int)rc_c2s | (int)c_mapping_free(&mapping));
           }
         }
       }
@@ -323,8 +319,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
     }
   }
 
-  g_cdd_last_alloc_err = c_mapping_free(&mapping);
-  return rc;
+  return (cdd_c_error_t)((int)rc | (int)c_mapping_free(&mapping));
 }
 
 /*
@@ -347,11 +342,17 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
   JSON_Value *oneof_val = NULL;
   JSON_Array *oneof_arr = NULL;
   size_t i = *idx;
+  cdd_c_error_t rc;
 
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&union_val);
-  g_cdd_last_alloc_err = cdd_json_value_get_object(union_val, &union_obj);
-  g_cdd_last_alloc_err = cdd_json_value_init_array(&oneof_val);
-  g_cdd_last_alloc_err = cdd_json_value_get_array(oneof_val, &oneof_arr);
+  rc = cdd_json_value_init_object(&union_val);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_json_value_get_object(union_val, &union_obj);
+  rc = cdd_json_value_init_array(&oneof_val);
+  if (rc != CDD_C_SUCCESS) {
+    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(union_val));
+  }
+  rc = cdd_json_value_get_array(oneof_val, &oneof_arr);
 
   for (;;) {
     size_t stmt_start;
@@ -359,11 +360,13 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
     const struct Token *first_tok = NULL;
     const struct Token *last_ident = NULL;
     size_t k;
-    enum TokenKind k_cur;
+    enum TokenKind k_cur = TOKEN_UNKNOWN;
 
-    while ((g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k_cur),
-            k_cur == TOKEN_WHITESPACE || k_cur == TOKEN_COMMENT ||
-                k_cur == TOKEN_SEMICOLON)) {
+    for (;;) {
+      rc = c2s_tok_kind(tl, i, &k_cur);
+      if (k_cur != TOKEN_WHITESPACE && k_cur != TOKEN_COMMENT &&
+          k_cur != TOKEN_SEMICOLON)
+        break;
       i++;
     }
     if (k_cur == TOKEN_UNKNOWN)
@@ -374,9 +377,11 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
     }
 
     stmt_start = i;
-    while ((g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k_cur),
-            !((k_cur == TOKEN_UNKNOWN) | (k_cur == TOKEN_SEMICOLON) |
-              (k_cur == TOKEN_RBRACE)))) {
+    for (;;) {
+      rc = c2s_tok_kind(tl, i, &k_cur);
+      if ((k_cur == TOKEN_UNKNOWN) | (k_cur == TOKEN_SEMICOLON) |
+          (k_cur == TOKEN_RBRACE))
+        break;
       i++;
     }
     stmt_end = i;
@@ -404,54 +409,56 @@ cdd_c_error_t c2s_parse_union_tokens_and_write(const struct TokenList *tl,
       JSON_Value *field_val = NULL;
       JSON_Object *field_obj = NULL;
 
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&option_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(option_val, &option_obj);
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&props_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(props_val, &props_obj);
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&field_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(field_val, &field_obj);
+      rc = cdd_json_value_init_object(&option_val);
+      if (rc == CDD_C_SUCCESS)
+        rc = cdd_json_value_get_object(option_val, &option_obj);
+      if (rc == CDD_C_SUCCESS)
+        rc = cdd_json_value_init_object(&props_val);
+      if (rc == CDD_C_SUCCESS)
+        rc = cdd_json_value_get_object(props_val, &props_obj);
+      if (rc == CDD_C_SUCCESS)
+        rc = cdd_json_value_init_object(&field_val);
+      if (rc == CDD_C_SUCCESS)
+        rc = cdd_json_value_get_object(field_val, &field_obj);
 
-      g_cdd_last_alloc_err = c2s_copy_token_ident(typebuf, first_tok);
-      g_cdd_last_alloc_err = c2s_copy_token_ident(namebuf, last_ident);
+      rc = c2s_copy_token_ident(typebuf, first_tok);
+      rc = c2s_copy_token_ident(namebuf, last_ident);
 
-      if (strcmp(typebuf, "int") == 0)
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_string(field_obj, "type", "integer");
-      else if (strcmp(typebuf, "char") == 0)
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_string(field_obj, "type", "string");
-      else if (strcmp(typebuf, "float") == 0)
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_string(field_obj, "type", "number");
-      else
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_string(field_obj, "type", "object");
+      if (strcmp(typebuf, "int") == 0) {
+        rc = cdd_json_object_set_string(field_obj, "type", "integer");
+      } else if (strcmp(typebuf, "char") == 0) {
+        rc = cdd_json_object_set_string(field_obj, "type", "string");
+      } else if (strcmp(typebuf, "float") == 0) {
+        rc = cdd_json_object_set_string(field_obj, "type", "number");
+      } else {
+        rc = cdd_json_object_set_string(field_obj, "type", "object");
+      }
 
       if (cdd_json_object_set_value(props_obj, namebuf, field_val) !=
-          CDD_C_SUCCESS)
-        g_cdd_last_alloc_err = cdd_json_value_free(field_val);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(option_obj, "type", "object");
+          CDD_C_SUCCESS) {
+        rc = cdd_json_value_free(field_val);
+      }
+      rc = cdd_json_object_set_string(option_obj, "type", "object");
       if (cdd_json_object_set_value(option_obj, "properties", props_val) !=
-          CDD_C_SUCCESS)
-        g_cdd_last_alloc_err = cdd_json_value_free(props_val);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(option_obj, "title", namebuf);
-      if (cdd_json_array_append_value(oneof_arr, option_val) != CDD_C_SUCCESS)
-        g_cdd_last_alloc_err = cdd_json_value_free(option_val);
+          CDD_C_SUCCESS) {
+        rc = cdd_json_value_free(props_val);
+      }
+      rc = cdd_json_object_set_string(option_obj, "title", namebuf);
+      if (cdd_json_array_append_value(oneof_arr, option_val) != CDD_C_SUCCESS) {
+        rc = cdd_json_value_free(option_val);
+      }
     }
   }
 
   *idx = i;
-  if (cdd_json_object_set_value(union_obj, "oneOf", oneof_val) != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = cdd_json_value_free(oneof_val);
-  g_cdd_last_alloc_err =
-      cdd_json_object_set_string(union_obj, "type", "object");
+  rc = cdd_json_object_set_value(union_obj, "oneOf", oneof_val);
+  rc = cdd_json_object_set_string(union_obj, "type", "object");
   if (cdd_json_object_set_value(schemas_obj, union_name, union_val) !=
-      CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = cdd_json_value_free(union_val);
+      CDD_C_SUCCESS) {
+    rc = cdd_json_value_free(union_val);
+  }
 
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -486,7 +493,7 @@ cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
   }
 
   rc = c2s_parse_union_tokens_and_write(tl, &idx, schemas_obj, union_name);
-  g_cdd_last_alloc_err = free_token_list(tl);
+  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tl));
   C_CDD_FREE(content);
   return rc;
 }

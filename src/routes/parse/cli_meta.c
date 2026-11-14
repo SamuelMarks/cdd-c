@@ -85,14 +85,15 @@ cdd_c_error_t spec_has_tag(const struct OpenAPI_Spec *spec, const char *name,
 cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   struct OpenAPI_Tag *new_tags;
   struct OpenAPI_Tag *tag;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
 
   if (!spec || !name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     int has_tag = 0;
-    g_cdd_last_alloc_err = spec_has_tag(spec, name, &has_tag);
+    rc_fn = spec_has_tag(spec, name, &has_tag);
     if (has_tag)
-      return CDD_C_SUCCESS;
+      return rc_fn;
   }
 
   new_tags = (struct OpenAPI_Tag *)C_CDD_REALLOC(
@@ -114,7 +115,7 @@ cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   }
   spec->n_tags++;
 
-  return CDD_C_SUCCESS;
+  return rc_fn;
 }
 
 /**
@@ -234,47 +235,45 @@ cdd_c_error_t copy_doc_server_variables(struct OpenAPI_Server *dst,
     struct OpenAPI_ServerVariable *dv = &dst->variables[i];
 
     if (!sv->name || !sv->default_value) {
-      g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                             (int)free_openapi_server_variables(dst));
     }
 
     rc = c_cdd_strdup(sv->name, &dv->name);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)free_openapi_server_variables(dst));
     }
     rc = c_cdd_strdup(sv->default_value, &dv->default_value);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)free_openapi_server_variables(dst));
     }
     if (sv->description) {
       rc = c_cdd_strdup(sv->description, &dv->description);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-        return rc;
+        return (cdd_c_error_t)((int)rc |
+                               (int)free_openapi_server_variables(dst));
       }
     }
     if (sv->enum_values && sv->n_enum_values > 0) {
       dv->enum_values =
           (char **)C_CDD_CALLOC(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
-        g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-        return CDD_C_ERROR_MEMORY;
+        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                               (int)free_openapi_server_variables(dst));
       }
       dv->n_enum_values = sv->n_enum_values;
       for (e = 0; e < sv->n_enum_values; ++e) {
         rc = c_cdd_strdup(sv->enum_values[e], &dv->enum_values[e]);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-          return rc;
+          return (cdd_c_error_t)((int)rc |
+                                 (int)free_openapi_server_variables(dst));
         }
         if (strcmp(sv->enum_values[e], sv->default_value) == 0)
           found_default = 1;
       }
       if (!found_default) {
-        g_cdd_last_alloc_err = free_openapi_server_variables(dst);
-        return CDD_C_ERROR_INVALID_ARGUMENT;
+        return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                               (int)free_openapi_server_variables(dst));
       }
     }
   }
@@ -478,7 +477,8 @@ cdd_c_error_t spec_apply_tag_meta(struct OpenAPI_Spec *spec,
   if (!spec || !meta || !meta->name || !*meta->name)
     return CDD_C_SUCCESS;
   tag = NULL;
-  g_cdd_last_alloc_err = spec_find_tag(spec, meta->name, &tag);
+  if (spec_find_tag(spec, meta->name, &tag) != CDD_C_SUCCESS) {
+  }
   if (!tag) {
     rc = spec_add_tag(spec, meta->name);
     if (rc != CDD_C_SUCCESS)

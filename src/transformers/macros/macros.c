@@ -62,21 +62,23 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
       C_CDD_FREE(calls.nodes);
       return rc;
     }
-    g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, replacement);
+    bld.error_state = cdd_cst_builder_init(&bld, tree, replacement);
 
     /* Just snippet for test cases */
-    g_cdd_last_alloc_err = cdd_cst_bld_snippet(&bld, "\"hello\"");
+    bld.error_state = cdd_cst_bld_snippet(&bld, "\"hello\"");
 
-    g_cdd_last_alloc_err =
+    bld.error_state =
         cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
     if (bld.error_state == 0) {
-      g_cdd_last_alloc_err = cdd_cst_free_node(call_node);
-      g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                        (int)cdd_cst_free_node(call_node));
+      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                        (int)cdd_cst_builder_free(&bld));
     } else {
-      g_cdd_last_alloc_err = cdd_cst_free_node(replacement);
-      rc = bld.error_state;
+      rc = (cdd_c_error_t)((int)bld.error_state |
+                           (int)cdd_cst_free_node(replacement));
       C_CDD_FREE(calls.nodes);
-      g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
       return rc;
     }
   }
@@ -97,20 +99,22 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
           C_CDD_FREE(calls.nodes);
           return rc;
         }
-        g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, replacement);
+        bld.error_state = cdd_cst_builder_init(&bld, tree, replacement);
 
-        g_cdd_last_alloc_err = cdd_cst_bld_snippet(&bld, "\"hello\"");
+        bld.error_state = cdd_cst_bld_snippet(&bld, "\"hello\"");
 
-        g_cdd_last_alloc_err =
+        bld.error_state =
             cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
         if (bld.error_state == 0) {
-          g_cdd_last_alloc_err = cdd_cst_free_node(call_node);
-          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+          bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                            (int)cdd_cst_free_node(call_node));
+          bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                            (int)cdd_cst_builder_free(&bld));
         } else {
-          g_cdd_last_alloc_err = cdd_cst_free_node(replacement);
-          rc = bld.error_state;
+          rc = (cdd_c_error_t)((int)bld.error_state |
+                               (int)cdd_cst_free_node(replacement));
           C_CDD_FREE(stringify_calls.nodes);
-          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
           C_CDD_FREE(calls.nodes);
           return rc;
         }
@@ -134,20 +138,22 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
           C_CDD_FREE(calls.nodes);
           return rc;
         }
-        g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, replacement);
+        bld.error_state = cdd_cst_builder_init(&bld, tree, replacement);
 
-        g_cdd_last_alloc_err = cdd_cst_bld_snippet(&bld, "42");
+        bld.error_state = cdd_cst_bld_snippet(&bld, "42");
 
-        g_cdd_last_alloc_err =
+        bld.error_state =
             cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
         if (bld.error_state == 0) {
-          g_cdd_last_alloc_err = cdd_cst_free_node(call_node);
-          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+          bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                            (int)cdd_cst_free_node(call_node));
+          bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                            (int)cdd_cst_builder_free(&bld));
         } else {
-          g_cdd_last_alloc_err = cdd_cst_free_node(replacement);
-          rc = bld.error_state;
+          rc = (cdd_c_error_t)((int)bld.error_state |
+                               (int)cdd_cst_free_node(replacement));
           C_CDD_FREE(concat_calls.nodes);
-          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
           C_CDD_FREE(calls.nodes);
           return rc;
         }

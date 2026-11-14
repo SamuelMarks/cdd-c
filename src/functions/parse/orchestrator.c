@@ -181,10 +181,12 @@ C_CDD_EXPORT cdd_c_error_t extract_func_name(const struct TokenList *tokens,
   if (!tokens)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err =
-      find_token_in_range(tokens, start, body_start, TOKEN_LPAREN, &lparen);
-  if (lparen == body_start)
-    return CDD_C_SUCCESS;
+  {
+    cdd_c_error_t rc =
+        find_token_in_range(tokens, start, body_start, TOKEN_LPAREN, &lparen);
+    if (lparen == body_start)
+      return rc;
+  }
 
   /* Backtrack from LPAREN to find Identifier */
   i = lparen;
@@ -339,10 +341,9 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
   *is_void = 0;
   *type_str = NULL;
 
-  g_cdd_last_alloc_err =
-      find_token_in_range(tokens, start, body_start, TOKEN_LPAREN, &lparen);
+  rc = find_token_in_range(tokens, start, body_start, TOKEN_LPAREN, &lparen);
   if (lparen == body_start)
-    return CDD_C_SUCCESS;
+    return rc;
 
   /* Find name start to delimit type end */
   i = lparen;
@@ -357,7 +358,8 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
   }
 
   /* Capture return type string [start, name_end_idx) */
-  rc = join_tokens_str(tokens, start, name_end_idx, type_str);
+  rc = (cdd_c_error_t)((int)rc | (int)join_tokens_str(tokens, start,
+                                                      name_end_idx, type_str));
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -370,7 +372,7 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
       *is_void = 1;
     } else if (tok->kind == TOKEN_IDENTIFIER) {
       int eq = 0;
-      g_cdd_last_alloc_err = token_eq_str(tok, "void", &eq);
+      rc = (cdd_c_error_t)((int)rc | (int)token_eq_str(tok, "void", &eq));
       if (eq) {
         *is_void = 1;
       }
@@ -379,7 +381,7 @@ C_CDD_EXPORT cdd_c_error_t analyze_signature_tokens(
   /* Pointer takes precedence (e.g. void*) */
   if (*is_ptr)
     *is_void = 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /* --- Graph Management --- */
@@ -555,12 +557,12 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 #ifdef CDD_BUILD_TESTS
   if (g_force_parse_tokens_fail) {
     rc = CDD_C_ERROR_MEMORY;
-    g_cdd_last_alloc_err = free_token_list(tokens);
+    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     return rc;
   }
 #endif
   if ((rc = parse_tokens(tokens, &cst)) != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_token_list(tokens);
+    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     return rc;
   }
 
@@ -568,15 +570,15 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 #ifdef CDD_BUILD_TESTS
   if (g_force_find_allocations_fail) {
     rc = CDD_C_ERROR_MEMORY;
-    g_cdd_last_alloc_err = free_cst_node_list(&cst);
-    g_cdd_last_alloc_err = free_token_list(tokens);
+    rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
+    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     return rc;
   }
 #endif
   if ((rc = find_allocations(tokens, &allocs)) != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = allocation_site_list_free(&allocs);
-    g_cdd_last_alloc_err = free_cst_node_list(&cst);
-    g_cdd_last_alloc_err = free_token_list(tokens);
+    rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(&allocs));
+    rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
+    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     return rc;
   }
 
@@ -620,8 +622,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 
         fn->token_start = start_idx;
         fn->token_end = end_idx;
-        g_cdd_last_alloc_err = find_token_in_range(
-            tokens, start_idx, end_idx, TOKEN_LBRACE, &fn->body_start);
+        rc = (cdd_c_error_t)((int)rc | (int)find_token_in_range(
+                                           tokens, start_idx, end_idx,
+                                           TOKEN_LBRACE, &fn->body_start));
 
         rc = extract_func_name(tokens, start_idx, fn->body_start, &name);
         if (rc != CDD_C_SUCCESS)
@@ -638,9 +641,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
 
-        g_cdd_last_alloc_err = analyze_signature_tokens(
-            tokens, start_idx, fn->body_start, &fn->returns_ptr,
-            &fn->returns_void, &fn->original_return_type);
+        rc = analyze_signature_tokens(tokens, start_idx, fn->body_start,
+                                      &fn->returns_ptr, &fn->returns_void,
+                                      &fn->original_return_type);
 
         /* Check for allocs in this function's scope */
         {
@@ -770,8 +773,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
             /* Generate Signature */
             if (!node->is_main) {
               if (rewrite_signature(&sig_slice, &new_sig) != 0) {
-                g_cdd_last_alloc_err = join_tokens_str(
-                    tokens, start_idx, node->body_start, &new_sig);
+                rc = (cdd_c_error_t)((int)rc | (int)join_tokens_str(
+                                                   tokens, start_idx,
+                                                   node->body_start, &new_sig));
               }
 
               trans.type = node->returns_ptr ? TRANSFORM_RET_PTR_TO_ARG
@@ -781,8 +785,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
               trans.error_code = "CDD_C_ERROR_MEMORY";
               trans.return_type = node->original_return_type;
             } else {
-              g_cdd_last_alloc_err = join_tokens_str(
-                  tokens, start_idx, node->body_start, &new_sig);
+              rc = (cdd_c_error_t)((int)rc | (int)join_tokens_str(
+                                                 tokens, start_idx,
+                                                 node->body_start, &new_sig));
               trans.type = TRANSFORM_NONE;
             }
 
@@ -813,10 +818,10 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                     new_sites = (struct AllocationSite *)C_CDD_REALLOC(
                         local_allocs.sites, nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
-                      g_cdd_last_alloc_err =
-                          allocation_site_list_free(&local_allocs);
+                      rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                           (int)allocation_site_list_free(
+                                               &local_allocs));
                       C_CDD_FREE(new_sig);
-                      rc = CDD_C_ERROR_MEMORY;
                       goto cleanup;
                     }
                     local_allocs.sites = new_sites;
@@ -825,8 +830,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                   if (site.var_name) {
                     rc = c_cdd_strdup(site.var_name, &site.var_name);
                     if (rc != CDD_C_SUCCESS) {
-                      g_cdd_last_alloc_err =
-                          allocation_site_list_free(&local_allocs);
+                      rc = (cdd_c_error_t)((int)rc |
+                                           (int)allocation_site_list_free(
+                                               &local_allocs));
                       C_CDD_FREE(new_sig);
                       goto cleanup;
                     }
@@ -841,20 +847,22 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                 C_CDD_FREE(new_body);
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(new_sig);
-                  g_cdd_last_alloc_err =
-                      allocation_site_list_free(&local_allocs);
+                  rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(
+                                                     &local_allocs));
                   goto cleanup;
                 }
               }
               C_CDD_FREE(new_sig);
-              g_cdd_last_alloc_err = allocation_site_list_free(&local_allocs);
+              rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(
+                                                 &local_allocs));
             }
           }
         }
 
         if (!segment) {
-          g_cdd_last_alloc_err =
-              join_tokens_str(tokens, start_idx, end_idx, &segment);
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)join_tokens_str(tokens, start_idx, end_idx,
+                                                    &segment));
         }
 
         {
@@ -898,12 +906,12 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 cleanup:
   if (ref_funcs)
     C_CDD_FREE(ref_funcs);
-  g_cdd_last_alloc_err = graph_free_contents(&graph);
+  rc = (cdd_c_error_t)((int)rc | (int)graph_free_contents(&graph));
   if (output)
     C_CDD_FREE(output);
-  g_cdd_last_alloc_err = free_cst_node_list(&cst);
-  g_cdd_last_alloc_err = allocation_site_list_free(&allocs);
-  g_cdd_last_alloc_err = free_token_list(tokens);
+  rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
+  rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(&allocs));
+  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   return rc;
 }
 

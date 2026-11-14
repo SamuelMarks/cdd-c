@@ -210,6 +210,7 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
                                       const char *op_id) {
   size_t i;
   char **tmp;
+  cdd_c_error_t rc;
   if (!op_id || !*op_id)
     return CDD_C_SUCCESS;
   for (i = 0; i < *count; ++i) {
@@ -225,11 +226,11 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
     *ids = tmp;
     *cap = new_cap;
   }
-  g_cdd_last_alloc_err = c_cdd_strdup(op_id, &(*ids)[*count]);
+  rc = c_cdd_strdup(op_id, &(*ids)[*count]);
   if (!(*ids)[*count])
     return CDD_C_ERROR_MEMORY;
   (*count)++;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -281,21 +282,21 @@ cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
                                               int *out_matches) {
   const char *name_enc = NULL;
   char *name_dec = NULL;
+  cdd_c_error_t rc;
   if (!out_matches)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_matches = 0;
   if (!ref || !name)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err =
-      ref_name_from_prefix(spec, ref, "#/components/pathItems/", &name_enc);
+  rc = ref_name_from_prefix(spec, ref, "#/components/pathItems/", &name_enc);
   if (!name_enc)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = json_pointer_unescape(name_enc, &name_dec);
+  rc = json_pointer_unescape(name_enc, &name_dec);
   if (!name_dec)
     return CDD_C_SUCCESS;
   *out_matches = (strcmp(name_dec, name) == 0) ? 1 : 0;
   C_CDD_FREE(name_dec);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -310,6 +311,7 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                                 const char *name,
                                                 int *out_referenced) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!out_referenced)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_referenced = 0;
@@ -318,8 +320,8 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
   for (i = 0; i < spec->n_paths; ++i) {
     int matches = 0;
     if (spec->paths[i].ref) {
-      g_cdd_last_alloc_err = path_item_ref_matches_component(
-          spec, spec->paths[i].ref, name, &matches);
+      rc = path_item_ref_matches_component(spec, spec->paths[i].ref, name,
+                                           &matches);
       if (matches) {
         *out_referenced = 1;
         return CDD_C_SUCCESS;
@@ -329,15 +331,15 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
   for (i = 0; i < spec->n_webhooks; ++i) {
     int matches = 0;
     if (spec->webhooks[i].ref) {
-      g_cdd_last_alloc_err = path_item_ref_matches_component(
-          spec, spec->webhooks[i].ref, name, &matches);
+      rc = path_item_ref_matches_component(spec, spec->webhooks[i].ref, name,
+                                           &matches);
       if (matches) {
         *out_referenced = 1;
         return CDD_C_SUCCESS;
       }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -354,21 +356,21 @@ cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
                                              int *out_matches) {
   const char *name_enc = NULL;
   char *name_dec = NULL;
+  cdd_c_error_t rc;
   if (!out_matches)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_matches = 0;
   if (!ref || !name)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err =
-      ref_name_from_prefix(spec, ref, "#/components/callbacks/", &name_enc);
+  rc = ref_name_from_prefix(spec, ref, "#/components/callbacks/", &name_enc);
   if (!name_enc)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = json_pointer_unescape(name_enc, &name_dec);
+  rc = json_pointer_unescape(name_enc, &name_dec);
   if (!name_dec)
     return CDD_C_SUCCESS;
   *out_matches = (strcmp(name_dec, name) == 0) ? 1 : 0;
   C_CDD_FREE(name_dec);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -386,6 +388,7 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
     const struct OpenAPI_Operation *ops, size_t n_ops,
     const struct OpenAPI_Spec *spec, const char *name, int *out_referenced) {
   size_t i, j;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!out_referenced)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_referenced = 0;
@@ -397,8 +400,7 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
       const struct OpenAPI_Callback *cb = &op->callbacks[j];
       int matches = 0;
       if (cb->ref) {
-        g_cdd_last_alloc_err =
-            callback_ref_matches_component(spec, cb->ref, name, &matches);
+        rc = callback_ref_matches_component(spec, cb->ref, name, &matches);
         if (matches) {
           *out_referenced = 1;
           return CDD_C_SUCCESS;
@@ -406,7 +408,7 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
       }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -421,6 +423,7 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
                                                const char *name,
                                                int *out_referenced) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!out_referenced)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_referenced = 0;
@@ -428,11 +431,11 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
     return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_paths; ++i) {
     int ref1 = 0, ref2 = 0;
-    g_cdd_last_alloc_err = component_callback_is_referenced_in_ops(
-        spec->paths[i].operations, spec->paths[i].n_operations, spec, name,
-        &ref1);
+    rc = component_callback_is_referenced_in_ops(spec->paths[i].operations,
+                                                 spec->paths[i].n_operations,
+                                                 spec, name, &ref1);
     if (!ref1) {
-      g_cdd_last_alloc_err = component_callback_is_referenced_in_ops(
+      rc = component_callback_is_referenced_in_ops(
           spec->paths[i].additional_operations,
           spec->paths[i].n_additional_operations, spec, name, &ref2);
     }
@@ -443,11 +446,11 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
   }
   for (i = 0; i < spec->n_webhooks; ++i) {
     int ref1 = 0, ref2 = 0;
-    g_cdd_last_alloc_err = component_callback_is_referenced_in_ops(
-        spec->webhooks[i].operations, spec->webhooks[i].n_operations, spec,
-        name, &ref1);
+    rc = component_callback_is_referenced_in_ops(spec->webhooks[i].operations,
+                                                 spec->webhooks[i].n_operations,
+                                                 spec, name, &ref1);
     if (!ref1) {
-      g_cdd_last_alloc_err = component_callback_is_referenced_in_ops(
+      rc = component_callback_is_referenced_in_ops(
           spec->webhooks[i].additional_operations,
           spec->webhooks[i].n_additional_operations, spec, name, &ref2);
     }
@@ -463,16 +466,15 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
       if (spec->component_path_item_names)
         item_name = spec->component_path_item_names[i];
       if (item_name) {
-        g_cdd_last_alloc_err =
-            component_path_item_is_referenced(spec, item_name, &item_ref);
+        rc = component_path_item_is_referenced(spec, item_name, &item_ref);
         if (item_ref)
           continue;
       }
-      g_cdd_last_alloc_err = component_callback_is_referenced_in_ops(
+      rc = component_callback_is_referenced_in_ops(
           spec->component_path_items[i].operations,
           spec->component_path_items[i].n_operations, spec, name, &ref1);
       if (!ref1) {
-        g_cdd_last_alloc_err = component_callback_is_referenced_in_ops(
+        rc = component_callback_is_referenced_in_ops(
             spec->component_path_items[i].additional_operations,
             spec->component_path_items[i].n_additional_operations, spec, name,
             &ref2);
@@ -483,7 +485,7 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
       }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -616,8 +618,7 @@ cdd_c_error_t validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
       if (spec->component_path_item_names)
         name = spec->component_path_item_names[i];
       if (name) {
-        g_cdd_last_alloc_err =
-            component_path_item_is_referenced(spec, name, &is_ref);
+        rc = component_path_item_is_referenced(spec, name, &is_ref);
         if (is_ref)
           continue;
       }
@@ -638,8 +639,7 @@ cdd_c_error_t validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
       const char *name = cb->name;
       int is_ref = 0;
       if (name) {
-        g_cdd_last_alloc_err =
-            component_callback_is_referenced(spec, name, &is_ref);
+        rc = component_callback_is_referenced(spec, name, &is_ref);
         if (is_ref)
           continue;
       }

@@ -26,8 +26,12 @@ extern "C" {
 #define strdup _strdup
 #endif
 #endif
+#include "classes/parse/cdd_cst_cfg.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
+#include "classes/parse/cdd_cst_scope.h"
+#include "classes/parse/cdd_cst_semantic.h"
+#include "classes/parse/cdd_cst_type_eval.h"
 #include "classes/parse/numeric.h"
 #include <ctype.h>
 #include <errno.h>
@@ -181,6 +185,22 @@ C_CDD_EXPORT cdd_c_error_t cdd_parse_hex_128_literal(const char *str,
                                                      uint64_t *out_low);
 
 /**
+ * @brief Parses a binary 128-bit literal (`0b...`) into high and low 64-bit
+ * words.
+ *
+ * @param[in] str Binary literal string.
+ * @param[in] len Length of literal string.
+ * @param[out] out_high Pointer receiving the high 64 bits.
+ * @param[out] out_low Pointer receiving the low 64 bits.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on NULL
+ * pointers.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_parse_bin_128_literal(const char *str,
+                                                     size_t len,
+                                                     uint64_t *out_high,
+                                                     uint64_t *out_low);
+
+/**
  * @brief CST node visitor for standardizing magic macro identifiers.
  *
  * @param[in,out] node CST node to inspect and transform.
@@ -202,7 +222,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node,
                                              void *user_data);
 
 /**
- * @brief CST node visitor for validating inline assembly statements.
+ * @brief CST node visitor for validating and lowering inline assembly
+ * statements.
  *
  * @param[in] node CST node to inspect.
  * @param[in,out] user_data User data context pointer.
@@ -228,10 +249,65 @@ C_CDD_EXPORT cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens,
  * @brief Per-transformation context for the GNU standardizer pass.
  */
 struct gnu_standardizer_ctx_t {
-  /** @brief Monotonically increasing counter for generated typeof array
-   * typedefs */
-  int typeof_arr_idx;
+  cdd_cst_scope_env_t *sem_env;         /**< Semantic scope & symbol table */
+  const cdd_transform_config_t *config; /**< Active transformation config */
+  cdd_cst_tree_t *tree;  /**< Active CST tree being transformed */
+  int typeof_arr_idx;    /**< Counter for generated typeof array typedefs */
+  int stmt_expr_idx;     /**< Counter for hoisted statement-expr temporaries */
+  int cond_idx;          /**< Counter for hoisted Elvis ?: temporaries */
+  int anon_idx;          /**< Counter for strict ISO C89 anonymous tags */
+  int i128_idx;          /**< Counter for hoisted 128-bit op temporaries */
+  int emitted_msvc_4201; /**< 1 once MSVC C4201 pragma has been emitted */
+  int used_int128;       /**< 1 if __int128 or >64-bit literal lowered */
+  unsigned int
+      builtin_shim_mask; /**< Bitmask of required builtin shim helpers */
 };
+
+/**
+ * @brief Evaluates an expression or type slice using `gctx->sem_env` and
+ * `cdd_cst_type_eval`.
+ * @param[in] gctx Optional GNU standardizer context.
+ * @param[in] context_node CST node providing lexical scope context.
+ * @param[in] tokens Contiguous token slice to evaluate.
+ * @param[in] num_tokens Number of tokens in slice.
+ * @param[in] mode Evaluation mode (`cdd_cst_type_eval_mode_t`).
+ * @param[out] out_buf Buffer receiving canonical C type string.
+ * @param[in] out_cap Capacity of `out_buf`.
+ * @param[out] out_is_type_expr Optional flag receiving 1 if `tokens` is a type.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_eval_expr_type_scoped(
+    struct gnu_standardizer_ctx_t *gctx, cdd_cst_node_t *context_node,
+    const cdd_token_t *tokens, size_t num_tokens, int mode, char *out_buf,
+    size_t out_cap, int *out_is_type_expr);
+
+/**
+ * @brief Checks if `config` targets an MSVC compiler profile.
+ * @param[in] config Optional transform configuration.
+ * @param[out] out_is_msvc Receives 1 if targeting MSVC, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t
+gnu_is_msvc_target(const cdd_transform_config_t *config, int *out_is_msvc);
+
+/**
+ * @brief Checks if `config` targets strict non-MSVC ISO C89.
+ * @param[in] config Optional transform configuration.
+ * @param[out] out_is_iso_c89 Receives 1 if strict ISO C89, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_is_strict_iso_c89(
+    const cdd_transform_config_t *config, int *out_is_iso_c89);
+
+/**
+ * @brief Standardizes GNU function attributes and nested functions in a CST
+ * tree with semantic/CFG context.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
 
 /**
  * @brief Standardizes GNU function attributes and nested functions in a CST
@@ -243,11 +319,31 @@ extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
 
 /**
  * @brief Standardizes GNU type extensions (__int128, typeof, __auto_type) in a
+ * CST tree with semantic context.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_types_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
+
+/**
+ * @brief Standardizes GNU type extensions (__int128, typeof, __auto_type) in a
  * CST tree.
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
+
+/**
+ * @brief Standardizes GNU expression extensions in a CST tree with semantic
+ * context.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_expr_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
 
 /**
  * @brief Standardizes GNU expression extensions (statement expressions, ?:
@@ -256,6 +352,16 @@ extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
  * @return CDD_C_SUCCESS on success or error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
+
+/**
+ * @brief Standardizes cleanup attributes, statement expressions, and VLAs with
+ * semantic context.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_unroll_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
 
 /**
  * @brief Unrolls loops annotated with \#pragma GCC unroll in a CST tree.
@@ -267,11 +373,50 @@ C_CDD_EXPORT cdd_c_error_t gnu_standardize_unroll(
     cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
+ * @brief Expands GNU case and array-initializer ranges (`case A ... B:`,
+ * `[A ... B] = V`) including char literals, hex/octal/binary constants, and
+ * scoped enum constants.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx Optional GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_ranges_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
+
+/**
  * @brief Expands GNU case range statements (case A ... B:) in a CST tree.
  * @param[in,out] tree Target CST tree.
  * @return CDD_C_SUCCESS on success or error code.
  */
 C_CDD_EXPORT cdd_c_error_t gnu_standardize_ranges(cdd_cst_tree_t *tree);
+
+/**
+ * @brief Lowers GNU `__builtin_*` intrinsics in a CST tree with semantic
+ * context and injects portable C89/MSVC inline helper definitions on demand.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx Optional GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_builtins_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
+
+/**
+ * @brief Lowers GNU `__builtin_*` intrinsics without external context.
+ * @param[in,out] tree Target CST tree.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_builtins(cdd_cst_tree_t *tree);
+
+/**
+ * @brief Lowers GCC inline assembly (`__asm__`, `__asm`, `asm`) idioms in a CST
+ * tree (`memory` barrier, `pause`, `cpuid`, `rdtsc`, `bswap`) and guards
+ * unrecognized blocks for MSVC/ISO C89.
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] gctx Optional GNU standardizer context.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_asm_ctx(
+    cdd_cst_tree_t *tree, struct gnu_standardizer_ctx_t *gctx);
 
 #ifdef __cplusplus
 }

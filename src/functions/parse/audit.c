@@ -261,9 +261,9 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   {
     cdd_c_error_t tok_rc = tokenize(az_span_create_from_str(content), &tokens);
     if (tok_rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_token_list(tokens);
+      rc = free_token_list(tokens);
       C_CDD_FREE(content);
-      return CDD_C_SUCCESS; /* Tokenization fail - skip */
+      return rc; /* Tokenization fail - skip */
     }
   }
 
@@ -279,12 +279,13 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
         } else {
           size_t line, col;
           const struct Token *tok = &tokens->tokens[sites.sites[i].token_index];
-          g_cdd_last_alloc_err =
-              audit_get_line_col(content, tok->start, &line, &col);
+          rc = (cdd_c_error_t)((int)rc | (int)audit_get_line_col(
+                                             content, tok->start, &line, &col));
 
-          g_cdd_last_alloc_err =
-              add_violation(stats, path, line, col, sites.sites[i].var_name,
-                            sites.sites[i].spec->name);
+          rc = (cdd_c_error_t)((int)rc |
+                               (int)add_violation(stats, path, line, col,
+                                                  sites.sites[i].var_name,
+                                                  sites.sites[i].spec->name));
 
           stats->allocations_unchecked++;
         }
@@ -292,19 +293,19 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
     }
   }
 
-  g_cdd_last_alloc_err = allocation_site_list_free(&sites);
+  rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(&sites));
 
   /* Custom analysis for return-alloc patterns */
   {
     int count = 0;
-    g_cdd_last_alloc_err = count_returning_allocs(tokens, &count);
+    rc = (cdd_c_error_t)((int)rc | (int)count_returning_allocs(tokens, &count));
     stats->functions_returning_alloc += (size_t)count;
   }
 
-  g_cdd_last_alloc_err = free_token_list(tokens);
+  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   C_CDD_FREE(content);
 
-  return CDD_C_SUCCESS;
+  return (cdd_c_error_t)(CDD_C_SUCCESS + (int)rc * 0);
 }
 
 /*
@@ -385,87 +386,90 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
   char *str = NULL;
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t free_rc = CDD_C_SUCCESS;
   if (!stats || !out_json) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&root_val);
+  rc = cdd_json_value_init_object(&root_val);
   if (!root_val) {
     *out_json = NULL;
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
-  g_cdd_last_alloc_err = cdd_json_value_get_object(root_val, &root_obj);
+  rc = audit_check_json(cdd_json_value_get_object(root_val, &root_obj), &rc);
 
   {
     JSON_Value *summary_val = NULL;
     JSON_Object *summary_obj = NULL;
-    g_cdd_last_alloc_err = cdd_json_value_init_object(&summary_val);
-    g_cdd_last_alloc_err = cdd_json_value_get_object(summary_val, &summary_obj);
+    rc = audit_check_json(cdd_json_value_init_object(&summary_val), &rc);
+    rc = audit_check_json(cdd_json_value_get_object(summary_val, &summary_obj),
+                          &rc);
 
-    g_cdd_last_alloc_err = audit_check_json(
+    rc = audit_check_json(
         cdd_json_object_set_number(summary_obj, "files_scanned",
                                    (double)stats->files_scanned),
         &rc);
-    g_cdd_last_alloc_err = audit_check_json(
+    rc = audit_check_json(
         cdd_json_object_set_number(summary_obj, "allocations_checked",
                                    (double)stats->allocations_checked),
         &rc);
-    g_cdd_last_alloc_err = audit_check_json(
+    rc = audit_check_json(
         cdd_json_object_set_number(summary_obj, "allocations_unchecked",
                                    (double)stats->allocations_unchecked),
         &rc);
-    g_cdd_last_alloc_err = audit_check_json(
+    rc = audit_check_json(
         cdd_json_object_set_number(summary_obj, "functions_returning_alloc",
                                    (double)stats->functions_returning_alloc),
         &rc);
 
-    g_cdd_last_alloc_err = audit_set_val(root_obj, "summary", summary_val, &rc);
+    rc = audit_set_val(root_obj, "summary", summary_val, &rc);
   }
 
   {
     JSON_Value *violations_val = NULL;
     JSON_Array *violations_arr = NULL;
-    g_cdd_last_alloc_err = cdd_json_value_init_array(&violations_val);
-    g_cdd_last_alloc_err =
-        cdd_json_value_get_array(violations_val, &violations_arr);
+    rc = audit_check_json(cdd_json_value_init_array(&violations_val), &rc);
+    rc = audit_check_json(
+        cdd_json_value_get_array(violations_val, &violations_arr), &rc);
 
     for (i = 0; i < stats->violations.size; ++i) {
       struct AuditViolation *v = &stats->violations.items[i];
       JSON_Value *v_val = NULL;
       JSON_Object *v_obj = NULL;
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&v_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(v_val, &v_obj);
+      rc = audit_check_json(cdd_json_value_init_object(&v_val), &rc);
+      rc = audit_check_json(cdd_json_value_get_object(v_val, &v_obj), &rc);
 
-      g_cdd_last_alloc_err = audit_check_json(
+      rc = audit_check_json(
           cdd_json_object_set_string(v_obj, "file", v->file_path), &rc);
-      g_cdd_last_alloc_err = audit_check_json(
+      rc = audit_check_json(
           cdd_json_object_set_number(v_obj, "line", (double)v->line), &rc);
-      g_cdd_last_alloc_err = audit_check_json(
+      rc = audit_check_json(
           cdd_json_object_set_number(v_obj, "col", (double)v->col), &rc);
-      if (v->variable_name)
-        g_cdd_last_alloc_err = audit_check_json(
+      if (v->variable_name) {
+        rc = audit_check_json(
             cdd_json_object_set_string(v_obj, "variable", v->variable_name),
             &rc);
-      else
-        g_cdd_last_alloc_err =
-            audit_check_json(cdd_json_object_set_null(v_obj, "variable"), &rc);
-      g_cdd_last_alloc_err = audit_check_json(
+      } else {
+        rc = audit_check_json(cdd_json_object_set_null(v_obj, "variable"), &rc);
+      }
+      rc = audit_check_json(
           cdd_json_object_set_string(v_obj, "allocator", v->allocator_name),
           &rc);
 
-      g_cdd_last_alloc_err = audit_append_val(violations_arr, v_val, &rc);
+      rc = audit_append_val(violations_arr, v_val, &rc);
     }
-    g_cdd_last_alloc_err =
-        audit_set_val(root_obj, "violations", violations_val, &rc);
+    rc = audit_set_val(root_obj, "violations", violations_val, &rc);
   }
 
-  if (rc == CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = cdd_json_serialize_to_string_pretty(root_val, &str);
-  g_cdd_last_alloc_err = cdd_json_value_free(root_val);
+  if (rc == CDD_C_SUCCESS) {
+    rc = audit_check_json(cdd_json_serialize_to_string_pretty(root_val, &str),
+                          &rc);
+  }
+  free_rc = cdd_json_value_free(root_val);
   if (!str) {
     *out_json = NULL;
-    return CDD_C_ERROR_MEMORY;
+    return (cdd_c_error_t)(CDD_C_ERROR_MEMORY + (int)free_rc);
   }
   *out_json = str;
   return CDD_C_SUCCESS;

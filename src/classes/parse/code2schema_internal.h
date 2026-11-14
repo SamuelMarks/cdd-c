@@ -31,7 +31,9 @@ extern "C" {
 
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "c_cdd/reflect.h"
 #include "c_cdd/safe_crt.h"
+#include "classes/emit/cli_struct.h"
 #include "classes/emit/struct.h"
 #include "classes/parse/cdd_serde.h"
 #include "classes/parse/code2schema.h"

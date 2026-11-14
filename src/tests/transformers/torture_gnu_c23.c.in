@@ -1,0 +1,75 @@
+// End-to-end GNU C + C99/C11/C23 torture fixture for cdd-c-transform
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <complex.h>
+#include <stdckdint.h>
+
+struct EmptyS {};
+struct __attribute__((packed)) PackedS {
+  char tag;
+  int val;
+};
+
+struct Vec2 {
+  int x;
+  int y;
+};
+
+_Static_assert(sizeof(int) >= 4, "int32");
+static struct Vec2 g_v = { .y = 20, .x = 10 };
+static int g_tbl[5] = { [1] = 11, [3] = 33 };
+_Atomic(int) g_counter = 0;
+
+static void clean_int(int *p) {
+  if (*p > 0) {
+    *p = 0;
+  }
+}
+
+[[nodiscard]] static inline int torture_fn(int n, int buf[static 4], char * restrict p) {
+  int acc = 0b1010;
+  void *vp = buf;
+  vp = vp + 4;
+  const char *esc = "\e[0m";
+  int stmt_v = ({ int inner = n + 2; inner * 3; });
+  int elvis_v = stmt_v ?: 42;
+  __typeof__(elvis_v) tv = elvis_v + (int)strlen(esc);
+  int __attribute__((cleanup(clean_int))) scoped_c = 5;
+  acc += tv + scoped_c + (vp != nullptr ? 1 : 0);
+  int mid_decl = acc + 1'000;
+  struct Vec2 cl_v = (struct Vec2){ .y = 9, .x = 7 };
+  int arr_d[4] = { [2] = mid_decl };
+  for (int i = 0; i < 3; i++) {
+    acc += i;
+  }
+  for (int i = 1; i < 3; i++) {
+    switch (i) {
+      case 1 ... 2:
+        acc += buf[0];
+        break;
+      default:
+    }
+  }
+  int vla_m[n][2];
+  vla_m[0][0] = cl_v.x + arr_d[2] + (p ? 0 : 0);
+  acc += vla_m[0][0] + (int)sizeof(vla_m);
+  double _Complex z1 = 2.0i;
+  double _Complex z2 = z1 + 3.0;
+  int ov_out = 0;
+  int ov = ckd_add(&ov_out, n, 5);
+  g_counter += 2;
+  g_counter++;
+  if (__builtin_expect(ov == 0, 1) && creal(z2) > 0.0) {
+    acc += ov_out + (int)__builtin_popcount(15U) + g_v.x + g_tbl[1];
+  }
+  const char *fn = __func__;
+  return acc + (int)strlen(fn) + g_counter;
+}
+
+int main(void) {
+  int arr[4] = {};
+  char c = 0;
+  arr[0] = 3;
+  return torture_fn(2, arr, &c) > 0 ? 0 : 1;
+}

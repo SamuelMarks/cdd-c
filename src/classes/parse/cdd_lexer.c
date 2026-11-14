@@ -285,7 +285,9 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         tok->length = pos - tok->offset;
         rc = classify_identifier(tok->start, tok->length, &tok->kind);
       } else if (isdigit(c)) {
-        while (pos < len && (isalnum(base[pos]) || base[pos] == '.')) {
+        while (pos < len &&
+               (isalnum(base[pos]) || base[pos] == '.' ||
+                (base[pos] == 39 && pos + 1 < len && isalnum(base[pos + 1])))) {
           pos++;
           column++;
         }
@@ -513,8 +515,9 @@ error:
     C_CDD_FREE(pending_trivia_head);
     pending_trivia_head = n;
   }
-  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
-  return CDD_C_ERROR_MEMORY;
+  rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                       (int)cdd_lexer_free_token_list(list));
+  return rc;
 }
 
 /*

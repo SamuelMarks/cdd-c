@@ -857,6 +857,131 @@ TEST test_reflection_advanced_features(void) {
   ASSERT_EQ(1, is_eq);
   C_CDD_FREE(json_out);
 
+  /* Lossless 64-bit & 128-bit integer JSON DOM & reflection round-trip */
+  {
+    struct BigIntStruct {
+      int64_t i64_max;
+      int64_t i64_min;
+      uint64_t u64_max;
+      cdd_int128_t i128_val;
+      cdd_uint128_t u128_val;
+    } bi_src, *bi_dst = NULL;
+    struct cdd_field_info bi_fields[5];
+    struct cdd_type_info bi_ti;
+    char *bi_json = NULL;
+    JSON_Value *jv = NULL;
+    int64_t out_i64 = 0;
+    uint64_t out_u64 = 0;
+    cdd_int128_t out_i128;
+    cdd_uint128_t out_u128;
+    size_t loc_line = 0, loc_col = 0, loc_off = 0;
+
+    memset(&bi_src, 0, sizeof(bi_src));
+    memset(bi_fields, 0, sizeof(bi_fields));
+    memset(&bi_ti, 0, sizeof(bi_ti));
+    memset(&out_i128, 0, sizeof(out_i128));
+    memset(&out_u128, 0, sizeof(out_u128));
+
+    bi_src.i64_max = (int64_t)(((uint64_t)1U << 63) - 1U);
+    bi_src.i64_min = -(int64_t)(((uint64_t)1U << 63) - 1U) - 1;
+    bi_src.u64_max = ~(uint64_t)0U;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_make_int128((int64_t)-123456789L,
+                              ((uint64_t)12345678UL << 32) | 0x89ABCDEFUL,
+                              &bi_src.i128_val));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_make_uint128(~(uint64_t)0U, ~(uint64_t)0U, &bi_src.u128_val));
+
+    bi_fields[0].name = "i64_max";
+    bi_fields[0].wire_name = "i64_max";
+    bi_fields[0].c_type = "int64_t";
+    bi_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+    bi_fields[0].offset = offsetof(struct BigIntStruct, i64_max);
+    bi_fields[0].size = sizeof(int64_t);
+
+    bi_fields[1].name = "i64_min";
+    bi_fields[1].wire_name = "i64_min";
+    bi_fields[1].c_type = "int64_t";
+    bi_fields[1].kind = CDD_FIELD_KIND_INTEGER;
+    bi_fields[1].offset = offsetof(struct BigIntStruct, i64_min);
+    bi_fields[1].size = sizeof(int64_t);
+
+    bi_fields[2].name = "u64_max";
+    bi_fields[2].wire_name = "u64_max";
+    bi_fields[2].c_type = "uint64_t";
+    bi_fields[2].kind = CDD_FIELD_KIND_INTEGER;
+    bi_fields[2].offset = offsetof(struct BigIntStruct, u64_max);
+    bi_fields[2].size = sizeof(uint64_t);
+
+    bi_fields[3].name = "i128_val";
+    bi_fields[3].wire_name = "i128_val";
+    bi_fields[3].c_type = "cdd_int128_t";
+    bi_fields[3].kind = CDD_FIELD_KIND_INTEGER;
+    bi_fields[3].offset = offsetof(struct BigIntStruct, i128_val);
+    bi_fields[3].size = sizeof(cdd_int128_t);
+
+    bi_fields[4].name = "u128_val";
+    bi_fields[4].wire_name = "u128_val";
+    bi_fields[4].c_type = "cdd_uint128_t";
+    bi_fields[4].kind = CDD_FIELD_KIND_INTEGER;
+    bi_fields[4].offset = offsetof(struct BigIntStruct, u128_val);
+    bi_fields[4].size = sizeof(cdd_uint128_t);
+
+    bi_ti.name = "BigIntStruct";
+    bi_ti.size = sizeof(struct BigIntStruct);
+    bi_ti.fields = bi_fields;
+    bi_ti.n_fields = 5;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_to_json(&bi_src, &bi_ti, &bi_json));
+    ASSERT(bi_json != NULL);
+    ASSERT(strstr(bi_json, "9223372036854775807") != NULL);
+    ASSERT(strstr(bi_json, "-9223372036854775808") != NULL);
+    ASSERT(strstr(bi_json, "18446744073709551615") != NULL);
+    ASSERT(strstr(bi_json, "340282366920938463463374607431768211455") != NULL);
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_reflect_from_json(bi_json, &bi_ti, (void **)&bi_dst));
+    ASSERT(bi_dst != NULL);
+    ASSERT_EQ(bi_src.i64_max, bi_dst->i64_max);
+    ASSERT_EQ(bi_src.i64_min, bi_dst->i64_min);
+    ASSERT_EQ(bi_src.u64_max, bi_dst->u64_max);
+    ASSERT_EQ(bi_src.i128_val.high, bi_dst->i128_val.high);
+    ASSERT_EQ(bi_src.i128_val.low, bi_dst->i128_val.low);
+    ASSERT_EQ(bi_src.u128_val.high, bi_dst->u128_val.high);
+    ASSERT_EQ(bi_src.u128_val.low, bi_dst->u128_val.low);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_reflect_struct_eq(&bi_src, bi_dst, &bi_ti, &is_eq));
+    ASSERT_EQ(1, is_eq);
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(bi_json, &jv));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_value_get_location(jv, &loc_line, &loc_col, &loc_off));
+    ASSERT_EQ(1U, loc_line);
+    ASSERT_EQ(1U, loc_col);
+    ASSERT_EQ(0U, loc_off);
+    {
+      JSON_Object *jo = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_get_object(jv, &jo));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_object_get_int64(jo, "i64_max", &out_i64));
+      ASSERT_EQ(bi_src.i64_max, out_i64);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_object_get_uint64(jo, "u64_max", &out_u64));
+      ASSERT_EQ(bi_src.u64_max, out_u64);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_object_get_int128(jo, "i128_val", &out_i128));
+      ASSERT_EQ(bi_src.i128_val.high, out_i128.high);
+      ASSERT_EQ(bi_src.i128_val.low, out_i128.low);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_object_get_uint128(jo, "u128_val", &out_u128));
+      ASSERT_EQ(bi_src.u128_val.high, out_u128.high);
+      ASSERT_EQ(bi_src.u128_val.low, out_u128.low);
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(jv));
+    C_CDD_FREE(bi_json);
+    C_CDD_FREE(bi_dst);
+  }
+
   /* Union runtime lifecycle & serde */
   {
     struct AdvUnion u1;

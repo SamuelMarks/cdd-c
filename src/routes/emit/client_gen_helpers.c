@@ -61,6 +61,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
   size_t out_len = 0;
   size_t i = 0;
   char *out;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
 
   if (!srv || !srv->url) {
     *_out_val = NULL;
@@ -91,11 +92,12 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
       }
       memcpy(name, url + i + 1, name_len);
       name[name_len] = '\0';
-      g_cdd_last_alloc_err = find_server_variable(srv, name, &var);
+      rc_fn = (cdd_c_error_t)((int)rc_fn |
+                              (int)find_server_variable(srv, name, &var));
       C_CDD_FREE(name);
       if (!var || !var->default_value) {
         *_out_val = NULL;
-        return CDD_C_SUCCESS;
+        return rc_fn;
       }
       out_len += strlen(var->default_value);
       i = (size_t)(end - url) + 1;
@@ -108,7 +110,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
   out = (char *)C_CDD_MALLOC(out_len + 1);
   if (!out) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return rc_fn;
   }
 
   i = 0;
@@ -123,11 +125,12 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         if (!name) {
           C_CDD_FREE(out);
           *_out_val = NULL;
-          return CDD_C_SUCCESS;
+          return rc_fn;
         }
         memcpy(name, url + i + 1, name_len);
         name[name_len] = '\0';
-        g_cdd_last_alloc_err = find_server_variable(srv, name, &var);
+        rc_fn = (cdd_c_error_t)((int)rc_fn |
+                                (int)find_server_variable(srv, name, &var));
         C_CDD_FREE(name);
         memcpy(out + out_pos, var->default_value, strlen(var->default_value));
         out_pos += strlen(var->default_value);
@@ -141,7 +144,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
 
   {
     *_out_val = out;
-    return CDD_C_SUCCESS;
+    return rc_fn;
   }
 }
 
@@ -256,16 +259,17 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
   char *escaped = NULL;
   char *literal = NULL;
   size_t len;
+  cdd_c_error_t rc_esc;
 
   if (!url) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err = escape_c_string_literal(url, &escaped);
+  rc_esc = escape_c_string_literal(url, &escaped);
   if (!escaped) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return rc_esc;
   }
   len = strlen(escaped) + 3;
   literal = (char *)C_CDD_MALLOC(len);
@@ -273,7 +277,7 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
     C_CDD_FREE(escaped);
     {
       *_out_val = NULL;
-      return CDD_C_SUCCESS;
+      return rc_esc;
     }
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -285,7 +289,7 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
   C_CDD_FREE(escaped);
   {
     *_out_val = literal;
-    return CDD_C_SUCCESS;
+    return rc_esc;
   }
 }
 
@@ -422,6 +426,7 @@ cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
   size_t cap = 0;
   size_t count = 0;
   struct OpenAPI_Parameter *params = NULL;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
 
   if (!out_params || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -457,8 +462,9 @@ cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
       int replaced = 0;
       for (k = 0; k < count; ++k) {
         int match = 0;
-        g_cdd_last_alloc_err =
-            param_keys_match(&params[k], &op->parameters[i], &match);
+        rc_fn = (cdd_c_error_t)((int)rc_fn |
+                                (int)param_keys_match(
+                                    &params[k], &op->parameters[i], &match));
         if (match) {
           params[k] = op->parameters[i];
           replaced = 1;
@@ -474,7 +480,7 @@ cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
   *out_params = params;
   *out_count = count;
 
-  return CDD_C_SUCCESS;
+  return rc_fn;
 }
 
 /**

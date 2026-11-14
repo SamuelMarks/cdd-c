@@ -68,7 +68,7 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
           return r;
         }
       } else if (strstr(attr_text, "unused")) {
-        /* Unused variables are usually handled by (void)var; but as an
+        /* Unused variables are handled via explicit conditional checks; as an
          * attribute it can be tricky. */
       } else if (strstr(attr_text, "noreturn")) {
         cdd_c_error_t r =

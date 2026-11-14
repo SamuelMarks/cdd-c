@@ -29,7 +29,19 @@ TEST test_cdd_transform_percolate_errors(void) {
   cdd_cst_tree_t *tree;
   const char *code = "void func_void() { }\n"
                      "int non_void_func() { return 1; }\n";
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
@@ -517,7 +529,19 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
       120, 59,  32,  118, 111, 105, 100, 32,  42,  32,  120, 40,  105, 110, 116,
       32,  121, 44,  32,  46,  46,  46,  41,  32,  123, 32,  114, 101, 116, 117,
       114, 110, 32,  78,  85,  76,  76,  59,  32,  125, 32,  125, 32,  0};
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
@@ -569,7 +593,19 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
       41,  32,  123, 32,  99,  104, 97,  114, 32,  42,  115, 32,  61,  32,  115,
       116, 114, 100, 117, 112, 40,  34,  116, 101, 115, 116, 34,  41,  59,  32,
       125, 10,  0};
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
@@ -601,7 +637,19 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   cdd_cst_child_t *c = NULL;
   const char *code = cdd_test_mut_str("void foo() { void *p = malloc(1); void "
                                       "*p2 = malloc(1); return; }");
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
   int f_idx;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
@@ -880,7 +928,19 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
       51,  40,  41,  32,  123, 32,  109, 121, 95,  102, 117, 110, 99,  51,  51,
       40,  41,  59,  32,  114, 101, 116, 117, 114, 110, 32,  48,  59,  32,  125,
       10,  0};
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config = {0,
+                                   2,
+                                   0,
+                                   1,
+                                   0,
+                                   CDD_TARGET_PROFILE_DEFAULT,
+                                   0,
+                                   0,
+                                   CDD_VLA_MODE_ALLOCA,
+                                   CDD_SAFE_CRT_OFF,
+                                   NULL,
+                                   NULL,
+                                   0};
   int i;
   for (i = 1; i < 120; i++) {
     cdd_cst_tree_t *tree = NULL;

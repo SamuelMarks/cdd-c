@@ -329,6 +329,7 @@ cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
  */
 cdd_c_error_t pp_context_free(struct PreprocessorContext *ctx) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!ctx)
     return CDD_C_SUCCESS;
@@ -342,13 +343,14 @@ cdd_c_error_t pp_context_free(struct PreprocessorContext *ctx) {
   }
 
   if (ctx->macros) {
-    for (i = 0; i < ctx->macro_count; ++i)
-      g_cdd_last_alloc_err = free_macro_def(&ctx->macros[i]);
+    for (i = 0; i < ctx->macro_count; ++i) {
+      rc = (cdd_c_error_t)((int)rc | (int)free_macro_def(&ctx->macros[i]));
+    }
     C_CDD_FREE(ctx->macros);
   }
 
   memset(ctx, 0, sizeof(*ctx));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -422,8 +424,7 @@ cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx, const char *name,
   def.is_function_like = 0;
   rc = add_macro_internal(ctx, &def);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_macro_def(&def);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)free_macro_def(&def));
   }
 
   return CDD_C_SUCCESS;
@@ -485,7 +486,7 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
               memset(&def, 0, sizeof(def));
               rc = pp_token_to_string(&tokens->tokens[name_idx], &def.name);
               if (rc != CDD_C_SUCCESS) {
-                g_cdd_last_alloc_err = free_token_list(tokens);
+                rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
                 C_CDD_FREE(content);
                 return rc;
               }
@@ -513,8 +514,10 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
                       rc = pp_token_to_string(&tokens->tokens[curr], &arg_name);
                       if (rc != CDD_C_SUCCESS) {
-                        g_cdd_last_alloc_err = free_macro_def(&def);
-                        g_cdd_last_alloc_err = free_token_list(tokens);
+                        rc = (cdd_c_error_t)((int)rc |
+                                             (int)free_macro_def(&def));
+                        rc = (cdd_c_error_t)((int)rc |
+                                             (int)free_token_list(tokens));
                         C_CDD_FREE(content);
                         return rc;
                       }
@@ -525,11 +528,14 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
                         def.args = new_args;
                         def.args[def.arg_count++] = arg_name;
                       } else {
+                        cdd_c_error_t rc_oom;
                         C_CDD_FREE(arg_name);
-                        g_cdd_last_alloc_err = pp_free_macro_def(&def);
-                        g_cdd_last_alloc_err = free_token_list(tokens);
+                        rc_oom = pp_free_macro_def(&def);
+                        rc_oom = (cdd_c_error_t)((int)rc_oom |
+                                                 (int)free_token_list(tokens));
                         C_CDD_FREE(content);
-                        return CDD_C_ERROR_MEMORY;
+                        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                               (int)rc_oom);
                       }
                       curr++;
 
@@ -596,8 +602,8 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
               rc = add_macro_internal(ctx, &def);
               if (rc != CDD_C_SUCCESS) {
-                g_cdd_last_alloc_err = free_macro_def(&def);
-                g_cdd_last_alloc_err = free_token_list(tokens);
+                rc = (cdd_c_error_t)((int)rc | (int)free_macro_def(&def));
+                rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
                 C_CDD_FREE(content);
                 return rc;
               }
@@ -609,9 +615,9 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
     }
   }
 
-  g_cdd_last_alloc_err = free_token_list(tokens);
+  rc = free_token_list(tokens);
   C_CDD_FREE(content);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -679,7 +685,7 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
   rc = get_dirname(filename, &dir_name);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_token_list(tokens);
+    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     C_CDD_FREE(content);
     return rc;
   }
@@ -925,8 +931,9 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                           rc = pp_parse_embed_params(tokens, path_end, eol, ctx,
                                                      &info.params);
                           if (rc != CDD_C_SUCCESS) {
-                            g_cdd_last_alloc_err =
-                                pp_embed_params_free(&info.params);
+                            rc = (cdd_c_error_t)((int)rc |
+                                                 (int)pp_embed_params_free(
+                                                     &info.params));
                             C_CDD_FREE(resolved);
                             C_CDD_FREE(raw_path);
                             goto cleanup_and_exit;
@@ -936,17 +943,21 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
                       cb_rc = cb(&info, user_data);
                       if (cb_rc != CDD_C_SUCCESS) {
-                        if (is_embed)
-                          g_cdd_last_alloc_err =
-                              pp_embed_params_free(&info.params);
+                        if (is_embed) {
+                          rc = (cdd_c_error_t)((int)rc |
+                                               (int)pp_embed_params_free(
+                                                   &info.params));
+                        }
                         C_CDD_FREE(resolved);
                         C_CDD_FREE(raw_path);
                         goto cleanup_and_exit;
                       }
 
-                      if (is_embed)
-                        g_cdd_last_alloc_err =
-                            pp_embed_params_free(&info.params);
+                      if (is_embed) {
+                        rc =
+                            (cdd_c_error_t)((int)rc | (int)pp_embed_params_free(
+                                                          &info.params));
+                      }
                     }
                     C_CDD_FREE(resolved);
                   }
@@ -965,7 +976,7 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 cleanup_and_exit:
   ctx->current_file_dir = NULL;
   C_CDD_FREE(dir_name);
-  g_cdd_last_alloc_err = free_token_list(tokens);
+  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   C_CDD_FREE(content);
   return rc;
 }

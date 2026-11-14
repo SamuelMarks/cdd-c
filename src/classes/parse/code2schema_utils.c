@@ -44,15 +44,16 @@ cdd_c_error_t c2s_read_line(FILE *fp, char *buf, size_t bufsz, int *has_line) {
  */
 cdd_c_error_t trim_trailing(char *str) {
   size_t len;
+  cdd_c_error_t rc;
   if (!str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(str);
+  rc = c_cdd_str_trim_trailing_whitespace(str);
   len = strlen(str);
   while (len > 0 &&
          (str[len - 1] == ';' || isspace((unsigned char)str[len - 1]))) {
     str[--len] = '\0';
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -122,28 +123,33 @@ cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
                                    JSON_Value **_out_val) {
   char *serialized = NULL;
   JSON_Value *copy = NULL;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!val)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = cdd_json_serialize_to_string(val, &serialized);
+  if (cdd_json_serialize_to_string(val, &serialized) != CDD_C_SUCCESS)
+    serialized = NULL;
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_fail_json_serialize) {
     g_cdd_fail_json_serialize = 0;
-    g_cdd_last_alloc_err = cdd_json_free_serialized_string(serialized);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)cdd_json_free_serialized_string(serialized));
     serialized = NULL;
   }
 #endif
   if (!serialized)
-    return CDD_C_ERROR_MEMORY;
-  g_cdd_last_alloc_err = cdd_json_parse_string(serialized, &copy);
-  g_cdd_last_alloc_err = cdd_json_free_serialized_string(serialized);
+    return (cdd_c_error_t)((int)rc | (int)CDD_C_ERROR_MEMORY);
+  if (cdd_json_parse_string(serialized, &copy) != CDD_C_SUCCESS)
+    copy = NULL;
+  rc = (cdd_c_error_t)((int)rc |
+                       (int)cdd_json_free_serialized_string(serialized));
   if (!copy)
-    return CDD_C_ERROR_MEMORY;
+    return (cdd_c_error_t)((int)rc | (int)CDD_C_ERROR_MEMORY);
   *_out_val = copy;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -205,8 +211,9 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
       {
         cdd_c_error_t rc_c2s = c_cdd_strdup(src[i], &out[i]);
         if (rc_c2s != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = free_string_array_code2schema(out, src_count);
-          return rc_c2s;
+          return (cdd_c_error_t)((int)rc_c2s |
+                                 (int)free_string_array_code2schema(out,
+                                                                    src_count));
         }
       }
     }
@@ -243,6 +250,7 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   size_t i, count = 0, n = 0;
   char **types;
   const char *primary = NULL;
+  cdd_c_error_t rc_top = CDD_C_SUCCESS;
 
   if (out_union)
     *out_union = NULL;
@@ -256,9 +264,9 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   if (!arr)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &count);
+  rc_top = cdd_json_array_get_count(arr, &count);
   if (count == 0)
-    return CDD_C_SUCCESS;
+    return rc_top;
 
   types = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!types) {
@@ -268,14 +276,13 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
 
   for (i = 0; i < count; ++i) {
     const char *t = NULL;
-    g_cdd_last_alloc_err = cdd_json_array_get_string(arr, i, &t);
-    if (!t)
+    if (cdd_json_array_get_string(arr, i, &t) != CDD_C_SUCCESS)
       continue;
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup(t, &types[n]);
       if (rc_c2s != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = free_string_array_code2schema(types, count);
-        return rc_c2s;
+        return (cdd_c_error_t)((int)rc_c2s | (int)free_string_array_code2schema(
+                                                 types, count));
       }
     }
     if (strcmp(t, "null") == 0) {
@@ -299,12 +306,13 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
     *out_primary = primary;
   if (out_union)
     *out_union = types;
-  else
-    g_cdd_last_alloc_err = free_string_array_code2schema(types, n);
+  else {
+    rc_top = free_string_array_code2schema(types, n);
+  }
   if (out_count)
     *out_count = n;
 
-  return CDD_C_SUCCESS;
+  return rc_top;
 }
 
 /**

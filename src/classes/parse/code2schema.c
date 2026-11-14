@@ -30,12 +30,15 @@ cdd_c_error_t c2s_tok_kind(const struct TokenList *tl, size_t idx,
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t c2s_skip_ws(const struct TokenList *tl, size_t *idx) {
-  enum TokenKind k;
-  while ((g_cdd_last_alloc_err = c2s_tok_kind(tl, *idx, &k),
-          k == TOKEN_WHITESPACE || k == TOKEN_COMMENT)) {
+  enum TokenKind k = TOKEN_UNKNOWN;
+  cdd_c_error_t rc;
+  for (;;) {
+    rc = c2s_tok_kind(tl, *idx, &k);
+    if (k != TOKEN_WHITESPACE && k != TOKEN_COMMENT)
+      break;
     (*idx)++;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -52,24 +55,26 @@ static cdd_c_error_t c2s_skip_ws_collect_comments(const struct TokenList *tl,
                                                   size_t *idx,
                                                   char *comment_buf,
                                                   size_t buf_sz) {
-  enum TokenKind k;
+  enum TokenKind k = TOKEN_UNKNOWN;
   size_t pos = 0;
+  cdd_c_error_t rc;
   comment_buf[0] = '\0';
-  while ((g_cdd_last_alloc_err = c2s_tok_kind(tl, *idx, &k),
-          k == TOKEN_WHITESPACE || k == TOKEN_COMMENT)) {
-    if (k == TOKEN_COMMENT) {
+  for (;;) {
+    rc = c2s_tok_kind(tl, *idx, &k);
+    if (k != TOKEN_WHITESPACE && k != TOKEN_COMMENT)
+      break;
+    if (k == TOKEN_COMMENT && pos + 2 < buf_sz) {
       const struct Token *t = &tl->tokens[*idx];
       size_t c_idx;
       for (c_idx = 0; c_idx < t->length && pos + 2 < buf_sz; ++c_idx) {
         comment_buf[pos++] = (char)t->start[c_idx];
       }
-      if (pos + 1 < buf_sz)
-        comment_buf[pos++] = '\n';
+      comment_buf[pos++] = '\n';
       comment_buf[pos] = '\0';
     }
     (*idx)++;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -100,18 +105,22 @@ static cdd_c_error_t c2s_extract_member_decl(const struct TokenList *tl,
                                              size_t *idx, char *out_line) {
   size_t i = *idx;
   size_t pos = 0;
-  enum TokenKind k;
+  enum TokenKind k = TOKEN_UNKNOWN;
+  cdd_c_error_t rc;
 
   out_line[0] = '\0';
-  while ((
-      g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k),
-      !((k == TOKEN_UNKNOWN) | (k == TOKEN_SEMICOLON) | (k == TOKEN_RBRACE)))) {
-    const struct Token *t = &tl->tokens[i];
-    if (t->kind == TOKEN_WHITESPACE) {
-      out_line[pos++] = ' ';
-    } else {
-      memcpy(out_line + pos, t->start, t->length);
-      pos += t->length;
+  for (;;) {
+    rc = c2s_tok_kind(tl, i, &k);
+    if ((k == TOKEN_UNKNOWN) | (k == TOKEN_SEMICOLON) | (k == TOKEN_RBRACE))
+      break;
+    {
+      const struct Token *t = &tl->tokens[i];
+      if (t->kind == TOKEN_WHITESPACE) {
+        out_line[pos++] = ' ';
+      } else {
+        memcpy(out_line + pos, t->start, t->length);
+        pos += t->length;
+      }
     }
     i++;
   }
@@ -122,7 +131,7 @@ static cdd_c_error_t c2s_extract_member_decl(const struct TokenList *tl,
     i++;
     /* Check if there is a trailing comment on the same line */
     look = i;
-    g_cdd_last_alloc_err = c2s_tok_kind(tl, look, &k);
+    rc = c2s_tok_kind(tl, look, &k);
     if (k == TOKEN_WHITESPACE) {
       if (memchr(tl->tokens[look].start, '\n', tl->tokens[look].length) !=
           NULL) {
@@ -131,7 +140,7 @@ static cdd_c_error_t c2s_extract_member_decl(const struct TokenList *tl,
         look++;
       }
     }
-    g_cdd_last_alloc_err = c2s_tok_kind(tl, look, &k);
+    rc = c2s_tok_kind(tl, look, &k);
     if (!has_newline && k == TOKEN_COMMENT) {
       const struct Token *ct = &tl->tokens[look];
       out_line[pos++] = ' ';
@@ -142,7 +151,7 @@ static cdd_c_error_t c2s_extract_member_decl(const struct TokenList *tl,
   }
   out_line[pos] = '\0';
   *idx = i;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -155,17 +164,129 @@ static cdd_c_error_t c2s_extract_member_decl(const struct TokenList *tl,
 static cdd_c_error_t c2s_skip_brace_block(const struct TokenList *tl,
                                           size_t *idx) {
   int depth = 1;
-  enum TokenKind k;
-  while (depth > 0 && (g_cdd_last_alloc_err = c2s_tok_kind(tl, *idx, &k),
-                       k != TOKEN_UNKNOWN)) {
+  enum TokenKind k = TOKEN_UNKNOWN;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+  while (depth > 0) {
+    rc = c2s_tok_kind(tl, *idx, &k);
+    if (k == TOKEN_UNKNOWN)
+      break;
     if (k == TOKEN_LBRACE)
       depth++;
     else if (k == TOKEN_RBRACE)
       depth--;
     (*idx)++;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
+
+/**
+ * @brief CLI configuration for `code2schema_main`.
+ */
+struct cdd_code2schema_config {
+  /** @brief Input header file path. */
+  const char *input;
+  /** @brief Output JSON Schema file path. */
+  const char *output;
+};
+
+/** @brief Reflected fields for `cdd_code2schema_config`. */
+static const struct cdd_field_info g_cdd_code2schema_config_fields[] = {
+    {"input",
+     "input",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_code2schema_config, input),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"output",
+     "output",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_code2schema_config, output),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+/** @brief Reflected type descriptor for `cdd_code2schema_config`. */
+static const struct cdd_type_info g_cdd_code2schema_config_type_info = {
+    "cdd_code2schema_config",
+    sizeof(struct cdd_code2schema_config),
+    0,
+    g_cdd_code2schema_config_fields,
+    sizeof(g_cdd_code2schema_config_fields) /
+        sizeof(g_cdd_code2schema_config_fields[0]),
+    0};
 
 /*
  * @brief CLI entry point for code2schema command.
@@ -186,47 +307,64 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   JSON_Object *schemas_obj = NULL;
   JSON_Value *comp_val = NULL;
   JSON_Object *comp_obj = NULL;
+  struct cdd_code2schema_config cfg;
+  int first_unk = -1;
   cdd_c_error_t ret_rc = CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&root);
-  g_cdd_last_alloc_err = cdd_json_value_get_object(root, &root_obj);
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&schemas_val);
-  g_cdd_last_alloc_err = cdd_json_value_get_object(schemas_val, &schemas_obj);
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&comp_val);
-  g_cdd_last_alloc_err = cdd_json_value_get_object(comp_val, &comp_obj);
+  ret_rc =
+      (cdd_c_error_t)((int)ret_rc | (int)cdd_json_value_init_object(&root));
+  ret_rc = (cdd_c_error_t)((int)ret_rc |
+                           (int)cdd_json_value_get_object(root, &root_obj));
+  ret_rc = (cdd_c_error_t)((int)ret_rc |
+                           (int)cdd_json_value_init_object(&schemas_val));
+  ret_rc = (cdd_c_error_t)((int)ret_rc | (int)cdd_json_value_get_object(
+                                             schemas_val, &schemas_obj));
+  ret_rc =
+      (cdd_c_error_t)((int)ret_rc | (int)cdd_json_value_init_object(&comp_val));
+  ret_rc = (cdd_c_error_t)((int)ret_rc |
+                           (int)cdd_json_value_get_object(comp_val, &comp_obj));
 
-  if (argc != 2 || !argv || !argv[0] || !argv[1]) {
-    g_cdd_last_alloc_err = cdd_json_value_free(root);
-    g_cdd_last_alloc_err = cdd_json_value_free(schemas_val);
-    g_cdd_last_alloc_err = cdd_json_value_free(comp_val);
+  memset(&cfg, 0, sizeof(cfg));
+  if (argc == 2 && argv && argv[0] && argv[1]) {
+    ret_rc =
+        (cdd_c_error_t)((int)ret_rc |
+                        (int)cdd_cli_parse_reflected_argv(
+                            argc, argv, 0, &g_cdd_code2schema_config_type_info,
+                            &cfg, NULL, &first_unk));
+  }
+
+  if (!cfg.output) {
+    ret_rc = (cdd_c_error_t)((int)cdd_json_value_free(root) |
+                             (int)cdd_json_value_free(schemas_val) |
+                             (int)cdd_json_value_free(comp_val));
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
 #if defined(_MSC_VER)
-  if (fopen_s(&fp, argv[0], "r") != 0)
+  if (fopen_s(&fp, cfg.input, "r") != 0)
     fp = NULL;
 #else
-  fp = fopen(argv[0], "r");
+  fp = fopen(cfg.input, "r");
 #endif
   if (!fp) {
-    g_cdd_last_alloc_err = cdd_json_value_free(root);
-    g_cdd_last_alloc_err = cdd_json_value_free(schemas_val);
-    g_cdd_last_alloc_err = cdd_json_value_free(comp_val);
+    ret_rc = (cdd_c_error_t)((int)cdd_json_value_free(root) |
+                             (int)cdd_json_value_free(schemas_val) |
+                             (int)cdd_json_value_free(comp_val));
     return CDD_C_ERROR_IO;
   }
 
   if (cdd_json_object_set_value(comp_obj, "schemas", schemas_val) !=
       CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(schemas_val);
-    g_cdd_last_alloc_err = cdd_json_value_free(comp_val);
-    g_cdd_last_alloc_err = cdd_json_value_free(root);
+    ret_rc = (cdd_c_error_t)((int)cdd_json_value_free(schemas_val) |
+                             (int)cdd_json_value_free(comp_val) |
+                             (int)cdd_json_value_free(root));
     fclose(fp);
     return CDD_C_ERROR_MEMORY;
   }
   if (cdd_json_object_set_value(root_obj, "components", comp_val) !=
       CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(comp_val);
-    g_cdd_last_alloc_err = cdd_json_value_free(root);
+    ret_rc = (cdd_c_error_t)((int)cdd_json_value_free(comp_val) |
+                             (int)cdd_json_value_free(root));
     fclose(fp);
     return CDD_C_ERROR_MEMORY;
   }
@@ -244,44 +382,43 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   }
 
   while (i < tl->size) {
-    enum TokenKind k;
+    enum TokenKind k = TOKEN_UNKNOWN;
     char top_comments[MAX_LINE_LENGTH];
-    g_cdd_last_alloc_err = c2s_skip_ws_collect_comments(tl, &i, top_comments,
-                                                        sizeof(top_comments));
+    ret_rc = c2s_skip_ws_collect_comments(tl, &i, top_comments,
+                                          sizeof(top_comments));
     if (i >= tl->size)
       break;
 
-    g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+    ret_rc = c2s_tok_kind(tl, i, &k);
     if (k == TOKEN_KEYWORD_UNION) {
       i++;
-      g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-      g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+      ret_rc = c2s_skip_ws(tl, &i);
+      ret_rc = c2s_tok_kind(tl, i, &k);
       if (k == TOKEN_IDENTIFIER) {
         char union_name[64] = {0};
-        g_cdd_last_alloc_err = c2s_copy_token_ident(union_name, &tl->tokens[i]);
+        ret_rc = c2s_copy_token_ident(union_name, &tl->tokens[i]);
         i++;
-        g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-        g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+        ret_rc = c2s_skip_ws(tl, &i);
+        ret_rc = c2s_tok_kind(tl, i, &k);
         if (k == TOKEN_LBRACE) {
           i++;
-          g_cdd_last_alloc_err =
+          ret_rc =
               c2s_parse_union_tokens_and_write(tl, &i, schemas_obj, union_name);
         }
       } else if (k == TOKEN_LBRACE) {
         i++;
-        g_cdd_last_alloc_err = c2s_skip_brace_block(tl, &i);
+        ret_rc = c2s_skip_brace_block(tl, &i);
       }
     } else if (k == TOKEN_KEYWORD_STRUCT) {
       i++;
-      g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-      g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+      ret_rc = c2s_skip_ws(tl, &i);
+      ret_rc = c2s_tok_kind(tl, i, &k);
       if (k == TOKEN_IDENTIFIER) {
         char struct_name[64] = {0};
-        g_cdd_last_alloc_err =
-            c2s_copy_token_ident(struct_name, &tl->tokens[i]);
+        ret_rc = c2s_copy_token_ident(struct_name, &tl->tokens[i]);
         i++;
-        g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-        g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+        ret_rc = c2s_skip_ws(tl, &i);
+        ret_rc = c2s_tok_kind(tl, i, &k);
         if (k == TOKEN_LBRACE) {
           struct StructFields sf;
           i++;
@@ -292,15 +429,16 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
           if (top_comments[0] != '\0') {
             ret_rc = cdd_serde_parse_container_comment(top_comments, &sf);
             if (ret_rc != CDD_C_SUCCESS) {
-              g_cdd_last_alloc_err = struct_fields_free(&sf);
+              ret_rc =
+                  (cdd_c_error_t)((int)ret_rc | (int)struct_fields_free(&sf));
               goto cleanup;
             }
           }
           while (1) {
             char field_comments[MAX_LINE_LENGTH];
-            g_cdd_last_alloc_err = c2s_skip_ws_collect_comments(
-                tl, &i, field_comments, sizeof(field_comments));
-            g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+            ret_rc = c2s_skip_ws_collect_comments(tl, &i, field_comments,
+                                                  sizeof(field_comments));
+            ret_rc = c2s_tok_kind(tl, i, &k);
             if (k == TOKEN_UNKNOWN)
               break;
             if (k == TOKEN_RBRACE) {
@@ -313,16 +451,16 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
             }
             if (k == TOKEN_KEYWORD_STRUCT) {
               size_t look = i + 1;
-              g_cdd_last_alloc_err = c2s_skip_ws(tl, &look);
-              g_cdd_last_alloc_err = c2s_tok_kind(tl, look, &k);
+              ret_rc = c2s_skip_ws(tl, &look);
+              ret_rc = c2s_tok_kind(tl, look, &k);
               if (k == TOKEN_LBRACE) {
                 struct StructFields nested_sf;
                 char nested_name[128];
                 char nested_prop_name[64] = {0};
                 cdd_c_error_t rc_c2s;
                 if (struct_fields_init(&nested_sf) != CDD_C_SUCCESS) {
-                  g_cdd_last_alloc_err = struct_fields_free(&sf);
-                  ret_rc = CDD_C_ERROR_MEMORY;
+                  ret_rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                           (int)struct_fields_free(&sf));
                   goto cleanup;
                 }
                 i = look + 1;
@@ -330,21 +468,21 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                   char member_line[MAX_LINE_LENGTH];
                   char nested_f_comments[MAX_LINE_LENGTH];
                   size_t prev_nested_sz;
-                  g_cdd_last_alloc_err = c2s_skip_ws_collect_comments(
+                  ret_rc = c2s_skip_ws_collect_comments(
                       tl, &i, nested_f_comments, sizeof(nested_f_comments));
-                  g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+                  ret_rc = c2s_tok_kind(tl, i, &k);
                   if (k == TOKEN_UNKNOWN)
                     break;
                   if (k == TOKEN_RBRACE) {
                     i++;
-                    g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-                    g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+                    ret_rc = c2s_skip_ws(tl, &i);
+                    ret_rc = c2s_tok_kind(tl, i, &k);
                     if (k == TOKEN_IDENTIFIER) {
-                      g_cdd_last_alloc_err = c2s_copy_token_ident(
-                          nested_prop_name, &tl->tokens[i]);
+                      ret_rc = c2s_copy_token_ident(nested_prop_name,
+                                                    &tl->tokens[i]);
                       i++;
-                      g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-                      g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+                      ret_rc = c2s_skip_ws(tl, &i);
+                      ret_rc = c2s_tok_kind(tl, i, &k);
                       if (k == TOKEN_SEMICOLON) {
                         i++;
                       }
@@ -355,14 +493,14 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                     i++;
                     continue;
                   }
-                  g_cdd_last_alloc_err =
-                      c2s_extract_member_decl(tl, &i, member_line);
+                  ret_rc = c2s_extract_member_decl(tl, &i, member_line);
                   prev_nested_sz = nested_sf.size;
                   rc_c2s = parse_struct_member_line(member_line, &nested_sf);
                   if (rc_c2s != CDD_C_SUCCESS) {
-                    g_cdd_last_alloc_err = struct_fields_free(&nested_sf);
-                    g_cdd_last_alloc_err = struct_fields_free(&sf);
-                    ret_rc = rc_c2s;
+                    ret_rc =
+                        (cdd_c_error_t)((int)rc_c2s |
+                                        (int)struct_fields_free(&nested_sf) |
+                                        (int)struct_fields_free(&sf));
                     goto cleanup;
                   }
                   if (nested_sf.size > prev_nested_sz &&
@@ -371,37 +509,39 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                         nested_f_comments,
                         &nested_sf.fields[nested_sf.size - 1]);
                     if (rc_c2s != CDD_C_SUCCESS) {
-                      g_cdd_last_alloc_err = struct_fields_free(&nested_sf);
-                      g_cdd_last_alloc_err = struct_fields_free(&sf);
-                      ret_rc = rc_c2s;
+                      ret_rc =
+                          (cdd_c_error_t)((int)rc_c2s |
+                                          (int)struct_fields_free(&nested_sf) |
+                                          (int)struct_fields_free(&sf));
                       goto cleanup;
                     }
                   }
                 }
                 CDD_SNPRINTF(nested_name, sizeof(nested_name), "%s_%s",
                              struct_name, nested_prop_name);
-                g_cdd_last_alloc_err = c2s_collapse_arrays(&nested_sf);
-                g_cdd_last_alloc_err = write_struct_to_json_schema(
-                    schemas_obj, nested_name, &nested_sf);
+                ret_rc = c2s_collapse_arrays(&nested_sf);
+                ret_rc = write_struct_to_json_schema(schemas_obj, nested_name,
+                                                     &nested_sf);
                 rc_c2s = struct_fields_add(&sf, nested_prop_name, "object",
                                            nested_name, NULL, NULL);
                 if (rc_c2s != CDD_C_SUCCESS) {
-                  g_cdd_last_alloc_err = struct_fields_free(&nested_sf);
-                  g_cdd_last_alloc_err = struct_fields_free(&sf);
-                  ret_rc = rc_c2s;
+                  ret_rc = (cdd_c_error_t)((int)rc_c2s |
+                                           (int)struct_fields_free(&nested_sf) |
+                                           (int)struct_fields_free(&sf));
                   goto cleanup;
                 }
                 if (field_comments[0] != '\0') {
                   rc_c2s = cdd_serde_parse_field_comment(
                       field_comments, &sf.fields[sf.size - 1]);
                   if (rc_c2s != CDD_C_SUCCESS) {
-                    g_cdd_last_alloc_err = struct_fields_free(&nested_sf);
-                    g_cdd_last_alloc_err = struct_fields_free(&sf);
-                    ret_rc = rc_c2s;
+                    ret_rc =
+                        (cdd_c_error_t)((int)rc_c2s |
+                                        (int)struct_fields_free(&nested_sf) |
+                                        (int)struct_fields_free(&sf));
                     goto cleanup;
                   }
                 }
-                g_cdd_last_alloc_err = struct_fields_free(&nested_sf);
+                ret_rc = struct_fields_free(&nested_sf);
                 continue;
               }
             }
@@ -409,51 +549,50 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
               char member_line[MAX_LINE_LENGTH];
               size_t prev_sz = sf.size;
               cdd_c_error_t rc_c2s;
-              g_cdd_last_alloc_err =
-                  c2s_extract_member_decl(tl, &i, member_line);
+              ret_rc = c2s_extract_member_decl(tl, &i, member_line);
               rc_c2s = parse_struct_member_line(member_line, &sf);
               if (rc_c2s != CDD_C_SUCCESS) {
-                g_cdd_last_alloc_err = struct_fields_free(&sf);
-                ret_rc = rc_c2s;
+                ret_rc =
+                    (cdd_c_error_t)((int)rc_c2s | (int)struct_fields_free(&sf));
                 goto cleanup;
               }
               if (sf.size > prev_sz && field_comments[0] != '\0') {
                 rc_c2s = cdd_serde_parse_field_comment(field_comments,
                                                        &sf.fields[sf.size - 1]);
                 if (rc_c2s != CDD_C_SUCCESS) {
-                  g_cdd_last_alloc_err = struct_fields_free(&sf);
-                  ret_rc = rc_c2s;
+                  ret_rc = (cdd_c_error_t)((int)rc_c2s |
+                                           (int)struct_fields_free(&sf));
                   goto cleanup;
                 }
               }
             }
           }
-          g_cdd_last_alloc_err = c2s_collapse_arrays(&sf);
+          ret_rc = c2s_collapse_arrays(&sf);
           {
             cdd_c_error_t rc_c2s =
                 write_struct_to_json_schema(schemas_obj, struct_name, &sf);
             if (rc_c2s != CDD_C_SUCCESS) {
-              g_cdd_last_alloc_err = struct_fields_free(&sf);
-              ret_rc = rc_c2s;
+              ret_rc =
+                  (cdd_c_error_t)((int)rc_c2s | (int)struct_fields_free(&sf));
               goto cleanup;
             }
           }
-          g_cdd_last_alloc_err = struct_fields_free(&sf);
+          ret_rc = struct_fields_free(&sf);
         }
       } else if (k == TOKEN_LBRACE) {
         i++;
-        g_cdd_last_alloc_err = c2s_skip_brace_block(tl, &i);
+        ret_rc = c2s_skip_brace_block(tl, &i);
       }
     } else if (k == TOKEN_KEYWORD_ENUM) {
       i++;
-      g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-      g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+      ret_rc = c2s_skip_ws(tl, &i);
+      ret_rc = c2s_tok_kind(tl, i, &k);
       if (k == TOKEN_IDENTIFIER) {
         char enum_name[64] = {0};
-        g_cdd_last_alloc_err = c2s_copy_token_ident(enum_name, &tl->tokens[i]);
+        ret_rc = c2s_copy_token_ident(enum_name, &tl->tokens[i]);
         i++;
-        g_cdd_last_alloc_err = c2s_skip_ws(tl, &i);
-        g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+        ret_rc = c2s_skip_ws(tl, &i);
+        ret_rc = c2s_tok_kind(tl, i, &k);
         if (k == TOKEN_LBRACE) {
           struct StructFields enum_sf;
           size_t ename_len = strlen(enum_name);
@@ -464,8 +603,8 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
           }
           enum_sf.is_enum = 1;
           if (enum_members_init(&enum_sf.enum_members) != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = struct_fields_free(&enum_sf);
-            ret_rc = CDD_C_ERROR_MEMORY;
+            ret_rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                                     (int)struct_fields_free(&enum_sf));
             goto cleanup;
           }
           if (top_comments[0] != '\0') {
@@ -475,18 +614,18 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                                                     &enum_sf.enum_members);
             }
             if (ret_rc != CDD_C_SUCCESS) {
-              g_cdd_last_alloc_err = struct_fields_free(&enum_sf);
+              ret_rc = (cdd_c_error_t)((int)ret_rc |
+                                       (int)struct_fields_free(&enum_sf));
               goto cleanup;
             }
           }
-          while ((g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k),
-                  k != TOKEN_UNKNOWN)) {
+          for (;;) {
             char var_comments[MAX_LINE_LENGTH];
             size_t vc_pos = 0;
-            g_cdd_last_alloc_err = c2s_skip_ws_collect_comments(
-                tl, &i, var_comments, sizeof(var_comments));
+            ret_rc = c2s_skip_ws_collect_comments(tl, &i, var_comments,
+                                                  sizeof(var_comments));
             vc_pos = strlen(var_comments);
-            g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k);
+            ret_rc = c2s_tok_kind(tl, i, &k);
             if (k == TOKEN_UNKNOWN)
               break;
             if (k == TOKEN_RBRACE) {
@@ -508,17 +647,17 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
               char var_rep_to[32] = {0};
               char effective_rename[128] = {0};
 
-              g_cdd_last_alloc_err =
-                  c2s_copy_token_ident(ev_name, &tl->tokens[i]);
+              ret_rc = c2s_copy_token_ident(ev_name, &tl->tokens[i]);
               member_tok = ev_name;
               if (strncmp(ev_name, enum_name, ename_len) == 0 &&
                   ev_name[ename_len] == '_' && ev_name[ename_len + 1] != '\0') {
                 member_tok = ev_name + ename_len + 1;
               }
               i++;
-              while ((g_cdd_last_alloc_err = c2s_tok_kind(tl, i, &k),
-                      k != TOKEN_UNKNOWN && k != TOKEN_COMMA &&
-                          k != TOKEN_RBRACE)) {
+              for (;;) {
+                ret_rc = c2s_tok_kind(tl, i, &k);
+                if (k == TOKEN_UNKNOWN || k == TOKEN_COMMA || k == TOKEN_RBRACE)
+                  break;
                 if (k == TOKEN_COMMENT) {
                   const struct Token *ct = &tl->tokens[i];
                   size_t c_k;
@@ -533,9 +672,9 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
               }
               if (k == TOKEN_COMMA) {
                 size_t look = i + 1;
-                enum TokenKind k_look;
+                enum TokenKind k_look = TOKEN_UNKNOWN;
                 int has_nl = 0;
-                g_cdd_last_alloc_err = c2s_tok_kind(tl, look, &k_look);
+                ret_rc = c2s_tok_kind(tl, look, &k_look);
                 if (k_look == TOKEN_WHITESPACE) {
                   if (memchr(tl->tokens[look].start, '\n',
                              tl->tokens[look].length) != NULL)
@@ -543,7 +682,7 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                   else
                     look++;
                 }
-                g_cdd_last_alloc_err = c2s_tok_kind(tl, look, &k_look);
+                ret_rc = c2s_tok_kind(tl, look, &k_look);
                 if (!has_nl && k_look == TOKEN_COMMENT) {
                   const struct Token *ct = &tl->tokens[look];
                   size_t c_k;
@@ -564,7 +703,8 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                     &var_case, var_rep_from, sizeof(var_rep_from), var_rep_to,
                     sizeof(var_rep_to), &var_other, NULL, 0);
                 if (ret_rc != CDD_C_SUCCESS) {
-                  g_cdd_last_alloc_err = struct_fields_free(&enum_sf);
+                  ret_rc = (cdd_c_error_t)((int)ret_rc |
+                                           (int)struct_fields_free(&enum_sf));
                   goto cleanup;
                 }
               }
@@ -576,22 +716,23 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                 char tmp_v[128];
                 CDD_STRCPY(tmp_v, sizeof(tmp_v), member_tok);
                 if (var_case != CDD_SERDE_CASE_NONE) {
-                  g_cdd_last_alloc_err = cdd_serde_transform_case(
-                      tmp_v, var_case, effective_rename,
-                      sizeof(effective_rename));
+                  ret_rc = cdd_serde_transform_case(tmp_v, var_case,
+                                                    effective_rename,
+                                                    sizeof(effective_rename));
                   CDD_STRCPY(tmp_v, sizeof(tmp_v), effective_rename);
                 }
                 if (var_rep_from[0] != '\0') {
-                  g_cdd_last_alloc_err = cdd_serde_replace_str(
-                      tmp_v, var_rep_from, var_rep_to, effective_rename,
-                      sizeof(effective_rename));
+                  ret_rc = cdd_serde_replace_str(tmp_v, var_rep_from,
+                                                 var_rep_to, effective_rename,
+                                                 sizeof(effective_rename));
                 }
               }
               ret_rc = enum_members_add_ex(
                   &enum_sf.enum_members, member_tok,
                   effective_rename[0] ? effective_rename : NULL, var_skip);
               if (ret_rc != CDD_C_SUCCESS) {
-                g_cdd_last_alloc_err = struct_fields_free(&enum_sf);
+                ret_rc = (cdd_c_error_t)((int)ret_rc |
+                                         (int)struct_fields_free(&enum_sf));
                 goto cleanup;
               }
               if (var_other) {
@@ -605,7 +746,8 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                     sizeof(var_rep_to), NULL, &enum_sf.enum_members,
                     enum_sf.enum_members.size - 1);
                 if (ret_rc != CDD_C_SUCCESS) {
-                  g_cdd_last_alloc_err = struct_fields_free(&enum_sf);
+                  ret_rc = (cdd_c_error_t)((int)ret_rc |
+                                           (int)struct_fields_free(&enum_sf));
                   goto cleanup;
                 }
               }
@@ -613,30 +755,30 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
               i++;
             }
           }
-          g_cdd_last_alloc_err =
+          ret_rc =
               write_struct_to_json_schema(schemas_obj, enum_name, &enum_sf);
-          g_cdd_last_alloc_err = struct_fields_free(&enum_sf);
+          ret_rc = struct_fields_free(&enum_sf);
         }
       } else if (k == TOKEN_LBRACE) {
         i++;
-        g_cdd_last_alloc_err = c2s_skip_brace_block(tl, &i);
+        ret_rc = c2s_skip_brace_block(tl, &i);
       }
     } else {
       i++;
     }
   }
 
-  if (cdd_json_serialize_to_file_pretty(root, argv[1]) != CDD_C_SUCCESS) {
+  if (cdd_json_serialize_to_file_pretty(root, cfg.output) != CDD_C_SUCCESS) {
     ret_rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
   ret_rc = CDD_C_SUCCESS;
 
 cleanup:
-  if (tl)
-    g_cdd_last_alloc_err = free_token_list(tl);
+  if (tl) {
+    ret_rc = (cdd_c_error_t)((int)ret_rc | (int)free_token_list(tl));
+  }
   if (content)
     C_CDD_FREE(content);
-  g_cdd_last_alloc_err = cdd_json_value_free(root);
-  return ret_rc;
+  return (cdd_c_error_t)((int)ret_rc | (int)cdd_json_value_free(root));
 }

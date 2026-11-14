@@ -1042,7 +1042,7 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union default initialization func.
  *
  * @param[in] fp Output file stream.
@@ -1077,7 +1077,7 @@ write_union_default_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union deepcopy func.
  *
  * @param[in] fp Output file stream.
@@ -1232,7 +1232,7 @@ write_union_deepcopy_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union equality comparison func.
  *
  * @param[in] fp Output file stream.
@@ -1343,7 +1343,7 @@ cdd_c_error_t write_union_eq_func(FILE *fp, const char *union_name,
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits C source code for union debug print func.
  *
  * @param[in] fp Output file stream.

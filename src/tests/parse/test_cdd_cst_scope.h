@@ -377,6 +377,102 @@ TEST test_cdd_cst_scope_invalid_symbol_kind(void) {
 }
 
 /**
+ * @brief Unit test for extended symbol type/field helpers and AST scope lookup.
+ * @return Greatest test result.
+ */
+TEST test_cdd_cst_scope_extensions(void) {
+  cdd_cst_scope_env_t *env = NULL;
+  cdd_cst_symbol_t *sym = NULL;
+  cdd_cst_scope_t *sc = NULL;
+  cdd_cst_node_t n_root;
+  cdd_cst_node_t n_blk;
+  cdd_cst_node_t n_leaf;
+
+  memset(&n_root, 0, sizeof(n_root));
+  memset(&n_blk, 0, sizeof(n_blk));
+  memset(&n_leaf, 0, sizeof(n_leaf));
+  n_blk.parent = &n_root;
+  n_leaf.parent = &n_blk;
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_init(&env));
+  env->global_scope->ast_node = &n_root;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_symbol_set_type(NULL, "int"));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_add_symbol(
+                               env, "S", CDD_CST_SYMBOL_STRUCT_TAG, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_lookup_symbol(
+                               env, "S", CDD_CST_SYMBOL_STRUCT_TAG, &sym));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_symbol_set_type(sym, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_symbol_set_type(sym, "struct S"));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_symbol_set_type(sym, "struct S"));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_symbol_add_field(NULL, "a", "int", 0, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_symbol_add_field(sym, NULL, "int", 0, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_symbol_add_field(sym, "a", NULL, 0, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_symbol_add_field(sym, "a", "int", 0, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_symbol_add_field(sym, "b", "char *", 0, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_symbol_add_field(sym, "c", "int[4]", 4, 1));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_lookup_in_scope(env->global_scope, NULL,
+                                          CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_lookup_in_scope(env->global_scope, "S",
+                                          CDD_CST_SYMBOL_STRUCT_TAG, NULL));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            cdd_cst_scope_lookup_in_scope(NULL, "S", CDD_CST_SYMBOL_STRUCT_TAG,
+                                          &sym));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+  env->current_scope->ast_node = &n_blk;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_leave(env));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_find_for_node(NULL, &n_leaf, &sc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_find_for_node(env, &n_leaf, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_find_for_node(env, &n_leaf, &sc));
+  ASSERT_EQ(&n_blk, sc->ast_node);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_find_for_node(env, NULL, &sc));
+  ASSERT_EQ(env->global_scope, sc);
+  {
+    cdd_cst_node_t unattached;
+    memset(&unattached, 0, sizeof(unattached));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_scope_find_for_node(env, &unattached, &sc));
+    ASSERT_EQ(env->global_scope, sc);
+  }
+  {
+    cdd_cst_scope_t *saved_gs = env->global_scope;
+    env->global_scope = NULL;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_scope_find_for_node(env, &n_leaf, &sc));
+    env->global_scope = saved_gs;
+  }
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int f;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_symbol_set_type(sym, "int"));
+    g_cdd_alloc_fail = 0;
+    for (f = 1; f <= 3; f++) {
+      g_cdd_alloc_fail = f;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                cdd_cst_symbol_add_field(sym, "oom", "int", 0, 0));
+      g_cdd_alloc_fail = 0;
+    }
+  }
+#endif
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(env));
+  PASS();
+}
+
+/**
  * @brief Executes the cdd_cst_scope_suite test suite.
  */
 SUITE(cdd_cst_scope_suite) {
@@ -386,6 +482,7 @@ SUITE(cdd_cst_scope_suite) {
   RUN_TEST(test_cdd_cst_scope_errors);
   RUN_TEST(test_cdd_cst_scope_tag);
   RUN_TEST(test_cdd_cst_scope_mem);
+  RUN_TEST(test_cdd_cst_scope_extensions);
 #ifdef CDD_BUILD_TESTS
   RUN_TEST(test_cdd_cst_scope_oom);
 #endif

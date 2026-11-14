@@ -5,28 +5,66 @@
 #ifndef CDD_CST_TRANSFORM_H
 #define CDD_CST_TRANSFORM_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 /* clang-format off */
 #include "classes/parse/cdd_cst_node.h"
 #include "cdd_c_error.h"
 #include <stddef.h>
 #if defined(_MSC_VER) && _MSC_VER < 1600
-typedef unsigned __int64 uint64_t;
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
 #include "msvc/stdint.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "c_cdd/msvc/stdint.h"
 #else
 #include <stdint.h>
 #endif
-#endif
-#endif
 #include "c_cdd_export.h"
 /* clang-format on */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/**
+ * @brief Target compiler and dialect profile for CST lowering passes.
+ */
+typedef enum cdd_target_msvc_profile_t {
+  CDD_TARGET_PROFILE_DEFAULT = 0, /**< Unspecified / default profile */
+  CDD_TARGET_PROFILE_MSVC_LEGACY, /**< Legacy MSVC (2005-2017 / strict C89) */
+  CDD_TARGET_PROFILE_MSVC_MODERN, /**< Modern MSVC (2019-2026 /std:c11, c17) */
+  CDD_TARGET_PROFILE_WATCOM,      /**< OpenWatcom v2 (wcl386 / wcl DOS) */
+  CDD_TARGET_PROFILE_ISO_C89,     /**< Pedantic ISO C89 / C90 */
+  CDD_TARGET_PROFILE_ISO_C99      /**< ISO C99 */
+} cdd_target_msvc_profile_t;
+
+/**
+ * @brief Lowering mode for C99 Variable Length Arrays (VLAs).
+ */
+typedef enum cdd_vla_lowering_mode_t {
+  CDD_VLA_MODE_ALLOCA = 0, /**< Stack allocation via alloca / _alloca */
+  CDD_VLA_MODE_MALLOC,     /**< Heap allocation via malloc / free */
+  CDD_VLA_MODE_HYBRID      /**< Threshold-based _alloca / malloc hybrid */
+} cdd_vla_lowering_mode_t;
+
+/**
+ * @brief Emission mode for Safe CRT (`*_s`) transformations.
+ */
+typedef enum cdd_safe_crt_mode_t {
+  CDD_SAFE_CRT_OFF = 0,  /**< Safe CRT lowering disabled */
+  CDD_SAFE_CRT_GUARDED,  /**< Emit `#if defined(_MSC_VER)` guarded Safe CRT */
+  CDD_SAFE_CRT_MSVC_ONLY /**< Emit unguarded MSVC `*_s` calls directly */
+} cdd_safe_crt_mode_t;
+
+/**
+ * @brief Bitmask flags selecting CST transformation passes in a multi-pass
+ * pipeline.
+ */
+typedef enum cdd_transform_pass_flags_t {
+  CDD_PASS_NONE = 0,                 /**< No passes selected */
+  CDD_PASS_EXTERN_C = 1 << 0,        /**< Wrap headers in extern "C" guards */
+  CDD_PASS_MACROS = 1 << 1,          /**< Expand variadic/function macros */
+  CDD_PASS_GNU = 1 << 2,             /**< Lower GNU C extensions to Std C */
+  CDD_PASS_C_LOWERING = 1 << 3,      /**< Lower C99/C11/C23 for target */
+  CDD_PASS_MSVC_PORT = 1 << 4,       /**< Port POSIX/GNU symbols to MSVC */
+  CDD_PASS_SAFE_CRT = 1 << 5,        /**< Rewrite CRT calls to Safe CRT */
+  CDD_PASS_ERROR_PERCOLATOR = 1 << 6 /**< Percolate error codes & hoist */
+} cdd_transform_pass_flags_t;
 
 /**
  * @brief Configuration for transformations.
@@ -38,6 +76,14 @@ typedef struct cdd_transform_config_t {
                                  of alloca */
   int target_c89;             /**< If 1, strictly target C89 semantics. */
   int target_c99;             /**< If 1, target C99 semantics. */
+  cdd_target_msvc_profile_t target_profile; /**< Target compiler/dialect */
+  int msvc_ver;           /**< Target _MSC_VER (e.g. 1400..1950), 0 default */
+  int with_auto_win_msvc; /**< 1 when targeting auto-win-msvc headers */
+  cdd_vla_lowering_mode_t vla_mode;  /**< VLA lowering strategy */
+  cdd_safe_crt_mode_t safe_crt_mode; /**< Safe CRT emission mode */
+  const char *rename_main;           /**< Optional symbol to rename `main` to */
+  const char *const *include_dirs;   /**< Optional `-I` header search dirs */
+  size_t num_include_dirs;           /**< Number of entries in `include_dirs` */
 } cdd_transform_config_t;
 
 /**
@@ -311,6 +357,31 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_safe_crt(
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
     cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
+
+/**
+ * @brief Lowers C99/C11/C23 language features according to target profile.
+ *
+ * @param[in,out] tree The CST tree to lower.
+ * @param[in] config Optional configuration specifying dialect/MSVC profile.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_transform_c_lowering(
+    cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
+
+/**
+ * @brief Runs a deterministic multi-pass CST transformation pipeline in memory.
+ *
+ * Parses/mutates `tree` in-place across all passes enabled in `pass_mask`
+ * (`CDD_PASS_*`) without re-parsing between passes.
+ *
+ * @param[in,out] tree The CST tree to transform.
+ * @param[in] pass_mask Bitmask of `cdd_transform_pass_flags_t` passes to run.
+ * @param[in] config Optional configuration for lowering passes.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_transform_pipeline(cdd_cst_tree_t *tree, unsigned int pass_mask,
+                       const cdd_transform_config_t *config);
 
 #ifdef __cplusplus
 }

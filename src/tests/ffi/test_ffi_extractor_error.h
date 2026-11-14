@@ -542,9 +542,9 @@ TEST test_ffi_ir_extract_error_paths(void) {
      * TmplEmpty<int> */
     inst_ir.nodes[2].kind = CDD_FFI_NODE_STRUCT;
     inst_ir.nodes[2].name = strdup("UserStruct");
-    inst_ir.nodes[2].fields_count = 6;
+    inst_ir.nodes[2].fields_count = 8;
     inst_ir.nodes[2].fields =
-        (cdd_ffi_field_t *)calloc(6, sizeof(cdd_ffi_field_t));
+        (cdd_ffi_field_t *)calloc(8, sizeof(cdd_ffi_field_t));
 
     inst_ir.nodes[2].fields[0].name = strdup("f1");
     inst_ir.nodes[2].fields[0].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
@@ -599,6 +599,16 @@ TEST test_ffi_ir_extract_error_paths(void) {
     inst_ir.nodes[2].fields[5].type.template_args[0].kind = CDD_FFI_KIND_UINT8;
     inst_ir.nodes[2].fields[5].type.template_args[0].ref_name = NULL;
 
+    /* ref_name == NULL branch */
+    inst_ir.nodes[2].fields[6].name = strdup("f7");
+    inst_ir.nodes[2].fields[6].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[6].type.ref_name = NULL;
+
+    /* ref_name not matching any node in ir->nodes */
+    inst_ir.nodes[2].fields[7].name = strdup("f8");
+    inst_ir.nodes[2].fields[7].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[7].type.ref_name = strdup("NonExistentTmpl");
+
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_instantiate_templates_test(&inst_ir));
     g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
 
@@ -630,6 +640,37 @@ TEST test_ffi_ir_extract_error_paths(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_instantiate_templates_test(&inst_ir));
     g_ffi_extractor_alloc_fail = 0;
     g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
+  }
+
+  /* 9. Trivia copy OOM and CDD_STRDUP OOM on doc and _Out_writes_ */
+  {
+    const char *fn_src = "/* leading trivia */\n"
+                         "/** @brief My doc */\n"
+                         "void my_fn(_Out_writes_(16) char *buf) {}\n";
+    cdd_generate_bindings_config_t cfg_oom;
+    int fi;
+    memset(&cfg_oom, 0, sizeof(cfg_oom));
+    g_cdd_last_alloc_err = write_to_file("test_ffi_oom_doc.h", fn_src);
+
+    for (fi = 1; fi <= 40; fi++) {
+      cdd_ffi_ir_t ir_tmp;
+      memset(&ir_tmp, 0, sizeof(ir_tmp));
+      g_ffi_extractor_alloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_ffi_extract_single_file_exports_test(
+          &ir_tmp, "test_ffi_oom_doc.h", fn_src, &cfg_oom);
+      g_ffi_extractor_alloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir_tmp);
+    }
+    for (fi = 1; fi <= 80; fi++) {
+      cdd_ffi_ir_t ir_tmp;
+      memset(&ir_tmp, 0, sizeof(ir_tmp));
+      g_cdd_alloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_ffi_extract_single_file_exports_test(
+          &ir_tmp, "test_ffi_oom_doc.h", fn_src, &cfg_oom);
+      g_cdd_alloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir_tmp);
+    }
+    remove("test_ffi_oom_doc.h");
   }
 
   PASS();

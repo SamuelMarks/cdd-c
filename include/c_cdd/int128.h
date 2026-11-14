@@ -9,34 +9,32 @@
 #ifndef C_CDD_INT128_H
 #define C_CDD_INT128_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-#if defined(_MSC_VER) && _MSC_VER < 1600
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1800
 /* clang-format off */
-#include "msvc/stdint.h"
-#else
 #if defined(_MSC_VER) && _MSC_VER < 1600
 #include "msvc/stdint.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "c_cdd/msvc/stdint.h"
 #else
 #include <stdint.h>
 #endif
-#endif
 #include "cdd_c_error.h"
 /* clang-format on */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#ifndef CDD_INT128_INLINE
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+/** @brief Inline specifier for header-only 128-bit integer helpers. */
+#define CDD_INT128_INLINE __inline
+#elif defined(__GNUC__) || defined(__clang__)
+/** @brief Inline specifier for header-only 128-bit integer helpers. */
+#define CDD_INT128_INLINE __inline__ __attribute__((__unused__))
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+/** @brief Inline specifier for header-only 128-bit integer helpers. */
+#define CDD_INT128_INLINE inline
+#else
+/** @brief Inline specifier fallback for strict ISO C89 compilers. */
+#define CDD_INT128_INLINE
 #endif
 #endif
 
@@ -69,8 +67,9 @@ typedef struct __cdd_int128 {
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out is
  * NULL.
  */
-static cdd_c_error_t cdd_make_uint128(uint64_t high, uint64_t low,
-                                      cdd_uint128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_make_uint128(uint64_t high,
+                                                        uint64_t low,
+                                                        cdd_uint128_t *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out->high = high;
@@ -87,8 +86,9 @@ static cdd_c_error_t cdd_make_uint128(uint64_t high, uint64_t low,
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out is
  * NULL.
  */
-static cdd_c_error_t cdd_make_int128(int64_t high, uint64_t low,
-                                     cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t cdd_make_int128(int64_t high,
+                                                       uint64_t low,
+                                                       cdd_int128_t *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out->high = high;
@@ -108,8 +108,8 @@ __extension__ typedef unsigned __int128 cdd_native_uint128_t;
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if out is
  * NULL.
  */
-static cdd_c_error_t cdd_make_int128_from_native(cdd_native_int128_t val,
-                                                 cdd_int128_t *out) {
+static CDD_INT128_INLINE cdd_c_error_t
+cdd_make_int128_from_native(cdd_native_int128_t val, cdd_int128_t *out) {
   return cdd_make_int128((int64_t)(val >> 64), (uint64_t)val, out);
 }
 

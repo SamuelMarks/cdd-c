@@ -38,6 +38,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   const char *lib_name;
   size_t i, j;
   cdd_ffi_ir_node_t *node;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -100,7 +101,8 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   c_f, node->leading_trivia));
       fprintf(c_f,
               "static int Tcl_%s(ClientData clientData, Tcl_Interp *interp, "
               "int objc, Tcl_Obj *const objv[]) {\n",
@@ -259,7 +261,9 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
     for (i = 0; i < ir->nodes_count; i++) {
       node = &ir->nodes[i];
       if (node->kind == CDD_FFI_NODE_FUNCTION) {
-        g_cdd_last_alloc_err = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                               c_f, node->leading_trivia));
         fprintf(c_f,
                 "    Tcl_CreateObjCommand(interp, \"%s::%s\", Tcl_%s, NULL, "
                 "NULL);\n",
@@ -280,5 +284,5 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
           lib_name, lib_name);
   fclose(pkg_f);
 
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

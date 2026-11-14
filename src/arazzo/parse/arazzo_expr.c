@@ -144,8 +144,8 @@ cdd_c_error_t arazzo_runtime_expr_parse(const char *expr_str,
     if (open_brace) {
       const char *close_brace = strchr(open_brace + 2, '}');
       if (!close_brace || close_brace == open_brace + 2) {
-        g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-        return CDD_C_ERROR_INVALID_ARGUMENT;
+        return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                               (int)arazzo_runtime_expr_free(out_expr));
       }
       out_expr->is_embedded_template = 1;
     }
@@ -205,17 +205,15 @@ cdd_c_error_t arazzo_runtime_expr_parse(const char *expr_str,
     }
     rc = extract_json_pointer(expr_str + pfx_len, out_expr, &head_len);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)arazzo_runtime_expr_free(out_expr));
     }
     if (head_len == 0) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                             (int)arazzo_runtime_expr_free(out_expr));
     }
     rc = dup_slice(expr_str + pfx_len, head_len, &out_expr->property_name);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)arazzo_runtime_expr_free(out_expr));
     }
     return CDD_C_SUCCESS;
   }
@@ -240,13 +238,12 @@ cdd_c_error_t arazzo_runtime_expr_parse(const char *expr_str,
       pfx_len = 16;
     }
     if (expr_str[pfx_len] != '\0' && expr_str[pfx_len] != '#') {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                             (int)arazzo_runtime_expr_free(out_expr));
     }
     rc = extract_json_pointer(expr_str + pfx_len, out_expr, &head_len);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)arazzo_runtime_expr_free(out_expr));
     }
     return CDD_C_SUCCESS;
   }
@@ -278,20 +275,18 @@ cdd_c_error_t arazzo_runtime_expr_parse(const char *expr_str,
     }
     rc = extract_json_pointer(expr_str + pfx_len, out_expr, &head_len);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)arazzo_runtime_expr_free(out_expr));
     }
     rc = parse_two_segments(expr_str + pfx_len, head_len, first_target,
                             &out_expr->property_name);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)arazzo_runtime_expr_free(out_expr));
     }
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err = arazzo_runtime_expr_free(out_expr);
-  return CDD_C_ERROR_INVALID_ARGUMENT;
+  return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                         (int)arazzo_runtime_expr_free(out_expr));
 }
 
 /*

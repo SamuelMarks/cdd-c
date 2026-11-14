@@ -366,12 +366,315 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
 }
 
 /**
+ * @brief Tests `--with-auto-win-msvc`, `mkdir`/`setmode` call-arity
+ * disambiguation, `--rename-main`, empty-TU guard injection, and OOM paths.
+ * @return Greatest test result.
+ */
+TEST test_cdd_transform_msvc_auto_win_and_arity(void) {
+  cdd_cst_tree_t *tree = NULL;
+  char *out = NULL;
+  cdd_transform_config_t cfg;
+
+  /* 1. Default mode: 2-arg mkdir -> _mkdir(p), 1-arg setmode -> bsd_setmode,
+        2-arg setmode -> _setmode, 0/3-arg & nested-paren & non-call edges */
+  memset(&cfg, 0, sizeof(cfg));
+  {
+    const char *src = "int use_posix(int fd, const char *p) {\n"
+                      "  mkdir(p, 0755);\n"
+                      "  setmode(p);\n"
+                      "  setmode((p));\n"
+                      "  setmode(fd, 1);\n"
+                      "  setmode();\n"
+                      "  setmode(fd, 1, 2);\n"
+                      "  setmode;\n"
+                      "  return 0;\n"
+                      "}\n";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_emit(tree, &out));
+    ASSERT(strstr(out, "_mkdir(p)") != NULL);
+    ASSERT(strstr(out, "bsd_setmode(p)") != NULL);
+    ASSERT(strstr(out, "bsd_setmode((p))") != NULL);
+    ASSERT(strstr(out, "_setmode(fd, 1)") != NULL);
+    free(out);
+    out = NULL;
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  /* 2. --with-auto-win-msvc + --rename-main + non-empty TU */
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.with_auto_win_msvc = 1;
+  cfg.rename_main = "awm_tool_main";
+  {
+    const char *src = "#include <unistd.h>\n"
+                      "typedef int (*main)(void);\n"
+                      "int helper(int (main)) { return main; }\n"
+                      "int main(int argc, char **argv) {\n"
+                      "  ssize_t n = read(0, argv, 1);\n"
+                      "  off_t o = 0; pid_t p = 0; mode_t m = 0;\n"
+                      "  open(\"a\", 0); close(0); write(1, \"x\", 1);\n"
+                      "  mkdir(\"d\", 0755);\n"
+                      "  setmode(\"0755\");\n"
+                      "  setmode(0, 1);\n"
+                      "  return (int)(n + o + p + m);\n"
+                      "}\n";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_emit(tree, &out));
+    ASSERT(strstr(out, "#ifndef _MSC_VER") == NULL);
+    ASSERT(strstr(out, "int awm_tool_main(int argc") != NULL);
+    ASSERT(strstr(out, "typedef int (*main)(void);") != NULL);
+    ASSERT(strstr(out, "bsd_setmode(\"0755\")") != NULL);
+    ASSERT(strstr(out, "setmode(0, 1)") != NULL);
+    ASSERT(strstr(out, "__awm_nonempty_tu") == NULL);
+    free(out);
+    out = NULL;
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  /* Empty rename_main string "" + NULL config */
+  cfg.rename_main = "";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cst_parse(az_span_create_from_str("int x = 1;\n"), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, NULL));
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* 3. Empty TU guard injection (preproc-only TU, trivia-only TU, block TU) */
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.target_profile = CDD_TARGET_PROFILE_MSVC_MODERN;
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_cst_parse(az_span_create_from_str("#include <stdio.h>\n"), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_emit(tree, &out));
+  ASSERT(strstr(out, "typedef int __awm_nonempty_tu;") != NULL);
+  free(out);
+  out = NULL;
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      cdd_cst_parse(az_span_create_from_str("/* only trivia */\n"), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cst_parse(az_span_create_from_str("{ int b; }\n"), &tree));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  {
+    cdd_cst_node_t *empty_u = NULL;
+    cdd_cst_node_t *nested_u = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_parse(az_span_create_from_str(""), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &empty_u));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_insert_child_node_at(tree->root, 0, empty_u));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_u));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_insert_child_node_at(empty_u, 0, nested_u));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  /* Extra rename_main token shapes: (main)(); {}(); int (x); void test(); ) */
+  cfg.rename_main = "entry_fn";
+  {
+    const char *rm_shapes = "(main)();\n"
+                            "{}();\n"
+                            "int (x);\n"
+                            "void test(void) { setmode(\"0755\"); }\n"
+                            ");\n";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(rm_shapes), &tree));
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_msvc(tree, &cfg));
+    g_cdd_alloc_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  /* Unclosed paren / child-node / zero-length token edges in arity helper */
+  memset(&cfg, 0, sizeof(cfg));
+  {
+    cdd_cst_node_t *sub = NULL;
+    cdd_token_t *zt = NULL;
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_cst_parse(az_span_create_from_str("int x = setmode(a"), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+
+    /* Inject a child node & zero-length token inside mkdir(a, b) */
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_cst_parse(az_span_create_from_str("int x = mkdir(a, b);"), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &sub));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_create_token(tree, CDD_TOKEN_OTHER, "", &zt));
+    /* Insert empty token before 'a' and child node after ',' in root child 0 */
+    {
+      cdd_cst_node_t *decl = tree->root->children[0].val.node;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_insert_child_node_at(
+                                   decl, decl->num_children - 2, sub));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_replace_token_child(decl, 5, zt));
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+
+    /* Also test setmode followed by a child node instead of token */
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_cst_parse(az_span_create_from_str("int x = setmode;"), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &sub));
+    {
+      cdd_cst_node_t *decl = tree->root->children[0].val.node;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_insert_child_node_at(decl, 4, sub));
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+
+    /* Also test setmode at the very end of node->children (lparen_idx ==
+     * num_children) */
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str("setmode"), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  /* 4. OOM paths on mkdir(p, m), setmode(1), setmode(2), rename-main, empty TU
+   */
+  {
+    const char *oom_cases[] = {
+        "void f() { mkdir(\"d\", 0755); }", "void f() { setmode(\"0755\"); }",
+        "void f() { setmode(0, 1); }", "int main(void) { return 0; }", ""};
+    size_t ci;
+    for (ci = 0; ci < sizeof(oom_cases) / sizeof(oom_cases[0]); ci++) {
+      int fi;
+      memset(&cfg, 0, sizeof(cfg));
+      if (ci == 3)
+        cfg.rename_main = "renamed_main";
+      if (ci == 4)
+        cfg.with_auto_win_msvc = 1;
+      for (fi = 1; fi <= 10; fi++) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(oom_cases[ci]), &tree));
+        tree->root->capacity = tree->root->num_children;
+        g_cdd_alloc_fail = fi;
+        g_cdd_last_alloc_err = cdd_transform_msvc(tree, &cfg);
+        g_cdd_alloc_fail = 0;
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        tree = NULL;
+
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(oom_cases[ci]), &tree));
+        tree->root->capacity = tree->root->num_children;
+        g_cdd_cst_realloc_fail = fi;
+        g_cdd_last_alloc_err = cdd_transform_msvc(tree, &cfg);
+        g_cdd_cst_realloc_fail = 0;
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        tree = NULL;
+      }
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_parse(az_span_create_from_str(oom_cases[ci]), &tree));
+      g_cdd_cst_alloc_token_fail = 1;
+      g_cdd_last_alloc_err = cdd_transform_msvc(tree, &cfg);
+      g_cdd_cst_alloc_token_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+      tree = NULL;
+
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_parse(az_span_create_from_str(oom_cases[ci]), &tree));
+      g_cdd_cst_alloc_token_fail = 2;
+      g_cdd_last_alloc_err = cdd_transform_msvc(tree, &cfg);
+      g_cdd_cst_alloc_token_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+      tree = NULL;
+
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_parse(az_span_create_from_str(oom_cases[ci]), &tree));
+      g_cdd_cst_alloc_node_fail = 1;
+      g_cdd_last_alloc_err = cdd_transform_msvc(tree, &cfg);
+      g_cdd_cst_alloc_node_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
+  }
+
+  /* Cover remaining rename_main and empty-TU branches in msvc_port.c */
+  {
+    cdd_transform_config_t cfg_extra;
+    cdd_token_t *syn_tok = NULL;
+    cdd_cst_node_t *sub_node = NULL;
+    memset(&cfg_extra, 0, sizeof(cfg_extra));
+    cfg_extra.with_auto_win_msvc = 1;
+    cfg_extra.rename_main = "app_entry";
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(
+                                "int testing(void) { return 0; }\n"
+                                "int main(void) { return testing(); }\n"),
+                            &tree));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_create_token(tree, CDD_TOKEN_OTHER, "", &syn_tok));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_token(tree->root, syn_tok));
+    /* Insert a child node immediately before `(` on a top-level node */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &sub_node));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_create_token(tree, CDD_TOKEN_LPAREN, "(", &syn_tok));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_node(tree->root, sub_node));
+    {
+      cdd_cst_node_t *inner = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &inner));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_node(sub_node, inner));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_token(sub_node, syn_tok));
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg_extra));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+
+    /* Empty TU with comment-only EOF token + zero-length token child */
+    cfg_extra.rename_main = "";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str("/* empty */\n"), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &sub_node));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_create_token(tree, CDD_TOKEN_OTHER, "", &syn_tok));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_token(sub_node, syn_tok));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_node(tree->root, sub_node));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg_extra));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
  * @brief Test suite for MSVC port transformer.
  */
 SUITE(transformer_msvc_port_suite) {
   RUN_TEST(test_cdd_transform_msvc);
   RUN_TEST(test_cdd_transform_msvc_context);
   RUN_TEST(test_cdd_transform_msvc_builder_fails);
+  RUN_TEST(test_cdd_transform_msvc_auto_win_and_arity);
 }
 
 #ifdef __cplusplus

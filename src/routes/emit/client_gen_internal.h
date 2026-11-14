@@ -31,8 +31,6 @@ extern "C" {
 #define CHECK_IO_CLEANUP(x)                                                    \
   for (; (x) < 0;) {                                                           \
     rc = CDD_C_ERROR_IO;                                                       \
-    g_cdd_last_alloc_err =                                                     \
-        fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);        \
     goto cleanup;                                                              \
   }
 

@@ -34,6 +34,15 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse(az_span source,
 C_CDD_EXPORT cdd_c_error_t cdd_cst_tree_free(cdd_cst_tree_t *tree);
 
 /**
+ * @brief Emits and re-parses a CST tree in-place so `base_tokens` and child
+ * nodes reflect all prior token mutations and node splices.
+ *
+ * @param[in,out] tree Tree to synchronize in place.
+ * @return CDD_C_SUCCESS on success, or error code on OOM/invalid argument.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_cst_reparse_in_place(cdd_cst_tree_t *tree);
+
+/**
  * @brief Find the class identifier token for an ancestor class declaration.
  *
  * @param[in] node Starting node.

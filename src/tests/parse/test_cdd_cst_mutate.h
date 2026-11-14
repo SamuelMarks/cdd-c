@@ -19,6 +19,7 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_factory.h"
+#include "classes/parse/cdd_cst_scope.h"
 
 #include "classes/parse/cdd_cst_query.h"
 #include "classes/emit/cdd_cst_emit.h"
@@ -424,6 +425,22 @@ TEST test_cst_splice_children(void) {
   }
 
   g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+  /* Exercise cst_clear_consumed_base_tokens when bt >= tokens + size */
+  {
+    cdd_cst_tree_t *bt_tree = NULL;
+    cdd_cst_child_t empty_ch[1] = {0};
+    size_t orig_sz;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("int x;"), &bt_tree));
+    orig_sz = bt_tree->base_tokens->size;
+    bt_tree->base_tokens->size = 0;
+    ASSERT_EQ(0, cdd_cst_splice_children(bt_tree, &bt_tree->root, 0,
+                                         bt_tree->root->num_children, empty_ch,
+                                         0));
+    bt_tree->base_tokens->size = orig_sz;
+    g_cdd_last_alloc_err = cdd_cst_tree_free(bt_tree);
+  }
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -526,11 +543,104 @@ TEST test_cst_find_node_for_token(void) {
 
   {
     cdd_token_t not_found_tok = {0};
+    cdd_token_t clone_tok = {0};
     found_node = NULL;
     ASSERT_EQ(
         CDD_C_ERROR_NOT_FOUND,
         cdd_cst_find_node_for_token(root, &not_found_tok, &idx, &found_node));
     ASSERT_EQ(NULL, found_node);
+
+    /* Line/column/offset match for synthesized/cloned tokens */
+    tok.line = 3;
+    tok.column = 5;
+    tok.offset = 12;
+    clone_tok.line = 3;
+    clone_tok.column = 5;
+    clone_tok.offset = 12;
+    ASSERT_EQ(0,
+              cdd_cst_find_node_for_token(root, &clone_tok, &idx, &found_node));
+    ASSERT_EQ(child, found_node);
+
+    /* Partial mismatches on line / column / offset */
+    clone_tok.offset = 99;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+              cdd_cst_find_node_for_token(root, &clone_tok, &idx, &found_node));
+    clone_tok.offset = 12;
+    clone_tok.column = 99;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+              cdd_cst_find_node_for_token(root, &clone_tok, &idx, &found_node));
+    clone_tok.column = 5;
+    clone_tok.line = 99;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+              cdd_cst_find_node_for_token(root, &clone_tok, &idx, &found_node));
+  }
+
+  /* Cover splicing out both base_tokens, synthesized tokens, NULL tokens, and
+     nested child nodes in cst_clear_consumed_base_tokens */
+  {
+    cdd_cst_tree_t *ptree = NULL;
+    cdd_token_t *syn = NULL;
+    cdd_cst_node_t *empty_sub = NULL;
+    cdd_cst_child_t ins[2];
+    memset(ins, 0, sizeof(ins));
+    ASSERT_EQ(0, cdd_cst_parse(
+                     az_span_create_from_str("void f(void) { { int a = 1; } }"),
+                     &ptree));
+    ASSERT_EQ(0, cdd_cst_create_token(ptree, CDD_TOKEN_SEMICOLON, ";", &syn));
+    ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &empty_sub));
+    ins[0].kind = CDD_CST_CHILD_TOKEN;
+    ins[0].val.token = syn;
+    ins[1].kind = CDD_CST_CHILD_NODE;
+    ins[1].val.node = empty_sub;
+    ASSERT_EQ(0, cdd_cst_splice_children(ptree, &ptree->root, 0,
+                                         ptree->root->num_children, ins, 2));
+    /* Test NULL val.token and NULL val.node inside existing children */
+    ptree->root->children[0].val.token = NULL;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_find_node_for_token(
+                                         ptree->root, &tok, &idx, &found_node));
+    /* Splice replacing NULL token child with non-NULL token child */
+    {
+      cdd_token_t *syn2 = NULL;
+      cdd_cst_node_t *sub2 = NULL;
+      cdd_cst_child_t ins_t[1];
+      cdd_cst_child_t ins_n[1];
+      ASSERT_EQ(0,
+                cdd_cst_create_token(ptree, CDD_TOKEN_SEMICOLON, ";", &syn2));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &sub2));
+      ins_t[0].kind = CDD_CST_CHILD_TOKEN;
+      ins_t[0].val.token = syn2;
+      ins_n[0].kind = CDD_CST_CHILD_NODE;
+      ins_n[0].val.node = sub2;
+      ASSERT_EQ(0,
+                cdd_cst_splice_children(ptree, &ptree->root, 0, 1, ins_t, 1));
+      /* Replace valid token child [0] with a NODE child [0] */
+      ASSERT_EQ(0,
+                cdd_cst_splice_children(ptree, &ptree->root, 0, 1, ins_n, 1));
+    }
+    g_cdd_last_alloc_err = cdd_cst_free_node_only(empty_sub);
+    ptree->root->children[1].val.node = NULL;
+    ASSERT_EQ(0, cdd_cst_splice_children(ptree, &ptree->root, 0, 2, NULL, 0));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_remap_ast_node(NULL, root, child));
+    {
+      cdd_cst_scope_env_t empty_env;
+      cdd_cst_scope_env_t *benv = NULL;
+      memset(&empty_env, 0, sizeof(empty_env));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_scope_remap_ast_node(&empty_env, root, child));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_init(&benv));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_remap_ast_node(benv, NULL, child));
+      /* Bind benv to ptree, test mismatch active_sem_env, then free ptree first
+       */
+      benv->bound_tree = ptree;
+      ptree->active_sem_env = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(benv));
+
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_init(&benv));
+      benv->bound_tree = ptree;
+      ptree->active_sem_env = benv;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(ptree);
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(benv));
+    }
   }
 
   g_cdd_last_alloc_err = cdd_cst_free_node_only(child);

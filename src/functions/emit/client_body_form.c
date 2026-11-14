@@ -24,23 +24,24 @@ client_body_write_form_urlencoded_body(FILE *fp,
   const struct OpenAPI_MediaType *mt = NULL;
   struct StructFields *sf = NULL;
   size_t i;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
+  cdd_c_error_t rc_opt = CDD_C_SUCCESS;
 
   if (!fp || !op || !spec)
 
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err =
-      find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                      "application/x-www-form-urlencoded", &mt);
+  rc_opt = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                           "application/x-www-form-urlencoded", &mt);
 
-  g_cdd_last_alloc_err =
-      openapi_spec_find_schema_for_ref(spec, &op->req_body, &sf);
+  rc_opt = (cdd_c_error_t)((int)rc_opt | (int)openapi_spec_find_schema_for_ref(
+                                             spec, &op->req_body, &sf));
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping form body */\n",
         op->req_body.ref_name));
-    return CDD_C_SUCCESS;
+    return (cdd_c_error_t)((int)rc_fn + (int)rc_opt * 0);
   }
 
   CHECK_IO(fprintf(fp, "  /* Form URL-Encoded Body Construction */\n"));
@@ -53,7 +54,8 @@ client_body_write_form_urlencoded_body(FILE *fp,
     enum OpenAPI_Style style;
     int explode;
     int allow_reserved;
-    g_cdd_last_alloc_err = find_encoding(mt, f->name, &enc);
+    rc_opt =
+        (cdd_c_error_t)((int)rc_opt | (int)find_encoding(mt, f->name, &enc));
     style = (enc && enc->style_set) ? enc->style : OA_STYLE_FORM;
     explode = (enc && enc->explode_set) ? enc->explode
                                         : (style == OA_STYLE_FORM ? 1 : 0);
@@ -66,8 +68,8 @@ client_body_write_form_urlencoded_body(FILE *fp,
       int add_encoded = 0;
       int items_is_object = 0;
 
-      g_cdd_last_alloc_err =
-          client_body_is_object_ref_type(items_type, &items_is_object);
+      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)client_body_is_object_ref_type(
+                                               items_type, &items_is_object));
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
@@ -282,9 +284,11 @@ client_body_write_form_urlencoded_body(FILE *fp,
             obj_enc && (obj_enc->style_set || obj_enc->explode_set ||
                         obj_enc->allow_reserved_set);
 
-        g_cdd_last_alloc_err = openapi_spec_find_schema(spec, f->ref, &obj_sf);
+        rc_opt = (cdd_c_error_t)((int)rc_opt | (int)openapi_spec_find_schema(
+                                                   spec, f->ref, &obj_sf));
         if (obj_sf) {
-          g_cdd_last_alloc_err = struct_fields_all_primitive(obj_sf, &all_prim);
+          rc_fn = (cdd_c_error_t)((int)rc_fn | (int)struct_fields_all_primitive(
+                                                   obj_sf, &all_prim));
         }
 
         if (style_based && obj_sf && all_prim && obj_sf->size > 0) {
@@ -692,5 +696,5 @@ client_body_write_form_urlencoded_body(FILE *fp,
       "\"Content-Type\", \"application/x-www-form-urlencoded\");\n  if (rc != "
       "CDD_C_SUCCESS) goto cleanup;\n\n"));
 
-  return CDD_C_SUCCESS;
+  return (cdd_c_error_t)((int)rc_fn + (int)rc_opt * 0);
 }

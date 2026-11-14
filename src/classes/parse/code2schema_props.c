@@ -20,15 +20,16 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
                                        size_t *out_count) {
   size_t i, count = 0;
   char **vals;
+  cdd_c_error_t rc;
   if (!out || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
   *out_count = 0;
   if (!arr)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &count);
+  rc = cdd_json_array_get_count(arr, &count);
   if (count == 0)
-    return CDD_C_SUCCESS;
+    return rc;
   vals = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!vals) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -36,14 +37,11 @@ cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
   }
   for (i = 0; i < count; ++i) {
     const char *s = NULL;
-    g_cdd_last_alloc_err = cdd_json_array_get_string(arr, i, &s);
-    if (s) {
-      {
-        cdd_c_error_t rc_c2s = c_cdd_strdup(s, &vals[i]);
-        if (rc_c2s != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = free_string_array_code2schema(vals, count);
-          return rc_c2s;
-        }
+    if (cdd_json_array_get_string(arr, i, &s) == CDD_C_SUCCESS) {
+      cdd_c_error_t rc_c2s = c_cdd_strdup(s, &vals[i]);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        return (cdd_c_error_t)((int)rc_c2s |
+                               (int)free_string_array_code2schema(vals, count));
       }
     }
   }
@@ -67,19 +65,19 @@ cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,
   size_t i, count = 0;
   char **vals;
   JSON_Object *props = NULL;
+  cdd_c_error_t rc;
   if (!out || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
   *out_count = 0;
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(schema_obj, "properties", &props);
-  if (!props)
+  if (cdd_json_object_get_object(schema_obj, "properties", &props) !=
+      CDD_C_SUCCESS)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = cdd_json_object_get_count(props, &count);
+  rc = cdd_json_object_get_count(props, &count);
   if (count == 0)
-    return CDD_C_SUCCESS;
+    return rc;
   vals = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!vals) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -87,17 +85,17 @@ cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,
   }
   for (i = 0; i < count; ++i) {
     const char *name = NULL;
-    g_cdd_last_alloc_err = cdd_json_object_get_name(props, i, &name);
+    rc = cdd_json_object_get_name(props, i, &name);
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup(name, &vals[i]);
       if (rc_c2s != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = free_string_array_code2schema(vals, count);
-        return rc_c2s;
+        return (cdd_c_error_t)((int)rc_c2s |
+                               (int)free_string_array_code2schema(vals, count));
       }
     }
   }
   *out = vals;
   *out_count = count;
 
-  return CDD_C_SUCCESS;
+  return rc;
 }

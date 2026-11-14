@@ -175,10 +175,10 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
-  g_cdd_last_alloc_err = c_cdd_strdup(path, &dup_path);
-  if (dup_path == NULL) {
+  rc = c_cdd_strdup(path, &dup_path);
+  if (!dup_path) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
   p = dup_path;
@@ -472,10 +472,13 @@ cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
+#if !defined(__WATCOMC__) && !defined(__DOS__)
   char *full_path = NULL;
-  c_stat st;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-#if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
+#endif
+  c_stat st;
+#if (!defined(_MSC_VER) || defined(__INTEL_COMPILER)) &&                       \
+    !defined(__WATCOMC__) && !defined(__DOS__)
   int stat_res = 0;
 #endif
 
@@ -556,6 +559,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     } while (_findnext(handle, &file_info) == 0);
 
     _findclose(handle);
+    return CDD_C_SUCCESS;
   }
 #elif defined(__WATCOMC__) || defined(__DOS__)
   return CDD_C_ERROR_SYSTEM;
@@ -616,8 +620,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
       }
     }
     closedir(d);
+    return CDD_C_SUCCESS;
   }
 #endif
-
-  return CDD_C_SUCCESS;
 }

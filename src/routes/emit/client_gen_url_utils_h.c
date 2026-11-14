@@ -107,13 +107,16 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
   }
 
   CDD_SNPRINTF(hpath, 512, "%s/src/url_utils.h", dir_name);
-  g_cdd_last_alloc_err = cdd_vfs_fopen(hpath, "w", &uh);
+  if (cdd_vfs_fopen(hpath, "w", &uh) != CDD_C_SUCCESS) {
+    uh = NULL;
+  }
   if (uh) {
     cdd_c_error_t rc = CDD_C_SUCCESS;
     cdd_code_writer_t w;
-    g_cdd_last_alloc_err = cdd_code_writer_init_stream(&w, uh);
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "/**\n"
+    rc = cdd_code_writer_init_stream(&w, uh);
+    if (cdd_code_writer_write(
+            &w,
+            "/**\n"
             " * @file url.h\n"
             " * @brief Utilities for URL encoding and Query String "
             "construction.\n"
@@ -127,61 +130,70 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " *\n"
             " * @author Samuel Marks\n"
             " */\n"
-            "\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "#ifndef C_CDD_URL_UTILS_H\n"
-            "#define C_CDD_URL_UTILS_H\n"
-            "\n"
-            "#ifdef __cplusplus\n"
-            "extern \"C\" {\n"
-            "#endif /* __cplusplus */\n"
-            "\n"
-            "/* clang-format "
-            "off */\n"
-            "\n"
-            "#include \"cdd_c_error.h\"\n"
-            "#include <stddef.h>\n"
-            "/* clang-format "
-            "on */\n"
+            "\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, "#ifndef C_CDD_URL_UTILS_H\n"
+                "#define C_CDD_URL_UTILS_H\n"
+                "\n"
+                "#ifdef __cplusplus\n"
+                "extern \"C\" {\n"
+                "#endif /* __cplusplus */\n"
+                "\n"
+                "/* clang-format "
+                "off */\n"
+                "\n"
+                "#include \"cdd_c_error.h\"\n"
+                "#include <stddef.h>\n"
+                "/* clang-format "
+                "on */\n"
+                "\n"
+                "/**\n"
+                " * @brief Represents a single key-value query parameter.\n"
+                " */\n"
+                "struct UrlQueryParam {\n"
+                "  char *key;            /**< The parameter key (unencoded) "
+                "*/\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "  char *value;          /**< The parameter value (raw or "
+            "pre-encoded) */\n"
+            "  int value_is_encoded; /**< 1 if value is already "
+            "percent-encoded "
+            "*/\n"
+            "};\n"
             "\n"
             "/**\n"
-            " * @brief Represents a single key-value query parameter.\n"
+            " * @brief Container for a list of query parameters.\n"
             " */\n"
-            "struct UrlQueryParam {\n"
-            "  char *key;            /**< The parameter key (unencoded) */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        "  char *value;          /**< The parameter value (raw or "
-        "pre-encoded) */\n"
-        "  int value_is_encoded; /**< 1 if value is already percent-encoded "
-        "*/\n"
-        "};\n"
-        "\n"
-        "/**\n"
-        " * @brief Container for a list of query parameters.\n"
-        " */\n"
-        "struct UrlQueryParams {\n"
-        "  struct UrlQueryParam *params; /**< Dynamic array of parameters "
-        "*/\n"
-        "  size_t count;                 /**< Number of items used */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        "  size_t capacity;              /**< Current allocated capacity */\n"
-        "};\n"
-        "\n"
-        "/**\n"
-        " * @brief Supported value types for object-style query parameters.\n"
-        " */\n"
-        "enum OpenAPI_KVType {\n"
-        "  OA_KV_STRING = 0, /**< String value */\n"
-        "  OA_KV_INTEGER,    /**< Integer value */\n"
-        "  OA_KV_NUMBER,     /**< Floating-point value */\n"
-        "  OA_KV_BOOLEAN     /**< Boolean value (0/1) */\n"
-        "};\n"
-        "\n"
-        "/**\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, " * @brief Strongly typed key/value pair for object-style query "
+            "struct UrlQueryParams {\n"
+            "  struct UrlQueryParam *params; /**< Dynamic array of parameters "
+            "*/\n"
+            "  size_t count;                 /**< Number of items used */\n") !=
+        CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, "  size_t capacity;              /**< Current allocated "
+                "capacity */\n"
+                "};\n"
+                "\n"
+                "/**\n"
+                " * @brief Supported value types for object-style query "
+                "parameters.\n"
+                " */\n"
+                "enum OpenAPI_KVType {\n"
+                "  OA_KV_STRING = 0, /**< String value */\n"
+                "  OA_KV_INTEGER,    /**< Integer value */\n"
+                "  OA_KV_NUMBER,     /**< Floating-point value */\n"
+                "  OA_KV_BOOLEAN     /**< Boolean value (0/1) */\n"
+                "};\n"
+                "\n"
+                "/**\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " * @brief Strongly typed key/value pair for object-style query "
             "parameters.\n"
             " *\n"
             " * Used when serializing `style=form` (object) and "
@@ -192,9 +204,11 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             "  enum OpenAPI_KVType type; /**< Value type */\n"
             "  /** @brief union data */\n"
             "  union {\n"
-            "    const char *s; /**< String value */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "    int i;         /**< Integer value */\n"
+            "    const char *s; /**< String value */\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "    int i;         /**< Integer value */\n"
             "    double n;      /**< Number value */\n"
             "    int b;         /**< Boolean value (0/1) */\n"
             "    /** @brief KV value */\n"
@@ -205,9 +219,11 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " * @param[out] _out_val Pointer to store the result\n"
             " * @brief Join object-style key/value pairs into a form-encoded "
             "value string.\n"
-            " *\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, " * Produces a single string suitable for use as the value of a "
+            " *\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " * Produces a single string suitable for use as the value of a "
             "form-style\n"
             " * parameter when explode=false (or space/pipe-delimited object "
             "styles).\n"
@@ -216,9 +232,11 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " * inserted as-is between tokens.\n"
             " *\n"
             " * @param[in] kvs The key/value array.\n"
-            " * @param[in] n Number of entries in kvs.\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, " * @param[in] delim Delimiter string to insert between tokens "
+            " * @param[in] n Number of entries in kvs.\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " * @param[in] delim Delimiter string to insert between tokens "
             "(e.g., \",\",\n"
             " *                  \"%20\", \"%7C\").\n"
             " * @param[in] allow_reserved If non-zero, preserve reserved "
@@ -227,9 +245,11 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " * @return Newly allocated string containing the joined value, or "
             "NULL on\n"
             " * allocation failure.\n"
-            " */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "extern cdd_c_error_t openapi_kv_join_form(const struct "
+            " */\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "extern cdd_c_error_t openapi_kv_join_form(const struct "
             "OpenAPI_KV *kvs,\n"
             "                                          size_t n, const char "
             "*delim,\n"
@@ -237,111 +257,124 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             "                                          char **_out_val);\n"
             "\n"
             "/**\n"
-            " * @param[out] _out_val Pointer to store the result\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        " * @brief Percent-encode a string for use in a URL.\n"
-        " *\n"
-        " * Conforms to RFC 3986. Encodes all characters except:\n"
-        " * ALPHA, DIGIT, \"-\", \".\", \"_\", \"~\".\n"
-        " * Spaces are encoded as \"%20\".\n"
-        " *\n"
-        " * @param[in] str The null-terminated string to encode.\n"
-        " * @return A newly allocated string containing the encoded result, "
-        "or NULL on\n"
-        " * error/allocation failure.\n"
-        " */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        "extern cdd_c_error_t url_encode(const char *str, char "
-        "**_out_val);\n"
-        "\n"
-        "/**\n"
-        " * @param[out] _out_val Pointer to store the result\n"
-        " * @brief Percent-encode a string while allowing reserved "
-        "characters.\n"
-        " *\n"
-        " * Encodes all characters except RFC 3986 unreserved and reserved "
-        "sets.\n"
-        " * Preserves existing percent-encoded triples (\"%HH\") verbatim.\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        " * Spaces are encoded as \"%20\".\n"
-        " *\n"
-        " * @param[in] str The null-terminated string to encode.\n"
-        " * @return A newly allocated string containing the encoded result, "
-        "or NULL on\n"
-        " * error/allocation failure.\n"
-        " */\n"
-        "extern cdd_c_error_t url_encode_allow_reserved(const char "
-        "*str,\n"
-        "                                               char "
-        "**_out_val);\n"
-        "\n"
-        "/**\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        " * @param[out] _out_val Pointer to store the result\n"
-        " * @brief Percent-encode a string for "
-        "application/x-www-form-urlencoded.\n"
-        " *\n"
-        " * Encodes all characters except: ALPHA, DIGIT, \"-\", \".\", "
-        "\"_\", \"*\".\n"
-        " * Spaces are encoded as \"+\".\n"
-        " *\n"
-        " * @param[in] str The null-terminated string to encode.\n"
-        " * @return A newly allocated string containing the encoded result, ");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "or NULL on\n"
-            " * error/allocation failure.\n"
-            " */\n"
-            "extern cdd_c_error_t url_encode_form(const char *str, char "
+            " * @param[out] _out_val Pointer to store the result\n") !=
+        CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, " * @brief Percent-encode a string for use in a URL.\n"
+                " *\n"
+                " * Conforms to RFC 3986. Encodes all characters except:\n"
+                " * ALPHA, DIGIT, \"-\", \".\", \"_\", \"~\".\n"
+                " * Spaces are encoded as \"%20\".\n"
+                " *\n"
+                " * @param[in] str The null-terminated string to encode.\n"
+                " * @return A newly allocated string containing the encoded "
+                "result, "
+                "or NULL on\n"
+                " * error/allocation failure.\n"
+                " */\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "extern cdd_c_error_t url_encode(const char *str, char "
             "**_out_val);\n"
             "\n"
             "/**\n"
             " * @param[out] _out_val Pointer to store the result\n"
-            " * @brief Percent-encode a string for "
-            "application/x-www-form-urlencoded while\n"
-            " * allowing reserved characters (except delimiters).\n"
-            " *\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        " * Preserves RFC3986 reserved characters except for '&', '=' and "
-        "'+', which are\n"
-        " * always encoded to avoid breaking form key/value delimiters. "
-        "Spaces are\n"
-        " * encoded as \"+\" and existing percent-encoded triples are "
-        "preserved.\n"
-        " *\n"
-        " * @param[in] str The null-terminated string to encode.\n"
-        " * @return A newly allocated string containing the encoded result, "
-        "or NULL on\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, " * error/allocation failure.\n"
-            " */\n"
-            "extern cdd_c_error_t\n"
-            "url_encode_form_allow_reserved(const char *str, char "
-            "**_out_val);\n"
-            "\n"
-            "/**\n"
-            " * @brief Initialize a query parameters container.\n"
-            " *\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, " * @param[out] qp The structure to initialize.\n"
-            " * @return 0 on success, EINVAL if qp is NULL.\n"
-            " */\n"
-            "extern cdd_c_error_t url_query_init(struct UrlQueryParams "
-            "*qp);\n"
-            "\n"
-            "/**\n"
-            " * @brief Free resources associated with a query parameters "
-            "container.\n"
-            " * Frees all key/value strings and the internal array.\n"
+            " * @brief Percent-encode a string while allowing reserved "
+            "characters.\n"
             " *\n"
-            " * @param[in] qp The structure to free. Safe to pass NULL.\n"
-            " */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "extern void url_query_free(struct UrlQueryParams *qp);\n"
+            " * Encodes all characters except RFC 3986 unreserved and reserved "
+            "sets.\n"
+            " * Preserves existing percent-encoded triples (\"%HH\") "
+            "verbatim.\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, " * Spaces are encoded as \"%20\".\n"
+                " *\n"
+                " * @param[in] str The null-terminated string to encode.\n"
+                " * @return A newly allocated string containing the encoded "
+                "result, "
+                "or NULL on\n"
+                " * error/allocation failure.\n"
+                " */\n"
+                "extern cdd_c_error_t url_encode_allow_reserved(const char "
+                "*str,\n"
+                "                                               char "
+                "**_out_val);\n"
+                "\n"
+                "/**\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, " * @param[out] _out_val Pointer to store the result\n"
+                " * @brief Percent-encode a string for "
+                "application/x-www-form-urlencoded.\n"
+                " *\n"
+                " * Encodes all characters except: ALPHA, DIGIT, \"-\", \".\", "
+                "\"_\", \"*\".\n"
+                " * Spaces are encoded as \"+\".\n"
+                " *\n"
+                " * @param[in] str The null-terminated string to encode.\n"
+                " * @return A newly allocated string containing the encoded "
+                "result, ") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, "or NULL on\n"
+                " * error/allocation failure.\n"
+                " */\n"
+                "extern cdd_c_error_t url_encode_form(const char *str, char "
+                "**_out_val);\n"
+                "\n"
+                "/**\n"
+                " * @param[out] _out_val Pointer to store the result\n"
+                " * @brief Percent-encode a string for "
+                "application/x-www-form-urlencoded while\n"
+                " * allowing reserved characters (except delimiters).\n"
+                " *\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " * Preserves RFC3986 reserved characters except for '&', '=' and "
+            "'+', which are\n"
+            " * always encoded to avoid breaking form key/value delimiters. "
+            "Spaces are\n"
+            " * encoded as \"+\" and existing percent-encoded triples are "
+            "preserved.\n"
+            " *\n"
+            " * @param[in] str The null-terminated string to encode.\n"
+            " * @return A newly allocated string containing the encoded "
+            "result, "
+            "or NULL on\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, " * error/allocation failure.\n"
+                " */\n"
+                "extern cdd_c_error_t\n"
+                "url_encode_form_allow_reserved(const char *str, char "
+                "**_out_val);\n"
+                "\n"
+                "/**\n"
+                " * @brief Initialize a query parameters container.\n"
+                " *\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w, " * @param[out] qp The structure to initialize.\n"
+                " * @return 0 on success, EINVAL if qp is NULL.\n"
+                " */\n"
+                "extern cdd_c_error_t url_query_init(struct UrlQueryParams "
+                "*qp);\n"
+                "\n"
+                "/**\n"
+                " * @brief Free resources associated with a query parameters "
+                "container.\n"
+                " * Frees all key/value strings and the internal array.\n"
+                " *\n"
+                " * @param[in] qp The structure to free. Safe to pass NULL.\n"
+                " */\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "extern void url_query_free(struct UrlQueryParams *qp);\n"
             "\n"
             "/**\n"
             " * @brief Add a key-value pair to the query container.\n"
@@ -351,9 +384,11 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " * @param[in] value The parameter value (will be copied).\n"
             " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
             "invalid args.\n"
-            " */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "extern cdd_c_error_t url_query_add(struct UrlQueryParams *qp,\n"
+            " */\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "extern cdd_c_error_t url_query_add(struct UrlQueryParams *qp,\n"
             "                                   const char *key, const char "
             "*value);\n"
             "\n"
@@ -364,21 +399,25 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " * The value will be copied as-is and will not be encoded again "
             "during\n"
             " * url_query_build(). Use this for OpenAPI styles that require "
-            "reserved\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        " * delimiters (e.g. comma for form-style explode=false).\n"
-        " *\n"
-        " * @param[in] qp The container.\n"
-        " * @param[in] key The parameter key (will be copied and encoded on "
-        "build).\n"
-        " * @param[in] value The parameter value (already encoded, will be "
-        "copied).\n"
-        " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
-        "invalid args.\n"
-        " */\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, "extern cdd_c_error_t url_query_add_encoded(struct "
+            "reserved\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " * delimiters (e.g. comma for form-style explode=false).\n"
+            " *\n"
+            " * @param[in] qp The container.\n"
+            " * @param[in] key The parameter key (will be copied and encoded "
+            "on "
+            "build).\n"
+            " * @param[in] value The parameter value (already encoded, will be "
+            "copied).\n"
+            " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
+            "invalid args.\n"
+            " */\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "extern cdd_c_error_t url_query_add_encoded(struct "
             "UrlQueryParams *qp,\n"
             "                                           const char *key,\n"
             "                                           const char *value);\n"
@@ -388,35 +427,42 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             " *\n"
             " * Iterates through parameters, URL-encodes keys and values, and "
             "joins them\n"
-            " * with '&'.\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        " * Example output: \"?q=hello%20world&page=1\"\n"
-        " *\n"
-        " * @param[in] qp The container describing the parameters.\n"
-        " * @param[out] out_str Pointer to a char* where the result will be "
-        "allocated.\n"
-        " *                     If count is 0, allocates an empty string "
-        "\"\".\n"
-        " * @return 0 on success, ENOMEM on allocation failure.\n"
-        " */\n"
-        "extern cdd_c_error_t url_query_build(const struct ");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w,
-        "UrlQueryParams *qp,\n"
-        "                                     char **out_str);\n"
-        "\n"
-        "/**\n"
-        " * @brief Build a application/x-www-form-urlencoded body string.\n"
-        " *\n"
-        " * Uses form encoding (space -> \"+\") and does not prefix with "
-        "'?'.\n"
-        " *\n"
-        " * @param[in] qp The container describing the parameters.\n"
-        " * @param[out] out_str Pointer to a char* where the result will be "
-        "allocated.\n");
-    g_cdd_last_alloc_err = cdd_code_writer_write(
-        &w, " *                     If count is 0, allocates an empty string "
+            " * with '&'.\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " * Example output: \"?q=hello%20world&page=1\"\n"
+            " *\n"
+            " * @param[in] qp The container describing the parameters.\n"
+            " * @param[out] out_str Pointer to a char* where the result will "
+            "be "
+            "allocated.\n"
+            " *                     If count is 0, allocates an empty string "
+            "\"\".\n"
+            " * @return 0 on success, ENOMEM on allocation failure.\n"
+            " */\n"
+            "extern cdd_c_error_t url_query_build(const struct ") !=
+        CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            "UrlQueryParams *qp,\n"
+            "                                     char **out_str);\n"
+            "\n"
+            "/**\n"
+            " * @brief Build a application/x-www-form-urlencoded body string.\n"
+            " *\n"
+            " * Uses form encoding (space -> \"+\") and does not prefix with "
+            "'?'.\n"
+            " *\n"
+            " * @param[in] qp The container describing the parameters.\n"
+            " * @param[out] out_str Pointer to a char* where the result will "
+            "be "
+            "allocated.\n") != CDD_C_SUCCESS) {
+    }
+    if (cdd_code_writer_write(
+            &w,
+            " *                     If count is 0, allocates an empty string "
             "\"\".\n"
             " * @return 0 on success, ENOMEM on allocation failure.\n"
             " */\n"
@@ -429,9 +475,15 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
             "#endif /* __cplusplus */\n"
             "\n"
             "#endif /* C_CDD_URL_UTILS_H */\n"
-            "\n");
-    g_cdd_last_alloc_err = cdd_code_writer_check_error(&w, &rc);
-    g_cdd_last_alloc_err = cdd_code_writer_free(&w);
+            "\n") != CDD_C_SUCCESS) {
+    }
+    {
+      cdd_c_error_t rc_err = CDD_C_SUCCESS;
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)cdd_code_writer_check_error(&w, &rc_err));
+      rc = (cdd_c_error_t)((int)rc | (int)rc_err |
+                           (int)cdd_code_writer_free(&w));
+    }
     fclose(uh);
     return rc;
   }

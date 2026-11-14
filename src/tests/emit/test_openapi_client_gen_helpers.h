@@ -445,6 +445,8 @@ TEST test_client_gen_write_docblock(void) {
   op.operation_id = cdd_test_mut_str("opId");
   op.description = cdd_test_mut_str("desc");
   path.route = cdd_test_mut_str("/test");
+  op.verb = (enum OpenAPI_Verb)999;
+  ASSERT_EQ(CDD_C_SUCCESS, write_docblock(fp, &path, &op));
   op.verb = OA_VERB_POST;
   op.external_docs.url = cdd_test_mut_str("http://doc");
   op.callbacks =

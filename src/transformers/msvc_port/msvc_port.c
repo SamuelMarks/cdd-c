@@ -24,10 +24,74 @@
 /* clang-format on */
 
 /**
+ * @brief Counts top-level comma-separated arguments in a call starting at child
+ * `lparen_idx` of `node`, and optionally records the first comma and closing
+ * `)` indices.
+ *
+ * @param[in] node CST node owning call tokens.
+ * @param[in] lparen_idx Index of `(` child in `node->children`.
+ * @param[out] out_arity Number of call arguments (0, 1, 2, ...).
+ * @param[out] out_comma0 Child index of first top-level comma (if arity >= 2).
+ * @param[out] out_rparen Child index of matching `)`.
+ * @param[out] out_ok Set to 1 if matching `)` was found in `node`.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t msvc_inspect_call_arity(const cdd_cst_node_t *node,
+                                             size_t lparen_idx, int *out_arity,
+                                             size_t *out_comma0,
+                                             size_t *out_rparen, int *out_ok) {
+  size_t k;
+  int depth = 0;
+  int commas = 0;
+  int non_empty = 0;
+  *out_arity = 0;
+  *out_comma0 = 0;
+  *out_rparen = 0;
+  *out_ok = 0;
+  if (lparen_idx >= node->num_children ||
+      node->children[lparen_idx].kind != CDD_CST_CHILD_TOKEN ||
+      node->children[lparen_idx].val.token->kind != CDD_TOKEN_LPAREN) {
+    return CDD_C_SUCCESS;
+  }
+  for (k = lparen_idx; k < node->num_children; k++) {
+    if (node->children[k].kind != CDD_CST_CHILD_TOKEN) {
+      non_empty = 1;
+      continue;
+    }
+    {
+      const cdd_token_t *tk = node->children[k].val.token;
+      if (tk->kind == CDD_TOKEN_LPAREN) {
+        depth++;
+        if (depth > 1)
+          non_empty = 1;
+      } else if (tk->kind == CDD_TOKEN_RPAREN) {
+        depth--;
+        if (depth == 0) {
+          *out_rparen = k;
+          *out_arity = non_empty ? (commas + 1) : 0;
+          *out_ok = 1;
+          return CDD_C_SUCCESS;
+        }
+      } else {
+        if (tk->length > 0)
+          non_empty = 1;
+        if (depth == 1 && tk->kind == CDD_TOKEN_COMMA) {
+          if (commas == 0)
+            *out_comma0 = k;
+          commas++;
+        }
+      }
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Replaces POSIX identifiers with MSVC counterparts.
  *
  * @param[in,out] tree The CST tree.
  * @param[in,out] node The current node to process.
+ * @param[in] config Optional transformation configuration.
  * @param[in,out] prev_token Pointer to previous token seen in traversal.
  * @param[in,out] prev_prev_token Pointer to token before previous token.
  * @param[out] needs_basetsd Set to 1 if BaseTsd.h (SSIZE_T) is needed.
@@ -36,9 +100,11 @@
  * @return CDD_C_SUCCESS on success or error code.
  */
 static cdd_c_error_t replace_msvc_identifiers(
-    cdd_cst_tree_t *tree, cdd_cst_node_t *node, cdd_token_t **prev_token,
+    cdd_cst_tree_t *tree, cdd_cst_node_t *node,
+    const cdd_transform_config_t *config, cdd_token_t **prev_token,
     cdd_token_t **prev_prev_token, int *needs_basetsd, int *needs_expect) {
   size_t i;
+  int with_awm = (config && config->with_auto_win_msvc);
   cdd_c_error_t rc = CDD_C_SUCCESS;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -88,11 +154,13 @@ static cdd_c_error_t replace_msvc_identifiers(
             if (rc != CDD_C_SUCCESS)
               return rc;
           } else if (t->length == 7 && memcmp(t->start, "ssize_t", 7) == 0) {
-            rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "SSIZE_T",
-                                      &new_tok);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-            *needs_basetsd = 1;
+            if (!with_awm) {
+              rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "SSIZE_T",
+                                        &new_tok);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+              *needs_basetsd = 1;
+            }
           } else if (t->length == 16 &&
                      memcmp(t->start, "__builtin_expect", 16) == 0) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER,
@@ -100,37 +168,44 @@ static cdd_c_error_t replace_msvc_identifiers(
             if (rc != CDD_C_SUCCESS)
               return rc;
             *needs_expect = 1;
-          } else if (t->length == 5 && memcmp(t->start, "off_t", 5) == 0) {
+          } else if (t->length == 5 && memcmp(t->start, "off_t", 5) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_off_t",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 5 && memcmp(t->start, "pid_t", 5) == 0) {
+          } else if (t->length == 5 && memcmp(t->start, "pid_t", 5) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "int",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 6 && memcmp(t->start, "mode_t", 6) == 0) {
+          } else if (t->length == 6 && memcmp(t->start, "mode_t", 6) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "int",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 4 && memcmp(t->start, "open", 4) == 0) {
+          } else if (t->length == 4 && memcmp(t->start, "open", 4) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_open",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 5 && memcmp(t->start, "close", 5) == 0) {
+          } else if (t->length == 5 && memcmp(t->start, "close", 5) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_close",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 4 && memcmp(t->start, "read", 4) == 0) {
+          } else if (t->length == 4 && memcmp(t->start, "read", 4) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_read",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 5 && memcmp(t->start, "write", 5) == 0) {
+          } else if (t->length == 5 && memcmp(t->start, "write", 5) == 0 &&
+                     !with_awm) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_write",
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
@@ -145,11 +220,53 @@ static cdd_c_error_t replace_msvc_identifiers(
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-          } else if (t->length == 5 && memcmp(t->start, "mkdir", 5) == 0) {
-            rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_mkdir",
-                                      &new_tok);
+          } else if (t->length == 5 && memcmp(t->start, "mkdir", 5) == 0 &&
+                     !with_awm) {
+            int arity = 0;
+            size_t comma0 = 0;
+            size_t rp = 0;
+            int ok_a = 0;
+            rc = (cdd_c_error_t)((int)rc |
+                                 (int)msvc_inspect_call_arity(
+                                     node, i + 1, &arity, &comma0, &rp, &ok_a));
+            rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_create_token(
+                                               tree, CDD_TOKEN_IDENTIFIER,
+                                               "_mkdir", &new_tok));
             if (rc != CDD_C_SUCCESS)
               return rc;
+            if (ok_a && arity == 2) {
+              size_t wk;
+              for (wk = comma0; wk < rp; wk++) {
+                if (node->children[wk].kind == CDD_CST_CHILD_TOKEN) {
+                  cdd_token_t *wt = NULL;
+                  rc = cdd_cst_create_token(tree, CDD_TOKEN_OTHER, "", &wt);
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
+                  rc = (cdd_c_error_t)((int)rc |
+                                       (int)cdd_cst_replace_token_child(
+                                           node, wk, wt));
+                }
+              }
+            }
+          } else if (t->length == 7 && memcmp(t->start, "setmode", 7) == 0) {
+            int arity = 0;
+            size_t comma0 = 0;
+            size_t rp = 0;
+            int ok_a = 0;
+            rc = (cdd_c_error_t)((int)rc |
+                                 (int)msvc_inspect_call_arity(
+                                     node, i + 1, &arity, &comma0, &rp, &ok_a));
+            if (ok_a && arity == 1) {
+              rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER,
+                                        "bsd_setmode", &new_tok);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+            } else if (ok_a && arity == 2 && !with_awm) {
+              rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_setmode",
+                                        &new_tok);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+            }
           } else if (t->length == 5 && memcmp(t->start, "rmdir", 5) == 0) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_rmdir",
                                       &new_tok);
@@ -181,15 +298,14 @@ static cdd_c_error_t replace_msvc_identifiers(
             new_tok->trailing_trivia = t->trailing_trivia;
             t->leading_trivia = NULL;
             t->trailing_trivia = NULL;
-            g_cdd_last_alloc_err =
-                cdd_cst_replace_token_child(node, i, new_tok);
+            rc = cdd_cst_replace_token_child(node, i, new_tok);
           }
         }
       }
       *prev_prev_token = *prev_token;
       *prev_token = t;
     } else {
-      rc = replace_msvc_identifiers(tree, node->children[i].val.node,
+      rc = replace_msvc_identifiers(tree, node->children[i].val.node, config,
                                     prev_token, prev_prev_token, needs_basetsd,
                                     needs_expect);
       if (rc != CDD_C_SUCCESS)
@@ -216,80 +332,85 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  /* 1. Wrap unistd.h and sys/time.h */
-  rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
-  if (rc != CDD_C_SUCCESS) {
-    return rc;
-  }
-  for (i = 0; i < res.size; i++) {
-    cdd_cst_node_t *dir = res.nodes[i];
-    {
-      cdd_token_t *tok = dir->children[0].val.token;
-      if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
-        const char *inc_str = NULL;
-        size_t t_i;
-        int has_unistd = 0;
-        int has_sys_time = 0;
+  /* 1. Wrap unistd.h and sys/time.h (skipped when --with-auto-win-msvc) */
+  if (!config || !config->with_auto_win_msvc) {
+    rc =
+        cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
+    for (i = 0; i < res.size; i++) {
+      cdd_cst_node_t *dir = res.nodes[i];
+      {
+        cdd_token_t *tok = dir->children[0].val.token;
+        if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
+          const char *inc_str = NULL;
+          size_t t_i;
+          int has_unistd = 0;
+          int has_sys_time = 0;
 
-        for (t_i = 0; t_i + 10 <= tok->length; ++t_i) {
-          if (memcmp(tok->start + t_i, "<unistd.h>", 10) == 0) {
-            has_unistd = 1;
-            break;
+          for (t_i = 0; t_i + 10 <= tok->length; ++t_i) {
+            if (memcmp(tok->start + t_i, "<unistd.h>", 10) == 0) {
+              has_unistd = 1;
+              break;
+            }
           }
-        }
-        for (t_i = 0; t_i + 12 <= tok->length; ++t_i) {
-          if (memcmp(tok->start + t_i, "<sys/time.h>", 12) == 0) {
-            has_sys_time = 1;
-            break;
+          for (t_i = 0; t_i + 12 <= tok->length; ++t_i) {
+            if (memcmp(tok->start + t_i, "<sys/time.h>", 12) == 0) {
+              has_sys_time = 1;
+              break;
+            }
           }
-        }
 
-        if (has_unistd) {
-          inc_str = "unistd.h";
-        } else if (has_sys_time) {
-          inc_str = "sys/time.h";
-        }
+          if (has_unistd) {
+            inc_str = "unistd.h";
+          } else if (has_sys_time) {
+            inc_str = "sys/time.h";
+          }
 
-        if (inc_str) {
-          cdd_cst_builder_t bld;
-          cdd_cst_node_t *wrap_node =
-              (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-          if (!wrap_node) {
-            C_CDD_FREE(res.nodes);
-            return CDD_C_ERROR_MEMORY;
-          }
-          wrap_node->kind = CDD_CST_UNKNOWN;
-          g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, wrap_node);
-          g_cdd_last_alloc_err = cdd_cst_bld_ifndef(&bld, "_MSC_VER");
-          g_cdd_last_alloc_err = cdd_cst_bld_include(&bld, inc_str, 1);
-          if (!added_compat) {
-            g_cdd_last_alloc_err = cdd_cst_bld_else(&bld);
-            g_cdd_last_alloc_err =
-                cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
-            added_compat = 1;
-          }
-          g_cdd_last_alloc_err = cdd_cst_bld_endif(&bld);
+          if (inc_str) {
+            cdd_cst_builder_t bld;
+            cdd_cst_node_t *wrap_node =
+                (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+            if (!wrap_node) {
+              C_CDD_FREE(res.nodes);
+              return CDD_C_ERROR_MEMORY;
+            }
+            wrap_node->kind = CDD_CST_UNKNOWN;
+            bld.error_state = cdd_cst_builder_init(&bld, tree, wrap_node);
+            bld.error_state = cdd_cst_bld_ifndef(&bld, "_MSC_VER");
+            bld.error_state = cdd_cst_bld_include(&bld, inc_str, 1);
+            if (!added_compat) {
+              bld.error_state = cdd_cst_bld_else(&bld);
+              bld.error_state =
+                  cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
+              added_compat = 1;
+            }
+            bld.error_state = cdd_cst_bld_endif(&bld);
 
-          if (bld.error_state == 0) {
-            g_cdd_last_alloc_err = cdd_cst_replace_node(tree, dir, wrap_node);
-            g_cdd_last_alloc_err = cdd_cst_free_node(dir);
-          } else {
-            C_CDD_FREE(wrap_node->children);
-            C_CDD_FREE(wrap_node);
+            if (bld.error_state == 0) {
+              bld.error_state = cdd_cst_replace_node(tree, dir, wrap_node);
+              bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                                (int)cdd_cst_free_node(dir));
+            } else {
+              C_CDD_FREE(wrap_node->children);
+              C_CDD_FREE(wrap_node);
+            }
+            bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                              (int)cdd_cst_builder_free(&bld));
           }
-          g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
         }
       }
     }
+    C_CDD_FREE(res.nodes);
   }
-  C_CDD_FREE(res.nodes);
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
   {
     cdd_token_t *prev = NULL, *prev_prev = NULL;
     int needs_basetsd = 0;
     int needs_expect = 0;
-    rc = replace_msvc_identifiers(tree, tree->root, &prev, &prev_prev,
+    rc = replace_msvc_identifiers(tree, tree->root, config, &prev, &prev_prev,
                                   &needs_basetsd, &needs_expect);
     if (rc != CDD_C_SUCCESS) {
       return rc;
@@ -302,32 +423,135 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
       if (deps_node) {
         deps_node->kind = CDD_CST_UNKNOWN;
-        g_cdd_last_alloc_err = cdd_cst_builder_init(&bld, tree, deps_node);
-        g_cdd_last_alloc_err = cdd_cst_bld_ifndef(&bld, "_MSC_VER");
-        g_cdd_last_alloc_err = cdd_cst_bld_else(&bld);
+        bld.error_state = cdd_cst_builder_init(&bld, tree, deps_node);
+        bld.error_state = cdd_cst_bld_ifndef(&bld, "_MSC_VER");
+        bld.error_state = cdd_cst_bld_else(&bld);
         if (needs_basetsd) {
-          g_cdd_last_alloc_err = cdd_cst_bld_include(&bld, "BaseTsd.h", 1);
+          bld.error_state = cdd_cst_bld_include(&bld, "BaseTsd.h", 1);
         }
         if (needs_expect) {
-          g_cdd_last_alloc_err = cdd_cst_bld_snippet(
+          bld.error_state = cdd_cst_bld_snippet(
               &bld, "#define cdd_builtin_expect(exp, c) (exp)\n");
         }
-        g_cdd_last_alloc_err = cdd_cst_bld_endif(&bld);
+        bld.error_state = cdd_cst_bld_endif(&bld);
         if (bld.error_state == 0) {
           /* insert at start of root's children */
           rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(deps_node->children);
             C_CDD_FREE(deps_node);
-            g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+            rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
             return rc;
           }
         } else {
           C_CDD_FREE(deps_node->children);
           C_CDD_FREE(deps_node);
         }
-        g_cdd_last_alloc_err = cdd_cst_builder_free(&bld);
+        bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                          (int)cdd_cst_builder_free(&bld));
       }
+    }
+  }
+
+  /* 3. CST-accurate `--rename-main <symbol>` on file-scope `main(...)` */
+  if (config && config->rename_main && config->rename_main[0] != '\0') {
+    const char *pooled_rm = NULL;
+    rc = cdd_pool_string_safe(tree, config->rename_main, &pooled_rm);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    for (i = 0; i < tree->root->num_children; i++) {
+      if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
+        cdd_cst_node_t *top = tree->root->children[i].val.node;
+        if (top->kind == CDD_CST_FUNCTION_DEFINITION ||
+            top->kind == CDD_CST_UNKNOWN) {
+          size_t k;
+          int pd = 0;
+          int is_td = 0;
+          for (k = 0; k < top->num_children; k++) {
+            if (top->children[k].kind == CDD_CST_CHILD_TOKEN) {
+              cdd_token_t *tk = top->children[k].val.token;
+              if (tk->length == 7 && memcmp(tk->start, "typedef", 7) == 0)
+                is_td = 1;
+              if (tk->kind == CDD_TOKEN_LPAREN) {
+                if (pd == 0 && !is_td && k > 0 &&
+                    top->children[k - 1].kind == CDD_CST_CHILD_TOKEN) {
+                  cdd_token_t *nt = top->children[k - 1].val.token;
+                  if (nt->kind == CDD_TOKEN_IDENTIFIER && nt->length == 4 &&
+                      memcmp(nt->start, "main", 4) == 0) {
+                    cdd_token_t *rt = NULL;
+                    rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER,
+                                              pooled_rm, &rt);
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
+                    rt->leading_trivia = nt->leading_trivia;
+                    rt->trailing_trivia = nt->trailing_trivia;
+                    nt->leading_trivia = NULL;
+                    nt->trailing_trivia = NULL;
+                    rc = (cdd_c_error_t)((int)rc |
+                                         (int)cdd_cst_replace_token_child(
+                                             top, k - 1, rt));
+                  }
+                }
+                pd++;
+              } else if (tk->kind == CDD_TOKEN_RPAREN && pd > 0) {
+                pd--;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* 4. Inject `typedef int __awm_nonempty_tu;` on empty translation units */
+  if (config && (config->with_auto_win_msvc ||
+                 config->target_profile != CDD_TARGET_PROFILE_DEFAULT)) {
+    int has_c_decl = 0;
+    for (i = 0; i < tree->root->num_children; i++) {
+      if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
+        cdd_cst_node_t *top = tree->root->children[i].val.node;
+        if (top->kind != CDD_CST_PREPROC_DIRECTIVE) {
+          size_t k;
+          for (k = 0; k < top->num_children; k++) {
+            if (top->children[k].kind == CDD_CST_CHILD_NODE) {
+              has_c_decl = 1;
+              break;
+            }
+            if (top->children[k].val.token->length > 0) {
+              has_c_decl = 1;
+              break;
+            }
+          }
+        }
+      }
+      if (has_c_decl)
+        break;
+    }
+    if (!has_c_decl) {
+      cdd_cst_node_t *tu_node = NULL;
+      cdd_cst_builder_t bld;
+      rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &tu_node);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      bld.error_state = cdd_cst_builder_init(&bld, tree, tu_node);
+      bld.error_state =
+          (cdd_c_error_t)((int)bld.error_state |
+                          (int)cdd_cst_bld_snippet(
+                              &bld, "typedef int __awm_nonempty_tu;\n"));
+      if (bld.error_state == CDD_C_SUCCESS) {
+        rc = cdd_cst_insert_child_node_at(tree->root, tree->root->num_children,
+                                          tu_node);
+        if (rc != CDD_C_SUCCESS) {
+          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(tu_node));
+        }
+      } else {
+        rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)cdd_cst_free_node(tu_node));
+      }
+      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
+                                        (int)cdd_cst_builder_free(&bld));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 

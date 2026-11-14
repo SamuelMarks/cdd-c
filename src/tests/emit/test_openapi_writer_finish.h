@@ -94,6 +94,10 @@ TEST test_openapi_writer_close_100_percent(void) {
   any_vals[0].type = OA_ANY_STRING;
   any_vals[0].string = cdd_test_mut_str("good");
   g_cdd_last_alloc_err = write_enum_any_values(obj, "good_enum", any_vals, 1);
+  any_vals[0].type = OA_ANY_JSON;
+  any_vals[0].json = cdd_test_mut_str("{invalid_json");
+  g_cdd_last_alloc_err =
+      write_enum_any_values(obj, "raw_json_enum", any_vals, 1);
 
   /* 5. L579, L581, L594, L599: write_example_object branches */
   memset(&ex, 0, sizeof(ex));

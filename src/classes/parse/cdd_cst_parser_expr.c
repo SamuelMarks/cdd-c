@@ -49,9 +49,9 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
         app_rc = append_child_node(n, child);
 
         if (app_rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = free_node(child);
+          app_rc = (cdd_c_error_t)((int)app_rc | (int)free_node(child));
           s->err = (int)app_rc;
-          g_cdd_last_alloc_err = free_node(n);
+          app_rc = (cdd_c_error_t)((int)app_rc | (int)free_node(n));
           *out_node = NULL;
           return app_rc;
         }
@@ -62,7 +62,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           return rc;
         app_rc = append_child_node(n, base_list);
         if (app_rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = free_node(base_list);
+          app_rc = (cdd_c_error_t)((int)app_rc | (int)free_node(base_list));
           return app_rc;
         }
 
@@ -77,7 +77,7 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
             return rc;
           app_rc = append_child_node(base_list, base_spec);
           if (app_rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = free_node(base_spec);
+            app_rc = (cdd_c_error_t)((int)app_rc | (int)free_node(base_spec));
             return app_rc;
           }
 
@@ -166,19 +166,26 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
     int is_func = 0;
     int is_destructor = 0;
     int is_operator = 0;
+    int scan_paren_depth = 0;
     enum cdd_cst_node_kind_t node_kind = CDD_CST_UNKNOWN;
     cdd_token_t *class_name_tok = NULL;
 
     for (i = s->pos; i < s->list->size; i++) {
-      if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON) {
+      if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
+        scan_paren_depth++;
+      } else if (s->list->tokens[i].kind == CDD_TOKEN_RPAREN &&
+                 scan_paren_depth > 0) {
+        scan_paren_depth--;
+      } else if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON &&
+                 scan_paren_depth == 0) {
         break;
-      }
-      if (s->list->tokens[i].kind == CDD_TOKEN_LBRACE) {
+      } else if (s->list->tokens[i].kind == CDD_TOKEN_LBRACE) {
         is_func = 1;
         break;
-      }
-      if (s->list->tokens[i].kind == CDD_TOKEN_RBRACE)
+      } else if (s->list->tokens[i].kind == CDD_TOKEN_RBRACE &&
+                 scan_paren_depth == 0) {
         break;
+      }
     }
 
     for (i = s->pos; i < s->list->size; i++) {
@@ -237,7 +244,8 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
             return rc;
           app_rc = append_child_node(n, noexcept_node);
           if (app_rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = free_node(noexcept_node);
+            app_rc =
+                (cdd_c_error_t)((int)app_rc | (int)free_node(noexcept_node));
             return app_rc;
           }
 
@@ -272,9 +280,9 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
           app_rc = append_child_node(n, child);
 
           if (app_rc != CDD_C_SUCCESS) {
-            g_cdd_last_alloc_err = free_node(child);
+            app_rc = (cdd_c_error_t)((int)app_rc | (int)free_node(child));
             s->err = (int)app_rc;
-            g_cdd_last_alloc_err = free_node(n);
+            app_rc = (cdd_c_error_t)((int)app_rc | (int)free_node(n));
             *out_node = NULL;
             return app_rc;
           }
@@ -304,9 +312,9 @@ cdd_c_error_t parse_class_or_statement(parser_state_t *s,
         }
         if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0) {
           if (n->num_children == 0) {
-            g_cdd_last_alloc_err = free_node(n);
+            rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY | (int)free_node(n));
             *out_node = NULL;
-            return CDD_C_ERROR_MEMORY;
+            return rc;
           }
           break;
         }

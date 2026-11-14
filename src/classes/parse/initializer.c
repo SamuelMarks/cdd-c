@@ -106,6 +106,7 @@ static cdd_c_error_t init_value_free(struct InitValue *val);
  */
 cdd_c_error_t init_list_free(struct InitList *list) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!list)
     return CDD_C_SUCCESS;
   if (list->items) {
@@ -113,7 +114,8 @@ cdd_c_error_t init_list_free(struct InitList *list) {
       if (list->items[i].designator)
         C_CDD_FREE(list->items[i].designator);
       if (list->items[i].value) {
-        g_cdd_last_alloc_err = init_value_free(list->items[i].value);
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)init_value_free(list->items[i].value));
         C_CDD_FREE(list->items[i].value);
       }
     }
@@ -122,7 +124,7 @@ cdd_c_error_t init_list_free(struct InitList *list) {
   }
   list->count = 0;
   list->capacity = 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -132,13 +134,14 @@ cdd_c_error_t init_list_free(struct InitList *list) {
  * @return CDD_C_SUCCESS.
  */
 static cdd_c_error_t init_value_free(struct InitValue *val) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (val->kind == INIT_KIND_SCALAR) {
     C_CDD_FREE(val->data.scalar);
   } else {
-    g_cdd_last_alloc_err = init_list_free(val->data.compound);
+    rc = (cdd_c_error_t)((int)rc | (int)init_list_free(val->data.compound));
     C_CDD_FREE(val->data.compound);
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -366,8 +369,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     /* Check designator: starts with . or [ */
     {
       int is_desig = 0;
-      g_cdd_last_alloc_err =
-          is_designator_start(tokens->tokens[i].kind, &is_desig);
+      rc = is_designator_start(tokens->tokens[i].kind, &is_desig);
       if (is_desig) {
         size_t next_after_desig;
         rc =
@@ -415,7 +417,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       rc = parse_initializer(tokens, i, end_idx, nested_list, &sub_consumed);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(val_obj);
-        g_cdd_last_alloc_err = init_list_free(nested_list);
+        rc = (cdd_c_error_t)((int)rc | (int)init_list_free(nested_list));
         C_CDD_FREE(nested_list);
         if (desig_str)
           C_CDD_FREE(desig_str);
@@ -446,7 +448,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     if ((rc = init_list_add(out, desig_str, val_obj)) != 0) {
       if (desig_str)
         C_CDD_FREE(desig_str);
-      g_cdd_last_alloc_err = init_value_free(val_obj);
+      rc = (cdd_c_error_t)((int)rc | (int)init_value_free(val_obj));
       C_CDD_FREE(val_obj);
       goto error;
     }
@@ -465,6 +467,5 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
   rc = CDD_C_ERROR_INVALID_ARGUMENT;
 
 error:
-  g_cdd_last_alloc_err = init_list_free(out);
-  return rc;
+  return (cdd_c_error_t)((int)rc | (int)init_list_free(out));
 }

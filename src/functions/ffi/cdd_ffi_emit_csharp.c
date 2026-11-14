@@ -87,6 +87,7 @@ static cdd_c_error_t get_csharp_primitive(cdd_ffi_primitive_kind_t kind,
 static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
                                       int is_return) {
   const char *prim = NULL;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
   if (type->kind == CDD_FFI_KIND_VOID && type->pointer_depth == 0) {
     if (is_return) {
       fprintf(f, "void");
@@ -119,9 +120,10 @@ static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err = get_csharp_primitive(type->kind, &prim);
+  rc_emit = (cdd_c_error_t)((int)rc_emit |
+                            (int)get_csharp_primitive(type->kind, &prim));
   fprintf(f, "%s", prim);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /**
@@ -140,6 +142,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   size_t i, j;
   const char *libname =
       (config->library_name) ? config->library_name : "libname";
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
 #if defined(_MSC_VER)
   sprintf_s(filepath, sizeof(filepath), "%s\\Bindings.cs", config->output_dir);
@@ -191,7 +194,8 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "    public enum %s : int\n    {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         fprintf(f, "        %s = %s,\n", node->variants[j].name,
@@ -208,7 +212,8 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -251,7 +256,9 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
           fprintf(f, "        [FieldOffset(0)]\n");
         }
         fprintf(f, "        public ");
-        g_cdd_last_alloc_err = emit_csharp_type(f, &node->fields[j].type, 0);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)emit_csharp_type(f, &node->fields[j].type, 0));
         fprintf(f, " %s;\n", node->fields[j].name);
       }
       fprintf(f, "    }\n\n");
@@ -264,7 +271,8 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "        [DllImport(LibraryName, CallingConvention = "
                  "CallingConvention.Cdecl)]\n");
 
@@ -276,7 +284,9 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
       }
 
       fprintf(f, "        public static extern ");
-      g_cdd_last_alloc_err = emit_csharp_type(f, &node->return_or_base_type, 1);
+      rc_emit =
+          (cdd_c_error_t)((int)rc_emit | (int)emit_csharp_type(
+                                             f, &node->return_or_base_type, 1));
       fprintf(f, " %s(", node->name);
 
       for (j = 0; j < node->fields_count; j++) {
@@ -297,7 +307,8 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
           }
-          g_cdd_last_alloc_err = emit_csharp_type(f, &base_t, 0);
+          rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                    (int)emit_csharp_type(f, &base_t, 0));
           fprintf(f, " ");
         }
         fprintf(f, "%s", node->fields[j].name ? node->fields[j].name : "arg");
@@ -314,7 +325,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   fprintf(f, "}\n");
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /**

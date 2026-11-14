@@ -400,15 +400,14 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
                 "        endforeach()\n")))
       return CDD_C_ERROR_IO;
     if (CHECK_IO_RC(fprintf(
-            fp,
-            "        if(_GREATEST_H)\n"
-            "            file(COPY \"${_GREATEST_H}\" DESTINATION "
-            "\"${CMAKE_CURRENT_BINARY_DIR}\")\n"
-            "        else()\n"
-            "            file(DOWNLOAD "
-            "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-            "greatest.h \"${CMAKE_CURRENT_BINARY_DIR}/greatest.h\")\n"
-            "        endif()\n")))
+            fp, "        if(_GREATEST_H)\n"
+                "            file(COPY \"${_GREATEST_H}\" DESTINATION "
+                "\"${CMAKE_CURRENT_BINARY_DIR}\")\n"
+                "        else()\n"
+                "            file(DOWNLOAD "
+                "https://raw.githubusercontent.com/SamuelMarks/greatest/master/"
+                "greatest.h \"${CMAKE_CURRENT_BINARY_DIR}/greatest.h\")\n"
+                "        endif()\n")))
       return CDD_C_ERROR_IO;
     if (CHECK_IO_RC(fprintf(fp, "    endif()\n\n")))
       return CDD_C_ERROR_IO;

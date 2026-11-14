@@ -37,24 +37,21 @@ static cdd_c_error_t parse_media_type_object_inner(
     int has_encoding = 0;
     int has_prefix = 0;
     int has_item = 0;
-    g_cdd_last_alloc_err =
-        cdd_json_object_has_value(media_obj, "encoding", &has_encoding);
-    g_cdd_last_alloc_err =
-        cdd_json_object_has_value(media_obj, "prefixEncoding", &has_prefix);
-    g_cdd_last_alloc_err =
-        cdd_json_object_has_value(media_obj, "itemEncoding", &has_item);
+    rc = cdd_json_object_has_value(media_obj, "encoding", &has_encoding);
+    rc = cdd_json_object_has_value(media_obj, "prefixEncoding", &has_prefix);
+    rc = cdd_json_object_has_value(media_obj, "itemEncoding", &has_item);
     if (has_encoding && (has_prefix || has_item))
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  g_cdd_last_alloc_err = cdd_json_object_get_string(media_obj, "$ref", &ref);
+  rc = cdd_json_object_get_string(media_obj, "$ref", &ref);
   if (ref) {
-    g_cdd_last_alloc_err = c_cdd_strdup(ref, &out->ref);
+    rc = c_cdd_strdup(ref, &out->ref);
     if (!out->ref)
       return CDD_C_ERROR_MEMORY;
     if (resolve_refs && spec) {
       struct OpenAPI_MediaType *mt = NULL;
-      g_cdd_last_alloc_err = find_component_media_type(spec, ref, &mt);
+      rc = find_component_media_type(spec, ref, &mt);
       if (mt) {
         rc = copy_media_type_fields(out, mt);
         if (rc != CDD_C_SUCCESS)
@@ -64,16 +61,15 @@ static cdd_c_error_t parse_media_type_object_inner(
     return CDD_C_SUCCESS;
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_value(media_obj, "schema", &schema_val);
+  rc = cdd_json_object_get_value(media_obj, "schema", &schema_val);
   if (schema_val) {
     JSON_Value_Type vtype = JSONError;
-    g_cdd_last_alloc_err = cdd_json_value_get_object(schema_val, &schema_obj);
-    g_cdd_last_alloc_err = cdd_json_value_get_type(schema_val, &vtype);
+    rc = cdd_json_value_get_object(schema_val, &schema_obj);
+    rc = cdd_json_value_get_type(schema_val, &vtype);
     if (vtype == JSONBoolean) {
       out->schema.schema_is_boolean = 1;
-      g_cdd_last_alloc_err = cdd_json_value_get_boolean(
-          schema_val, &out->schema.schema_boolean_value);
+      rc = cdd_json_value_get_boolean(schema_val,
+                                      &out->schema.schema_boolean_value);
       out->schema_set = 1;
     } else if (schema_obj) {
       rc = parse_schema_ref(schema_obj, &out->schema, spec);
@@ -83,17 +79,15 @@ static cdd_c_error_t parse_media_type_object_inner(
     }
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_value(media_obj, "itemSchema", &item_schema_val);
+  rc = cdd_json_object_get_value(media_obj, "itemSchema", &item_schema_val);
   if (item_schema_val) {
     JSON_Value_Type vtype = JSONError;
-    g_cdd_last_alloc_err =
-        cdd_json_value_get_object(item_schema_val, &item_schema_obj);
-    g_cdd_last_alloc_err = cdd_json_value_get_type(item_schema_val, &vtype);
+    rc = cdd_json_value_get_object(item_schema_val, &item_schema_obj);
+    rc = cdd_json_value_get_type(item_schema_val, &vtype);
     if (vtype == JSONBoolean) {
       out->item_schema.schema_is_boolean = 1;
-      g_cdd_last_alloc_err = cdd_json_value_get_boolean(
-          item_schema_val, &out->item_schema.schema_boolean_value);
+      rc = cdd_json_value_get_boolean(item_schema_val,
+                                      &out->item_schema.schema_boolean_value);
       out->item_schema_set = 1;
     } else if (item_schema_obj) {
       rc = parse_schema_ref(item_schema_obj, &out->item_schema, spec);
@@ -103,8 +97,7 @@ static cdd_c_error_t parse_media_type_object_inner(
     }
   }
 
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(media_obj, "encoding", &encoding_obj);
+  rc = cdd_json_object_get_object(media_obj, "encoding", &encoding_obj);
   if (encoding_obj) {
     rc = parse_encoding_map(encoding_obj, &out->encoding, &out->n_encoding,
                             spec, resolve_refs);
@@ -112,8 +105,8 @@ static cdd_c_error_t parse_media_type_object_inner(
       return rc;
   }
 
-  g_cdd_last_alloc_err = cdd_json_object_get_array(media_obj, "prefixEncoding",
-                                                   &prefix_encoding_arr);
+  rc = cdd_json_object_get_array(media_obj, "prefixEncoding",
+                                 &prefix_encoding_arr);
   if (prefix_encoding_arr) {
     rc = parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
                               &out->n_prefix_encoding, spec, resolve_refs);
@@ -121,7 +114,7 @@ static cdd_c_error_t parse_media_type_object_inner(
       return rc;
   }
 
-  g_cdd_last_alloc_err =
+  rc =
       cdd_json_object_get_object(media_obj, "itemEncoding", &item_encoding_obj);
   if (item_encoding_obj) {
     out->item_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
@@ -163,8 +156,9 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
                                       int resolve_refs) {
   cdd_c_error_t rc =
       parse_media_type_object_inner(media_obj, out, spec, resolve_refs);
-  if (rc != CDD_C_SUCCESS)
-    g_cdd_last_alloc_err = free_media_type(out);
+  if (rc != CDD_C_SUCCESS) {
+    rc = (cdd_c_error_t)((int)rc | (int)free_media_type(out));
+  }
   return rc;
 }
 
@@ -202,17 +196,18 @@ cdd_c_error_t media_type_base_equal(const char *a, const char *b,
                                     int *out_equal) {
   size_t alen = 0;
   size_t blen = 0;
+  cdd_c_error_t rc;
   if (!out_equal)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_equal = 0;
   if (!a || !b)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_base_len(a, &alen);
-  g_cdd_last_alloc_err = media_type_base_len(b, &blen);
+  rc = media_type_base_len(a, &alen);
+  rc = media_type_base_len(b, &blen);
   if (alen != blen)
     return CDD_C_SUCCESS;
   *out_equal = (strncmp(a, b, alen) == 0) ? 1 : 0;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -225,12 +220,13 @@ cdd_c_error_t media_type_base_equal(const char *a, const char *b,
  */
 cdd_c_error_t openapi_media_type_is_json(const char *name, int *out_is_json) {
   size_t len = 0;
+  cdd_c_error_t rc;
   if (!out_is_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_json = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_base_len(name, &len);
+  rc = media_type_base_len(name, &len);
   if (len == strlen("application/json") &&
       strncmp(name, "application/json", len) == 0) {
     *out_is_json = 1;
@@ -240,7 +236,7 @@ cdd_c_error_t openapi_media_type_is_json(const char *name, int *out_is_json) {
     *out_is_json = 1;
     return CDD_C_SUCCESS;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -256,11 +252,12 @@ cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
   size_t len = 0;
   size_t type_len;
   size_t sub_len;
+  cdd_c_error_t rc;
   if (out_spec)
     *out_spec = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_base_len(name, &len);
+  rc = media_type_base_len(name, &len);
   if (len == 0)
     return CDD_C_SUCCESS;
   slash = (const char *)memchr(name, '/', len);
@@ -285,7 +282,7 @@ cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
   }
   if (out_spec)
     *out_spec = 2; /* type/subtype */
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -299,31 +296,30 @@ cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
 cdd_c_error_t media_type_preference_rank(const char *name, int *out_rank) {
   int is_json = 0;
   int is_eq = 0;
+  cdd_c_error_t rc;
   if (out_rank)
     *out_rank = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = media_type_is_json(name, &is_json);
+  rc = media_type_is_json(name, &is_json);
   if (is_json) {
     if (out_rank)
       *out_rank = 3;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err =
-      media_type_base_equal(name, "application/x-www-form-urlencoded", &is_eq);
+  rc = media_type_base_equal(name, "application/x-www-form-urlencoded", &is_eq);
   if (is_eq) {
     if (out_rank)
       *out_rank = 2;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err =
-      media_type_base_equal(name, "multipart/form-data", &is_eq);
+  rc = media_type_base_equal(name, "multipart/form-data", &is_eq);
   if (is_eq) {
     if (out_rank)
       *out_rank = 1;
     return CDD_C_SUCCESS;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -342,6 +338,7 @@ select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
   int best_idx = -1;
   int best_spec = -1;
   int best_rank = -1;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (out_idx)
     *out_idx = -1;
@@ -349,8 +346,8 @@ select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
   for (i = 0; i < n; ++i) {
     int spec = 0;
     int rank = 0;
-    g_cdd_last_alloc_err = media_type_specificity(mts[i].name, &spec);
-    g_cdd_last_alloc_err = media_type_preference_rank(mts[i].name, &rank);
+    rc = media_type_specificity(mts[i].name, &spec);
+    rc = media_type_preference_rank(mts[i].name, &rank);
     if (spec > best_spec) {
       best_spec = spec;
       best_rank = rank;
@@ -364,7 +361,7 @@ select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
   }
   if (out_idx)
     *out_idx = best_idx;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -379,35 +376,34 @@ cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
                                         const char *media_name,
                                         const JSON_Object **_out_val) {
   size_t i, count = 0;
+  cdd_c_error_t rc;
   if (!content || !media_name) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
   {
     JSON_Object *exact = NULL;
-    g_cdd_last_alloc_err =
-        cdd_json_object_get_object(content, media_name, &exact);
+    rc = cdd_json_object_get_object(content, media_name, &exact);
     if (exact) {
       *_out_val = exact;
       return CDD_C_SUCCESS;
     }
   }
-  g_cdd_last_alloc_err = cdd_json_object_get_count(content, &count);
+  rc = cdd_json_object_get_count(content, &count);
   for (i = 0; i < count; ++i) {
     const char *name = NULL;
     int is_eq = 0;
-    g_cdd_last_alloc_err = cdd_json_object_get_name(content, i, &name);
-    g_cdd_last_alloc_err = media_type_base_equal(name, media_name, &is_eq);
+    rc = cdd_json_object_get_name(content, i, &name);
+    rc = media_type_base_equal(name, media_name, &is_eq);
     if (is_eq) {
       JSON_Object *found_obj = NULL;
-      g_cdd_last_alloc_err =
-          cdd_json_object_get_object(content, name, &found_obj);
+      rc = cdd_json_object_get_object(content, name, &found_obj);
       *_out_val = found_obj;
       return CDD_C_SUCCESS;
     }
   }
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -427,13 +423,14 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
                                    const struct OpenAPI_Spec *spec,
                                    int resolve_refs) {
   size_t i, count = 0, valid = 0;
+  cdd_c_error_t rc;
   if (!out || !out_count)
     return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!content)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = cdd_json_object_get_count(content, &count);
+  rc = cdd_json_object_get_count(content, &count);
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -448,27 +445,30 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
     JSON_Value *val_at = NULL;
     JSON_Object *media_obj = NULL;
     struct OpenAPI_MediaType *curr = &(*out)[valid];
-    cdd_c_error_t rc;
-    g_cdd_last_alloc_err = cdd_json_object_get_name(content, i, &name);
-    g_cdd_last_alloc_err = cdd_json_object_get_value_at(content, i, &val_at);
-    g_cdd_last_alloc_err = cdd_json_value_get_object(val_at, &media_obj);
+    rc = cdd_json_object_get_name(content, i, &name);
+    rc = cdd_json_object_get_value_at(content, i, &val_at);
+    rc = cdd_json_value_get_object(val_at, &media_obj);
     if (!media_obj)
       continue;
-    g_cdd_last_alloc_err = c_cdd_strdup(name, &curr->name);
+    rc = c_cdd_strdup(name, &curr->name);
     if (!curr->name) {
       size_t j;
-      for (j = 0; j < count; ++j)
-        g_cdd_last_alloc_err = free_media_type(&(*out)[j]);
+      cdd_c_error_t rc_free = CDD_C_ERROR_MEMORY;
+      for (j = 0; j < count; ++j) {
+        rc_free =
+            (cdd_c_error_t)((int)rc_free | (int)free_media_type(&(*out)[j]));
+      }
       C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;
-      return CDD_C_ERROR_MEMORY;
+      return rc_free;
     }
     rc = parse_media_type_object(media_obj, curr, spec, resolve_refs);
     if (rc != CDD_C_SUCCESS) {
       size_t j;
-      for (j = 0; j < count; ++j)
-        g_cdd_last_alloc_err = free_media_type(&(*out)[j]);
+      for (j = 0; j < count; ++j) {
+        rc = (cdd_c_error_t)((int)rc | (int)free_media_type(&(*out)[j]));
+      }
       C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;

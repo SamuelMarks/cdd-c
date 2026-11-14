@@ -56,6 +56,24 @@ extern C_CDD_EXPORT cdd_c_error_t write_struct_to_json_func(
     const struct CodegenJsonConfig *config);
 
 /**
+ * @brief Generate `_to_jsonObject` implementation using `c_cdd/json_dom.h` API.
+ *
+ * Generates the recursive serializer that populates a `JSON_Object` via
+ * `cdd_json_object_set_*` and `cdd_json_array_append_*`:
+ * `cdd_c_error_t Struct_to_jsonObject(const struct Struct *obj, JSON_Object
+ * *jsonObject);`
+ *
+ * @param[in] fp Output stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Optional config.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t write_struct_to_jsonObject_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenJsonConfig *config);
+
+/**
  * @brief Generate `_from_json` implementation (Wrapper).
  *
  * Generates the top-level string parser wrapper:

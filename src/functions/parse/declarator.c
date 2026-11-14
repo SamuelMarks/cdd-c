@@ -249,9 +249,10 @@ cdd_c_error_t decl_info_init(struct DeclInfo *info) {
  * @return CDD_C_SUCCESS.
  */
 static cdd_c_error_t free_decl_type(struct DeclType *t) {
+  cdd_c_error_t rc;
   if (!t)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = free_decl_type(t->inner);
+  rc = free_decl_type(t->inner);
   switch (t->kind) {
   case DECL_BASE:
     if (t->data.base.name)
@@ -271,7 +272,7 @@ static cdd_c_error_t free_decl_type(struct DeclType *t) {
     break;
   }
   C_CDD_FREE(t);
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -281,6 +282,7 @@ static cdd_c_error_t free_decl_type(struct DeclType *t) {
  * @return CDD_C_SUCCESS.
  */
 cdd_c_error_t decl_info_free(struct DeclInfo *info) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!info)
     return CDD_C_SUCCESS;
   if (info->identifier) {
@@ -288,10 +290,10 @@ cdd_c_error_t decl_info_free(struct DeclInfo *info) {
     info->identifier = NULL;
   }
   if (info->type) {
-    g_cdd_last_alloc_err = free_decl_type(info->type);
+    rc = free_decl_type(info->type);
     info->type = NULL;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -797,10 +799,10 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
   return CDD_C_SUCCESS;
 
 error:
-  if (node)
-    g_cdd_last_alloc_err = free_decl_type(node);
-  g_cdd_last_alloc_err = decl_info_free(out_info);
-  return rc;
+  if (node) {
+    rc = (cdd_c_error_t)((int)rc | (int)free_decl_type(node));
+  }
+  return (cdd_c_error_t)((int)rc | (int)decl_info_free(out_info));
 }
 
 #ifdef CDD_BUILD_TESTS

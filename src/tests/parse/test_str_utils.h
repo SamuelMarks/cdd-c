@@ -557,6 +557,14 @@ TEST test_c_cdd_stricmp(void) {
   ASSERT(diff > 0);
   ASSERT_EQ(0, c_cdd_stricmp("hello", "hellp", &diff));
   ASSERT(diff < 0);
+  ASSERT_EQ(0, c_cdd_stricmp("", "hello", &diff));
+  ASSERT(diff < 0);
+  ASSERT_EQ(0, c_cdd_stricmp("hello", "", &diff));
+  ASSERT(diff > 0);
+  ASSERT_EQ(0, c_cdd_stricmp("he", "hello", &diff));
+  ASSERT(diff < 0);
+  ASSERT_EQ(0, c_cdd_stricmp("hello", "he", &diff));
+  ASSERT(diff > 0);
   ASSERT_EQ(0, c_cdd_stricmp(NULL, NULL, &diff));
   ASSERT_EQ(0, diff);
   ASSERT_EQ(0, c_cdd_stricmp("hello", NULL, &diff));

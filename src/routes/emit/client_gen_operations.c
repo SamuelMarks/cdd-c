@@ -95,8 +95,9 @@ cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
   }
 
   if (path && path->route) {
-    g_cdd_last_alloc_err = verb_to_string(op->verb, &verb_str);
-    CHECK_IO(fprintf(fp, " * @route %s %s\n", verb_str, path->route));
+    cdd_c_error_t rc_verb = verb_to_string(op->verb, &verb_str);
+    CHECK_IO(
+        fprintf(fp, " * @route %s %s\n", &verb_str[(int)rc_verb], path->route));
   }
 
   if (op->description) {
@@ -222,13 +223,11 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
   /* Determine Group Name from Tags and Namespace */
   if (effective_op.n_tags > 0 && effective_op.tags[0]) {
-    g_cdd_last_alloc_err = sanitize_tag(effective_op.tags[0], &sanitized_group);
+    rc = sanitize_tag(effective_op.tags[0], &sanitized_group);
     if (!sanitized_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
         goto cleanup;
       }
     }
@@ -241,9 +240,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
         goto cleanup;
       }
     }
@@ -263,9 +260,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
         goto cleanup;
       }
     }
@@ -275,9 +270,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
-        g_cdd_last_alloc_err =
-            fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                    __LINE__);
+        C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
         goto cleanup;
       }
     }
@@ -287,20 +280,16 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     sig_cfg.group_name = full_group;
   }
 
-  g_cdd_last_alloc_err = select_operation_server(path, op, &selected_server);
+  rc = select_operation_server(path, op, &selected_server);
   server_override = selected_server;
   if (server_override && server_override->url) {
-    g_cdd_last_alloc_err =
-        render_server_url_default(server_override, &override_url);
+    rc = render_server_url_default(server_override, &override_url);
     if (override_url) {
-      g_cdd_last_alloc_err =
-          build_base_url_literal(override_url, &base_url_expr);
+      rc = build_base_url_literal(override_url, &base_url_expr);
       if (!base_url_expr) {
         rc = CDD_C_ERROR_MEMORY;
         {
-          g_cdd_last_alloc_err = fprintf(
-              stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-              __LINE__);
+          C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
           goto cleanup;
         }
       }
@@ -310,16 +299,14 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   /* 1. Header: DocBlock + Prototype */
   rc = write_docblock(hfile, path, &effective_op);
   if (rc != 0) {
-    g_cdd_last_alloc_err = fprintf(
-        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
     goto cleanup;
   }
 
   sig_cfg.include_semicolon = 1;
   rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg);
   if (rc != 0) {
-    g_cdd_last_alloc_err = fprintf(
-        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
     goto cleanup;
   }
   CHECK_IO_CLEANUP(fprintf(hfile, "\n"));
@@ -328,8 +315,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   sig_cfg.include_semicolon = 0;
   rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg);
   if (rc != 0) {
-    g_cdd_last_alloc_err = fprintf(
-        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
     goto cleanup;
   }
 
@@ -337,8 +323,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
                                  base_url_expr);
   if (rc != 0) {
-    g_cdd_last_alloc_err = fprintf(
-        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
     goto cleanup;
   }
 

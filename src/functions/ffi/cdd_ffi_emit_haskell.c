@@ -78,13 +78,15 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
   size_t i, j;
   const char *lib_name = "MyLib";
   char module_name[256];
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (config->library_name) {
     lib_name = config->library_name;
   }
 
-  g_cdd_last_alloc_err =
-      to_camel_case(lib_name, module_name, sizeof(module_name));
+  rc_emit =
+      (cdd_c_error_t)((int)rc_emit | (int)to_camel_case(lib_name, module_name,
+                                                        sizeof(module_name)));
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.hs", config->output_dir,
@@ -119,7 +121,8 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "-- | %s\n", node->doc);
       fprintf(f, "data %s\n\n", node->name);
@@ -131,7 +134,8 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ht = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "-- | %s\n", node->doc);
       fprintf(f, "foreign import ccall unsafe \"%s\" c_%s\n", node->name,
@@ -139,17 +143,20 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
       fprintf(f, "  :: ");
       for (j = 0; j < node->fields_count; j++) {
         const char *ht = NULL;
-        g_cdd_last_alloc_err = get_haskell_type(node->fields[j].type, &ht);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)get_haskell_type(node->fields[j].type, &ht));
         fprintf(f, "%s -> ", ht);
       }
-      g_cdd_last_alloc_err =
-          get_haskell_type(node->return_or_base_type, &ret_ht);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)get_haskell_type(node->return_or_base_type,
+                                                      &ret_ht));
       fprintf(f, "IO (%s)\n\n", ret_ht);
     }
   }
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*

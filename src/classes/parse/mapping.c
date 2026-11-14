@@ -156,9 +156,9 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   if (p)
     *p = '\0';
 
-  g_cdd_last_alloc_err = c_cdd_str_trim_trailing_whitespace(buf);
+  rc = c_cdd_str_trim_trailing_whitespace(buf);
   *_out_val = buf;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*

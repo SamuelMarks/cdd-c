@@ -511,10 +511,11 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head, int *out_needs) {
               inferred_size_t inf;
               cdd_c_error_t inf_rc;
               int is_zero = 0;
-              g_cdd_last_alloc_err = expr_is_null_or_zero(arg, &is_zero);
+              inf_rc = expr_is_null_or_zero(arg, &is_zero);
               if (is_zero)
                 continue;
-              inf_rc = infer_buffer_size(arg, &inf);
+              inf_rc = (cdd_c_error_t)((int)inf_rc |
+                                       (int)infer_buffer_size(arg, &inf));
               if (!inf.valid) {
                 /* let it proceed, emit_inferred_size will handle it */
               }
@@ -527,18 +528,18 @@ C_CDD_EXPORT cdd_c_error_t check_needs_transform(expr_t *head, int *out_needs) {
       }
       for (i = 0; i < head->num_args; i++) {
         int sub_needs = 0;
-        g_cdd_last_alloc_err = check_needs_transform(head->args[i], &sub_needs);
+        cdd_c_error_t sub_rc = check_needs_transform(head->args[i], &sub_needs);
         if (sub_needs) {
           *out_needs = 1;
-          return CDD_C_SUCCESS;
+          return sub_rc;
         }
       }
     } else if (head->type == 2) {
       int sub_needs = 0;
-      g_cdd_last_alloc_err = check_needs_transform(head->args[0], &sub_needs);
+      cdd_c_error_t sub_rc = check_needs_transform(head->args[0], &sub_needs);
       if (sub_needs) {
         *out_needs = 1;
-        return CDD_C_SUCCESS;
+        return sub_rc;
       }
     } else if (head->type == 3) {
       *out_needs = 1;

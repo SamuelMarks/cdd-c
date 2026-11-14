@@ -440,7 +440,7 @@ write_standalone_array_to_json(FILE *fp, const struct StructField *f) {
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Emits a standalone zero-dependency JSON parser function for a struct.
  *
  * @param[in] fp Output stream.
@@ -739,7 +739,7 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
   return rc_h;
 }
 
-/**
+/*
  * @brief Emits a standalone zero-dependency JSON serializer function for a
  * struct.
  *

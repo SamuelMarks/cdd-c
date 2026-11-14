@@ -632,12 +632,22 @@ TEST test_main_coverage_all_routes(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_stub));
   }
 
-  /* 3. to_docs_json, bind, serve_json_rpc, mcp --help */
+  /* 3. to_docs_json, bind, serve_json_rpc, mcp, transform --help */
   {
     char *argv_docs[3];
     char *argv_bind[3];
     char *argv_rpc[3];
     char *argv_mcp[3];
+    char *argv_tf_ok[3];
+    char *argv_tf_err[2];
+
+    argv_tf_ok[0] = cdd_test_mut_str("cdd-c");
+    argv_tf_ok[1] = cdd_test_mut_str("transform");
+    argv_tf_ok[2] = cdd_test_mut_str("--help");
+    argv_tf_err[0] = cdd_test_mut_str("cdd-c");
+    argv_tf_err[1] = cdd_test_mut_str("transform");
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_tf_ok));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_tf_err));
 
     argv_docs[0] = cdd_test_mut_str("cdd-c");
     argv_docs[1] = cdd_test_mut_str("to_docs_json");

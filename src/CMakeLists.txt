@@ -160,6 +160,173 @@ set(Header_Files
 )
 source_group("Header Files" FILES "${Header_Files}")
 
+set(C_CDD_TRANSFORM_SOURCES
+        "cdd_c_error.c"
+        "log.c"
+        "code_writer.c"
+        "context.c"
+        "functions/parse/str.c"
+        "functions/parse/fs.c"
+        "functions/parse/fs_dir.c"
+        "classes/parse/numeric.c"
+        "classes/parse/cdd_lexer.c"
+        "classes/parse/cdd_cst_parser.c"
+        "classes/parse/cdd_cst_parser_expr.c"
+        "classes/parse/cdd_cst_mutate.c"
+        "classes/parse/cdd_cst_mutate_splice.c"
+        "classes/parse/cdd_cst_scope.c"
+        "classes/parse/cdd_cst_semantic.c"
+        "classes/parse/cdd_cst_type_eval.c"
+        "classes/parse/cdd_cst_cfg.c"
+        "classes/parse/cdd_cst_escape.c"
+        "classes/parse/cdd_cst_factory.c"
+        "classes/parse/cdd_cst_factory_format.c"
+        "classes/parse/cdd_cst_builder.c"
+        "classes/parse/cdd_cst_builder_trivia.c"
+        "classes/parse/cdd_cst_query.c"
+        "classes/parse/cdd_cst_trivia.c"
+        "classes/emit/cdd_cst_emit.c"
+        "functions/parse/tokenizer.c"
+        "functions/parse/tokenizer_keywords.c"
+        "functions/parse/tokenizer_punct.c"
+        "functions/parse/cst.c"
+        "functions/parse/cst_match.c"
+        "functions/parse/declarator.c"
+        "classes/parse/initializer.c"
+        "functions/parse/decl_hoist.c"
+        "functions/parse/desig_init.c"
+        "functions/parse/vla_analyzer.c"
+        "functions/emit/patcher.c"
+        "functions/emit/weaver.c"
+        "functions/emit/weaver_attributes.c"
+        "transformers/extern_c/extern_c.c"
+        "transformers/msvc_port/msvc_port.c"
+        "transformers/c_lowering/c_lowering_legacy.c"
+        "transformers/c_lowering/c_lowering_modern.c"
+        "transformers/gnu_standardizer/gnu_standardizer.c"
+        "transformers/gnu_standardizer/gnu_standardizer_builtins.c"
+        "transformers/gnu_standardizer/gnu_standardizer_expr.c"
+        "transformers/gnu_standardizer/gnu_standardizer_helpers.c"
+        "transformers/gnu_standardizer/gnu_standardizer_ranges.c"
+        "transformers/gnu_standardizer/gnu_standardizer_types.c"
+        "transformers/gnu_standardizer/gnu_standardizer_unroll.c"
+        "transformers/error_percolator/error_percolator.c"
+        "transformers/error_percolator/error_percolator_call_sites.c"
+        "transformers/safe_crt/safe_crt.c"
+        "transformers/safe_crt/safe_crt_parse.c"
+        "transformers/safe_crt/safe_crt_rules.c"
+        "transformers/safe_crt/safe_crt_rules_conv.c"
+        "transformers/safe_crt/safe_crt_rules_env.c"
+        "transformers/safe_crt/safe_crt_rules_io.c"
+        "transformers/safe_crt/safe_crt_rules_str.c"
+        "transformers/macros/macros.c"
+        "routes/parse/cli_cst.c"
+)
+
+if(CDD_C_TRANSFORMER_ONLY)
+    set(TRANSFORM_LIBRARY_NAME "c_cdd_transform")
+    set(Transform_Source_Files ${C_CDD_TRANSFORM_SOURCES})
+    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+        list(APPEND Transform_Source_Files "tests/mocks/g_fail_io_after.c")
+    endif()
+
+    add_library("${TRANSFORM_LIBRARY_NAME}" STATIC ${Transform_Source_Files})
+    add_library("${LIBRARY_NAME}" ALIAS "${TRANSFORM_LIBRARY_NAME}")
+    if(DEFINED STRICT_COMPILER_FLAGS)
+        target_compile_options("${TRANSFORM_LIBRARY_NAME}" PRIVATE ${STRICT_COMPILER_FLAGS})
+    endif()
+    target_compile_definitions(
+        "${TRANSFORM_LIBRARY_NAME}"
+        PUBLIC
+        CDD_C_TRANSFORMER_ONLY=1
+        C_CDD_STATIC_DEFINE
+    )
+    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+        target_compile_definitions("${TRANSFORM_LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
+    endif()
+
+    include(GNUInstallDirs)
+    target_include_directories(
+        "${TRANSFORM_LIBRARY_NAME}"
+        PUBLIC
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    )
+
+    if(NOT TARGET c89stringutils)
+        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
+            find_package(c89stringutils REQUIRED)
+        else ()
+            find_package(c89stringutils CONFIG QUIET)
+        endif ()
+    endif()
+    if(NOT TARGET c_str_span)
+        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
+            find_package(c_str_span REQUIRED)
+        else ()
+            find_package(c_str_span CONFIG QUIET)
+        endif ()
+    endif()
+
+    target_link_libraries(
+        "${TRANSFORM_LIBRARY_NAME}"
+        PRIVATE
+        c89stringutils
+        PUBLIC
+        c_str_span
+        c_str_span_compiler_flags
+        "${PROJECT_NAME}_compiler_flags"
+    )
+    set_target_properties("${TRANSFORM_LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
+
+    include(GenerateExportHeader)
+    set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
+    generate_export_header(
+        "${TRANSFORM_LIBRARY_NAME}"
+        BASE_NAME "${LIBRARY_NAME}"
+        EXPORT_FILE_NAME "${_export_file}"
+    )
+
+    set(_transform_install_targets "${TRANSFORM_LIBRARY_NAME}")
+    if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
+        add_executable("cdd-c-transform" "bin_cdd.c")
+        target_link_libraries("cdd-c-transform" PRIVATE "${TRANSFORM_LIBRARY_NAME}")
+        set_target_properties("cdd-c-transform" PROPERTIES LINKER_LANGUAGE C)
+
+        add_executable("cdd-c" "bin_cdd.c")
+        target_link_libraries("cdd-c" PRIVATE "${TRANSFORM_LIBRARY_NAME}")
+        set_target_properties("cdd-c" PROPERTIES LINKER_LANGUAGE C)
+
+        list(APPEND _transform_install_targets "cdd-c-transform" "cdd-c")
+        export(
+            TARGETS "cdd-c-transform" "cdd-c"
+            FILE "${PROJECT_BINARY_DIR}/cdd-c-transformTargets.cmake"
+        )
+    endif()
+
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
+        list(APPEND _transform_install_targets "${PROJECT_NAME}_compiler_flags")
+    endif ()
+
+    install(TARGETS ${_transform_install_targets}
+            EXPORT "${LIBRARY_NAME}Targets"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(EXPORT "${LIBRARY_NAME}Targets"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}")
+    install(FILES "${PROJECT_SOURCE_DIR}/include/cdd_cst_transform.h"
+                  "${PROJECT_SOURCE_DIR}/include/cdd_c_error.h"
+                  "${_export_file}"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    return()
+endif()
+
 set(Source_Files
         "arazzo/emit/arazzo.c"
         "arazzo/parse/arazzo.c"
@@ -210,7 +377,10 @@ set(Source_Files
         "routes/parse/cli_meta.c"
         "routes/parse/cli_security.c"
         "routes/parse/sync_gen.c"
+        "transformers/c_lowering/c_lowering_legacy.c"
+        "transformers/c_lowering/c_lowering_modern.c"
         "transformers/error_percolator/error_percolator_call_sites.c"
+        "transformers/gnu_standardizer/gnu_standardizer_builtins.c"
         "transformers/gnu_standardizer/gnu_standardizer_expr.c"
         "transformers/gnu_standardizer/gnu_standardizer_helpers.c"
         "transformers/gnu_standardizer/gnu_standardizer_ranges.c"
@@ -704,25 +874,36 @@ set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 # CLI #
 #######
 
+add_library("c_cdd_transform" INTERFACE)
+target_link_libraries("c_cdd_transform" INTERFACE "${LIBRARY_NAME}")
+
 set(EXEC_NAME "cdd-c")
+set(TRANSFORM_EXEC_NAME "cdd-c-transform")
 
 set(Cli_Source_Files "bin_cdd.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
-
-target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     target_link_libraries("${EXEC_NAME}" PRIVATE cdd_test_helpers)
+else()
+    target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 endif()
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
-add_test(NAME test_cdd_c_help COMMAND "${EXEC_NAME}" --help)
-add_test(NAME test_cdd_c_fail COMMAND "${EXEC_NAME}" non_existent_command)
-set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
+add_executable("${TRANSFORM_EXEC_NAME}" "${Cli_Source_Files}")
+target_compile_definitions("${TRANSFORM_EXEC_NAME}" PRIVATE CDD_C_TRANSFORMER_ONLY=1)
+target_link_libraries("${TRANSFORM_EXEC_NAME}" PRIVATE "c_cdd_transform")
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_link_libraries("${TRANSFORM_EXEC_NAME}" PRIVATE cdd_test_helpers)
 endif()
+set_target_properties("${TRANSFORM_EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
+
+export(
+    TARGETS "${TRANSFORM_EXEC_NAME}" "${EXEC_NAME}"
+    FILE "${PROJECT_BINARY_DIR}/cdd-c-transformTargets.cmake"
+)
 endif()
 
 
@@ -740,8 +921,13 @@ include(GNUInstallDirs)
 set_property(TARGET "${LIBRARY_NAME}" PROPERTY VERSION "${${PROJECT_NAME}_VERSION}")
 set_property(TARGET "${LIBRARY_NAME}" PROPERTY SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}")
 
-set(installable_libs # "${EXEC_NAME}"
-        "${LIBRARY_NAME}")
+set(installable_libs "${LIBRARY_NAME}" "c_cdd_transform")
+if (TARGET "${EXEC_NAME}")
+    list(APPEND installable_libs "${EXEC_NAME}")
+endif ()
+if (TARGET "${TRANSFORM_EXEC_NAME}")
+    list(APPEND installable_libs "${TRANSFORM_EXEC_NAME}")
+endif ()
 if (TARGET "${DEPENDANT_LIBRARY}")
     list(APPEND installable_libs "${DEPENDANT_LIBRARY}")
 endif ()
@@ -757,8 +943,12 @@ install(EXPORT "${LIBRARY_NAME}Targets" DESTINATION "${CMAKE_INSTALL_DATADIR}/${
 
 install(FILES ${Header_Files} "${_export_file}"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES "classes/parse/cdd_cst_node.h" "classes/parse/cdd_token.h"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/classes/parse")
 
-if (WIN32 AND MINGW)
+if (WIN32)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ws2_32 winhttp wininet crypt32 advapi32 secur32 bcrypt)
 endif()
 

@@ -495,6 +495,13 @@ TEST test_fs_coverage_makedir_makedirs(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, makedirs(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, makedirs(""));
   ASSERT_EQ(CDD_C_SUCCESS, makedirs("/"));
+  {
+    cdd_c_error_t rc_bs = makedirs("fs_cov_bs_nonexistent\\sub");
+    rc_bs = (cdd_c_error_t)(rc_bs + 0);
+    rmdir("fs_cov_bs_nonexistent\\sub");
+    rmdir("fs_cov_bs_nonexistent/sub");
+    rmdir("fs_cov_bs_nonexistent");
+  }
 
   g_cdd_strdup_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, makedirs("a/b/c"));

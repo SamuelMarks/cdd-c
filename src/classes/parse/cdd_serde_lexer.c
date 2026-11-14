@@ -196,7 +196,10 @@ cdd_c_error_t cdd_serde_find_directive_ex(const char *cur,
       while (*end != '\0') {
         if (in_quote) {
           if (*end == '\\') {
-            end += 2;
+            end++;
+            if (*end != '\0') {
+              end++;
+            }
             continue;
           }
           if (*end == in_quote) {

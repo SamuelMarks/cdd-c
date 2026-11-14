@@ -50,6 +50,7 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name = config->library_name ? config->library_name : "mylib";
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.ml", config->output_dir,
@@ -101,7 +102,8 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "(* %s *)\n", node->doc);
       fprintf(f, "module %s = struct\n", node->name);
@@ -121,7 +123,8 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "(* %s *)\n", node->doc);
       fprintf(f, "type %s\n", node->name);
@@ -131,7 +134,9 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
-        g_cdd_last_alloc_err = get_ocaml_type(node->fields[j].type, &ftype);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)get_ocaml_type(node->fields[j].type, &ftype));
         fprintf(f, "let %s_%s = field %s \"%s\" %s\n", node->name, fname,
                 node->name, fname, ftype);
       }
@@ -144,22 +149,27 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ot = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "(* %s *)\n", node->doc);
       fprintf(f, "let %s = foreign \"%s\" (", node->name, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ot = NULL;
-        g_cdd_last_alloc_err = get_ocaml_type(node->fields[j].type, &ot);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)get_ocaml_type(node->fields[j].type, &ot));
         fprintf(f, "%s @-> ", ot);
       }
-      g_cdd_last_alloc_err = get_ocaml_type(node->return_or_base_type, &ret_ot);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)get_ocaml_type(node->return_or_base_type,
+                                                    &ret_ot));
       fprintf(f, "returning %s)\n\n", ret_ot);
     }
   }
 
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*

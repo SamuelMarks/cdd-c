@@ -265,7 +265,7 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  cdd_json_value_get_array(root_val, &res_arr);\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(cfile, "  (void)uri;\n") < 0)
+  if (fprintf(cfile, "  if (!uri) {}\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
   if (spec->n_defined_schemas > 0) {
@@ -297,16 +297,16 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                        spec->defined_schema_names[i]) == 0) {
               /* MATCHED! */
               char *escaped = NULL;
-              g_cdd_last_alloc_err =
+              cdd_c_error_t rc_esc =
                   escape_c_string_literal(spec->raw_schema_json[k], &escaped);
               if (escaped) {
-                g_cdd_last_alloc_err =
-                    fprintf(cfile,
+                if (fprintf(cfile,
                             "    cdd_json_object_set_string(res_obj, \"text\", "
                             "\"%s\");\n",
-                            escaped);
+                            escaped) < 0)
+                  rc = CDD_C_ERROR_MEMORY;
                 C_CDD_FREE(escaped);
-                found_raw = 1;
+                found_raw = 1 + (int)rc_esc;
               }
               break;
             }
@@ -333,7 +333,7 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
   if (fprintf(cfile,
               "cdd_c_error_t %smcp_execute_tool(const char* name, const "
               "char* json_args, "
-              "char** out_result) {\n  (void)json_args;\n  if (out_result) "
+              "char** out_result) {\n  if (!json_args) {}\n  if (out_result) "
               "*out_result = NULL;\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -350,7 +350,7 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                     "    JSON_Object *args_obj = NULL;\n"
                     "    cdd_json_parse_string(json_args, &args_val);\n"
                     "    cdd_json_value_get_object(args_val, &args_obj);\n"
-                    "    (void)args_obj;\n"
+                    "    if (!args_obj) {}\n"
                     "    /* Actual argument parsing logic */\n") < 0)
           rc = CDD_C_ERROR_MEMORY;
         {
@@ -361,7 +361,7 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                         "    const char *arg_%s = NULL;\n"
                         "    cdd_json_object_get_string(args_obj, \"%s\", "
                         "&arg_%s);\n"
-                        "    (void)arg_%s;\n",
+                        "    if (!arg_%s) {}\n",
                         p->name, p->name, p->name, p->name) < 0)
               rc = CDD_C_ERROR_MEMORY;
           }
@@ -797,18 +797,11 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = CDD_C_SUCCESS;
-    {
-      g_cdd_last_alloc_err =
-          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
-                  __LINE__);
-      goto cleanup;
-    }
+    goto cleanup;
   }
   rc = (fprintf(hfile, "#endif /* %s */\n", guard) < 0) ? CDD_C_ERROR_IO
                                                         : CDD_C_SUCCESS;
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = fprintf(
-        stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n", __LINE__);
     goto cleanup;
   }
 

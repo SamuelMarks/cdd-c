@@ -75,7 +75,7 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_path(expr_t *node,
       }
       {
         int is_zero = 0;
-        g_cdd_last_alloc_err = expr_is_null_or_zero(node->args[k], &is_zero);
+        rc_err = expr_is_null_or_zero(node->args[k], &is_zero);
         if (is_zero) {
           rc_err = cdd_cst_bld_int(bld, 0);
           if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)

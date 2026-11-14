@@ -13,11 +13,13 @@
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "classes/parse/cdd_cst_node.h"
+#ifndef CDD_C_TRANSFORMER_ONLY
 #include "functions/parse/analysis.h"
+#include "openapi/parse/openapi.h"
+#endif
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
-#include "openapi/parse/openapi.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -87,9 +89,11 @@ static cdd_c_error_t default_alloc_malloc(size_t size, void **out_ptr) {
        (g_safe_crt_malloc_fail > 0 && --g_safe_crt_malloc_fail == 0) ||
        (g_cdd_fail_url_segment_alloc > 0 &&
         --g_cdd_fail_url_segment_alloc == 0) ||
+#ifndef CDD_C_TRANSFORMER_ONLY
        (size == 8 * sizeof(struct AllocationSite) &&
         g_cdd_analysis_fail_alloc_init > 0 &&
         --g_cdd_analysis_fail_alloc_init == 0) ||
+#endif
        (g_cdd_pp_token_to_string_fail &&
         --g_cdd_pp_token_to_string_fail == 0) ||
        (g_cdd_pp_resolve_path_fail && --g_cdd_pp_resolve_path_fail == 0) ||
@@ -145,14 +149,16 @@ static cdd_c_error_t default_alloc_realloc(void *ptr, size_t new_size,
        (g_cdd_cst_emit_realloc_fail && --g_cdd_cst_emit_realloc_fail == 0) ||
        (g_cdd_fail_url_segment_alloc > 0 &&
         --g_cdd_fail_url_segment_alloc == 0) ||
+#ifndef CDD_C_TRANSFORMER_ONLY
        (new_size % sizeof(struct AllocationSite) == 0 &&
         g_cdd_analysis_fail_alloc_add > 0 &&
         --g_cdd_analysis_fail_alloc_add == 0) ||
-       g_schema_realloc_fail ||
        (new_size % sizeof(struct OpenAPI_Path) == 0 &&
         g_cdd_aggregator_fail_path_realloc) ||
        (new_size % sizeof(struct OpenAPI_Operation) == 0 &&
         g_cdd_aggregator_fail_ops_realloc) ||
+#endif
+       g_schema_realloc_fail ||
        (new_size == 32 * sizeof(char *) && g_safe_crt_malloc_fail > 0 &&
         --g_safe_crt_malloc_fail == 0) ||
        (new_size % sizeof(struct CstNode) == 0 && g_cdd_fail_cst_list_add &&
@@ -387,7 +393,7 @@ cdd_c_error_t c_cdd_do_strdup(const char *s, char **out_str) {
   return g_active_context->allocator.strdup_fn(s, out_str);
 }
 
-/**
+/*
  * @brief Frees a memory block through the active allocator context.
  *
  * @param[in,out] p Pointer to free (or `NULL`).

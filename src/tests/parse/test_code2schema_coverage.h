@@ -593,7 +593,12 @@ TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
             c2s_parse_union_tokens_and_write(utl, &uidx, o, "MyUnion");
         g_parson_fail_at = -1;
         json_set_allocation_functions(malloc, free);
-        g_cdd_last_alloc_err = json_value_free(v);
+        g_cdd_last_alloc_err = cdd_json_value_free(v);
+      }
+      {
+        size_t uidx = 1;
+        g_cdd_last_alloc_err =
+            c2s_parse_union_tokens_and_write(utl, &uidx, NULL, "MyUnion");
       }
       g_cdd_last_alloc_err = free_token_list(utl);
     }
@@ -619,14 +624,14 @@ TEST test_code2schema_cdd_alloc_fail_comprehensive(void) {
     JSON_Value *tv = NULL;
     JSON_Object *to = NULL;
     g_cdd_last_alloc_err = cdd_json_value_init_object(&tv);
-    to = json_value_get_object(tv);
+    g_cdd_last_alloc_err = cdd_json_value_get_object(tv, &to);
     g_cdd_last_alloc_err = c_cdd_strdup("{\"k1\":1}", &dest);
     g_cdd_fail_json_set_value = 1;
     g_cdd_last_alloc_err = c2s_merge_schema_extras_strings(&dest, "{\"k2\":2}");
     g_cdd_fail_json_set_value = 1;
     g_cdd_last_alloc_err = c2s_merge_schema_extras_object(to, "{\"k2\":2}");
     g_cdd_fail_json_set_value = 0;
-    g_cdd_last_alloc_err = json_value_free(tv);
+    g_cdd_last_alloc_err = cdd_json_value_free(tv);
     C_CDD_FREE(dest);
   }
 

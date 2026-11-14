@@ -8,6 +8,8 @@
 /* clang-format off */
 #include "cdd_api.h"
 #include "c_cdd/code_writer.h"
+#include "classes/emit/cli_struct.h"
+#include "classes/parse/inspector.h"
 #include "functions/ffi/cdd_ffi_emit_common.h"
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
@@ -763,6 +765,83 @@ TEST test_cdd_generate_bindings_json(void) {
 }
 
 /**
+ * @brief Verifies round-trip consistency between `cdd_api.h` `@cdd cli(...)`
+ * struct annotations and `src/cdd_api.c` `cdd_type_info` descriptors.
+ * @return Greatest test result.
+ */
+TEST test_cdd_api_cli_reflect_roundtrip(void) {
+  static const char *const candidate_paths[] = {
+      "src/cdd_api.h", "../src/cdd_api.h", "../../src/cdd_api.h"};
+  const struct cdd_type_info *expected_tis[7];
+  const char *header_path = NULL;
+  struct TypeDefList types;
+  size_t p_idx, t_idx, i, k;
+  size_t matched_structs = 0;
+
+  expected_tis[0] = &cdd_from_openapi_config_type_info;
+  expected_tis[1] = &cdd_to_openapi_config_type_info;
+  expected_tis[2] = &cdd_docs_json_config_type_info;
+  expected_tis[3] = &cdd_serve_json_rpc_config_type_info;
+  expected_tis[4] = &cdd_generate_bindings_config_type_info;
+  expected_tis[5] = &cdd_from_arazzo_config_type_info;
+  expected_tis[6] = &cdd_to_arazzo_config_type_info;
+
+  for (p_idx = 0; p_idx < sizeof(candidate_paths) / sizeof(candidate_paths[0]);
+       ++p_idx) {
+    FILE *probe = fopen(candidate_paths[p_idx], "r");
+    if (probe) {
+      fclose(probe);
+      header_path = candidate_paths[p_idx];
+      break;
+    }
+  }
+
+  if (header_path) {
+    ASSERT_EQ(CDD_C_SUCCESS, type_def_list_init(&types));
+    ASSERT_EQ(CDD_C_SUCCESS, c_inspector_scan_file_types(header_path, &types));
+
+    for (t_idx = 0; t_idx < 7; ++t_idx) {
+      const struct cdd_type_info *ti = expected_tis[t_idx];
+      const struct StructFields *sf = NULL;
+      size_t non_pos_count = 0;
+
+      for (i = 0; i < types.size; ++i) {
+        if (types.items[i].kind == KIND_STRUCT && types.items[i].name &&
+            strcmp(types.items[i].name, ti->name) == 0) {
+          sf = types.items[i].details.struct_fields;
+          break;
+        }
+      }
+      ASSERT(sf != NULL);
+      ASSERT_EQ(1, sf->is_cli_command);
+
+      for (k = 0; k < sf->size; ++k) {
+        const struct StructField *parsed_f = &sf->fields[k];
+        const struct cdd_field_info *refl_f = NULL;
+        char refl_short;
+        if (parsed_f->cli_positional)
+          continue;
+        non_pos_count++;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_reflect_find_field(ti, parsed_f->name, &refl_f));
+        ASSERT(refl_f != NULL);
+        ASSERT_STR_EQ(parsed_f->name, refl_f->name);
+        ASSERT_STR_EQ(parsed_f->cli_long, refl_f->wire_name);
+        refl_short = refl_f->de_wire_name ? refl_f->de_wire_name[0] : '\0';
+        ASSERT_EQ((int)parsed_f->cli_short, (int)refl_short);
+      }
+      ASSERT_EQ(non_pos_count, ti->n_fields);
+      matched_structs++;
+    }
+
+    ASSERT_EQ(7, matched_structs);
+    ASSERT_EQ(CDD_C_SUCCESS, type_def_list_free(&types));
+  }
+
+  PASS();
+}
+
+/**
  * @brief Executes the cdd_api_suite test suite.
  */
 SUITE(cdd_api_suite) {
@@ -777,6 +856,7 @@ SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_bindings);
   RUN_TEST(test_cdd_generate_bindings_from_dsl);
   RUN_TEST(test_cdd_generate_bindings_json);
+  RUN_TEST(test_cdd_api_cli_reflect_roundtrip);
 }
 
 #ifdef __cplusplus

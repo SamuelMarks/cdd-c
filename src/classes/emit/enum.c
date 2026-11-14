@@ -399,8 +399,7 @@ cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
           cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
-      g_cdd_last_alloc_err =
-          cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      rc_name = cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
       CHECK_IO(FPRINTF_HOOK(
           fp, "    case %s_%s:\n      *str_out = %s(\"%s\");\n      break;\n",
           enum_name, em->members[i], kStrDupFunc, esc_wname));
@@ -462,8 +461,7 @@ cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
           cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
-      g_cdd_last_alloc_err =
-          cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      rc_name = cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
       if (n_al == 0) {
         CHECK_IO(FPRINTF_HOOK(
             fp, "  else if (strcmp(str, \"%s\") == 0) *val = %s_%s;\n",
@@ -475,8 +473,8 @@ cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
         for (a_idx = 0; a_idx < n_al; ++a_idx) {
           if (em->serde_aliases[i][a_idx]) {
             char esc_al[256];
-            g_cdd_last_alloc_err = cdd_escape_json_c_str(
-                em->serde_aliases[i][a_idx], esc_al, sizeof(esc_al));
+            rc_name = cdd_escape_json_c_str(em->serde_aliases[i][a_idx], esc_al,
+                                            sizeof(esc_al));
             CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(str, \"%s\") == 0", esc_al));
           }
         }
@@ -519,6 +517,7 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
                                       const struct EnumMembers *em,
                                       const struct CodegenEnumConfig *config) {
   size_t i;
+  cdd_c_error_t rc_esc = CDD_C_SUCCESS;
   if (!fp || !enum_name || !em || !em->members)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -534,8 +533,8 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
                             enum_name, em->members[i]));
       for (a_idx = 0; a_idx < n_al; ++a_idx) {
         char esc_al[256];
-        g_cdd_last_alloc_err = cdd_escape_json_c_str(
-            em->serde_aliases[i][a_idx], esc_al, sizeof(esc_al));
+        rc_esc = cdd_escape_json_c_str(em->serde_aliases[i][a_idx], esc_al,
+                                       sizeof(esc_al));
         CHECK_IO(FPRINTF_HOOK(fp, "\"%s\"%s", esc_al,
                               (a_idx + 1 < n_al) ? ", " : " };\n"));
       }
@@ -560,8 +559,7 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
           cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
-      g_cdd_last_alloc_err =
-          cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      rc_name = cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
       if (n_al > 0) {
         CDD_SNPRINTF(al_ref, sizeof(al_ref), "%s_%s_aliases", enum_name,
                      em->members[i]);
@@ -612,5 +610,5 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
   }
   CHECK_IO(FPRINTF_HOOK(fp, "\n"));
 
-  return CDD_C_SUCCESS;
+  return rc_esc;
 }

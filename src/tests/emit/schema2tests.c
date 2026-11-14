@@ -90,6 +90,8 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 #include <string.h>
 
 #include "c_cdd/json_dom.h"
+#include "c_cdd/reflect.h"
+#include "classes/emit/cli_struct.h"
 
 #include "functions/parse/fs.h"
 
@@ -337,18 +339,187 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
   return 0;
 }
 
+/**
+ * @brief CLI configuration for `jsonschema2tests_main`.
+ */
+struct cdd_schema2tests_config {
+  /** @brief Input JSON Schema file path. */
+  const char *schema_file;
+  /** @brief Header file under test. */
+  const char *header_to_test;
+  /** @brief Output test header file path. */
+  const char *output_file;
+};
+
+/** @brief Reflected fields for `cdd_schema2tests_config`. */
+static const struct cdd_field_info g_cdd_schema2tests_config_fields[] = {
+    {"schema_file",
+     "schema_file",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_schema2tests_config, schema_file),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"header_to_test",
+     "header_to_test",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_schema2tests_config, header_to_test),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0},
+    {"output_file",
+     "output_file",
+     "const char *",
+     NULL,
+     CDD_FIELD_KIND_STRING,
+     offsetof(struct cdd_schema2tests_config, output_file),
+     sizeof(const char *),
+     0,
+     0,
+     1,
+     0,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     NULL,
+     NULL,
+     0,
+     CDD_FIELD_KIND_UNKNOWN,
+     NULL,
+     0,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0.0,
+     0,
+     0.0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0}};
+
+/** @brief Reflected type descriptor for `cdd_schema2tests_config`. */
+static const struct cdd_type_info g_cdd_schema2tests_config_type_info = {
+    "cdd_schema2tests_config",
+    sizeof(struct cdd_schema2tests_config),
+    0,
+    g_cdd_schema2tests_config_fields,
+    sizeof(g_cdd_schema2tests_config_fields) /
+        sizeof(g_cdd_schema2tests_config_fields[0]),
+    0};
+
 /* Main function: load JSON schema and generate tests source */
 C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
-  if (argc != 3) {
+  struct cdd_schema2tests_config cfg;
+  int first_unk = -1;
+  memset(&cfg, 0, sizeof(cfg));
+  if (argc == 3 && argv && argv[0] && argv[1] && argv[2]) {
+    g_cdd_last_alloc_err = cdd_cli_parse_reflected_argv(
+        argc, argv, 0, &g_cdd_schema2tests_config_type_info, &cfg, NULL,
+        &first_unk);
+    if (!cfg.schema_file)
+      cfg.schema_file = argv[0];
+    if (!cfg.header_to_test)
+      cfg.header_to_test = argv[1];
+    if (!cfg.output_file)
+      cfg.output_file = argv[2];
+  }
+  if (argc != 3 || !cfg.schema_file || !cfg.header_to_test ||
+      !cfg.output_file) {
     fprintf(stderr, "Usage: jsonschema2tests <schema.json> <header_to_test.h> "
                     "<output-test.h>\n");
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   {
-    const char *const schema_file = argv[0];
-    const char *const header_to_test = argv[1];
-    const char *const output_file = argv[2];
+    const char *const schema_file = cfg.schema_file;
+    const char *const header_to_test = cfg.header_to_test;
+    const char *const output_file = cfg.output_file;
 
     JSON_Value *root_val = NULL;
     JSON_Object *root_obj = NULL;

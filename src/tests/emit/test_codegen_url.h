@@ -522,7 +522,7 @@ TEST test_query_gen_querystring_json_primitive(void) {
   run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (json primitive)") != NULL);
-  ASSERT(strstr(code, "json_value_init_number") != NULL);
+  ASSERT(strstr(code, "cdd_json_value_init_number") != NULL);
   ASSERT(strstr(code, "url_encode(qs_json, &qs_enc)") != NULL);
 
   free(code);
@@ -559,8 +559,8 @@ TEST test_query_gen_querystring_json_array(void) {
   run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (json array)") != NULL);
-  ASSERT(strstr(code, "json_value_init_array") != NULL);
-  ASSERT(strstr(code, "json_array_append_string") != NULL);
+  ASSERT(strstr(code, "cdd_json_value_init_array") != NULL);
+  ASSERT(strstr(code, "cdd_json_array_append_string") != NULL);
 
   free(code);
   g_fail_io_after = -1;
@@ -597,8 +597,8 @@ TEST test_query_gen_querystring_json_array_object(void) {
 
   ASSERT(strstr(code, "Querystring Parameter (json array objects)") != NULL);
   ASSERT(strstr(code, "Pet_to_json") != NULL);
-  ASSERT(strstr(code, "json_parse_string(item_json)") != NULL);
-  ASSERT(strstr(code, "json_array_append_value") != NULL);
+  ASSERT(strstr(code, "cdd_json_parse_string(item_json, &item_val)") != NULL);
+  ASSERT(strstr(code, "cdd_json_array_append_value") != NULL);
 
   free(code);
   g_fail_io_after = -1;

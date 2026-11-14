@@ -171,30 +171,22 @@ cdd_c_error_t cdd_reflect_visit_fields_mut(void *obj,
 cdd_c_error_t
 cdd_reflect_resolve_field_scalar_width(const struct cdd_field_info *field,
                                        size_t *out_width, int *out_unsigned) {
-  const char *ct = field->c_type;
+  const char *ct = field->c_type ? field->c_type : "";
   size_t w = field->size;
   int is_u = 0;
 
-  if (ct && ct[0] == 'u') {
+  if (strstr(ct, "uint") != NULL || strstr(ct, "unsigned") != NULL) {
     is_u = 1;
   }
   if (field->is_pointer) {
     if (field->elem_size > 0) {
       w = field->elem_size;
-    } else if (ct) {
-      if (strstr(ct, "int8") != NULL || strstr(ct, "char") != NULL) {
-        w = 1;
-      } else if (strstr(ct, "int16") != NULL || strstr(ct, "short") != NULL) {
-        w = 2;
-      } else if (strstr(ct, "int64") != NULL || strstr(ct, "double") != NULL) {
-        w = 8;
-      } else if (strstr(ct, "size_t") != NULL) {
-        w = sizeof(size_t);
-      } else if (strstr(ct, "float") != NULL) {
-        w = sizeof(float);
-      } else {
-        w = sizeof(int);
-      }
+    } else if (strstr(ct, "int8") != NULL || strstr(ct, "char") != NULL) {
+      w = 1;
+    } else if (strstr(ct, "int16") != NULL || strstr(ct, "short") != NULL) {
+      w = 2;
+    } else if (strstr(ct, "int64") != NULL || strstr(ct, "double") != NULL) {
+      w = 8;
     } else {
       w = sizeof(int);
     }

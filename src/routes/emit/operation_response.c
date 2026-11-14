@@ -84,28 +84,27 @@ cdd_c_error_t parse_link_params_json(const char *json,
   if (!json || !out || !out_count)
     return CDD_C_SUCCESS;
 
-  g_cdd_last_alloc_err = cdd_json_parse_string(json, &val);
+  rc = cdd_json_parse_string(json, &val);
   if (!val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err = cdd_json_value_get_type(val, &vtype);
+  rc = cdd_json_value_get_type(val, &vtype);
   if (vtype != JSONObject) {
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+    return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
+                           (int)cdd_json_value_free(val));
   }
 
-  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
-  g_cdd_last_alloc_err = cdd_json_object_get_count(obj, &count);
+  rc = cdd_json_value_get_object(val, &obj);
+  rc = cdd_json_object_get_count(obj, &count);
   if (count == 0) {
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
-    return CDD_C_SUCCESS;
+    return cdd_json_value_free(val);
   }
 
   *out = (struct OpenAPI_LinkParam *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_LinkParam));
   if (!*out) {
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
-    return CDD_C_ERROR_MEMORY;
+    return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                           (int)cdd_json_value_free(val));
   }
   *out_count = count;
 
@@ -114,37 +113,38 @@ cdd_c_error_t parse_link_params_json(const char *json,
     JSON_Value *v = NULL;
     struct OpenAPI_LinkParam *lp = &(*out)[i];
 
-    g_cdd_last_alloc_err = cdd_json_object_get_name(obj, i, &name);
-    g_cdd_last_alloc_err = cdd_json_object_get_value_at(obj, i, &v);
+    rc = cdd_json_object_get_name(obj, i, &name);
+    rc = cdd_json_object_get_value_at(obj, i, &v);
 
     rc = c_cdd_strdup(name, &lp->name);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(val));
       goto cleanup;
     }
     rc = any_from_json_value(v, &lp->value);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
+      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(val));
       goto cleanup;
     }
   }
 
-  g_cdd_last_alloc_err = cdd_json_value_free(val);
-  return CDD_C_SUCCESS;
+  return cdd_json_value_free(val);
 
 cleanup: {
   size_t j;
+  cdd_c_error_t rc_free = CDD_C_ERROR_MEMORY;
   for (j = 0; j < count; ++j) {
     struct OpenAPI_LinkParam *lp = &(*out)[j];
     if (lp->name)
       C_CDD_FREE(lp->name);
-    g_cdd_last_alloc_err = free_any_value_local(&lp->value);
+    rc_free =
+        (cdd_c_error_t)((int)rc_free | (int)free_any_value_local(&lp->value));
   }
   C_CDD_FREE(*out);
-}
   *out = NULL;
   *out_count = 0;
-  return CDD_C_ERROR_MEMORY;
+  return rc_free;
+}
 }
 
 /**
@@ -207,19 +207,16 @@ cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
       return rc;
     if (content_type) {
       struct OpenAPI_MediaType *mt = NULL;
-      g_cdd_last_alloc_err =
-          find_media_type_op(resp->content_media_types,
-                             resp->n_content_media_types, content_type, &mt);
+      rc = find_media_type_op(resp->content_media_types,
+                              resp->n_content_media_types, content_type, &mt);
       if (mt && !mt->example_set) {
         rc = copy_any_value_local(&mt->example, &parsed);
         if (rc != CDD_C_SUCCESS) {
-          g_cdd_last_alloc_err = free_any_value_local(&parsed);
-          return rc;
+          return (cdd_c_error_t)((int)rc | (int)free_any_value_local(&parsed));
         }
         mt->example_set = 1;
       }
-      g_cdd_last_alloc_err = free_any_value_local(&parsed);
-      return CDD_C_SUCCESS;
+      return free_any_value_local(&parsed);
     }
     for (i = 0; i < resp->n_content_media_types; ++i) {
       struct OpenAPI_MediaType *mt = &resp->content_media_types[i];
@@ -227,13 +224,11 @@ cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
         continue;
       rc = copy_any_value_local(&mt->example, &parsed);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = free_any_value_local(&parsed);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)free_any_value_local(&parsed));
       }
       mt->example_set = 1;
     }
-    g_cdd_last_alloc_err = free_any_value_local(&parsed);
-    return CDD_C_SUCCESS;
+    return free_any_value_local(&parsed);
   }
 
   if (resp->example_set)
@@ -443,21 +438,21 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
   if (dh->description) {
     rc = c_cdd_strdup(dh->description, &hdr->description);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_header_fields(hdr);
+      rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
       resp->n_headers--;
       return rc;
     }
   }
   rc = c_cdd_strdup(dh->type ? dh->type : "string", &hdr->type);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_header_fields(hdr);
+    rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
     resp->n_headers--;
     return rc;
   }
   if (dh->content_type) {
     rc = c_cdd_strdup(dh->content_type, &hdr->content_type);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_header_fields(hdr);
+      rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
       resp->n_headers--;
       return rc;
     }
@@ -465,7 +460,7 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
   if (dh->collection_format) {
     rc = c_cdd_strdup(dh->collection_format, &hdr->collection_format);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_header_fields(hdr);
+      rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
       resp->n_headers--;
       return rc;
     }
@@ -474,13 +469,13 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
     hdr->schema_set = 1;
     rc = c_cdd_strdup(hdr->type, &hdr->schema.inline_type);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_header_fields(hdr);
+      rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
       resp->n_headers--;
       return rc;
     }
     rc = c_cdd_strdup(dh->format, &hdr->schema.format);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_header_fields(hdr);
+      rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
       resp->n_headers--;
       return rc;
     }
@@ -490,7 +485,7 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
   if (dh->example) {
     rc = parse_example_any(dh->example, &hdr->example);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = free_header_fields(hdr);
+      rc = (cdd_c_error_t)((int)rc | (int)free_header_fields(hdr));
       resp->n_headers--;
       return rc;
     }
@@ -508,6 +503,7 @@ cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
 cdd_c_error_t cleanup_link_fields(struct OpenAPI_Link *link) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!link)
     return CDD_C_SUCCESS;
   if (link->parameters) {
@@ -515,7 +511,8 @@ cdd_c_error_t cleanup_link_fields(struct OpenAPI_Link *link) {
     for (p = 0; p < link->n_parameters; ++p) {
       if (link->parameters[p].name)
         C_CDD_FREE(link->parameters[p].name);
-      g_cdd_last_alloc_err = free_any_value_local(&link->parameters[p].value);
+      rc = (cdd_c_error_t)((int)rc | (int)free_any_value_local(
+                                         &link->parameters[p].value));
     }
     C_CDD_FREE(link->parameters);
     link->parameters = NULL;
@@ -552,7 +549,7 @@ cdd_c_error_t cleanup_link_fields(struct OpenAPI_Link *link) {
     C_CDD_FREE(link->name);
     link->name = NULL;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -604,44 +601,38 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
   if (dl->summary) {
     rc = c_cdd_strdup(dl->summary, &link->summary);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
   }
   if (dl->description) {
     rc = c_cdd_strdup(dl->description, &link->description);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
   }
   if (dl->operation_id) {
     rc = c_cdd_strdup(dl->operation_id, &link->operation_id);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
   }
   if (dl->operation_ref) {
     rc = c_cdd_strdup(dl->operation_ref, &link->operation_ref);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
   }
   if (dl->parameters_json) {
     rc = parse_link_params_json(dl->parameters_json, &link->parameters,
                                 &link->n_parameters);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
   }
   if (dl->request_body_json) {
     rc = parse_example_any(dl->request_body_json, &link->request_body);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
     link->request_body_set = 1;
   }
@@ -649,27 +640,24 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
     link->server =
         (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(*link->server));
     if (!link->server) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return CDD_C_ERROR_MEMORY;
+      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
+                             (int)cleanup_link_fields(link));
     }
     link->server_set = 1;
     rc = c_cdd_strdup(dl->server_url, &link->server->url);
     if (rc != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cleanup_link_fields(link);
-      return rc;
+      return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
     }
     if (dl->server_name) {
       rc = c_cdd_strdup(dl->server_name, &link->server->name);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = cleanup_link_fields(link);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
       }
     }
     if (dl->server_description) {
       rc = c_cdd_strdup(dl->server_description, &link->server->description);
       if (rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = cleanup_link_fields(link);
-        return rc;
+        return (cdd_c_error_t)((int)rc | (int)cleanup_link_fields(link));
       }
     }
   }
@@ -735,7 +723,7 @@ cdd_c_error_t init_media_type_from_response(struct OpenAPI_MediaType *mt,
   rc = c_cdd_strdup(name, &mt->name);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  g_cdd_last_alloc_err = schema_ref_has_data_basic(&resp->schema, &has_data);
+  rc = schema_ref_has_data_basic(&resp->schema, &has_data);
   if (has_data) {
     if (is_item_schema) {
       rc = copy_schema_ref_basic(&mt->item_schema, &resp->schema);
@@ -771,6 +759,7 @@ cdd_c_error_t add_response_media_type(struct OpenAPI_Response *resp,
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
   int _has_mt = 0;
+  cdd_c_error_t rc;
 
   if (!resp || !name || !*name)
     return CDD_C_SUCCESS;
@@ -793,9 +782,9 @@ cdd_c_error_t add_response_media_type(struct OpenAPI_Response *resp,
     }
   }
 
-  g_cdd_last_alloc_err = response_has_media_type(resp, name, &_has_mt);
+  rc = response_has_media_type(resp, name, &_has_mt);
   if (_has_mt)
-    return CDD_C_SUCCESS;
+    return rc;
 
   new_count = resp->n_content_media_types + 1;
   new_mts = (struct OpenAPI_MediaType *)C_CDD_REALLOC(

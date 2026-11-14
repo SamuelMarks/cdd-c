@@ -194,8 +194,8 @@ cdd_c_error_t free_param_fields(struct OpenAPI_Parameter *p) {
     p->schema.items_content_encoding = NULL;
   }
   if (p->example_set) {
-    g_cdd_last_alloc_err = free_any_value_local(&p->example);
     p->example_set = 0;
+    return free_any_value_local(&p->example);
   }
   return CDD_C_SUCCESS;
 }
@@ -293,9 +293,9 @@ cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
     return CDD_C_SUCCESS;
   if (!map->oa_type)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = oa_type_is_primitive(map->oa_type, &is_prim);
+  rc = oa_type_is_primitive(map->oa_type, &is_prim);
   if (!is_prim)
-    return CDD_C_SUCCESS;
+    return rc;
 
   if (map->kind == OA_TYPE_ARRAY) {
     schema->is_array = 1;

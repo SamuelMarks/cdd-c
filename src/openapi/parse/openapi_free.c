@@ -65,6 +65,7 @@ cdd_c_error_t openapi_free_servers_array(struct OpenAPI_Server *servers,
  */
 cdd_c_error_t free_path_item(struct OpenAPI_Path *p) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!p)
     return CDD_C_SUCCESS;
   if (p->route)
@@ -79,29 +80,29 @@ cdd_c_error_t free_path_item(struct OpenAPI_Path *p) {
     C_CDD_FREE(p->extensions_json);
   if (p->parameters) {
     for (i = 0; i < p->n_parameters; ++i) {
-      g_cdd_last_alloc_err = free_parameter(&p->parameters[i]);
+      rc = free_parameter(&p->parameters[i]);
     }
     C_CDD_FREE(p->parameters);
   }
   if (p->servers) {
-    g_cdd_last_alloc_err = openapi_free_servers_array(p->servers, p->n_servers);
+    rc = openapi_free_servers_array(p->servers, p->n_servers);
     p->servers = NULL;
     p->n_servers = 0;
   }
   if (p->operations) {
     for (i = 0; i < p->n_operations; ++i) {
-      g_cdd_last_alloc_err = free_operation(&p->operations[i]);
+      rc = free_operation(&p->operations[i]);
     }
     C_CDD_FREE(p->operations);
   }
   if (p->additional_operations) {
     for (i = 0; i < p->n_additional_operations; ++i) {
-      g_cdd_last_alloc_err = free_operation(&p->additional_operations[i]);
+      rc = free_operation(&p->additional_operations[i]);
     }
     C_CDD_FREE(p->additional_operations);
   }
   memset(p, 0, sizeof(*p));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -112,6 +113,7 @@ cdd_c_error_t free_path_item(struct OpenAPI_Path *p) {
  */
 cdd_c_error_t free_callback(struct OpenAPI_Callback *cb) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!cb)
     return CDD_C_SUCCESS;
   if (cb->name)
@@ -126,12 +128,12 @@ cdd_c_error_t free_callback(struct OpenAPI_Callback *cb) {
     C_CDD_FREE(cb->extensions_json);
   if (cb->paths) {
     for (i = 0; i < cb->n_paths; ++i) {
-      g_cdd_last_alloc_err = free_path_item(&cb->paths[i]);
+      rc = free_path_item(&cb->paths[i]);
     }
     C_CDD_FREE(cb->paths);
   }
   memset(cb, 0, sizeof(*cb));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -142,6 +144,7 @@ cdd_c_error_t free_callback(struct OpenAPI_Callback *cb) {
  */
 cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!op)
     return CDD_C_SUCCESS;
   if (op->method)
@@ -165,10 +168,10 @@ cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
     C_CDD_FREE(op->tags);
   }
 
-  g_cdd_last_alloc_err = free_schema_ref_content(&op->req_body);
+  rc = free_schema_ref_content(&op->req_body);
   if (op->req_body_media_types) {
     for (i = 0; i < op->n_req_body_media_types; ++i) {
-      g_cdd_last_alloc_err = free_media_type(&op->req_body_media_types[i]);
+      rc = free_media_type(&op->req_body_media_types[i]);
     }
     C_CDD_FREE(op->req_body_media_types);
     op->req_body_media_types = NULL;
@@ -188,29 +191,28 @@ cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
     C_CDD_FREE(op->external_docs.extensions_json);
 
   if (op->servers) {
-    g_cdd_last_alloc_err =
-        openapi_free_servers_array(op->servers, op->n_servers);
+    rc = openapi_free_servers_array(op->servers, op->n_servers);
     op->servers = NULL;
     op->n_servers = 0;
   }
 
   if (op->parameters) {
     for (i = 0; i < op->n_parameters; ++i) {
-      g_cdd_last_alloc_err = free_parameter(&op->parameters[i]);
+      rc = free_parameter(&op->parameters[i]);
     }
     C_CDD_FREE(op->parameters);
   }
 
   if (op->responses) {
     for (i = 0; i < op->n_responses; ++i) {
-      g_cdd_last_alloc_err = free_response(&op->responses[i]);
+      rc = free_response(&op->responses[i]);
     }
     C_CDD_FREE(op->responses);
   }
 
   if (op->callbacks) {
     for (i = 0; i < op->n_callbacks; ++i) {
-      g_cdd_last_alloc_err = free_callback(&op->callbacks[i]);
+      rc = free_callback(&op->callbacks[i]);
     }
     C_CDD_FREE(op->callbacks);
     op->callbacks = NULL;
@@ -219,7 +221,7 @@ cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
 
   if (op->security) {
     for (i = 0; i < op->n_security; ++i) {
-      g_cdd_last_alloc_err = free_security_requirement_set(&op->security[i]);
+      rc = free_security_requirement_set(&op->security[i]);
     }
     C_CDD_FREE(op->security);
     op->security = NULL;
@@ -227,7 +229,7 @@ cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
     op->security_set = 0;
   }
   memset(op, 0, sizeof(*op));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -237,6 +239,7 @@ cdd_c_error_t free_operation(struct OpenAPI_Operation *op) {
  */
 cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!spec)
     return CDD_C_SUCCESS;
 
@@ -250,9 +253,9 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   }
   C_CDD_FREE(spec->host);
   C_CDD_FREE(spec->basePath);
-  g_cdd_last_alloc_err = free_string_array(spec->schemes, spec->n_schemes);
-  g_cdd_last_alloc_err = free_string_array(spec->consumes, spec->n_consumes);
-  g_cdd_last_alloc_err = free_string_array(spec->produces, spec->n_produces);
+  rc = free_string_array(spec->schemes, spec->n_schemes);
+  rc = free_string_array(spec->consumes, spec->n_consumes);
+  rc = free_string_array(spec->produces, spec->n_produces);
   if (spec->schema_root_json) {
     C_CDD_FREE(spec->schema_root_json);
     spec->schema_root_json = NULL;
@@ -364,7 +367,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
 
   if (spec->security) {
     for (i = 0; i < spec->n_security; ++i) {
-      g_cdd_last_alloc_err = free_security_requirement_set(&spec->security[i]);
+      rc = free_security_requirement_set(&spec->security[i]);
     }
     C_CDD_FREE(spec->security);
     spec->security = NULL;
@@ -373,15 +376,14 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   }
 
   if (spec->servers) {
-    g_cdd_last_alloc_err =
-        openapi_free_servers_array(spec->servers, spec->n_servers);
+    rc = openapi_free_servers_array(spec->servers, spec->n_servers);
     spec->servers = NULL;
     spec->n_servers = 0;
   }
 
   if (spec->paths) {
     for (i = 0; i < spec->n_paths; ++i) {
-      g_cdd_last_alloc_err = free_path_item(&spec->paths[i]);
+      rc = free_path_item(&spec->paths[i]);
     }
     C_CDD_FREE(spec->paths);
     spec->paths = NULL;
@@ -389,7 +391,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
 
   if (spec->webhooks) {
     for (i = 0; i < spec->n_webhooks; ++i) {
-      g_cdd_last_alloc_err = free_path_item(&spec->webhooks[i]);
+      rc = free_path_item(&spec->webhooks[i]);
     }
     C_CDD_FREE(spec->webhooks);
     spec->webhooks = NULL;
@@ -397,7 +399,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
 
   if (spec->component_path_items) {
     for (i = 0; i < spec->n_component_path_items; ++i) {
-      g_cdd_last_alloc_err = free_path_item(&spec->component_path_items[i]);
+      rc = free_path_item(&spec->component_path_items[i]);
       if (spec->component_path_item_names)
         C_CDD_FREE(spec->component_path_item_names[i]);
     }
@@ -462,7 +464,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_parameters || spec->component_parameter_names) {
     for (i = 0; i < spec->n_component_parameters; ++i) {
       if (spec->component_parameters)
-        g_cdd_last_alloc_err = free_parameter(&spec->component_parameters[i]);
+        rc = free_parameter(&spec->component_parameters[i]);
       if (spec->component_parameter_names)
         C_CDD_FREE(spec->component_parameter_names[i]);
     }
@@ -476,7 +478,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_responses || spec->component_response_names) {
     for (i = 0; i < spec->n_component_responses; ++i) {
       if (spec->component_responses)
-        g_cdd_last_alloc_err = free_response(&spec->component_responses[i]);
+        rc = free_response(&spec->component_responses[i]);
       if (spec->component_response_names)
         C_CDD_FREE(spec->component_response_names[i]);
     }
@@ -490,7 +492,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_headers || spec->component_header_names) {
     for (i = 0; i < spec->n_component_headers; ++i) {
       if (spec->component_headers)
-        g_cdd_last_alloc_err = free_header(&spec->component_headers[i]);
+        rc = free_header(&spec->component_headers[i]);
       if (spec->component_header_names)
         C_CDD_FREE(spec->component_header_names[i]);
     }
@@ -504,8 +506,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_request_bodies || spec->component_request_body_names) {
     for (i = 0; i < spec->n_component_request_bodies; ++i) {
       if (spec->component_request_bodies)
-        g_cdd_last_alloc_err =
-            free_request_body(&spec->component_request_bodies[i]);
+        rc = free_request_body(&spec->component_request_bodies[i]);
       if (spec->component_request_body_names)
         C_CDD_FREE(spec->component_request_body_names[i]);
     }
@@ -520,7 +521,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
     for (i = 0; i < spec->n_component_media_types; ++i) {
       if (spec->component_media_types) {
         struct OpenAPI_MediaType *mt = &spec->component_media_types[i];
-        g_cdd_last_alloc_err = free_media_type(mt);
+        rc = free_media_type(mt);
       }
       if (spec->component_media_type_names)
         C_CDD_FREE(spec->component_media_type_names[i]);
@@ -535,7 +536,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   if (spec->component_examples || spec->component_example_names) {
     for (i = 0; i < spec->n_component_examples; ++i) {
       if (spec->component_examples)
-        g_cdd_last_alloc_err = free_example(&spec->component_examples[i]);
+        rc = free_example(&spec->component_examples[i]);
       if (spec->component_example_names)
         C_CDD_FREE(spec->component_example_names[i]);
     }
@@ -548,7 +549,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
 
   if (spec->component_links) {
     for (i = 0; i < spec->n_component_links; ++i) {
-      g_cdd_last_alloc_err = free_link(&spec->component_links[i]);
+      rc = free_link(&spec->component_links[i]);
     }
     C_CDD_FREE(spec->component_links);
     spec->component_links = NULL;
@@ -557,7 +558,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
 
   if (spec->component_callbacks) {
     for (i = 0; i < spec->n_component_callbacks; ++i) {
-      g_cdd_last_alloc_err = free_callback(&spec->component_callbacks[i]);
+      rc = free_callback(&spec->component_callbacks[i]);
     }
     C_CDD_FREE(spec->component_callbacks);
     spec->component_callbacks = NULL;
@@ -583,7 +584,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
       spec->defined_schema_dynamic_anchors) {
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       if (spec->defined_schemas)
-        g_cdd_last_alloc_err = struct_fields_free(&spec->defined_schemas[i]);
+        rc = struct_fields_free(&spec->defined_schemas[i]);
       if (spec->defined_schema_names)
         C_CDD_FREE(spec->defined_schema_names[i]);
       if (spec->defined_schema_ids)
@@ -622,7 +623,7 @@ cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec) {
   spec->n_security = 0;
   spec->security_set = 0;
   memset(spec, 0, sizeof(*spec));
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**

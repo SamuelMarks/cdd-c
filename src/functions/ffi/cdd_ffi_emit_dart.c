@@ -169,6 +169,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   size_t i, j;
   const char *lib_name =
       (config->library_name) ? config->library_name : "mylib";
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.dart", config->output_dir,
@@ -198,7 +199,8 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "final class %s extends Struct {\n", node->name);
@@ -208,9 +210,12 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
         const char *ntype = NULL;
-        g_cdd_last_alloc_err = get_dart_ffi_type(node->fields[j].type, &ftype);
-        g_cdd_last_alloc_err =
-            get_dart_native_type(node->fields[j].type, &ntype);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)get_dart_ffi_type(
+                                               node->fields[j].type, &ftype));
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)get_dart_native_type(
+                                               node->fields[j].type, &ntype));
 
         fprintf(f, "  @%s()\n", ftype);
         fprintf(f, "  external %s %s;\n", ntype, fname);
@@ -229,14 +234,17 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ftype = NULL;
       const char *ret_ntype = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       if (node->doc)
         fprintf(f, "  /// %s\n", node->doc);
 
-      g_cdd_last_alloc_err =
-          get_dart_ffi_type(node->return_or_base_type, &ret_ftype);
-      g_cdd_last_alloc_err =
-          get_dart_native_type(node->return_or_base_type, &ret_ntype);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)get_dart_ffi_type(
+                                    node->return_or_base_type, &ret_ftype));
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)get_dart_native_type(
+                                    node->return_or_base_type, &ret_ntype));
 
       /* Typedefs for lookup */
       fprintf(f, "  late final _%sPtr = _dylib.lookup<NativeFunction<\n",
@@ -244,7 +252,9 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "      %s Function(", ret_ftype);
       for (j = 0; j < node->fields_count; j++) {
         const char *ft = NULL;
-        g_cdd_last_alloc_err = get_dart_ffi_type(node->fields[j].type, &ft);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)get_dart_ffi_type(node->fields[j].type, &ft));
         fprintf(f, "%s", ft);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -256,7 +266,9 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "      %s Function(", ret_ntype);
       for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
-        g_cdd_last_alloc_err = get_dart_native_type(node->fields[j].type, &nt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)get_dart_native_type(
+                                               node->fields[j].type, &nt));
         fprintf(f, "%s", nt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -273,7 +285,9 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "clazz";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
-        g_cdd_last_alloc_err = get_dart_native_type(node->fields[j].type, &nt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit | (int)get_dart_native_type(
+                                               node->fields[j].type, &nt));
         fprintf(f, "%s %s", nt, arg_name);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -299,7 +313,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
   fprintf(f, "}\n");
   fclose(f);
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }
 
 /*

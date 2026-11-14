@@ -23,6 +23,7 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
   char buf[256];
   int bval;
   double nval;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   def = field->default_val;
@@ -31,31 +32,31 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
   typ = field->type;
 
   if (strcmp(def, "nullptr") == 0) {
-    g_cdd_last_alloc_err = cdd_json_object_set_null(pobj, "default");
-    return CDD_C_SUCCESS;
+    rc = cdd_json_object_set_null(pobj, "default");
+    return rc;
   }
 
   if (strcmp(typ, "string") == 0) {
     const char *s = NULL;
-    g_cdd_last_alloc_err = c2s_strip_quotes(def, buf, sizeof(buf), &s);
-    g_cdd_last_alloc_err = cdd_json_object_set_string(pobj, "default", s);
-    return CDD_C_SUCCESS;
+    rc = c2s_strip_quotes(def, buf, sizeof(buf), &s);
+    rc = cdd_json_object_set_string(pobj, "default", s);
+    return rc;
   }
 
   if (strcmp(typ, "boolean") == 0) {
     int has_bval = 0;
-    g_cdd_last_alloc_err = c2s_parse_bool_default(def, &bval, &has_bval);
+    rc = c2s_parse_bool_default(def, &bval, &has_bval);
     if (has_bval)
-      g_cdd_last_alloc_err = cdd_json_object_set_boolean(pobj, "default", bval);
-    return CDD_C_SUCCESS;
+      rc = cdd_json_object_set_boolean(pobj, "default", bval);
+    return rc;
   }
 
   if (strcmp(typ, "integer") == 0 || strcmp(typ, "number") == 0) {
     int has_nval = 0;
-    g_cdd_last_alloc_err = c2s_parse_number_default(def, &nval, &has_nval);
+    rc = c2s_parse_number_default(def, &nval, &has_nval);
     if (has_nval)
-      g_cdd_last_alloc_err = cdd_json_object_set_number(pobj, "default", nval);
-    return CDD_C_SUCCESS;
+      rc = cdd_json_object_set_number(pobj, "default", nval);
+    return rc;
   }
   return CDD_C_SUCCESS;
 }
@@ -70,6 +71,7 @@ cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
  */
 cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
                                             const struct StructField *field) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || !(strcmp(field->type, "integer") == 0 ||
@@ -77,21 +79,17 @@ cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
     return CDD_C_SUCCESS;
   if (field->has_min) {
     if (field->exclusive_min)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_number(pobj, "exclusiveMinimum", field->min_val);
+      rc = cdd_json_object_set_number(pobj, "exclusiveMinimum", field->min_val);
     else
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_number(pobj, "minimum", field->min_val);
+      rc = cdd_json_object_set_number(pobj, "minimum", field->min_val);
   }
   if (field->has_max) {
     if (field->exclusive_max)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_number(pobj, "exclusiveMaximum", field->max_val);
+      rc = cdd_json_object_set_number(pobj, "exclusiveMaximum", field->max_val);
     else
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_number(pobj, "maximum", field->max_val);
+      rc = cdd_json_object_set_number(pobj, "maximum", field->max_val);
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /*
@@ -104,20 +102,18 @@ cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
  */
 cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
                                            const struct StructField *field) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || strcmp(field->type, "string") != 0)
     return CDD_C_SUCCESS;
   if (field->has_min_len)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_number(pobj, "minLength", (double)field->min_len);
+    rc = cdd_json_object_set_number(pobj, "minLength", (double)field->min_len);
   if (field->has_max_len)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_number(pobj, "maxLength", (double)field->max_len);
+    rc = cdd_json_object_set_number(pobj, "maxLength", (double)field->max_len);
   if (field->pattern[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(pobj, "pattern", field->pattern);
-  return CDD_C_SUCCESS;
+    rc = cdd_json_object_set_string(pobj, "pattern", field->pattern);
+  return rc;
 }
 
 /*
@@ -130,19 +126,18 @@ cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
  */
 cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
                                           const struct StructField *field) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || strcmp(field->type, "array") != 0)
     return CDD_C_SUCCESS;
   if (field->has_min_items)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_number(pobj, "minItems", (double)field->min_items);
+    rc = cdd_json_object_set_number(pobj, "minItems", (double)field->min_items);
   if (field->has_max_items)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_number(pobj, "maxItems", (double)field->max_items);
+    rc = cdd_json_object_set_number(pobj, "maxItems", (double)field->max_items);
   if (field->unique_items)
-    g_cdd_last_alloc_err = cdd_json_object_set_boolean(pobj, "uniqueItems", 1);
-  return CDD_C_SUCCESS;
+    rc = cdd_json_object_set_boolean(pobj, "uniqueItems", 1);
+  return rc;
 }
 
 /*
@@ -159,27 +154,28 @@ cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
   size_t i;
   JSON_Value *arr_val = NULL;
   JSON_Array *arr = NULL;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!obj)
     return CDD_C_SUCCESS;
 
   if (type_union) {
-    g_cdd_last_alloc_err = cdd_json_value_init_array(&arr_val);
+    rc = cdd_json_value_init_array(&arr_val);
     if (!arr_val)
       return CDD_C_SUCCESS;
-    g_cdd_last_alloc_err = cdd_json_value_get_array(arr_val, &arr);
+    rc = cdd_json_value_get_array(arr_val, &arr);
     for (i = 0; i < n_type_union; ++i) {
       if (type_union[i])
-        g_cdd_last_alloc_err = cdd_json_array_append_string(arr, type_union[i]);
+        rc = cdd_json_array_append_string(arr, type_union[i]);
     }
     if (cdd_json_object_set_value(obj, "type", arr_val) != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(arr_val);
+      rc = cdd_json_value_free(arr_val);
     }
-    return CDD_C_SUCCESS;
+    return rc;
   }
 
   if (type)
-    g_cdd_last_alloc_err = cdd_json_object_set_string(obj, "type", type);
-  return CDD_C_SUCCESS;
+    rc = cdd_json_object_set_string(obj, "type", type);
+  return rc;
 }
 
 /*
@@ -201,26 +197,25 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
   JSON_Array *req_arr = NULL;
   const char *schema_key;
   size_t i;
+  cdd_c_error_t rc;
 
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&val);
-  g_cdd_last_alloc_err = cdd_json_value_get_object(val, &obj);
-  g_cdd_last_alloc_err = cdd_json_value_init_object(&props_val);
-  g_cdd_last_alloc_err = cdd_json_value_get_object(props_val, &props_obj);
+  rc = cdd_json_value_init_object(&val);
+  rc = cdd_json_value_get_object(val, &obj);
+  rc = cdd_json_value_init_object(&props_val);
+  rc = cdd_json_value_get_object(props_val, &props_obj);
 
   if (!schemas_obj || !struct_name || !sf) {
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
-    g_cdd_last_alloc_err = cdd_json_value_free(props_val);
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+    rc = cdd_json_value_free(val);
+    rc = cdd_json_value_free(props_val);
+    return rc ? CDD_C_ERROR_INVALID_ARGUMENT : CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   schema_key = (sf->serde_rename[0] != '\0') ? sf->serde_rename : struct_name;
 
   if (sf->serde_rename[0] != '\0') {
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-rename", sf->serde_rename);
+    rc = cdd_json_object_set_string(obj, "x-cdd-rename", sf->serde_rename);
     if (strcmp(sf->serde_rename, struct_name) != 0) {
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(obj, "x-cdd-c-name", struct_name);
+      rc = cdd_json_object_set_string(obj, "x-cdd-c-name", struct_name);
     }
   }
 
@@ -239,31 +234,28 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
                                  : sf->serde_replace_to;
     int has_custom_names = 0;
 
-    g_cdd_last_alloc_err = cdd_json_value_init_array(&enum_val);
+    rc = cdd_json_value_init_array(&enum_val);
     if (!enum_val) {
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
-      g_cdd_last_alloc_err = cdd_json_value_free(props_val);
+      rc = cdd_json_value_free(val);
+      rc = cdd_json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
-    g_cdd_last_alloc_err = cdd_json_value_get_array(enum_val, &enum_arr);
-    g_cdd_last_alloc_err = cdd_json_object_set_string(obj, "type", "string");
+    rc = cdd_json_value_get_array(enum_val, &enum_arr);
+    rc = cdd_json_object_set_string(obj, "type", "string");
 
     if (eff_rename_all != CDD_SERDE_CASE_NONE) {
       const char *r_str = NULL;
-      g_cdd_last_alloc_err = cdd_serde_case_rule_to_str(eff_rename_all, &r_str);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(obj, "x-cdd-rename-all", r_str);
+      rc = cdd_serde_case_rule_to_str(eff_rename_all, &r_str);
+      rc = cdd_json_object_set_string(obj, "x-cdd-rename-all", r_str);
     }
     if (eff_rep_from[0] != '\0') {
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(obj, "x-cdd-replace-from", eff_rep_from);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(obj, "x-cdd-replace-to", eff_rep_to);
+      rc = cdd_json_object_set_string(obj, "x-cdd-replace-from", eff_rep_from);
+      rc = cdd_json_object_set_string(obj, "x-cdd-replace-to", eff_rep_to);
     }
     if (em->serde_other_idx >= 0 && (size_t)em->serde_other_idx < em->size &&
         em->members[em->serde_other_idx]) {
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          obj, "x-cdd-enum-other", em->members[em->serde_other_idx]);
+      rc = cdd_json_object_set_string(obj, "x-cdd-enum-other",
+                                      em->members[em->serde_other_idx]);
     }
 
     for (i = 0; i < em->size; ++i) {
@@ -275,11 +267,10 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
         continue;
       if (em->serde_skip && em->serde_skip[i])
         continue;
-      g_cdd_last_alloc_err =
-          cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
+      rc = cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
       if (strcmp(wname, member) != 0)
         has_custom_names = 1;
-      g_cdd_last_alloc_err = cdd_json_array_append_string(enum_arr, wname);
+      rc = cdd_json_array_append_string(enum_arr, wname);
     }
 
     if (has_custom_names) {
@@ -287,12 +278,10 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       JSON_Array *c_names_arr = NULL;
       JSON_Value *e_names_val = NULL;
       JSON_Array *e_names_arr = NULL;
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&c_names_val);
-      g_cdd_last_alloc_err =
-          cdd_json_value_get_array(c_names_val, &c_names_arr);
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&e_names_val);
-      g_cdd_last_alloc_err =
-          cdd_json_value_get_array(e_names_val, &e_names_arr);
+      rc = cdd_json_value_init_array(&c_names_val);
+      rc = cdd_json_value_get_array(c_names_val, &c_names_arr);
+      rc = cdd_json_value_init_array(&e_names_val);
+      rc = cdd_json_value_get_array(e_names_val, &e_names_arr);
       for (i = 0; i < em->size; ++i) {
         const char *member = em->members[i];
         char wname[128];
@@ -300,237 +289,200 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
           continue;
         if (em->serde_skip && em->serde_skip[i])
           continue;
-        g_cdd_last_alloc_err =
-            cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
-        g_cdd_last_alloc_err =
-            cdd_json_array_append_string(c_names_arr, member);
-        g_cdd_last_alloc_err = cdd_json_array_append_string(e_names_arr, wname);
+        rc = cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
+        rc = cdd_json_array_append_string(c_names_arr, member);
+        rc = cdd_json_array_append_string(e_names_arr, wname);
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(obj, "x-cdd-enum-c-names", c_names_val);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(obj, "x-cdd-enum-names", e_names_val);
+      rc = cdd_json_object_set_value(obj, "x-cdd-enum-c-names", c_names_val);
+      rc = cdd_json_object_set_value(obj, "x-cdd-enum-names", e_names_val);
     }
 
     if (em->serde_aliases) {
       JSON_Value *ea_obj_val = NULL;
       JSON_Object *ea_obj = NULL;
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&ea_obj_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(ea_obj_val, &ea_obj);
+      rc = cdd_json_value_init_object(&ea_obj_val);
+      rc = cdd_json_value_get_object(ea_obj_val, &ea_obj);
       for (i = 0; i < em->size; ++i) {
         if (em->n_serde_aliases[i] > 0) {
           JSON_Value *arr_v = NULL;
           JSON_Array *arr_a = NULL;
           size_t ai;
-          g_cdd_last_alloc_err = cdd_json_value_init_array(&arr_v);
-          g_cdd_last_alloc_err = cdd_json_value_get_array(arr_v, &arr_a);
+          rc = cdd_json_value_init_array(&arr_v);
+          rc = cdd_json_value_get_array(arr_v, &arr_a);
           for (ai = 0; ai < em->n_serde_aliases[i]; ++ai) {
-            g_cdd_last_alloc_err =
-                cdd_json_array_append_string(arr_a, em->serde_aliases[i][ai]);
+            rc = cdd_json_array_append_string(arr_a, em->serde_aliases[i][ai]);
           }
-          g_cdd_last_alloc_err =
-              cdd_json_object_set_value(ea_obj, em->members[i], arr_v);
+          rc = cdd_json_object_set_value(ea_obj, em->members[i], arr_v);
         }
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(obj, "x-cdd-enum-aliases", ea_obj_val);
+      rc = cdd_json_object_set_value(obj, "x-cdd-enum-aliases", ea_obj_val);
     }
     if (em->cli_descriptions) {
       JSON_Value *ed_val = NULL;
       JSON_Object *ed_obj = NULL;
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&ed_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(ed_val, &ed_obj);
+      rc = cdd_json_value_init_object(&ed_val);
+      rc = cdd_json_value_get_object(ed_val, &ed_obj);
       for (i = 0; i < em->size; ++i) {
         if (em->cli_descriptions[i]) {
-          g_cdd_last_alloc_err = cdd_json_object_set_string(
-              ed_obj, em->members[i], em->cli_descriptions[i]);
+          rc = cdd_json_object_set_string(ed_obj, em->members[i],
+                                          em->cli_descriptions[i]);
         }
       }
-      g_cdd_last_alloc_err =
+      rc =
           cdd_json_object_set_value(obj, "x-cdd-enum-cli-descriptions", ed_val);
     }
     if (em->cli_hidden) {
       JSON_Value *eh_val = NULL;
       JSON_Array *eh_arr = NULL;
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&eh_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_array(eh_val, &eh_arr);
+      rc = cdd_json_value_init_array(&eh_val);
+      rc = cdd_json_value_get_array(eh_val, &eh_arr);
       for (i = 0; i < em->size; ++i) {
         if (em->cli_hidden[i])
-          g_cdd_last_alloc_err =
-              cdd_json_array_append_string(eh_arr, em->members[i]);
+          rc = cdd_json_array_append_string(eh_arr, em->members[i]);
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(obj, "x-cdd-enum-cli-hidden", eh_val);
+      rc = cdd_json_object_set_value(obj, "x-cdd-enum-cli-hidden", eh_val);
     }
 
     if (cdd_json_object_set_value(obj, "enum", enum_val) != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(enum_val);
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
-      g_cdd_last_alloc_err = cdd_json_value_free(props_val);
+      rc = cdd_json_value_free(enum_val);
+      rc = cdd_json_value_free(val);
+      rc = cdd_json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
     if (c2s_merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
-      g_cdd_last_alloc_err = cdd_json_value_free(props_val);
+      rc = cdd_json_value_free(val);
+      rc = cdd_json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
     if (cdd_json_object_set_value(schemas_obj, schema_key, val) !=
         CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
-      g_cdd_last_alloc_err = cdd_json_value_free(props_val);
+      rc = cdd_json_value_free(val);
+      rc = cdd_json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
-    g_cdd_last_alloc_err = cdd_json_value_free(props_val);
-    return CDD_C_SUCCESS;
+    rc = cdd_json_value_free(props_val);
+    return rc;
   }
 
-  g_cdd_last_alloc_err = cdd_json_object_set_string(obj, "type", "object");
+  rc = cdd_json_object_set_string(obj, "type", "object");
   if (cdd_json_object_set_value(obj, "properties", props_val) !=
       CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(props_val);
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
+    rc = cdd_json_value_free(props_val);
+    rc = cdd_json_value_free(val);
     return CDD_C_ERROR_MEMORY;
   }
 
   /* Persist container-level Serde reflection attributes */
   if (sf->serde_rename_all != CDD_SERDE_CASE_NONE) {
     const char *r_str = NULL;
-    g_cdd_last_alloc_err =
-        cdd_serde_case_rule_to_str(sf->serde_rename_all, &r_str);
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-rename-all", r_str);
+    rc = cdd_serde_case_rule_to_str(sf->serde_rename_all, &r_str);
+    rc = cdd_json_object_set_string(obj, "x-cdd-rename-all", r_str);
   }
   if (sf->serde_rename_all_ser != CDD_SERDE_CASE_NONE) {
     const char *r_str = NULL;
-    g_cdd_last_alloc_err =
-        cdd_serde_case_rule_to_str(sf->serde_rename_all_ser, &r_str);
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-rename-all-serialize", r_str);
+    rc = cdd_serde_case_rule_to_str(sf->serde_rename_all_ser, &r_str);
+    rc = cdd_json_object_set_string(obj, "x-cdd-rename-all-serialize", r_str);
   }
   if (sf->serde_rename_all_de != CDD_SERDE_CASE_NONE) {
     const char *r_str = NULL;
-    g_cdd_last_alloc_err =
-        cdd_serde_case_rule_to_str(sf->serde_rename_all_de, &r_str);
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-rename-all-deserialize", r_str);
+    rc = cdd_serde_case_rule_to_str(sf->serde_rename_all_de, &r_str);
+    rc = cdd_json_object_set_string(obj, "x-cdd-rename-all-deserialize", r_str);
   }
   if (sf->serde_replace_from[0] != '\0') {
-    g_cdd_last_alloc_err = cdd_json_object_set_string(obj, "x-cdd-replace-from",
-                                                      sf->serde_replace_from);
-    g_cdd_last_alloc_err = cdd_json_object_set_string(obj, "x-cdd-replace-to",
-                                                      sf->serde_replace_to);
+    rc = cdd_json_object_set_string(obj, "x-cdd-replace-from",
+                                    sf->serde_replace_from);
+    rc = cdd_json_object_set_string(obj, "x-cdd-replace-to",
+                                    sf->serde_replace_to);
   }
   if (sf->serde_prefix[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-prefix", sf->serde_prefix);
+    rc = cdd_json_object_set_string(obj, "x-cdd-prefix", sf->serde_prefix);
   if (sf->serde_suffix[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-suffix", sf->serde_suffix);
+    rc = cdd_json_object_set_string(obj, "x-cdd-suffix", sf->serde_suffix);
   if (sf->serde_deny_unknown_fields)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-deny-unknown-fields", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-deny-unknown-fields", 1);
   if (sf->serde_default)
-    g_cdd_last_alloc_err = cdd_json_object_set_boolean(obj, "x-cdd-default", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-default", 1);
   if (sf->serde_tag[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-tag", sf->serde_tag);
+    rc = cdd_json_object_set_string(obj, "x-cdd-tag", sf->serde_tag);
   if (sf->serde_content[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-content", sf->serde_content);
+    rc = cdd_json_object_set_string(obj, "x-cdd-content", sf->serde_content);
   if (sf->serde_untagged)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-untagged", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-untagged", 1);
 
   /* Persist container-level CLI reflection attributes */
   if (sf->is_cli_command)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-cli-command", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-command", 1);
   if (sf->cli_name[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-cli-name", sf->cli_name);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-name", sf->cli_name);
   if (sf->cli_bin_name[0] != '\0')
-    g_cdd_last_alloc_err =
+    rc =
         cdd_json_object_set_string(obj, "x-cdd-cli-bin-name", sf->cli_bin_name);
   if (sf->cli_version[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-cli-version", sf->cli_version);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-version", sf->cli_version);
   if (sf->cli_about[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-cli-about", sf->cli_about);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-about", sf->cli_about);
   if (sf->cli_author[0] != '\0')
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-cli-author", sf->cli_author);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-author", sf->cli_author);
   if (sf->cli_long_about)
-    g_cdd_last_alloc_err = cdd_json_object_set_string(
-        obj, "x-cdd-cli-long-about", sf->cli_long_about);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-long-about",
+                                    sf->cli_long_about);
   if (sf->cli_before_help)
-    g_cdd_last_alloc_err = cdd_json_object_set_string(
-        obj, "x-cdd-cli-before-help", sf->cli_before_help);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-before-help",
+                                    sf->cli_before_help);
   if (sf->cli_after_help)
-    g_cdd_last_alloc_err = cdd_json_object_set_string(
-        obj, "x-cdd-cli-after-help", sf->cli_after_help);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-after-help",
+                                    sf->cli_after_help);
   if (sf->cli_usage_override[0] != '\0')
-    g_cdd_last_alloc_err = cdd_json_object_set_string(
-        obj, "x-cdd-cli-usage-override", sf->cli_usage_override);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-usage-override",
+                                    sf->cli_usage_override);
   if (sf->cli_rename_all != CDD_SERDE_CASE_NONE) {
     const char *r_str = NULL;
-    g_cdd_last_alloc_err =
-        cdd_serde_case_rule_to_str(sf->cli_rename_all, &r_str);
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-cli-rename-all", r_str);
+    rc = cdd_serde_case_rule_to_str(sf->cli_rename_all, &r_str);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-rename-all", r_str);
   }
   if (sf->cli_rename_all_env != CDD_SERDE_CASE_NONE) {
     const char *r_str = NULL;
-    g_cdd_last_alloc_err =
-        cdd_serde_case_rule_to_str(sf->cli_rename_all_env, &r_str);
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_string(obj, "x-cdd-cli-rename-all-env", r_str);
+    rc = cdd_serde_case_rule_to_str(sf->cli_rename_all_env, &r_str);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-rename-all-env", r_str);
   }
   if (sf->cli_env_prefix[0] != '\0')
-    g_cdd_last_alloc_err = cdd_json_object_set_string(
-        obj, "x-cdd-cli-env-prefix", sf->cli_env_prefix);
+    rc = cdd_json_object_set_string(obj, "x-cdd-cli-env-prefix",
+                                    sf->cli_env_prefix);
   if (sf->cli_arg_required_else_help)
-    g_cdd_last_alloc_err =
+    rc =
         cdd_json_object_set_boolean(obj, "x-cdd-cli-arg-required-else-help", 1);
   if (sf->cli_subcommand_required)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-cli-subcommand-required", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-subcommand-required", 1);
   if (sf->cli_allow_external_subcommands)
-    g_cdd_last_alloc_err = cdd_json_object_set_boolean(
-        obj, "x-cdd-cli-allow-external-subcommands", 1);
+    rc = cdd_json_object_set_boolean(obj,
+                                     "x-cdd-cli-allow-external-subcommands", 1);
   if (sf->cli_disable_help_flag)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-cli-disable-help-flag", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-disable-help-flag", 1);
   if (sf->cli_disable_version_flag)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-cli-disable-version-flag", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-disable-version-flag", 1);
   if (sf->cli_disable_help_subcommand)
-    g_cdd_last_alloc_err = cdd_json_object_set_boolean(
-        obj, "x-cdd-cli-disable-help-subcommand", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-disable-help-subcommand",
+                                     1);
   if (sf->cli_propagate_version)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-cli-propagate-version", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-propagate-version", 1);
   if (sf->cli_allow_windows_slash_flags)
-    g_cdd_last_alloc_err = cdd_json_object_set_boolean(
-        obj, "x-cdd-cli-allow-windows-slash-flags", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-allow-windows-slash-flags",
+                                     1);
   if (sf->cli_allow_response_files)
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_boolean(obj, "x-cdd-cli-allow-response-files", 1);
+    rc = cdd_json_object_set_boolean(obj, "x-cdd-cli-allow-response-files", 1);
   if (sf->cli_case_insensitive_flags)
-    g_cdd_last_alloc_err =
+    rc =
         cdd_json_object_set_boolean(obj, "x-cdd-cli-case-insensitive-flags", 1);
   if (sf->n_cli_aliases > 0) {
     JSON_Value *ca_val = NULL;
     JSON_Array *ca_arr = NULL;
     size_t ca_idx;
-    g_cdd_last_alloc_err = cdd_json_value_init_array(&ca_val);
-    g_cdd_last_alloc_err = cdd_json_value_get_array(ca_val, &ca_arr);
+    rc = cdd_json_value_init_array(&ca_val);
+    rc = cdd_json_value_get_array(ca_val, &ca_arr);
     for (ca_idx = 0; ca_idx < sf->n_cli_aliases; ++ca_idx) {
-      g_cdd_last_alloc_err =
-          cdd_json_array_append_string(ca_arr, sf->cli_aliases[ca_idx]);
+      rc = cdd_json_array_append_string(ca_arr, sf->cli_aliases[ca_idx]);
     }
-    g_cdd_last_alloc_err =
-        cdd_json_object_set_value(obj, "x-cdd-cli-aliases", ca_val);
+    rc = cdd_json_object_set_value(obj, "x-cdd-cli-aliases", ca_val);
   }
 
   for (i = 0; i < sf->size; i++) {
@@ -542,321 +494,278 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
     const char *bw = field->bit_width;
     char prop_key[128];
 
-    g_cdd_last_alloc_err = cdd_json_value_init_object(&pval);
-    g_cdd_last_alloc_err = cdd_json_value_get_object(pval, &pobj);
+    rc = cdd_json_value_init_object(&pval);
+    rc = cdd_json_value_get_object(pval, &pobj);
 
-    g_cdd_last_alloc_err = cdd_serde_resolve_field_names(
-        sf, i, prop_key, sizeof(prop_key), NULL, 0);
+    rc = cdd_serde_resolve_field_names(sf, i, prop_key, sizeof(prop_key), NULL,
+                                       0);
 
     if (*bw) {
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-c-bitwidth", bw);
+      rc = cdd_json_object_set_string(pobj, "x-c-bitwidth", bw);
     }
     if (field->c_type[0] != '\0') {
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-c-type", field->c_type);
+      rc = cdd_json_object_set_string(pobj, "x-c-type", field->c_type);
     }
     if (field->is_nullable_ptr) {
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-c-nullable-ptr", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-c-nullable-ptr", 1);
     }
     if (field->fixed_array_len > 0) {
-      g_cdd_last_alloc_err = cdd_json_object_set_number(
-          pobj, "x-c-fixed-array-len", (double)field->fixed_array_len);
+      rc = cdd_json_object_set_number(pobj, "x-c-fixed-array-len",
+                                      (double)field->fixed_array_len);
     }
     if (strcmp(prop_key, field->name) != 0) {
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-c-name", field->name);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-c-name", field->name);
     }
     if (field->serde_rename[0] != '\0')
-      g_cdd_last_alloc_err =
+      rc =
           cdd_json_object_set_string(pobj, "x-cdd-rename", field->serde_rename);
     if (field->serde_rename_ser[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-rename-serialize", field->serde_rename_ser);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-rename-serialize",
+                                      field->serde_rename_ser);
     if (field->serde_rename_de[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-rename-deserialize", field->serde_rename_de);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-rename-deserialize",
+                                      field->serde_rename_de);
     if (field->serde_case != CDD_SERDE_CASE_NONE) {
       const char *c_str = NULL;
-      g_cdd_last_alloc_err =
-          cdd_serde_case_rule_to_str(field->serde_case, &c_str);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-case", c_str);
+      rc = cdd_serde_case_rule_to_str(field->serde_case, &c_str);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-case", c_str);
     }
     if (field->serde_replace_from[0] != '\0') {
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-replace-from", field->serde_replace_from);
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-replace-to", field->serde_replace_to);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-replace-from",
+                                      field->serde_replace_from);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-replace-to",
+                                      field->serde_replace_to);
     }
     if (field->n_serde_aliases > 0 && field->serde_aliases) {
       JSON_Value *al_val = NULL;
       JSON_Array *al_arr = NULL;
       size_t a_idx;
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&al_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_array(al_val, &al_arr);
+      rc = cdd_json_value_init_array(&al_val);
+      rc = cdd_json_value_get_array(al_val, &al_arr);
       for (a_idx = 0; a_idx < field->n_serde_aliases; ++a_idx) {
         if (field->serde_aliases[a_idx])
-          g_cdd_last_alloc_err =
+          rc =
               cdd_json_array_append_string(al_arr, field->serde_aliases[a_idx]);
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(pobj, "x-cdd-aliases", al_val);
+      rc = cdd_json_object_set_value(pobj, "x-cdd-aliases", al_val);
     }
     if (field->serde_skip)
-      g_cdd_last_alloc_err = cdd_json_object_set_boolean(pobj, "x-cdd-skip", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-skip", 1);
     else {
       if (field->serde_skip_serializing)
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_boolean(pobj, "x-cdd-skip-serializing", 1);
+        rc = cdd_json_object_set_boolean(pobj, "x-cdd-skip-serializing", 1);
       if (field->serde_skip_deserializing)
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_boolean(pobj, "x-cdd-skip-deserializing", 1);
+        rc = cdd_json_object_set_boolean(pobj, "x-cdd-skip-deserializing", 1);
     }
     if (field->serde_skip_if_kind != CDD_SERDE_SKIP_IF_NONE) {
       if (field->serde_skip_if_kind == CDD_SERDE_SKIP_IF_NULL)
-        g_cdd_last_alloc_err = cdd_json_object_set_string(
-            pobj, "x-cdd-skip-serializing-if", "null");
+        rc = cdd_json_object_set_string(pobj, "x-cdd-skip-serializing-if",
+                                        "null");
       else if (field->serde_skip_if_kind == CDD_SERDE_SKIP_IF_EMPTY)
-        g_cdd_last_alloc_err = cdd_json_object_set_string(
-            pobj, "x-cdd-skip-serializing-if", "empty");
+        rc = cdd_json_object_set_string(pobj, "x-cdd-skip-serializing-if",
+                                        "empty");
       else if (field->serde_skip_if_kind == CDD_SERDE_SKIP_IF_ZERO)
-        g_cdd_last_alloc_err = cdd_json_object_set_string(
-            pobj, "x-cdd-skip-serializing-if", "zero");
+        rc = cdd_json_object_set_string(pobj, "x-cdd-skip-serializing-if",
+                                        "zero");
       else if (field->serde_skip_if_fn[0] != '\0')
-        g_cdd_last_alloc_err = cdd_json_object_set_string(
-            pobj, "x-cdd-skip-serializing-if", field->serde_skip_if_fn);
+        rc = cdd_json_object_set_string(pobj, "x-cdd-skip-serializing-if",
+                                        field->serde_skip_if_fn);
     }
     if (field->serde_flatten)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-flatten", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-flatten", 1);
     if (field->serde_has_default)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-default", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-default", 1);
     if (field->serde_default_fn[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-default-fn", field->serde_default_fn);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-default-fn",
+                                      field->serde_default_fn);
     if (field->serde_with[0] != '\0')
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-with", field->serde_with);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-with", field->serde_with);
     if (field->serde_serialize_with[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-serialize-with", field->serde_serialize_with);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-serialize-with",
+                                      field->serde_serialize_with);
     if (field->serde_deserialize_with[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-deserialize-with", field->serde_deserialize_with);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-deserialize-with",
+                                      field->serde_deserialize_with);
 
     /* Persist property-level CLI reflection attributes */
     if (field->cli_short != '\0') {
       char sbuf[2];
       sbuf[0] = field->cli_short;
       sbuf[1] = '\0';
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-short", sbuf);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-short", sbuf);
     }
     if (field->cli_long[0] != '\0')
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-long", field->cli_long);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-long", field->cli_long);
     if (field->cli_negatable)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-negatable", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-negatable", 1);
     if (field->cli_positional)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-positional", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-positional", 1);
     if (field->cli_index >= 0)
-      g_cdd_last_alloc_err = cdd_json_object_set_number(
-          pobj, "x-cdd-cli-index", (double)field->cli_index);
+      rc = cdd_json_object_set_number(pobj, "x-cdd-cli-index",
+                                      (double)field->cli_index);
     if (field->cli_env[0] != '\0')
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-env", field->cli_env);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-env", field->cli_env);
     if (field->cli_value_name[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-value-name", field->cli_value_name);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-value-name",
+                                      field->cli_value_name);
     if (field->cli_help[0] != '\0')
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-help", field->cli_help);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-help", field->cli_help);
     if (field->cli_action != CDD_CLI_ACTION_AUTO) {
       const char *act_str = NULL;
-      g_cdd_last_alloc_err = cdd_cli_action_to_str(field->cli_action, &act_str);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-action", act_str);
+      rc = cdd_cli_action_to_str(field->cli_action, &act_str);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-action", act_str);
     }
     if (field->cli_value_delimiter != '\0') {
       char dbuf[2];
       dbuf[0] = field->cli_value_delimiter;
       dbuf[1] = '\0';
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-delimiter", dbuf);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-delimiter", dbuf);
     }
     if (field->cli_subcommand)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-subcommand", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-subcommand", 1);
     if (field->n_cli_conflicts_with > 0 && field->cli_conflicts_with) {
       JSON_Value *cw_val = NULL;
       JSON_Array *cw_arr = NULL;
       size_t c_idx;
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&cw_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_array(cw_val, &cw_arr);
+      rc = cdd_json_value_init_array(&cw_val);
+      rc = cdd_json_value_get_array(cw_val, &cw_arr);
       for (c_idx = 0; c_idx < field->n_cli_conflicts_with; ++c_idx) {
         if (field->cli_conflicts_with[c_idx])
-          g_cdd_last_alloc_err = cdd_json_array_append_string(
-              cw_arr, field->cli_conflicts_with[c_idx]);
+          rc = cdd_json_array_append_string(cw_arr,
+                                            field->cli_conflicts_with[c_idx]);
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(pobj, "x-cdd-cli-conflicts-with", cw_val);
+      rc = cdd_json_object_set_value(pobj, "x-cdd-cli-conflicts-with", cw_val);
     }
     if (field->n_cli_requires > 0 && field->cli_requires) {
       JSON_Value *rq_val = NULL;
       JSON_Array *rq_arr = NULL;
       size_t r_idx;
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&rq_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_array(rq_val, &rq_arr);
+      rc = cdd_json_value_init_array(&rq_val);
+      rc = cdd_json_value_get_array(rq_val, &rq_arr);
       for (r_idx = 0; r_idx < field->n_cli_requires; ++r_idx) {
         if (field->cli_requires[r_idx])
-          g_cdd_last_alloc_err =
-              cdd_json_array_append_string(rq_arr, field->cli_requires[r_idx]);
+          rc = cdd_json_array_append_string(rq_arr, field->cli_requires[r_idx]);
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(pobj, "x-cdd-cli-requires", rq_val);
+      rc = cdd_json_object_set_value(pobj, "x-cdd-cli-requires", rq_val);
     }
     if (field->cli_short_aliases[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-short-aliases", field->cli_short_aliases);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-short-aliases",
+                                      field->cli_short_aliases);
     if (field->cli_last)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-last", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-last", 1);
     if (field->cli_trailing_var_arg)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-trailing-var-arg", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-trailing-var-arg", 1);
     if (field->cli_long_help)
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-long-help", field->cli_long_help);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-long-help",
+                                      field->cli_long_help);
     if (field->cli_help_heading[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-help-heading", field->cli_help_heading);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-help-heading",
+                                      field->cli_help_heading);
     if (field->cli_hide_env)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-hide-env", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-hide-env", 1);
     if (field->cli_hide_env_values)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-hide-env-values", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-hide-env-values", 1);
     if (field->cli_default_missing_val[0] != '\0')
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-default-missing-val",
-                                     field->cli_default_missing_val);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-default-missing-val",
+                                      field->cli_default_missing_val);
     if (field->cli_hide_default_value)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-hide-default-value", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-hide-default-value", 1);
     if (field->cli_value_hint != CDD_CLI_HINT_NONE) {
       const char *vh_str = NULL;
-      g_cdd_last_alloc_err =
-          cdd_cli_value_hint_to_str(field->cli_value_hint, &vh_str);
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "x-cdd-cli-value-hint", vh_str);
+      rc = cdd_cli_value_hint_to_str(field->cli_value_hint, &vh_str);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-value-hint", vh_str);
     }
     if (field->cli_num_args_min > 0)
-      g_cdd_last_alloc_err = cdd_json_object_set_number(
-          pobj, "x-cdd-cli-num-args-min", (double)field->cli_num_args_min);
+      rc = cdd_json_object_set_number(pobj, "x-cdd-cli-num-args-min",
+                                      (double)field->cli_num_args_min);
     if (field->cli_num_args_max > 0)
-      g_cdd_last_alloc_err = cdd_json_object_set_number(
-          pobj, "x-cdd-cli-num-args-max", (double)field->cli_num_args_max);
+      rc = cdd_json_object_set_number(pobj, "x-cdd-cli-num-args-max",
+                                      (double)field->cli_num_args_max);
     if (field->cli_require_equals)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-require-equals", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-require-equals", 1);
     if (field->cli_allow_hyphen_values)
-      g_cdd_last_alloc_err =
+      rc =
           cdd_json_object_set_boolean(pobj, "x-cdd-cli-allow-hyphen-values", 1);
     if (field->cli_global)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-global", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-global", 1);
     if (field->cli_hidden)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-hidden", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-hidden", 1);
     if (field->cli_exclusive)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-exclusive", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-exclusive", 1);
     if (field->cli_skip)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-skip", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-skip", 1);
     if (field->cli_skip_to_cli)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-skip-to", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-skip-to", 1);
     if (field->cli_skip_from_cli)
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_boolean(pobj, "x-cdd-cli-skip-from", 1);
+      rc = cdd_json_object_set_boolean(pobj, "x-cdd-cli-skip-from", 1);
     if (field->cli_value_parser[0] != '\0')
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-value-parser", field->cli_value_parser);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-value-parser",
+                                      field->cli_value_parser);
     if (field->cli_group[0] != '\0')
-      g_cdd_last_alloc_err =
+      rc =
           cdd_json_object_set_string(pobj, "x-cdd-cli-group", field->cli_group);
     if (field->cli_required_if_field[0] != '\0') {
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-required-if-field", field->cli_required_if_field);
-      g_cdd_last_alloc_err = cdd_json_object_set_string(
-          pobj, "x-cdd-cli-required-if-val", field->cli_required_if_val);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-required-if-field",
+                                      field->cli_required_if_field);
+      rc = cdd_json_object_set_string(pobj, "x-cdd-cli-required-if-val",
+                                      field->cli_required_if_val);
     }
     if (field->n_cli_required_unless > 0) {
       JSON_Value *ru_val = NULL;
       JSON_Array *ru_arr = NULL;
       size_t u_idx;
-      g_cdd_last_alloc_err = cdd_json_value_init_array(&ru_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_array(ru_val, &ru_arr);
+      rc = cdd_json_value_init_array(&ru_val);
+      rc = cdd_json_value_get_array(ru_val, &ru_arr);
       for (u_idx = 0; u_idx < field->n_cli_required_unless; ++u_idx) {
-        g_cdd_last_alloc_err = cdd_json_array_append_string(
-            ru_arr, field->cli_required_unless[u_idx]);
+        rc = cdd_json_array_append_string(ru_arr,
+                                          field->cli_required_unless[u_idx]);
       }
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_value(pobj, "x-cdd-cli-required-unless", ru_val);
+      rc = cdd_json_object_set_value(pobj, "x-cdd-cli-required-unless", ru_val);
     }
 
     if (strcmp(typ, "array") == 0) {
       JSON_Value *items_val = NULL;
       JSON_Object *items_obj = NULL;
-      g_cdd_last_alloc_err = cdd_json_value_init_object(&items_val);
-      g_cdd_last_alloc_err = cdd_json_value_get_object(items_val, &items_obj);
-      g_cdd_last_alloc_err = c2s_write_type_union(
-          pobj, "array", field->type_union, field->n_type_union);
+      rc = cdd_json_value_init_object(&items_val);
+      rc = cdd_json_value_get_object(items_val, &items_obj);
+      rc = c2s_write_type_union(pobj, "array", field->type_union,
+                                field->n_type_union);
       if (field->items_type_union) {
-        g_cdd_last_alloc_err = c2s_write_type_union(
-            items_obj, ref, field->items_type_union, field->n_items_type_union);
+        rc = c2s_write_type_union(items_obj, ref, field->items_type_union,
+                                  field->n_items_type_union);
       } else if (field->is_enum_array) {
         char ref_str[300];
         CDD_SNPRINTF(ref_str, sizeof(ref_str), "#/components/schemas/%s",
                      field->enum_array_ref);
-        g_cdd_last_alloc_err =
-            cdd_json_object_set_string(items_obj, "$ref", ref_str);
+        rc = cdd_json_object_set_string(items_obj, "$ref", ref_str);
       } else if (*ref) {
         if (strcmp(ref, "integer") == 0 || strcmp(ref, "string") == 0 ||
             strcmp(ref, "boolean") == 0 || strcmp(ref, "number") == 0) {
-          g_cdd_last_alloc_err =
-              cdd_json_object_set_string(items_obj, "type", ref);
+          rc = cdd_json_object_set_string(items_obj, "type", ref);
         } else {
           char ref_str[300];
           CDD_SNPRINTF(ref_str, sizeof(ref_str), "#/components/schemas/%s",
                        ref);
-          g_cdd_last_alloc_err =
-              cdd_json_object_set_string(items_obj, "$ref", ref_str);
+          rc = cdd_json_object_set_string(items_obj, "$ref", ref_str);
         }
       }
       if (c2s_merge_schema_extras_object(items_obj, field->items_extra_json) !=
           0) {
-        g_cdd_last_alloc_err = cdd_json_value_free(items_val);
-        g_cdd_last_alloc_err = cdd_json_value_free(pval);
-        g_cdd_last_alloc_err = cdd_json_value_free(req_val);
-        g_cdd_last_alloc_err = cdd_json_value_free(val);
+        rc = cdd_json_value_free(items_val);
+        rc = cdd_json_value_free(pval);
+        rc = cdd_json_value_free(req_val);
+        rc = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
       if (cdd_json_object_set_value(pobj, "items", items_val) !=
           CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = cdd_json_value_free(items_val);
-        g_cdd_last_alloc_err = cdd_json_value_free(pval);
-        g_cdd_last_alloc_err = cdd_json_value_free(req_val);
-        g_cdd_last_alloc_err = cdd_json_value_free(val);
+        rc = cdd_json_value_free(items_val);
+        rc = cdd_json_value_free(pval);
+        rc = cdd_json_value_free(req_val);
+        rc = cdd_json_value_free(val);
         return CDD_C_ERROR_MEMORY;
       }
-      g_cdd_last_alloc_err = c2s_write_array_constraints(pobj, field);
+      rc = c2s_write_array_constraints(pobj, field);
     } else {
       if (strcmp(typ, "object") == 0 || strcmp(typ, "enum") == 0) {
         char ref_str[300];
@@ -867,71 +776,68 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
             CDD_SNPRINTF(ref_str, sizeof(ref_str), "#/components/schemas/%s",
                          ref);
           }
-          g_cdd_last_alloc_err =
-              cdd_json_object_set_string(pobj, "$ref", ref_str);
+          rc = cdd_json_object_set_string(pobj, "$ref", ref_str);
         } else {
-          g_cdd_last_alloc_err = c2s_write_type_union(
-              pobj, "object", field->type_union, field->n_type_union);
+          rc = c2s_write_type_union(pobj, "object", field->type_union,
+                                    field->n_type_union);
         }
       } else {
-        g_cdd_last_alloc_err = c2s_write_type_union(
-            pobj, typ, field->type_union, field->n_type_union);
+        rc = c2s_write_type_union(pobj, typ, field->type_union,
+                                  field->n_type_union);
       }
     }
-    g_cdd_last_alloc_err = c2s_write_numeric_constraints(pobj, field);
-    g_cdd_last_alloc_err = c2s_write_string_constraints(pobj, field);
-    g_cdd_last_alloc_err = c2s_write_default_value(pobj, field);
+    rc = c2s_write_numeric_constraints(pobj, field);
+    rc = c2s_write_string_constraints(pobj, field);
+    rc = c2s_write_default_value(pobj, field);
     if (field->description[0])
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "description", field->description);
+      rc = cdd_json_object_set_string(pobj, "description", field->description);
     if (field->format[0])
-      g_cdd_last_alloc_err =
-          cdd_json_object_set_string(pobj, "format", field->format);
+      rc = cdd_json_object_set_string(pobj, "format", field->format);
     if (field->deprecated_set)
-      g_cdd_last_alloc_err = cdd_json_object_set_boolean(
-          pobj, "deprecated", field->deprecated ? 1 : 0);
+      rc = cdd_json_object_set_boolean(pobj, "deprecated",
+                                       field->deprecated ? 1 : 0);
     if (field->read_only_set)
-      g_cdd_last_alloc_err = cdd_json_object_set_boolean(
-          pobj, "readOnly", field->read_only ? 1 : 0);
+      rc = cdd_json_object_set_boolean(pobj, "readOnly",
+                                       field->read_only ? 1 : 0);
     if (field->write_only_set)
-      g_cdd_last_alloc_err = cdd_json_object_set_boolean(
-          pobj, "writeOnly", field->write_only ? 1 : 0);
+      rc = cdd_json_object_set_boolean(pobj, "writeOnly",
+                                       field->write_only ? 1 : 0);
     if (c2s_merge_schema_extras_object(pobj, field->schema_extra_json) != 0) {
-      g_cdd_last_alloc_err = cdd_json_value_free(pval);
-      g_cdd_last_alloc_err = cdd_json_value_free(req_val);
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
+      rc = cdd_json_value_free(pval);
+      rc = cdd_json_value_free(req_val);
+      rc = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
     if (cdd_json_object_set_value(props_obj, prop_key, pval) != CDD_C_SUCCESS) {
-      g_cdd_last_alloc_err = cdd_json_value_free(pval);
-      g_cdd_last_alloc_err = cdd_json_value_free(req_val);
-      g_cdd_last_alloc_err = cdd_json_value_free(val);
+      rc = cdd_json_value_free(pval);
+      rc = cdd_json_value_free(req_val);
+      rc = cdd_json_value_free(val);
       return CDD_C_ERROR_MEMORY;
     }
     if (field->required && !field->serde_skip &&
         !field->serde_skip_serializing) {
       if (!req_val) {
-        g_cdd_last_alloc_err = cdd_json_value_init_array(&req_val);
-        g_cdd_last_alloc_err = cdd_json_value_get_array(req_val, &req_arr);
+        rc = cdd_json_value_init_array(&req_val);
+        rc = cdd_json_value_get_array(req_val, &req_arr);
       }
-      g_cdd_last_alloc_err = cdd_json_array_append_string(req_arr, prop_key);
+      rc = cdd_json_array_append_string(req_arr, prop_key);
     }
   }
 
   if (req_val) {
-    g_cdd_last_alloc_err = cdd_json_object_set_value(obj, "required", req_val);
+    rc = cdd_json_object_set_value(obj, "required", req_val);
   }
 
   if (c2s_merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
+    rc = cdd_json_value_free(val);
     return CDD_C_ERROR_MEMORY;
   }
 
   if (cdd_json_object_set_value(schemas_obj, schema_key, val) !=
       CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = cdd_json_value_free(val);
+    rc = cdd_json_value_free(val);
     return CDD_C_ERROR_MEMORY;
   }
 
-  return CDD_C_SUCCESS;
+  return rc;
 }

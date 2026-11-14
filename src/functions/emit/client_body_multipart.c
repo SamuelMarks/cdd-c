@@ -20,6 +20,7 @@ cdd_c_error_t
 client_body_write_multipart_part_headers(FILE *fp,
                                          const struct OpenAPI_Encoding *enc) {
   size_t h;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
   if (!fp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!enc || !enc->headers || enc->n_headers == 0 || !enc->name)
@@ -40,13 +41,16 @@ client_body_write_multipart_part_headers(FILE *fp,
     if (!hdr->name)
       continue;
 
-    g_cdd_last_alloc_err =
-        client_body_header_name_is_content_type(hdr->name, &is_ct);
+    rc_fn = (cdd_c_error_t)((int)rc_fn |
+                            (int)client_body_header_name_is_content_type(
+                                hdr->name, &is_ct));
     if (is_ct)
       continue;
 
-    g_cdd_last_alloc_err = client_body_multipart_header_param_name(
-        param_name, sizeof(param_name), enc->name, hdr->name);
+    rc_fn = (cdd_c_error_t)((int)rc_fn |
+                            (int)client_body_multipart_header_param_name(
+                                param_name, sizeof(param_name), enc->name,
+                                hdr->name));
 
     CDD_SNPRINTF(joined_name, sizeof(joined_name), "%s_joined", param_name);
     CDD_SNPRINTF(joined_len_name, sizeof(joined_len_name), "%s_joined_len",
@@ -313,7 +317,7 @@ client_body_write_multipart_part_headers(FILE *fp,
       CHECK_IO(fprintf(fp, "      }\n"));
     }
   }
-  return CDD_C_SUCCESS;
+  return rc_fn;
 }
 
 /*
@@ -330,29 +334,33 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   struct StructFields *sf = NULL;
   const struct OpenAPI_MediaType *mt = NULL;
   size_t i;
+  cdd_c_error_t rc_fn = CDD_C_SUCCESS;
 
   if (!fp || !op || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err =
-      openapi_spec_find_schema_for_ref(spec, &op->req_body, &sf);
+  rc_fn = (cdd_c_error_t)((int)rc_fn | (int)openapi_spec_find_schema_for_ref(
+                                           spec, &op->req_body, &sf));
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping multipart */\n",
         op->req_body.ref_name));
-    return CDD_C_SUCCESS;
+    return rc_fn;
   }
 
   CHECK_IO(fprintf(fp, "  /* Multipart Body Construction */\n"));
-  g_cdd_last_alloc_err =
-      find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                      "multipart/form-data", &mt);
+  rc_fn = (cdd_c_error_t)((int)rc_fn |
+                          (int)find_media_type(op->req_body_media_types,
+                                               op->n_req_body_media_types,
+                                               "multipart/form-data", &mt));
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
     struct OpenAPI_Encoding *enc = NULL;
-    if (mt != NULL)
-      g_cdd_last_alloc_err = find_encoding(mt, f->name, &enc);
+    if (mt != NULL) {
+      rc_fn =
+          (cdd_c_error_t)((int)rc_fn | (int)find_encoding(mt, f->name, &enc));
+    }
     if (strcmp(f->type, "array") == 0) {
       const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
       int items_is_object = 0;
@@ -364,14 +372,15 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       const char *ct_arg = "NULL";
       char len_field[80];
 
-      g_cdd_last_alloc_err =
-          client_body_is_object_ref_type(items_type, &items_is_object);
+      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)client_body_is_object_ref_type(
+                                               items_type, &items_is_object));
 
       if (!final_ct && items_is_object)
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
-        g_cdd_last_alloc_err = first_content_type_entry(
-            final_ct, ct_clean, sizeof(ct_clean), &final_ct);
+        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
+                                                 final_ct, ct_clean,
+                                                 sizeof(ct_clean), &final_ct));
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -505,8 +514,10 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        g_cdd_last_alloc_err = first_content_type_entry(
-            content_type, ct_clean, sizeof(ct_clean), &content_type);
+        rc_fn =
+            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
+                                             content_type, ct_clean,
+                                             sizeof(ct_clean), &content_type));
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -529,8 +540,10 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        g_cdd_last_alloc_err = first_content_type_entry(
-            content_type, ct_clean, sizeof(ct_clean), &content_type);
+        rc_fn =
+            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
+                                             content_type, ct_clean,
+                                             sizeof(ct_clean), &content_type));
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -557,8 +570,10 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        g_cdd_last_alloc_err = first_content_type_entry(
-            content_type, ct_clean, sizeof(ct_clean), &content_type);
+        rc_fn =
+            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
+                                             content_type, ct_clean,
+                                             sizeof(ct_clean), &content_type));
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -585,8 +600,10 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        g_cdd_last_alloc_err = first_content_type_entry(
-            content_type, ct_clean, sizeof(ct_clean), &content_type);
+        rc_fn =
+            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
+                                             content_type, ct_clean,
+                                             sizeof(ct_clean), &content_type));
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -615,8 +632,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       if (!final_ct)
         final_ct = "application/json";
       if (final_ct[0] != '\0') {
-        g_cdd_last_alloc_err = first_content_type_entry(
-            final_ct, ct_clean, sizeof(ct_clean), &final_ct);
+        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
+                                                 final_ct, ct_clean,
+                                                 sizeof(ct_clean), &final_ct));
         CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -650,5 +668,5 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(
       fprintf(fp, "  rc = (cdd_c_error_t)http_request_flatten_parts(&req);\n"));
   CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n\n"));
-  return CDD_C_SUCCESS;
+  return rc_fn;
 }

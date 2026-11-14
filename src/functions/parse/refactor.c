@@ -120,16 +120,13 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   /* 2. Analyze Allocations */
   rc = find_allocations(tokens, &allocs);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = free_token_list(tokens);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   }
 
   /* 3. Rewrite Body */
   rc = rewrite_body(tokens, &allocs, ctx->funcs, ctx->func_count, NULL,
                     out_code);
 
-  g_cdd_last_alloc_err = allocation_site_list_free(&allocs);
-  g_cdd_last_alloc_err = free_token_list(tokens);
-
-  return rc;
+  rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(&allocs));
+  return (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
 }

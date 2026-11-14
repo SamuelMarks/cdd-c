@@ -409,14 +409,20 @@ cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
  */
 cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
                                 const char *macro_name) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
     return builder->error_state;
-  g_cdd_last_alloc_err =
-      cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_IFDEF, "#ifdef");
-  g_cdd_last_alloc_err = cdd_cst_bld_space(builder);
-  g_cdd_last_alloc_err = cdd_cst_bld_ident(builder, macro_name);
+  rc = cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_IFDEF, "#ifdef");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cst_bld_space(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cst_bld_ident(builder, macro_name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   return cdd_cst_bld_newline(builder);
 }
 
@@ -669,7 +675,7 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
     }
   }
 
-  g_cdd_last_alloc_err = cdd_lexer_free_token_list(list);
+  rc = (cdd_c_error_t)((int)rc | (int)cdd_lexer_free_token_list(list));
   if (rc != CDD_C_SUCCESS)
     builder->error_state = rc;
   return rc;

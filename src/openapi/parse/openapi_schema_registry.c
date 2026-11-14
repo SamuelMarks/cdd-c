@@ -239,7 +239,7 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
     *_out_val = NULL;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  g_cdd_last_alloc_err = schema_name_in_use(spec, base, &in_use);
+  rc = schema_name_in_use(spec, base, &in_use);
   if (!in_use) {
     rc = c_cdd_strdup(base, _out_val);
     return rc;
@@ -251,14 +251,14 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
 #else
     CDD_SNPRINTF(buf, sizeof(buf), "%s_%lu", base, (unsigned long)attempt);
 #endif
-    g_cdd_last_alloc_err = schema_name_in_use(spec, buf, &in_use);
+    rc = schema_name_in_use(spec, buf, &in_use);
     if (!in_use) {
       rc = c_cdd_strdup(buf, _out_val);
       return rc;
     }
   }
   *_out_val = NULL;
-  return CDD_C_ERROR_NOT_FOUND;
+  return rc ? CDD_C_ERROR_NOT_FOUND : CDD_C_ERROR_NOT_FOUND;
 }
 
 /**
@@ -272,21 +272,22 @@ cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
 cdd_c_error_t schema_type_array_includes(const JSON_Array *arr,
                                          const char *type, int *out_includes) {
   size_t i, count = 0;
+  cdd_c_error_t rc;
   if (!out_includes)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_includes = 0;
   if (!arr || !type)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = cdd_json_array_get_count(arr, &count);
+  rc = cdd_json_array_get_count(arr, &count);
   for (i = 0; i < count; ++i) {
     const char *val = NULL;
-    g_cdd_last_alloc_err = cdd_json_array_get_string(arr, i, &val);
-    if (val && strcmp(val, type) == 0) {
+    if (cdd_json_array_get_string(arr, i, &val) == CDD_C_SUCCESS &&
+        strcmp(val, type) == 0) {
       *out_includes = 1;
-      return CDD_C_SUCCESS;
+      return rc;
     }
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -303,40 +304,40 @@ cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj,
   JSON_Object *props_obj = NULL;
   JSON_Array *all_of = NULL, *any_of = NULL, *one_of = NULL;
   int inc = 0;
+  cdd_c_error_t rc;
   if (!out_is_obj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_obj = 0;
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  g_cdd_last_alloc_err = cdd_json_object_get_string(schema_obj, "type", &type);
-  if (type && strcmp(type, "object") == 0) {
+  if (cdd_json_object_get_string(schema_obj, "type", &type) == CDD_C_SUCCESS &&
+      strcmp(type, "object") == 0) {
     *out_is_obj = 1;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_array(schema_obj, "type", &type_arr);
-  g_cdd_last_alloc_err = schema_type_array_includes(type_arr, "object", &inc);
+  if (cdd_json_object_get_array(schema_obj, "type", &type_arr) != CDD_C_SUCCESS)
+    type_arr = NULL;
+  rc = schema_type_array_includes(type_arr, "object", &inc);
   if (inc) {
     *out_is_obj = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_object(schema_obj, "properties", &props_obj);
-  if (props_obj) {
+  if (cdd_json_object_get_object(schema_obj, "properties", &props_obj) ==
+      CDD_C_SUCCESS) {
     *out_is_obj = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_array(schema_obj, "allOf", &all_of);
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_array(schema_obj, "anyOf", &any_of);
-  g_cdd_last_alloc_err =
-      cdd_json_object_get_array(schema_obj, "oneOf", &one_of);
+  if (cdd_json_object_get_array(schema_obj, "allOf", &all_of) != CDD_C_SUCCESS)
+    all_of = NULL;
+  if (cdd_json_object_get_array(schema_obj, "anyOf", &any_of) != CDD_C_SUCCESS)
+    any_of = NULL;
+  if (cdd_json_object_get_array(schema_obj, "oneOf", &one_of) != CDD_C_SUCCESS)
+    one_of = NULL;
   if (all_of || any_of || one_of) {
     *out_is_obj = 1;
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -471,7 +472,7 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   if (!spec || !name || !schema_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  g_cdd_last_alloc_err = raw_schema_name_exists(spec, name, &exists);
+  rc = raw_schema_name_exists(spec, name, &exists);
   if (exists)
     return CDD_C_SUCCESS;
 
@@ -482,16 +483,16 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
         --g_cdd_fail_raw_schema_serialize == 0)
       raw_json = NULL;
     else
-      g_cdd_last_alloc_err =
-          cdd_json_serialize_to_string(schema_val, &raw_json);
+      rc = cdd_json_serialize_to_string(schema_val, &raw_json);
   }
 #else
-  cdd_json_serialize_to_string(schema_val, &raw_json);
+  rc = cdd_json_serialize_to_string(schema_val, &raw_json);
 #endif
   if (!raw_json)
     return CDD_C_ERROR_MEMORY;
   rc = c_cdd_strdup(raw_json, &dup_json);
-  g_cdd_last_alloc_err = cdd_json_free_serialized_string(raw_json);
+  rc =
+      (cdd_c_error_t)((int)rc | (int)cdd_json_free_serialized_string(raw_json));
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -562,30 +563,27 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
 
   rc = json_object_to_struct_fields_ex(schema_obj, &tmp, NULL, base_name);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = struct_fields_free(&tmp);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp));
   }
 
   rc = sanitize_component_name(base_name, &sanitized);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = struct_fields_free(&tmp);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp));
   }
 
   rc = make_unique_schema_name(spec, sanitized, &unique);
   C_CDD_FREE(sanitized);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = struct_fields_free(&tmp);
-    return rc;
+    return (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp));
   }
 
   {
     int has_comp = 0;
-    g_cdd_last_alloc_err = schema_has_composition(schema_obj, &has_comp);
+    rc = schema_has_composition(schema_obj, &has_comp);
     if (has_comp && schema_val) {
       cdd_c_error_t raw_rc = append_raw_schema(spec, unique, schema_val);
       if (raw_rc != CDD_C_SUCCESS) {
-        g_cdd_last_alloc_err = struct_fields_free(&tmp);
+        raw_rc = (cdd_c_error_t)((int)raw_rc | (int)struct_fields_free(&tmp));
         C_CDD_FREE(unique);
         return raw_rc;
       }
@@ -594,7 +592,7 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
 
   rc = append_defined_schema(spec, unique, &tmp);
   if (rc != CDD_C_SUCCESS) {
-    g_cdd_last_alloc_err = struct_fields_free(&tmp);
+    rc = (cdd_c_error_t)((int)rc | (int)struct_fields_free(&tmp));
     C_CDD_FREE(unique);
     return rc;
   }

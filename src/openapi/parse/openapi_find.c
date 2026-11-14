@@ -23,10 +23,11 @@ cdd_c_error_t find_component_parameter(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Spec *target;
   const char *name = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(
-      target, resolved.ref, "#/components/parameters/", &name);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/parameters/",
+                            &name);
   if (!target || !name) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -45,7 +46,7 @@ cdd_c_error_t find_component_parameter(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -63,10 +64,11 @@ cdd_c_error_t find_component_response(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Spec *target;
   const char *name = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(target, resolved.ref,
-                                              "#/components/responses/", &name);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/responses/",
+                            &name);
   if (!target || !name) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -85,7 +87,7 @@ cdd_c_error_t find_component_response(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -103,10 +105,11 @@ cdd_c_error_t find_component_header(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Spec *target;
   const char *name = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(target, resolved.ref,
-                                              "#/components/headers/", &name);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/headers/",
+                            &name);
   if (!target || !name) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -125,7 +128,7 @@ cdd_c_error_t find_component_header(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -143,10 +146,11 @@ find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref,
   const struct OpenAPI_Spec *target;
   const char *name = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(
-      target, resolved.ref, "#/components/requestBodies/", &name);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/requestBodies/",
+                            &name);
   if (!target || !name) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -165,7 +169,7 @@ find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -184,17 +188,18 @@ cdd_c_error_t find_component_media_type(const struct OpenAPI_Spec *spec,
   const char *name_enc = NULL;
   char *name_dec = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(
-      target, resolved.ref, "#/components/mediaTypes/", &name_enc);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/mediaTypes/",
+                            &name_enc);
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err = json_pointer_unescape(name_enc, &name_dec);
+  rc = json_pointer_unescape(name_enc, &name_dec);
   if (!name_dec) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -215,7 +220,7 @@ cdd_c_error_t find_component_media_type(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -233,10 +238,10 @@ cdd_c_error_t find_component_link(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Spec *target;
   const char *name = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err =
-      ref_name_from_prefix(target, resolved.ref, "#/components/links/", &name);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/links/", &name);
   if (!target || !name) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -255,7 +260,7 @@ cdd_c_error_t find_component_link(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -273,10 +278,11 @@ cdd_c_error_t find_component_callback(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Spec *target;
   const char *name = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(target, resolved.ref,
-                                              "#/components/callbacks/", &name);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/callbacks/",
+                            &name);
   if (!target || !name) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -295,7 +301,7 @@ cdd_c_error_t find_component_callback(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }
 
 /**
@@ -314,17 +320,18 @@ cdd_c_error_t find_component_path_item(const struct OpenAPI_Spec *spec,
   const char *name_enc = NULL;
   char *name_dec = NULL;
   size_t i;
-  g_cdd_last_alloc_err = resolve_ref_target(spec, ref, &resolved);
+  cdd_c_error_t rc;
+  rc = resolve_ref_target(spec, ref, &resolved);
   target = resolved.spec;
-  g_cdd_last_alloc_err = ref_name_from_prefix(
-      target, resolved.ref, "#/components/pathItems/", &name_enc);
+  rc = ref_name_from_prefix(target, resolved.ref, "#/components/pathItems/",
+                            &name_enc);
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  g_cdd_last_alloc_err = json_pointer_unescape(name_enc, &name_dec);
+  rc = json_pointer_unescape(name_enc, &name_dec);
   if (!name_dec) {
     if (resolved.resolved_ref)
       C_CDD_FREE(resolved.resolved_ref);
@@ -346,5 +353,5 @@ cdd_c_error_t find_component_path_item(const struct OpenAPI_Spec *spec,
   if (resolved.resolved_ref)
     C_CDD_FREE(resolved.resolved_ref);
   *_out_val = NULL;
-  return CDD_C_SUCCESS;
+  return rc;
 }

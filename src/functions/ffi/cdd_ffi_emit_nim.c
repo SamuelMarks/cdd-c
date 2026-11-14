@@ -54,6 +54,7 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
       config ? ((config->module_name) ? config->module_name : "bindings")
              : "bindings";
   size_t i, j;
+  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -119,12 +120,15 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
               node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
-        g_cdd_last_alloc_err = map_nim_type(&node->fields[j].type, &nt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_nim_type(&node->fields[j].type, &nt));
         fprintf(f, "    %s*: %s\n", node->fields[j].name, nt);
       }
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "  %s* {.size: sizeof(cint).} = enum\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -143,14 +147,19 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_nt = NULL;
-      g_cdd_last_alloc_err = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
+                                                   f, node->leading_trivia));
       fprintf(f, "proc %s*(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
-        g_cdd_last_alloc_err = map_nim_type(&node->fields[j].type, &nt);
+        rc_emit =
+            (cdd_c_error_t)((int)rc_emit |
+                            (int)map_nim_type(&node->fields[j].type, &nt));
         fprintf(f, "%s%s: %s", j > 0 ? ", " : "", node->fields[j].name, nt);
       }
-      g_cdd_last_alloc_err = map_nim_type(&node->return_or_base_type, &ret_nt);
+      rc_emit = (cdd_c_error_t)((int)rc_emit |
+                                (int)map_nim_type(&node->return_or_base_type,
+                                                  &ret_nt));
       fprintf(f, "): %s {.importc: \"%s\", cdecl.}\n\n", ret_nt, node->name);
     }
   }
@@ -206,5 +215,5 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
   fprintf(f, "requires \"nim >= 1.6.0\"\n");
   fclose(f);
 
-  return CDD_C_SUCCESS;
+  return rc_emit;
 }

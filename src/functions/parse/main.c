@@ -112,9 +112,8 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   if (argc != 1 || !argv)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = audit_stats_init(&stats);
-  rc = audit_project(argv[0], &stats);
-  g_cdd_last_alloc_err = audit_stats_free(&stats);
-  return rc;
+  rc = (cdd_c_error_t)((int)rc | (int)audit_project(argv[0], &stats));
+  return (cdd_c_error_t)((int)rc | (int)audit_stats_free(&stats));
 }
 
 /**
@@ -173,6 +172,8 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
   puts("      Generate OpenAPI spec from C source code.");
   puts("  standardize-gnu [OPTIONS] <files...>");
   puts("      Standardize GNU C extensions to ISO C.");
+  puts("  transform [OPTIONS] <input.c> [-o <output.c> | --out-dir <dir>]");
+  puts("      Run multi-pass CST transformations for out-of-tree pipelines.");
   puts("  transformer <toolname> [--audit|--fix] [--dry-run] <files...>");
   puts("      Run syntax tree transformations.");
   puts("  code2schema <header.h> <schema.json>");
@@ -304,7 +305,7 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
     env_val = getenv("OUT_FILE");
   api_cfg.output = env_val ? env_val : "openapi.json";
 
-  rc = cdd_cli_parse_reflected_argv(argc, argv, 0,
+  rc = cdd_cli_parse_reflected_argv(argc, argv, 1,
                                     &cdd_to_openapi_config_type_info, &api_cfg,
                                     &is_help, NULL);
   if (is_help) {
@@ -376,13 +377,17 @@ C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t to_arazzo_cli_main(int argc, char **argv) {
   cdd_to_arazzo_config_t cfg;
   int is_help = 0;
+  cdd_c_error_t rc;
   memset(&cfg, 0, sizeof(cfg));
-  g_cdd_last_alloc_err = cdd_cli_parse_reflected_argv(
-      argc, argv, 0, &cdd_to_arazzo_config_type_info, &cfg, &is_help, NULL);
+  rc = cdd_cli_parse_reflected_argv(
+      argc, argv, 1, &cdd_to_arazzo_config_type_info, &cfg, &is_help, NULL);
   if (is_help) {
     puts("Usage: cdd-c to_arazzo -i <dir_or_file> [-o <arazzo.json>] "
          "[--self <uri>]");
-    return CDD_C_SUCCESS;
+    return rc;
+  }
+  if (cfg.input) {
+    return cdd_generate_to_arazzo(&cfg);
   }
   return c2arazzo_cli_main(argc, argv);
 }
@@ -435,6 +440,11 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "from_arazzo") == 0) {
     rc = from_arazzo_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
+  } else if (strcmp(cmd, "transform") == 0) {
+    rc = cli_cst_transform_pipeline_main(argc - 2, argv + 2);
     if (rc != CDD_C_SUCCESS)
       goto handle_err;
     return CDD_C_SUCCESS;
@@ -504,11 +514,14 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     }
     {
       static const char *const k_top_cmds[] = {
-          "from_openapi", "to_openapi",     "to_docs_json",
-          "bind",         "serve_json_rpc", "mcp",
-          "from_arazzo",  "to_arazzo",      "c2arazzo",
-          "audit",        "c2openapi",      "standardize-gnu",
-          "transformer",  "code2schema",    "generate_build_system",
+          "from_openapi",   "to_openapi",
+          "to_docs_json",   "bind",
+          "serve_json_rpc", "mcp",
+          "from_arazzo",    "to_arazzo",
+          "c2arazzo",       "audit",
+          "c2openapi",      "standardize-gnu",
+          "transform",      "transformer",
+          "code2schema",    "generate_build_system",
           "schema2code"};
       const char *sug = NULL;
       rc = cdd_cli_suggest_closest(

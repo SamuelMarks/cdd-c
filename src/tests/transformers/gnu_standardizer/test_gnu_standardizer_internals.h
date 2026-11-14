@@ -770,6 +770,160 @@ TEST test_gnu_asm_and_visitors(void) {
 }
 
 /**
+ * @brief Unit test test_gnu_ranges_complete_coverage.
+ * @return Greatest test result.
+ */
+TEST test_gnu_ranges_complete_coverage(void) {
+  static const char *const k_range_srcs[] = {
+      "int f(int x) {\n"
+      "  switch (x) {\n"
+      "  case '\\f' ... '\\r': return 1;\n"
+      "  case '\\e' ... '\\E': return 2;\n"
+      "  case '\\'' ... '\\\\': return 3;\n"
+      "  case '\\\"' ... '\\?': return 4;\n"
+      "  case '\\a' ... '\\b': return 5;\n"
+      "  case '\\v' ... '\\v': return 6;\n"
+      "  case '\\0' ... '\\t': return 7;\n"
+      "  case '\\n' ... '\\n': return 8;\n"
+      "  default: return 0;\n"
+      "  }\n"
+      "}\n",
+      "int f2(int x) {\n"
+      "  switch (x) {\n"
+      "  case '\\x0a' ... '\\x0F': return 1;\n"
+      "  case '\\x1A' ... '\\x1f': return 2;\n"
+      "  case '\\xz' ... 'z': return 3;\n"
+      "  case '\\q' ... 'r': return 4;\n"
+      "  case '\\007' ... '\\012': return 5;\n"
+      "  case L'a' ... L'c': return 6;\n"
+      "  case '' ... 'a': return 7;\n"
+      "  case '\\x01' ... '\\x03': return 8;\n"
+      "  }\n"
+      "  return 0;\n"
+      "}\n",
+      "enum ER { ER_A = 1, ER_B = 3 };\n"
+      "int f3(int x) {\n"
+      "  int arr1[16] = { [ER_A ... ER_B] = (1 + 2), [0 ... 1] = {1} };\n"
+      "  int arr2[16] = { ['a' - 95 ... 'c' - 95] = arr1[0], [0 ... 5000] = 1 "
+      "};\n"
+      "  int arr3[4] = { [0 ... 1] = , };\n"
+      "  return arr1[0] + arr2[0] + arr3[0] + x;\n"
+      "}\n",
+      "enum ER2 { ER2_A = 1, ER2_B = 3 };\n"
+      "int f4(int x) {\n"
+      "  switch (x) {\n"
+      "  case 0b001 ... 0B100: return 0;\n"
+      "  case 0b12 ... 5: return 1;\n"
+      "  case 010 ... 012: return 2;\n"
+      "  case 0x20 ... 0X22: return 3;\n"
+      "  case 1'0 ... 1'2: return 4;\n"
+      "  case -'b' ... -'a': return 5;\n"
+      "  case +100 ... +102: return 6;\n"
+      "  case 0 ... 5000: return 7;\n"
+      "  case ER2_A ... ER2_B: return 8;\n"
+      "  case -ER2_B ... -ER2_A: return 9;\n"
+      "  case NO_SUCH_ENUM ... 2: return 10;\n"
+      "  }\n"
+      "  return 0;\n"
+      "}\n"};
+  size_t si;
+  int fi;
+  cdd_transform_config_t cfg;
+  memset(&cfg, 0, sizeof(cfg));
+
+  for (si = 0; si < sizeof(k_range_srcs) / sizeof(k_range_srcs[0]); si++) {
+    cdd_cst_tree_t *tree = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_gnu(tree, &cfg));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+    tree = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, gnu_standardize_ranges(tree));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  }
+
+  for (si = 2; si < 4; si++) {
+    for (fi = 1; fi <= 20; fi++) {
+      cdd_cst_tree_t *tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+      g_gnu_malloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_gnu_malloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+      g_gnu_replace_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_gnu_replace_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+      g_cdd_alloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_alloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+      g_cdd_cst_alloc_token_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_cst_alloc_token_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+      g_cdd_cst_realloc_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_cst_realloc_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+      tree = NULL;
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_cst_parse(az_span_create_from_str(k_range_srcs[si]), &tree));
+      g_cdd_cst_alloc_node_fail = fi;
+      g_cdd_last_alloc_err = cdd_transform_gnu(tree, &cfg);
+      g_cdd_cst_alloc_node_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+    }
+  }
+  {
+    cdd_cst_tree_t *tree = NULL;
+    size_t ti;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(
+                                "int fb(int x) { switch(x) { case 'a' ... 'b': "
+                                "return 1; } return 0; }\n"),
+                            &tree));
+    for (ti = 0; ti < tree->base_tokens->size; ti++) {
+      if (tree->base_tokens->tokens[ti].kind == CDD_TOKEN_CHAR) {
+        tree->base_tokens->tokens[ti].start = (const uint8_t *)"'\\'";
+        tree->base_tokens->tokens[ti].length = 3;
+        break;
+      }
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, gnu_standardize_ranges(tree));
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  }
+  PASS();
+}
+
+/**
  * @brief Executes the transformer_gnu_standardizer_internals_suite test suite.
  */
 SUITE(transformer_gnu_standardizer_internals_suite) {
@@ -780,6 +934,7 @@ SUITE(transformer_gnu_standardizer_internals_suite) {
   RUN_TEST(test_gnu_parse_hex_128_literal);
   RUN_TEST(test_gnu_infer_type);
   RUN_TEST(test_gnu_asm_and_visitors);
+  RUN_TEST(test_gnu_ranges_complete_coverage);
 }
 
 #ifdef __cplusplus

@@ -194,11 +194,9 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
         tokens->tokens[start_arg].kind == TOKEN_IDENTIFIER) {
       /* Compare against var_name */
       int is_match = 0;
-      g_cdd_last_alloc_err = token_matches_string(&tokens->tokens[start_arg],
-                                                  site->var_name, &is_match);
-      if (is_match) {
-        is_self_assign = 1;
-      }
+      cdd_c_error_t rc_m = token_matches_string(&tokens->tokens[start_arg],
+                                                site->var_name, &is_match);
+      is_self_assign = is_match + (int)rc_m;
     }
   }
 

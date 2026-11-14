@@ -132,8 +132,8 @@ param_type_is_object_like(const struct OpenAPI_Parameter *p, int *out_is_obj);
  * @param[out] out_is_ct Set to 1 if Content-Type, 0 otherwise.
  * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
-extern C_CDD_EXPORT cdd_c_error_t header_name_is_content_type(const char *name,
-                                                              int *out_is_ct);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_header_name_is_content_type(const char *name, int *out_is_ct);
 
 /**
  * @brief Checks whether an HTTP header name is reserved by OpenAPI (Accept,

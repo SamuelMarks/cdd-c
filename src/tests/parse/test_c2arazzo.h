@@ -482,6 +482,28 @@ TEST test_c2arazzo_source_and_cli(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2arazzo_cli_main(2, argv_bad2));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2arazzo_cli_main(2, argv_bad3));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2arazzo_cli_main(1, argv_bad4));
+    {
+      char *argv_help[3];
+      struct Arazzo_Spec spec_multi;
+      memset(&spec_multi, 0, sizeof(spec_multi));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                c2arazzo_parse_source(
+                    "/**\n"
+                    " * @arazzo-source petstore openapi ./petstore.json\n"
+                    " * @arazzo-source billing openapi ./billing.json\n"
+                    " */\n"
+                    "int dummy_multi = 1;\n",
+                    &spec_multi));
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec_multi);
+      memset(&spec_multi, 0, sizeof(spec_multi));
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 c2arazzo_parse_dir("nonexistent_dir_xyz_999", &spec_multi));
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec_multi);
+      argv_help[0] = C_CDD_STR_LIT("c2arazzo");
+      argv_help[1] = C_CDD_STR_LIT("--help");
+      argv_help[2] = NULL;
+      ASSERT_NEQ(CDD_C_SUCCESS, c2arazzo_cli_main(2, argv_help));
+    }
   }
 
   remove(src_path);
