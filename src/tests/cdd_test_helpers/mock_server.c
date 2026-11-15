@@ -636,7 +636,10 @@ cdd_c_error_t mock_server_start(MockServerPtr server) {
     server->server_fd = INVALID_SOCK;
     return CDD_C_ERROR_UNKNOWN;
   }
-  server->port = (int)ntohs(addr.sin_port);
+  {
+    const unsigned char *port_bytes = (const unsigned char *)&addr.sin_port;
+    server->port = ((int)port_bytes[0] << 8) | (int)port_bytes[1];
+  }
 
   /* Launch Thread */
   server->running = 1;

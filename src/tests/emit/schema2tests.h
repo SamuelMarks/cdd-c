@@ -14,18 +14,18 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
-#include <c_cdd_export.h>
 /* clang-format on */
 
 /**
  * @brief Entry point for generating tests from a JSON schema.
  *
  * @param[in] argc Argument count.
- * @param[in] argv Argument vector. argv[0]=schema, argv[1]=header_to_test,
- * argv[2]=output_test_file.
- * @return 0 on success, non-zero code on failure.
+ * @param[in] argv Argument vector (`argv[0]=schema`, `argv[1]=header_to_test`,
+ * `argv[2]=output_test_file`).
+ * @return CDD_C_SUCCESS on success, non-zero error code on failure.
  */
-C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv);
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t jsonschema2tests_main(int argc,
+                                                            char **argv);
 
 #ifdef __cplusplus
 }

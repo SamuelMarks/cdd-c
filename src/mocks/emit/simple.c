@@ -1,36 +1,36 @@
 /**
  * @file simple.c
- * @brief Unit tests and mocks in simple.c.
+ * @brief Mock cleanup implementations in simple.c.
  */
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
-#include "c_cdd/memory.h"
 #include <stdlib.h>
 
 #include "simple.h"
+#include "cdd_test_helpers/cdd_crt_bridge.h"
 /* clang-format on */
 
 /**
  * @brief Releases memory owned by a Haz instance.
- * @return Result status or value.
  */
-enum cdd_c_error Haz_cleanup(struct Haz *haz) {
-  C_CDD_FREE(haz);
+cdd_c_error_t Haz_cleanup(struct Haz *haz) {
+  if (!haz)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  free(haz);
   return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Releases memory owned by a Foo instance.
- * @return Result status or value.
  */
-enum cdd_c_error Foo_cleanup(struct Foo *foo) {
-  enum cdd_c_error rc;
+cdd_c_error_t Foo_cleanup(struct Foo *foo) {
+  cdd_c_error_t rc;
   if (foo == NULL)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+    return CDD_C_SUCCESS;
   rc = Haz_cleanup(foo->haz);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  C_CDD_FREE(foo);
+  free(foo);
   return CDD_C_SUCCESS;
 }

@@ -97,8 +97,7 @@ static int mock_fputs(const char *str, FILE *stream) {
  */
 static int mock_fclose(FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
-    if (stream)
-      fclose(stream);
+    fclose(stream);
     return -1;
   }
   return fclose(stream);
@@ -192,8 +191,6 @@ static void cdd_test_rmdir_recursive(const char *path) {
   char search_path[1024];
   char child_path[1024];
 
-  if (!path || !*path)
-    return;
 #if defined(_MSC_VER)
   sprintf_s(search_path, sizeof(search_path), "%s\\*", path);
 #else
@@ -225,8 +222,6 @@ static void cdd_test_rmdir_recursive(const char *path) {
   struct stat st;
   char child_path[4096];
 
-  if (!path || !*path)
-    return;
   chmod(path, 0755);
   d = opendir(path);
   if (d) {
@@ -365,11 +360,13 @@ CDD_TEST_HELPERS_EXPORT void cdd_test_tmpfile_cleanup(void) {
                                                  "test_build_dir_readonly2",
                                                  "test_build_dir_tests",
                                                  "test_cli_bind_out",
+                                                 "test_cobol_out",
                                                  "test_cpp_out",
                                                  "test_csharp_out",
                                                  "test_dart_out",
                                                  "test_dummy_dir_for_makedirs",
                                                  "test_ffi_e2e_out",
+                                                 "test_fortran_out",
                                                  "test_go_out",
                                                  "test_haskell_out",
                                                  "test_java_out",
@@ -382,6 +379,7 @@ CDD_TEST_HELPERS_EXPORT void cdd_test_tmpfile_cleanup(void) {
                                                  "test_napi_out",
                                                  "test_ocaml_out",
                                                  "test_odin_out",
+                                                 "test_ofc_out",
                                                  "test_out_swift_io",
                                                  "test_php_out",
                                                  "test_pom_dir",

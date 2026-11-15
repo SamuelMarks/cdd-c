@@ -3,6 +3,7 @@
  * @brief CDD FFI Domain-Specific Language (DSL) tokenizer.
  */
 #ifndef CDD_DSL_TOKENIZER_H
+/** @brief Header guard for cdd_dsl_tokenizer.h */
 #define CDD_DSL_TOKENIZER_H
 
 #ifdef __cplusplus
@@ -11,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "c_cdd/no_discard.h"
 #include "cdd_c_error.h"
 #include "cdd_dsl_token.h"
 #include <stddef.h>
@@ -35,8 +37,8 @@ typedef struct cdd_dsl_token_list_t {
  * @param[out] out_tokens Pointer to a cdd_dsl_token_list_t to populate.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
-                                            cdd_dsl_token_list_t *out_tokens);
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t
+cdd_dsl_tokenize(const char *source, cdd_dsl_token_list_t *out_tokens);
 
 /**
  * @brief Frees a token list.
@@ -44,7 +46,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
  * @param[in,out] list The token list to free.
  * @return CDD_C_SUCCESS.
  */
-C_CDD_EXPORT cdd_c_error_t cdd_dsl_token_list_free(cdd_dsl_token_list_t *list);
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t
+cdd_dsl_token_list_free(cdd_dsl_token_list_t *list);
 
 #ifdef __cplusplus
 }

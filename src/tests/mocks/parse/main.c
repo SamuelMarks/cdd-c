@@ -18,7 +18,7 @@
 #include "../../cdd_test_helpers/cdd_crt_bridge.h"
 /* clang-format on */
 
-/** @brief Test definition g_simple_json_fail_alloc. */
+/** @brief Fault-injection counter for simple JSON mock allocations. */
 extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
 
 /**
@@ -29,14 +29,10 @@ extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
  * @return EXIT_SUCCESS on success, error code otherwise.
  */
 int main(int argc, char **argv) {
-  cdd_c_error_t rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  rc = cdd_suppress_gui_popups();
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  rc = c_cdd_crt_init_runtime();
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
+  rc = cdd_c_keep_err(rc, cdd_suppress_gui_popups());
+  rc = cdd_c_keep_err(rc, c_cdd_crt_init_runtime());
 #if defined(_MSC_VER)
   json_set_allocation_functions(test_crt_malloc, c_cdd_crt_free);
 #endif
@@ -45,7 +41,7 @@ int main(int argc, char **argv) {
     g_simple_json_fail_alloc = 1;
   }
 
-  rc = run_mocks_test();
+  rc = cdd_c_keep_err(rc, run_mocks_test());
   if (rc != CDD_C_SUCCESS)
     return (int)rc;
 

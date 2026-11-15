@@ -9,6 +9,7 @@ import sys
 import os
 import argparse
 import fnmatch
+import subprocess
 from pathlib import Path
 import clang.cindex
 from clang.cindex import (
@@ -138,6 +139,63 @@ def gather_files(
     return sorted(list(set(filtered_files)))
 
 
+def discover_system_compile_args(existing_args: list) -> list:
+    """Discovers platform SDK sysroot and compiler builtin include flags for libclang.
+
+    Standalone PyPI libclang wheels do not bundle macOS SDK sysroots or compiler
+    resource-dir headers (such as stddef.h and stdarg.h), which can cause header
+    parse failures and spurious C89 AST recovery nodes unless explicitly supplied.
+
+    Args:
+        existing_args (list): Existing compiler arguments already configured.
+
+    Returns:
+        list: Additional compiler flags to append for reliable header resolution.
+    """
+    extra = []
+    has_sysroot = any(
+        arg == "-isysroot" or arg.startswith("--isysroot=") for arg in existing_args
+    )
+    if sys.platform == "darwin" and not has_sysroot:
+        try:
+            res = subprocess.run(
+                ["xcrun", "--show-sdk-path"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            sdk_path = res.stdout.strip()
+            if res.returncode == 0 and sdk_path and os.path.isdir(sdk_path):
+                extra.append(f"--isysroot={sdk_path}")
+        except OSError:
+            pass
+
+    for cmd in (
+        ["clang", "-print-resource-dir"],
+        ["cc", "-print-resource-dir"],
+        ["gcc", "-print-file-name=include"],
+    ):
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            out = res.stdout.strip()
+            if res.returncode != 0 or not out:
+                continue
+            cand = (
+                out
+                if cmd[-1].startswith("-print-file-name")
+                else os.path.join(out, "include")
+            )
+            if os.path.isfile(os.path.join(cand, "stddef.h")):
+                flag = f"-isystem{cand}"
+                if flag not in existing_args:
+                    extra.append(flag)
+                break
+        except OSError:
+            continue
+
+    return extra
+
+
 def check_file(
     filename: str,
     compile_args: list,
@@ -187,7 +245,16 @@ def check_file(
                     ):
                         continue
                     filtered_args.append(arg)
-                args_to_use = compile_args + filtered_args
+                db_has_sysroot = any(
+                    a == "-isysroot" or a.startswith("--isysroot=")
+                    for a in filtered_args
+                )
+                base_args = [
+                    a
+                    for a in compile_args
+                    if not (db_has_sysroot and a.startswith("--isysroot="))
+                ]
+                args_to_use = base_args + filtered_args
                 break
 
     try:
@@ -222,7 +289,11 @@ def check_file(
 
     # Walk the AST
     for cursor in tu.cursor.walk_preorder():
-        if cursor.kind == CursorKind.FUNCTION_DECL:
+        try:
+            kind = cursor.kind
+        except ValueError:
+            continue
+        if kind == CursorKind.FUNCTION_DECL:
             # Check if this function is defined in the target file (ignore included headers)
             if cursor.location.file and cursor.location.file.name == filename:
                 if use_default_symbol_exceptions and file_lines:
@@ -353,6 +424,7 @@ def main():
         if unknown[0] == "--":
             unknown = unknown[1:]
         compile_args.extend(unknown)
+    compile_args.extend(discover_system_compile_args(compile_args))
 
     # Configure libclang path if provided or search common locations
     if args.libclang_path:

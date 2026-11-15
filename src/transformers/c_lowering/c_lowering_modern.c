@@ -761,7 +761,8 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
           if (strlen(active_vlas[vi].name) == vt->length &&
               memcmp(active_vlas[vi].name, vt->start, vt->length) == 0) {
             char sz_repl[384];
-            CDD_SNPRINTF(sz_repl, sizeof(sz_repl), "((%s) * sizeof(*%s))",
+            CDD_SNPRINTF(sz_repl, sizeof(sz_repl),
+                         "((%.255s) * sizeof(*%.95s))",
                          active_vlas[vi].elems_expr, active_vlas[vi].name);
             rc = c_low_replace_span(tree, i, end_i, sz_repl);
             if (rc != CDD_C_SUCCESS)

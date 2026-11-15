@@ -112,8 +112,32 @@ TEST test_gen_sdk_test_basic(void) {
  * @return Greatest test result.
  */
 TEST test_gen_sdk_test_nulls(void) {
+  struct OpenAPI_Spec spec;
+  struct SdkTestsConfig cfg;
+  FILE *tmp = cdd_test_tmpfile_global();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&cfg, 0, sizeof(cfg));
+
+  ASSERT(tmp != NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            codegen_sdk_tests_generate(NULL, NULL, NULL));
+            codegen_sdk_tests_generate(NULL, &spec, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_sdk_tests_generate(tmp, NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_sdk_tests_generate(tmp, &spec, NULL));
+
+  cfg.client_header = NULL;
+  cfg.mock_server_url = "http://loopback";
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_sdk_tests_generate(tmp, &spec, &cfg));
+
+  cfg.client_header = "client.h";
+  cfg.mock_server_url = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_sdk_tests_generate(tmp, &spec, &cfg));
+
+  fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -126,10 +150,11 @@ TEST test_gen_sdk_test_exhaustive(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Parameter param[3];
+  struct OpenAPI_Parameter param[4];
   struct SdkTestsConfig config;
-  struct OpenAPI_Response responses[2];
+  struct OpenAPI_Response responses[3];
   FILE *tmp;
+  int k;
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
@@ -152,7 +177,7 @@ TEST test_gen_sdk_test_exhaustive(void) {
 
   op.operation_id = cdd_test_mut_str("runExhaustive");
   op.parameters = param;
-  op.n_parameters = 3;
+  op.n_parameters = 4;
 
   param[0].name = cdd_test_mut_str("count");
   param[0].type = cdd_test_mut_str("integer");
@@ -161,6 +186,8 @@ TEST test_gen_sdk_test_exhaustive(void) {
   param[1].is_array = 1;
   param[2].name = cdd_test_mut_str("str");
   param[2].type = cdd_test_mut_str("string");
+  param[3].name = cdd_test_mut_str("num");
+  param[3].type = cdd_test_mut_str("number");
 
   op.req_body.ref_name = cdd_test_mut_str("MyRequestBody");
   op.req_body.is_array = 0;
@@ -171,28 +198,52 @@ TEST test_gen_sdk_test_exhaustive(void) {
     op.n_tags = 1;
     op.tags = (char **)(size_t)tags;
 
-    op.n_responses = 2;
+    op.n_responses = 3;
     op.responses = responses;
 
     responses[0].code = cdd_test_mut_str("400");
     responses[0].schema.ref_name = cdd_test_mut_str("MyError");
-    responses[1].code = cdd_test_mut_str("200");
-    responses[1].schema.ref_name = cdd_test_mut_str("MyResponse");
+    responses[1].code = cdd_test_mut_str("204");
+    responses[1].schema.ref_name = NULL;
+    responses[2].code = cdd_test_mut_str("200");
+    responses[2].schema.ref_name = cdd_test_mut_str("MyResponse");
 
     config.client_header = "client.h";
     config.func_prefix = "api_";
     config.mock_server_url = "http://loopback";
 
-    ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+    ASSERT_EQ(CDD_C_SUCCESS, codegen_sdk_tests_generate(tmp, &spec, &config));
 
-    g_io_calls = 0;
-    g_fail_io_after = 2;
-    ASSERT_EQ(CDD_C_ERROR_IO, codegen_sdk_tests_generate(tmp, &spec, &config));
+    /* Sweep I/O failure across every fprintf call for object request body */
+    for (k = 0; k < 30; ++k) {
+      g_io_calls = 0;
+      g_fail_io_after = k;
+      if (codegen_sdk_tests_generate(tmp, &spec, &config) == CDD_C_SUCCESS) {
+        g_fail_io_after = -1;
+        break;
+      }
+    }
     g_fail_io_after = -1;
 
-    /* Also test array request body */
+    /* Tag edge cases: NULL tag and empty string tag */
+    tags[0] = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, codegen_sdk_tests_generate(tmp, &spec, &config));
+    tags[0] = cdd_test_mut_str("");
+    ASSERT_EQ(CDD_C_SUCCESS, codegen_sdk_tests_generate(tmp, &spec, &config));
+
+    /* Array request body + sweep I/O failures across array body fprintf calls
+     */
     op.req_body.is_array = 1;
-    ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+    ASSERT_EQ(CDD_C_SUCCESS, codegen_sdk_tests_generate(tmp, &spec, &config));
+    for (k = 0; k < 30; ++k) {
+      g_io_calls = 0;
+      g_fail_io_after = k;
+      if (codegen_sdk_tests_generate(tmp, &spec, &config) == CDD_C_SUCCESS) {
+        g_fail_io_after = -1;
+        break;
+      }
+    }
+    g_fail_io_after = -1;
 
     if (tmp)
       fclose(tmp);

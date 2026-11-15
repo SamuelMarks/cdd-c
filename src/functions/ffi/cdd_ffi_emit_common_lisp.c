@@ -105,7 +105,7 @@ static cdd_c_error_t map_lisp_type(cdd_ffi_type_t *t, char *out_type,
     break;
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
-      char lisp_name[512];
+      char lisp_name[240];
       rc_emit = (cdd_c_error_t)((int)rc_emit |
                                 (int)lispify_name(t->ref_name, lisp_name,
                                                   sizeof(lisp_name)));

@@ -9,6 +9,7 @@
 #include "ffi/cdd_ffi_ir.h"
 #include "functions/ffi/cdd_ffi_emit_ada.h"
 #include "functions/ffi/cdd_ffi_emit_clojure.h"
+#include "functions/ffi/cdd_ffi_emit_cobol.h"
 #include "functions/ffi/cdd_ffi_emit_common_lisp.h"
 #include "functions/ffi/cdd_ffi_emit_cpp.h"
 #include "functions/ffi/cdd_ffi_emit_crystal.h"
@@ -692,6 +693,7 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
 
 TEST_EMITTER(ada)
 TEST_EMITTER(clojure)
+TEST_EMITTER(cobol)
 TEST_EMITTER(common_lisp)
 TEST_EMITTER(cpp)
 TEST_EMITTER(crystal)
@@ -890,6 +892,7 @@ TEST_EMITTER(zig)
 SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);
+  RUN_TEST(test_ffi_emit_cobol);
   RUN_TEST(test_ffi_emit_common_lisp);
   RUN_TEST(test_ffi_emit_cpp);
   RUN_TEST(test_ffi_emit_crystal);

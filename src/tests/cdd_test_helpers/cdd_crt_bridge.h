@@ -36,7 +36,14 @@ extern "C" {
 #endif
 /* clang-format on */
 
+/** @brief Dedicated fault-injection counter for `c_cdd_crt_*` wrappers. */
+extern C_CDD_EXPORT int g_crt_bridge_fail;
+/** @brief External test variable `g_cdd_last_alloc_err`. */
+extern C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err;
+
+/** @brief External test variable `c_cdd_crt_init_runtime(void)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_init_runtime(void);
+/** @brief External test variable `out_ptr)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_malloc(size_t sz, void **out_ptr);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_calloc(size_t n, size_t sz,
                                                    void **out_ptr);
@@ -44,14 +51,18 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_realloc(void *p, size_t sz,
                                                     void **out_ptr);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_strdup(const char *s,
                                                    char **out_str);
+/** @brief External test variable `p)`. */
 extern C_CDD_EXPORT void c_cdd_crt_free(void *p);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fopen(const char *path,
                                                   const char *mode,
                                                   FILE **out_fp, int *out_err);
+/** @brief External test variable `out_rc)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fclose(FILE *fp, int *out_rc);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fseek(FILE *fp, long offset,
                                                   int origin, int *out_rc);
+/** @brief External test variable `out_pos)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_ftell(FILE *fp, long *out_pos);
+/** @brief External test variable `fp)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_rewind(FILE *fp);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fread(void *buf, size_t sz,
                                                   size_t n, FILE *fp,
@@ -63,7 +74,9 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fputs(const char *s, FILE *fp,
                                                   int *out_rc);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fgets(char *s, int n, FILE *fp,
                                                   char **out_res);
+/** @brief External test variable `out_rc)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fflush(FILE *fp, int *out_rc);
+/** @brief External test variable `fp)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_clearerr(FILE *fp);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_vfprintf(FILE *fp, const char *fmt,
                                                      va_list args, int *out_rc);
@@ -76,6 +89,7 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_jasprintf(char **unto,
                                                       int *out_rc);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_putenv(const char *envstr,
                                                    int *out_rc);
+/** @brief External test variable `out_fp)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_std_stream(int idx, FILE **out_fp);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_freopen(const char *path,
                                                     const char *mode,
@@ -85,19 +99,31 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fgetpos(FILE *fp, fpos_t *pos,
                                                     int *out_rc);
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fsetpos(FILE *fp, const fpos_t *pos,
                                                     int *out_rc);
+/** @brief External test variable `out_fd)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fileno(FILE *fp, int *out_fd);
+/** @brief External test variable `out_fd)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup(int fd, int *out_fd);
+/** @brief External test variable `out_rc)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup2(int fd1, int fd2, int *out_rc);
+/** @brief External test variable `out_rc)`. */
 extern C_CDD_EXPORT cdd_c_error_t c_cdd_crt_close(int fd, int *out_rc);
 
+#if defined(_MSC_VER) || defined(CDD_TEST_CRT_BRIDGE)
+
 #if defined(_MSC_VER)
+/** @brief Inline storage specifier for CRT bridge wrappers on MSVC. */
+#define CDD_CRT_BRIDGE_INLINE static __inline
+#else
+/** @brief Static storage specifier for non-MSVC unit testing of CRT bridge. */
+#define CDD_CRT_BRIDGE_INLINE static
+#endif
 
 /**
  * @brief Maps caller stdin/stdout/stderr to c_cdd's CRT standard streams.
  * @param[in] fp Input FILE pointer.
  * @return Corresponding FILE pointer in c_cdd's CRT.
  */
-static __inline FILE *test_crt_resolve_stream(FILE *fp) {
+CDD_CRT_BRIDGE_INLINE FILE *test_crt_resolve_stream(FILE *fp) {
   FILE *dll_fp = fp;
   if (!fp)
     return NULL;
@@ -124,7 +150,7 @@ static __inline FILE *test_crt_resolve_stream(FILE *fp) {
  * @param[in] sz Bytes to allocate.
  * @return Allocated pointer or NULL.
  */
-static __inline void *test_crt_malloc(size_t sz) {
+CDD_CRT_BRIDGE_INLINE void *test_crt_malloc(size_t sz) {
   void *p = NULL;
   cdd_c_error_t rc = c_cdd_crt_malloc(sz, &p);
   if (rc != CDD_C_SUCCESS)
@@ -138,7 +164,7 @@ static __inline void *test_crt_malloc(size_t sz) {
  * @param[in] sz Element size.
  * @return Allocated pointer or NULL.
  */
-static __inline void *test_crt_calloc(size_t n, size_t sz) {
+CDD_CRT_BRIDGE_INLINE void *test_crt_calloc(size_t n, size_t sz) {
   void *p = NULL;
   cdd_c_error_t rc = c_cdd_crt_calloc(n, sz, &p);
   if (rc != CDD_C_SUCCESS)
@@ -152,7 +178,7 @@ static __inline void *test_crt_calloc(size_t n, size_t sz) {
  * @param[in] sz New size in bytes.
  * @return Resized pointer or NULL.
  */
-static __inline void *test_crt_realloc(void *ptr, size_t sz) {
+CDD_CRT_BRIDGE_INLINE void *test_crt_realloc(void *ptr, size_t sz) {
   void *p = NULL;
   cdd_c_error_t rc = c_cdd_crt_realloc(ptr, sz, &p);
   if (rc != CDD_C_SUCCESS)
@@ -165,7 +191,7 @@ static __inline void *test_crt_realloc(void *ptr, size_t sz) {
  * @param[in] s Source string.
  * @return Duplicated string or NULL.
  */
-static __inline char *test_crt_strdup(const char *s) {
+CDD_CRT_BRIDGE_INLINE char *test_crt_strdup(const char *s) {
   char *d = NULL;
   cdd_c_error_t rc = c_cdd_crt_strdup(s, &d);
   if (rc != CDD_C_SUCCESS)
@@ -179,7 +205,7 @@ static __inline char *test_crt_strdup(const char *s) {
  * @param[in] mode Access mode.
  * @return Opened FILE pointer or NULL.
  */
-static __inline FILE *test_crt_fopen(const char *path, const char *mode) {
+CDD_CRT_BRIDGE_INLINE FILE *test_crt_fopen(const char *path, const char *mode) {
   FILE *f = NULL;
   int err = 0;
   cdd_c_error_t rc = c_cdd_crt_fopen(path, mode, &f, &err);
@@ -195,8 +221,8 @@ static __inline FILE *test_crt_fopen(const char *path, const char *mode) {
  * @param[in] mode Access mode.
  * @return 0 on success, or errno code.
  */
-static __inline int test_crt_fopen_s(FILE **out_fp, const char *path,
-                                     const char *mode) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fopen_s(FILE **out_fp, const char *path,
+                                           const char *mode) {
   int err = 0;
   cdd_c_error_t rc;
   if (!out_fp)
@@ -216,8 +242,8 @@ static __inline int test_crt_fopen_s(FILE **out_fp, const char *path,
  * @param[in,out] stream Existing FILE stream.
  * @return Reopened FILE pointer or NULL.
  */
-static __inline FILE *test_crt_freopen(const char *path, const char *mode,
-                                       FILE *stream) {
+CDD_CRT_BRIDGE_INLINE FILE *test_crt_freopen(const char *path, const char *mode,
+                                             FILE *stream) {
   FILE *f = NULL;
   int err = 0;
   cdd_c_error_t rc =
@@ -235,8 +261,8 @@ static __inline FILE *test_crt_freopen(const char *path, const char *mode,
  * @param[in,out] stream Existing FILE stream.
  * @return 0 on success, or errno code.
  */
-static __inline int test_crt_freopen_s(FILE **out_fp, const char *path,
-                                       const char *mode, FILE *stream) {
+CDD_CRT_BRIDGE_INLINE int test_crt_freopen_s(FILE **out_fp, const char *path,
+                                             const char *mode, FILE *stream) {
   int err = 0;
   cdd_c_error_t rc;
   if (!out_fp)
@@ -255,7 +281,7 @@ static __inline int test_crt_freopen_s(FILE **out_fp, const char *path,
  * @param[in,out] fp File stream.
  * @return 0 on success, or EOF.
  */
-static __inline int test_crt_fclose(FILE *fp) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fclose(FILE *fp) {
   int out_rc = EOF;
   cdd_c_error_t rc = c_cdd_crt_fclose(test_crt_resolve_stream(fp), &out_rc);
   if (rc != CDD_C_SUCCESS)
@@ -270,7 +296,7 @@ static __inline int test_crt_fclose(FILE *fp) {
  * @param[in] origin Seek origin.
  * @return 0 on success, or non-zero on error.
  */
-static __inline int test_crt_fseek(FILE *fp, long offset, int origin) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fseek(FILE *fp, long offset, int origin) {
   int out_rc = -1;
   cdd_c_error_t rc =
       c_cdd_crt_fseek(test_crt_resolve_stream(fp), offset, origin, &out_rc);
@@ -284,7 +310,7 @@ static __inline int test_crt_fseek(FILE *fp, long offset, int origin) {
  * @param[in,out] fp File stream.
  * @return Current byte offset, or -1L on error.
  */
-static __inline long test_crt_ftell(FILE *fp) {
+CDD_CRT_BRIDGE_INLINE long test_crt_ftell(FILE *fp) {
   long pos = -1L;
   cdd_c_error_t rc = c_cdd_crt_ftell(test_crt_resolve_stream(fp), &pos);
   if (rc != CDD_C_SUCCESS)
@@ -296,10 +322,8 @@ static __inline long test_crt_ftell(FILE *fp) {
  * @brief Wrapper for rewind routing to c_cdd's CRT file table.
  * @param[in,out] fp File stream.
  */
-static __inline void test_crt_rewind(FILE *fp) {
-  cdd_c_error_t rc = c_cdd_crt_rewind(test_crt_resolve_stream(fp));
-  if (rc != CDD_C_SUCCESS)
-    return;
+CDD_CRT_BRIDGE_INLINE void test_crt_rewind(FILE *fp) {
+  g_cdd_last_alloc_err = c_cdd_crt_rewind(test_crt_resolve_stream(fp));
 }
 
 /**
@@ -308,7 +332,7 @@ static __inline void test_crt_rewind(FILE *fp) {
  * @param[out] pos Output position.
  * @return 0 on success, or non-zero on error.
  */
-static __inline int test_crt_fgetpos(FILE *fp, fpos_t *pos) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fgetpos(FILE *fp, fpos_t *pos) {
   int out_rc = -1;
   cdd_c_error_t rc =
       c_cdd_crt_fgetpos(test_crt_resolve_stream(fp), pos, &out_rc);
@@ -323,7 +347,7 @@ static __inline int test_crt_fgetpos(FILE *fp, fpos_t *pos) {
  * @param[in] pos Input position.
  * @return 0 on success, or non-zero on error.
  */
-static __inline int test_crt_fsetpos(FILE *fp, const fpos_t *pos) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fsetpos(FILE *fp, const fpos_t *pos) {
   int out_rc = -1;
   cdd_c_error_t rc =
       c_cdd_crt_fsetpos(test_crt_resolve_stream(fp), pos, &out_rc);
@@ -340,8 +364,8 @@ static __inline int test_crt_fsetpos(FILE *fp, const fpos_t *pos) {
  * @param[in,out] fp File stream.
  * @return Number of elements read.
  */
-static __inline size_t test_crt_fread(void *buf, size_t sz, size_t n,
-                                      FILE *fp) {
+CDD_CRT_BRIDGE_INLINE size_t test_crt_fread(void *buf, size_t sz, size_t n,
+                                            FILE *fp) {
   size_t r = 0;
   cdd_c_error_t rc =
       c_cdd_crt_fread(buf, sz, n, test_crt_resolve_stream(fp), &r);
@@ -358,8 +382,8 @@ static __inline size_t test_crt_fread(void *buf, size_t sz, size_t n,
  * @param[in,out] fp File stream.
  * @return Number of elements written.
  */
-static __inline size_t test_crt_fwrite(const void *buf, size_t sz, size_t n,
-                                       FILE *fp) {
+CDD_CRT_BRIDGE_INLINE size_t test_crt_fwrite(const void *buf, size_t sz,
+                                             size_t n, FILE *fp) {
   size_t w = 0;
   cdd_c_error_t rc =
       c_cdd_crt_fwrite(buf, sz, n, test_crt_resolve_stream(fp), &w);
@@ -374,7 +398,7 @@ static __inline size_t test_crt_fwrite(const void *buf, size_t sz, size_t n,
  * @param[in,out] fp File stream.
  * @return Non-negative on success, or EOF.
  */
-static __inline int test_crt_fputs(const char *s, FILE *fp) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fputs(const char *s, FILE *fp) {
   int out_rc = EOF;
   cdd_c_error_t rc = c_cdd_crt_fputs(s, test_crt_resolve_stream(fp), &out_rc);
   if (rc != CDD_C_SUCCESS)
@@ -389,7 +413,7 @@ static __inline int test_crt_fputs(const char *s, FILE *fp) {
  * @param[in,out] fp File stream.
  * @return s on success, or NULL.
  */
-static __inline char *test_crt_fgets(char *s, int n, FILE *fp) {
+CDD_CRT_BRIDGE_INLINE char *test_crt_fgets(char *s, int n, FILE *fp) {
   char *res = NULL;
   cdd_c_error_t rc = c_cdd_crt_fgets(s, n, test_crt_resolve_stream(fp), &res);
   if (rc != CDD_C_SUCCESS)
@@ -402,7 +426,7 @@ static __inline char *test_crt_fgets(char *s, int n, FILE *fp) {
  * @param[in,out] fp File stream.
  * @return 0 on success, or EOF.
  */
-static __inline int test_crt_fflush(FILE *fp) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fflush(FILE *fp) {
   int out_rc = 0;
   cdd_c_error_t rc;
   if (!fp || fp == stdout || fp == stderr)
@@ -417,13 +441,10 @@ static __inline int test_crt_fflush(FILE *fp) {
  * @brief Wrapper for clearerr routing to c_cdd's CRT file table.
  * @param[in,out] fp File stream.
  */
-static __inline void test_crt_clearerr(FILE *fp) {
-  cdd_c_error_t rc;
+CDD_CRT_BRIDGE_INLINE void test_crt_clearerr(FILE *fp) {
   if (fp == stdin || fp == stdout || fp == stderr)
     clearerr(fp);
-  rc = c_cdd_crt_clearerr(test_crt_resolve_stream(fp));
-  if (rc != CDD_C_SUCCESS)
-    return;
+  g_cdd_last_alloc_err = c_cdd_crt_clearerr(test_crt_resolve_stream(fp));
 }
 
 /**
@@ -431,7 +452,7 @@ static __inline void test_crt_clearerr(FILE *fp) {
  * @param[in] fp File stream.
  * @return File descriptor, or -1 on error.
  */
-static __inline int test_crt_fileno(FILE *fp) {
+CDD_CRT_BRIDGE_INLINE int test_crt_fileno(FILE *fp) {
   int fd = -1;
   cdd_c_error_t rc = c_cdd_crt_fileno(test_crt_resolve_stream(fp), &fd);
   if (rc != CDD_C_SUCCESS)
@@ -444,7 +465,7 @@ static __inline int test_crt_fileno(FILE *fp) {
  * @param[in] fd File descriptor.
  * @return Duplicated file descriptor, or -1 on error.
  */
-static __inline int test_crt_dup(int fd) {
+CDD_CRT_BRIDGE_INLINE int test_crt_dup(int fd) {
   int out_fd = -1;
   cdd_c_error_t rc = c_cdd_crt_dup(fd, &out_fd);
   if (rc != CDD_C_SUCCESS)
@@ -458,7 +479,7 @@ static __inline int test_crt_dup(int fd) {
  * @param[in] fd2 Target file descriptor.
  * @return 0 on success, or -1 on error.
  */
-static __inline int test_crt_dup2(int fd1, int fd2) {
+CDD_CRT_BRIDGE_INLINE int test_crt_dup2(int fd1, int fd2) {
   int out_rc = -1;
   cdd_c_error_t rc = c_cdd_crt_dup2(fd1, fd2, &out_rc);
   if (rc != CDD_C_SUCCESS)
@@ -471,7 +492,7 @@ static __inline int test_crt_dup2(int fd1, int fd2) {
  * @param[in] fd File descriptor.
  * @return 0 on success, or -1 on error.
  */
-static __inline int test_crt_close(int fd) {
+CDD_CRT_BRIDGE_INLINE int test_crt_close(int fd) {
   int out_rc = -1;
   cdd_c_error_t rc = c_cdd_crt_close(fd, &out_rc);
   if (rc != CDD_C_SUCCESS)
@@ -484,10 +505,13 @@ static __inline int test_crt_close(int fd) {
  * @param[in] envstr "KEY=VALUE" string.
  * @return 0 on success, or -1 on error.
  */
-static __inline int test_crt_putenv(const char *envstr) {
+CDD_CRT_BRIDGE_INLINE int test_crt_putenv(const char *envstr) {
   int out_rc = -1;
   cdd_c_error_t rc;
-  _putenv(envstr);
+#if defined(_MSC_VER)
+  if (envstr && envstr[0] != '\0' && strchr(envstr, '=') != NULL)
+    _putenv(envstr);
+#endif
   rc = c_cdd_crt_putenv(envstr, &out_rc);
   if (rc != CDD_C_SUCCESS)
     return -1;
@@ -501,12 +525,16 @@ static __inline int test_crt_putenv(const char *envstr) {
  * @param[in] args Variadic argument list.
  * @return Number of characters written, or negative on error.
  */
-static __inline int test_crt_vfprintf(FILE *fp, const char *fmt, va_list args) {
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 0)))
+#endif
+CDD_CRT_BRIDGE_INLINE int
+test_crt_vfprintf(FILE *fp, const char *fmt, va_list args) {
   int out_rc = -1;
   cdd_c_error_t rc =
       c_cdd_crt_vfprintf(test_crt_resolve_stream(fp), fmt, args, &out_rc);
-  if (rc != CDD_C_SUCCESS && out_rc >= 0)
-    out_rc = -1;
+  if (rc != CDD_C_SUCCESS)
+    return -1;
   return out_rc;
 }
 
@@ -516,7 +544,11 @@ static __inline int test_crt_vfprintf(FILE *fp, const char *fmt, va_list args) {
  * @param[in] fmt Format string.
  * @return Number of characters written, or negative on error.
  */
-static __inline int test_crt_fprintf(FILE *fp, const char *fmt, ...) {
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
+CDD_CRT_BRIDGE_INLINE int
+test_crt_fprintf(FILE *fp, const char *fmt, ...) {
   va_list args;
   int out_rc = -1;
   va_start(args, fmt);
@@ -532,8 +564,11 @@ static __inline int test_crt_fprintf(FILE *fp, const char *fmt, ...) {
  * @param[in] args Variadic argument list.
  * @return Number of characters written, or -1 on error.
  */
-static __inline int test_crt_vasprintf(char **out_str, const char *fmt,
-                                       va_list args) {
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 0)))
+#endif
+CDD_CRT_BRIDGE_INLINE int
+test_crt_vasprintf(char **out_str, const char *fmt, va_list args) {
   int out_rc = -1;
   cdd_c_error_t rc = c_cdd_crt_vasprintf(out_str, fmt, args, &out_rc);
   if (rc != CDD_C_SUCCESS)
@@ -547,7 +582,11 @@ static __inline int test_crt_vasprintf(char **out_str, const char *fmt,
  * @param[in] fmt Format string.
  * @return Number of characters written, or -1 on error.
  */
-static __inline int test_crt_asprintf(char **out_str, const char *fmt, ...) {
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
+CDD_CRT_BRIDGE_INLINE int
+test_crt_asprintf(char **out_str, const char *fmt, ...) {
   va_list args;
   int out_rc = -1;
   cdd_c_error_t rc;
@@ -565,7 +604,11 @@ static __inline int test_crt_asprintf(char **out_str, const char *fmt, ...) {
  * @param[in] fmt Format string.
  * @return Number of characters written, or -1 on error.
  */
-static __inline int test_crt_jasprintf(char **unto, const char *fmt, ...) {
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
+CDD_CRT_BRIDGE_INLINE int
+test_crt_jasprintf(char **unto, const char *fmt, ...) {
   va_list args;
   char *new_part = NULL;
   int out_rc = -1;
@@ -573,7 +616,7 @@ static __inline int test_crt_jasprintf(char **unto, const char *fmt, ...) {
   va_start(args, fmt);
   rc = c_cdd_crt_vasprintf(&new_part, fmt, args, &out_rc);
   va_end(args);
-  if (rc != CDD_C_SUCCESS || !new_part)
+  if (rc != CDD_C_SUCCESS)
     return -1;
   rc = c_cdd_crt_jasprintf(unto, new_part, &out_rc);
   c_cdd_crt_free(new_part);
@@ -582,7 +625,9 @@ static __inline int test_crt_jasprintf(char **unto, const char *fmt, ...) {
   return out_rc;
 }
 
-#ifndef CDD_CRT_BRIDGE_NO_MACROS
+#endif /* defined(_MSC_VER) || defined(CDD_TEST_CRT_BRIDGE) */
+
+#if defined(_MSC_VER) && !defined(CDD_CRT_BRIDGE_NO_MACROS)
 #define json_set_allocation_functions(m, f)                                    \
   (json_set_allocation_functions)(                                             \
       ((void (*)(void))(m) == (void (*)(void))test_crt_malloc) ? NULL : (m),   \
@@ -667,9 +712,7 @@ static __inline int test_crt_jasprintf(char **unto, const char *fmt, ...) {
 #define c89stringutils_vasprintf test_crt_vasprintf
 #undef c89stringutils_jasprintf
 #define c89stringutils_jasprintf test_crt_jasprintf
-#endif /* !CDD_CRT_BRIDGE_NO_MACROS */
-
-#endif /* defined(_MSC_VER) */
+#endif /* defined(_MSC_VER) && !defined(CDD_CRT_BRIDGE_NO_MACROS) */
 
 #ifdef __cplusplus
 }

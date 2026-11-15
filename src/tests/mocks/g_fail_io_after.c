@@ -2,8 +2,13 @@
  * @file g_fail_io_after.c
  * @brief Unit tests and mocks in g_fail_io_after.c.
  */
+/** @brief Disable CRT redirection macros inside the CRT bridge implementation
+ */
+#define CDD_CRT_BRIDGE_NO_MACROS
+
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/memory.h"
 #include "c_cdd/suppress_gui.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -18,18 +23,19 @@
 #else
 #include <unistd.h>
 #endif
-/** @brief Disable CRT redirection macros inside the CRT bridge implementation */
-#define CDD_CRT_BRIDGE_NO_MACROS
 #include "../cdd_test_helpers/cdd_crt_bridge.h"
+/* clang-format on */
+
 /**
  * @brief Macro c89stringutils_jasprintf.
  */
 #define c89stringutils_jasprintf jasprintf
-/* clang-format on */
 /** @brief Test definition g_fail_io_after. */
 C_CDD_EXPORT int g_fail_io_after = -1;
 /** @brief Test definition g_io_calls. */
 C_CDD_EXPORT int g_io_calls = 0;
+/** @brief Dedicated fault-injection counter for `c_cdd_crt_*` wrappers. */
+C_CDD_EXPORT int g_crt_bridge_fail = 0;
 
 /** @brief Test definition g_crypto_fail_digestfinal. */
 C_CDD_EXPORT int g_crypto_fail_digestfinal = 0;
@@ -47,6 +53,8 @@ C_CDD_EXPORT int g_crypto_fail_hmac_len = 0;
 C_CDD_EXPORT int g_crypto_fail_mdctx_new = 0;
 /** @brief Test definition g_crypto_fail_sha256. */
 C_CDD_EXPORT int g_crypto_fail_sha256 = 0;
+/** @brief Countdown fault-injection counter for `crypto_wasm.c` steps. */
+C_CDD_EXPORT int g_crypto_wasm_fail_step = 0;
 
 /** @brief Test definition g_cdd_mock_dlopen_success. */
 C_CDD_EXPORT int g_cdd_mock_dlopen_success = 0;
@@ -70,6 +78,7 @@ C_CDD_EXPORT int g_cdd_fail_extras_serialize = 0;
 C_CDD_EXPORT int g_cdd_fail_extensions_init = 0;
 /** @brief Test definition g_cdd_fail_extensions_serialize. */
 C_CDD_EXPORT int g_cdd_fail_extensions_serialize = 0;
+/** @brief Test definition g_cdd_fprintf_fail. */
 C_CDD_EXPORT int g_cdd_fprintf_fail = 0;
 /** @brief Test definition g_cdd_fail_alloc. */
 C_CDD_EXPORT int g_cdd_fail_alloc = 0;
@@ -329,7 +338,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_init_runtime(void) {
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_malloc(size_t sz, void **out_ptr) {
   if (!out_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out_ptr = malloc(sz);
+  *out_ptr =
+      (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? NULL : malloc(sz);
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
@@ -344,7 +354,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_calloc(size_t n, size_t sz,
                                             void **out_ptr) {
   if (!out_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out_ptr = calloc(n, sz);
+  *out_ptr =
+      (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? NULL : calloc(n, sz);
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
@@ -359,7 +370,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_realloc(void *p, size_t sz,
                                              void **out_ptr) {
   if (!out_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out_ptr = realloc(p, sz);
+  *out_ptr =
+      (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? NULL : realloc(p, sz);
   return *out_ptr ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
@@ -379,7 +391,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_strdup(const char *s, char **out_str) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   len = strlen(s) + 1;
-  dup = (char *)malloc(len);
+  dup = (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? NULL
+                                                        : (char *)malloc(len);
   if (dup)
     memcpy(dup, s, len);
   *out_str = dup;
@@ -412,6 +425,11 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fopen(const char *path, const char *mode,
       *out_err = EINVAL;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0) {
+    if (out_err)
+      *out_err = 0;
+    return CDD_C_ERROR_IO;
+  }
 #if defined(_MSC_VER)
   err = (int)fopen_s(&f, path, mode);
   if (err != 0)
@@ -442,6 +460,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fclose(FILE *fp, int *out_rc) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   rc = fclose(fp);
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0)
+    rc = EOF;
   if (out_rc)
     *out_rc = rc;
   return (rc == 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
@@ -479,7 +499,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_ftell(FILE *fp, long *out_pos) {
   long pos;
   if (!fp || !out_pos)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  pos = ftell(fp);
+  pos = (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? -1L : ftell(fp);
   *out_pos = pos;
   return (pos >= 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
 }
@@ -550,7 +570,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fputs(const char *s, FILE *fp,
       *out_rc = EOF;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  rc = fputs(s, fp);
+  rc = (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? EOF : fputs(s, fp);
   if (out_rc)
     *out_rc = rc;
   return (rc >= 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
@@ -579,7 +599,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fgets(char *s, int n, FILE *fp,
  * @return CDD_C_SUCCESS.
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fflush(FILE *fp, int *out_rc) {
-  int rc = fflush(fp);
+  int rc = (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? EOF : fflush(fp);
   if (out_rc)
     *out_rc = rc;
   return (rc == 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
@@ -616,7 +636,9 @@ c_cdd_crt_vfprintf(FILE *fp, const char *fmt, va_list args, int *out_rc) {
       *out_rc = -1;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  rc = vfprintf(fp, fmt, args);
+  rc = (g_crt_bridge_fail && --g_crt_bridge_fail == 0)
+           ? -1
+           : vfprintf(fp, fmt, args);
   if (out_rc)
     *out_rc = rc;
   return (rc >= 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
@@ -642,7 +664,12 @@ c_cdd_crt_vasprintf(char **out_str, const char *fmt, va_list args,
       *out_rc = -1;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  rc = c89stringutils_vasprintf(out_str, fmt, args);
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0) {
+    *out_str = NULL;
+    rc = -1;
+  } else {
+    rc = c89stringutils_vasprintf(out_str, fmt, args);
+  }
   if (out_rc)
     *out_rc = rc;
   return (rc >= 0) ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
@@ -663,7 +690,11 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_jasprintf(char **unto, const char *str,
       *out_rc = -1;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  rc = c89stringutils_jasprintf(unto, "%s", str ? str : "");
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0) {
+    rc = -1;
+  } else {
+    rc = c89stringutils_jasprintf(unto, "%s", str ? str : "");
+  }
   if (out_rc)
     *out_rc = rc;
   return (rc >= 0) ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
@@ -683,9 +714,10 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_putenv(const char *envstr, int *out_rc) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 #if defined(_MSC_VER)
-  rc = _putenv(envstr);
+  rc =
+      (envstr[0] != '\0' && strchr(envstr, '=') != NULL) ? _putenv(envstr) : -1;
 #elif defined(_WIN32)
-  rc = putenv(envstr);
+  rc = (envstr[0] != '\0' && strchr(envstr, '=') != NULL) ? putenv(envstr) : -1;
 #else
   rc = (envstr[0] != '\0') ? 0 : -1;
 #endif
@@ -703,6 +735,8 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_putenv(const char *envstr, int *out_rc) {
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_std_stream(int idx, FILE **out_fp) {
   if (!out_fp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0)
+    return CDD_C_ERROR_IO;
   if (idx == 0) {
     *out_fp = stdin;
     return CDD_C_SUCCESS;
@@ -741,6 +775,11 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_freopen(const char *path, const char *mode,
       *out_err = EINVAL;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0) {
+    if (out_err)
+      *out_err = 0;
+    return CDD_C_ERROR_IO;
+  }
 #if defined(_MSC_VER)
   err = (int)freopen_s(&f, path, mode, stream);
   if (err != 0)
@@ -772,7 +811,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fgetpos(FILE *fp, fpos_t *pos,
       *out_rc = -1;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  rc = fgetpos(fp, pos);
+  rc = (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? -1 : fgetpos(fp, pos);
   if (out_rc)
     *out_rc = rc;
   return (rc == 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
@@ -793,7 +832,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fsetpos(FILE *fp, const fpos_t *pos,
       *out_rc = -1;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  rc = fsetpos(fp, pos);
+  rc = (g_crt_bridge_fail && --g_crt_bridge_fail == 0) ? -1 : fsetpos(fp, pos);
   if (out_rc)
     *out_rc = rc;
   return (rc == 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
@@ -808,11 +847,15 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fsetpos(FILE *fp, const fpos_t *pos,
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_fileno(FILE *fp, int *out_fd) {
   if (!fp || !out_fd)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (g_crt_bridge_fail && --g_crt_bridge_fail == 0) {
+    *out_fd = -1;
+  } else {
 #if defined(_MSC_VER)
-  *out_fd = _fileno(fp);
+    *out_fd = _fileno(fp);
 #else
-  *out_fd = fileno(fp);
+    *out_fd = fileno(fp);
 #endif
+  }
   return (*out_fd >= 0) ? CDD_C_SUCCESS : CDD_C_ERROR_IO;
 }
 
@@ -828,7 +871,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup(int fd, int *out_fd) {
 #if defined(__wasi__)
   *out_fd = (fd >= 0) ? -1 : -1;
 #elif defined(_MSC_VER)
-  *out_fd = _dup(fd);
+  *out_fd = (fd < 0) ? -1 : _dup(fd);
 #else
   *out_fd = dup(fd);
 #endif
@@ -847,7 +890,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup2(int fd1, int fd2, int *out_rc) {
 #if defined(__wasi__)
   rc = (fd1 >= 0 && fd2 >= 0) ? -1 : -1;
 #elif defined(_MSC_VER)
-  rc = _dup2(fd1, fd2);
+  rc = (fd1 < 0 || fd2 < 0) ? -1 : _dup2(fd1, fd2);
 #else
   rc = dup2(fd1, fd2);
 #endif
@@ -865,7 +908,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup2(int fd1, int fd2, int *out_rc) {
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_close(int fd, int *out_rc) {
   int rc = -1;
 #if defined(_MSC_VER)
-  rc = _close(fd);
+  rc = (fd < 0) ? -1 : _close(fd);
 #else
   rc = close(fd);
 #endif

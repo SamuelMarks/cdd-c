@@ -52,3 +52,18 @@ cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out) {
   }
   return CDD_C_SUCCESS;
 }
+
+/**
+ * @brief Preserves the first non-success error code across primary and cleanup
+ * steps.
+ *
+ * @param[in] primary Primary operation status code.
+ * @param[in] cleanup_rc Cleanup operation status code.
+ * @return `primary` when `primary != CDD_C_SUCCESS`, otherwise `cleanup_rc`.
+ */
+cdd_c_error_t cdd_c_keep_err(cdd_c_error_t primary, cdd_c_error_t cleanup_rc) {
+  if (primary != CDD_C_SUCCESS) {
+    return primary;
+  }
+  return cleanup_rc;
+}

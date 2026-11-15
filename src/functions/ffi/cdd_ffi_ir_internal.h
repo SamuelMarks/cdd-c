@@ -6,6 +6,7 @@
  */
 
 #ifndef CDD_FFI_IR_INTERNAL_H
+/** @brief Header guard for cdd_ffi_ir_internal.h */
 #define CDD_FFI_IR_INTERNAL_H
 
 #ifdef __cplusplus

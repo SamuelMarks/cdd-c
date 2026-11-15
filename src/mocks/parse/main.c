@@ -1,76 +1,49 @@
 /**
  * @file main.c
- * @brief Unit tests and mocks in main.c.
+ * @brief Main mock runner for simple JSON serialization testing in src/mocks.
  */
+
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/suppress_gui.h"
 
-#include "c_cdd/memory.h"
-#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#else
-#include <errno.h>
-#endif
-
+#include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "../emit/simple_json.h"
+#include "cdd_src_mocks_export.h"
+#include "cdd_test_helpers/cdd_crt_bridge.h"
 /* clang-format on */
 
-/** @brief Test definition haz_e_mock0. */
-static const char *haz_e_mock0 = "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
-/** @brief Test definition foo_e_mock0. */
-static const char *foo_e_mock0 =
-    "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
-    "\"some_bzr\",\"tank\": \"SMALL\"}}";
+/** @brief Fault-injection counter for simple JSON mock allocations. */
+extern CDD_SRC_MOCKS_EXPORT int g_simple_json_fail_alloc;
 
 /**
- * \brief func
- * @return Test or helper result.
+ * @brief Entry point for the JSON serialization mock runner.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument array.
+ * @return EXIT_SUCCESS on success, error code otherwise.
  */
-/**
- * @brief Application entry point.
- */
-enum cdd_c_error main(void) {
-  const enum Tank t = Tank_BIG;
-  char *tank_as_str = NULL;
-  char bzr_buf[] = "some_bzr";
-  char bar_buf[] = "some_bar";
-  struct HazE haz_e;
-  struct FooE foo_e;
-  char *haz_e_json = NULL;
-  char *foo_e_json = NULL;
-  struct HazE *haz_e0 = C_CDD_MALLOC(sizeof(*haz_e0));
-  struct FooE *foo_e0 = C_CDD_MALLOC(sizeof(*foo_e0));
-  haz_e.bzr = bzr_buf;
-  haz_e.tank = Tank_SMALL;
-  foo_e.bar = bar_buf;
-  foo_e.can = 5;
-  foo_e.haz = &haz_e;
+int main(int argc, char **argv) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  if (haz_e0 == NULL || foo_e0 == NULL)
-    return CDD_C_ERROR_MEMORY;
+  rc = cdd_c_keep_err(rc, cdd_suppress_gui_popups());
+  rc = cdd_c_keep_err(rc, c_cdd_crt_init_runtime());
+#if defined(_MSC_VER)
+  json_set_allocation_functions(test_crt_malloc, c_cdd_crt_free);
+#endif
 
-  assert(Tank_to_str(t, &tank_as_str) == 0);
-  assert(strcmp(tank_as_str, "BIG") == 0);
-  C_CDD_FREE(tank_as_str);
+  if (argc > 1 && strcmp(argv[1], "--fail-alloc") == 0) {
+    g_simple_json_fail_alloc = 1;
+  }
 
-  assert(HazE_to_json(&haz_e, &haz_e_json) == 0);
-  assert(strcmp(haz_e_json, haz_e_mock0) == 0);
-  C_CDD_FREE(haz_e_json);
+  rc = cdd_c_keep_err(rc, run_mocks_test());
+  if (rc != CDD_C_SUCCESS)
+    return (int)rc;
 
-  assert(HazE_from_json(haz_e_mock0, &haz_e0) == 0);
-  assert(HazE_eq(haz_e0, &haz_e) == 0);
-  C_CDD_FREE(haz_e0);
-
-  assert(FooE_to_json(&foo_e, &foo_e_json) == 0);
-  assert(strcmp(foo_e_json, foo_e_mock0) == 0);
-  C_CDD_FREE(foo_e_json);
-
-  assert(FooE_from_json(foo_e_mock0, &foo_e0) == 0);
-  assert(FooE_eq(foo_e0, &foo_e) == 0);
-  C_CDD_FREE(foo_e0);
-
-  return CDD_C_SUCCESS;
+  return EXIT_SUCCESS;
 }

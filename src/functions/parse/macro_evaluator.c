@@ -950,9 +950,13 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
   cdd_macro_eval_result_t r;
   cdd_c_error_t rc;
 
-  if (!ctx || !expression)
+  if (out_result) {
+    memset(out_result, 0, sizeof(*out_result));
+  }
+  if (!ctx || !expression || !out_result)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+  memset(&r, 0, sizeof(r));
   p.ctx = ctx;
   p.err = 0;
   p.lex.str = expression;

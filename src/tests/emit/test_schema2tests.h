@@ -25,12 +25,52 @@ extern "C" {
  */
 TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";
-  char *argv[2];
-  int rc = 0;
+  char arg1[] = "h.h";
+  char arg2[] = "--schema_file";
+  char *argv[3];
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(1, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, NULL));
+
+  argv[0] = NULL;
+  argv[1] = arg1;
+  argv[2] = arg0;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, argv));
+
   argv[0] = arg0;
   argv[1] = NULL;
-  rc = jsonschema2tests_main(1, argv);
+  argv[2] = arg1;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, argv));
+
+  argv[0] = arg0;
+  argv[1] = arg1;
+  argv[2] = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, argv));
+
+  /* Trailing option missing argument triggers CLI reflection error */
+  argv[0] = arg0;
+  argv[1] = arg1;
+  argv[2] = arg2;
+  rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+
+  /* Unpopulated reflected fields (--help / unrecognized flags) */
+  argv[0] = cdd_test_mut_str("--help");
+  argv[1] = arg0;
+  argv[2] = arg1;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, argv));
+
+  argv[0] = arg0;
+  argv[1] = cdd_test_mut_str("--help");
+  argv[2] = arg1;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, argv));
+
+  argv[0] = arg0;
+  argv[1] = arg1;
+  argv[2] = cdd_test_mut_str("--help");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(3, argv));
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -183,12 +223,12 @@ TEST test_schema2tests_output_file_open_fail(void) {
 TEST test_schema2tests_defs_fallback(void) {
   const char *const filename = "defs_schema.json";
   char *argv[3];
-  int rc = write_to_file(
-      filename, "{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}");
+  int rc = write_to_file(filename, "{\"components\":{},\"$defs\":{\"E\":{"
+                                   "\"type\":\"string\",\"enum\":[\"X\"]}}}");
 
-  argv[0] = cdd_test_mut_str("defs_schema.json");
-  argv[1] = cdd_test_mut_str("header.h");
-  argv[2] = cdd_test_mut_str("build" PATH_SEP "defs_out.h");
+  argv[0] = cdd_test_mut_str("--schema_file=defs_schema.json");
+  argv[1] = cdd_test_mut_str("--header_to_test=header.h");
+  argv[2] = cdd_test_mut_str("--output_file=build" PATH_SEP "defs_out.h");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc);
@@ -497,27 +537,35 @@ TEST test_schema2tests_io_fails(void) {
       "\"E2\":{\"type\":\"string\",\"enum\":[\"Y\", \"Z\"]}"
       "}}";
   int i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   argv[0] = cdd_test_mut_str("schema_io.json");
   argv[1] = cdd_test_mut_str("header.h");
-  argv[2] = cdd_test_mut_str("out_dir_io/test_io.h");
+  argv[2] = cdd_test_mut_str("out_dir_io" PATH_SEP "test_io.h");
+  ASSERT_EQ(CDD_C_SUCCESS, makedirs("out_dir_io"));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_to_file("out_dir_io" PATH_SEP "S.h", "/* mock */"));
   ASSERT_EQ(0, write_to_file(argv[0], schema_content));
 
   for (i = 0; i < 60; i++) {
     g_io_calls = 0;
     g_fail_io_after = i;
-    g_cdd_last_alloc_err = jsonschema2tests_main(3, argv);
+    rc = cdd_c_keep_err(rc, jsonschema2tests_main(3, argv));
   }
   g_fail_io_after = -1;
 
   for (i = 1; i < 120; i++) {
     g_cdd_alloc_fail = i;
-    g_cdd_last_alloc_err = jsonschema2tests_main(3, argv);
+    rc = cdd_c_keep_err(rc, jsonschema2tests_main(3, argv));
   }
   g_cdd_alloc_fail = 0;
+  ASSERT_NEQ(CDD_C_SUCCESS, rc);
 
   remove(argv[0]);
+  remove("out_dir_io" PATH_SEP "S.h");
   remove(argv[2]);
+  remove("out_dir_io" PATH_SEP "test_main.c");
+  rmdir("out_dir_io");
   remove("test_main.c");
   PASS();
 }

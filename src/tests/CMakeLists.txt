@@ -219,6 +219,7 @@ set(Header_Files
         "emit/test_arazzo_client_gen.h"
         "emit/test_arazzo_cli_gen.h"
         "emit/test_arazzo_server_gen.h"
+        "ffi/test_ffi_ocaml_fortran_cobol.h"
 )
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
@@ -242,9 +243,59 @@ target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
 # Top-level test #
 ##################
 
+set(CDD_PLATFORM_COV_SOURCES
+    "${CMAKE_SOURCE_DIR}/src/functions/parse/crypto_wasm.c"
+    "${CMAKE_SOURCE_DIR}/src/functions/parse/crypto_openssl.c"
+    "${CMAKE_SOURCE_DIR}/src/functions/parse/crypto_wincrypt.c"
+    "${CMAKE_SOURCE_DIR}/src/classes/parse/cdd_cst_transform.c"
+)
+add_library(cdd_platform_cov_units STATIC ${CDD_PLATFORM_COV_SOURCES})
+target_compile_definitions(cdd_platform_cov_units PRIVATE
+    CDD_CRYPTO_WASM_STANDALONE_TEST
+    CDD_CRYPTO_OPENSSL_STANDALONE_TEST
+    CDD_CRYPTO_WINCRYPT_STANDALONE_TEST
+    CDD_CST_TRANSFORM_LEGACY_STANDALONE
+    CDD_BUILD_TESTS
+)
+target_include_directories(cdd_platform_cov_units PRIVATE
+    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
+)
+target_link_libraries(cdd_platform_cov_units PUBLIC "${PROJECT_NAME}" "${PROJECT_NAME}_compiler_flags")
+if(DEFINED STRICT_COMPILER_FLAGS)
+    target_compile_options(cdd_platform_cov_units PRIVATE ${STRICT_COMPILER_FLAGS})
+endif()
+
+if(NOT WIN32 AND NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
+    if(APPLE AND NOT OPENSSL_ROOT_DIR)
+        if(EXISTS "/opt/homebrew/opt/openssl")
+            set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl")
+        elseif(EXISTS "/usr/local/opt/openssl")
+            set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl")
+        endif()
+    endif()
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND AND TARGET OpenSSL::Crypto)
+        target_link_libraries(cdd_platform_cov_units PRIVATE OpenSSL::Crypto)
+    else()
+        target_compile_definitions(cdd_platform_cov_units PUBLIC CDD_NO_OPENSSL CDD_TEST_NO_OPENSSL)
+    endif()
+else()
+    target_compile_definitions(cdd_platform_cov_units PUBLIC CDD_NO_OPENSSL CDD_TEST_NO_OPENSSL)
+endif()
+if(WIN32)
+    target_link_libraries(cdd_platform_cov_units PRIVATE crypt32)
+endif()
+
 set(EXEC_NAME "test_c_cdd")
 
-set(Source_Files "test_c_cdd.c")
+set(Source_Files
+    "test_c_cdd.c"
+    "c_cdd/test_safe_crt_msvc_unit.c"
+    "c_cdd/test_crt_bridge_unit.c"
+    "c_cdd/test_platform_crypto_and_cst_unit.c"
+)
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
 add_executable("${EXEC_NAME}" "${Source_Files}")
@@ -253,6 +304,10 @@ target_include_directories(
         "${EXEC_NAME}"
         PRIVATE
         "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
 )
 set_target_properties(
         "${EXEC_NAME}"
@@ -260,7 +315,7 @@ set_target_properties(
         LINKER_LANGUAGE
         C
 )
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" cdd_platform_cov_units)
 if(MSVC)
     set_property(TARGET "${EXEC_NAME}" APPEND_STRING PROPERTY LINK_FLAGS " /STACK:8388608")
 endif()
@@ -326,6 +381,34 @@ add_test(NAME test_mocks_arg COMMAND mocks --foo WORKING_DIRECTORY "${CMAKE_SOUR
 add_test(NAME test_mocks_fail COMMAND mocks --fail-alloc WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 set_tests_properties(test_mocks_fail PROPERTIES WILL_FAIL TRUE)
 
+add_subdirectory("${CMAKE_SOURCE_DIR}/src/mocks" "${CMAKE_CURRENT_BINARY_DIR}/src_mocks_build")
+
+add_executable(test_src_mocks_unit "mocks/test_src_mocks_unit.c")
+target_include_directories(
+    test_src_mocks_unit
+    PRIVATE
+    "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/mocks>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src_mocks_build>"
+    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
+)
+set_target_properties(test_src_mocks_unit PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries(test_src_mocks_unit PUBLIC cdd_src_mocks "${PROJECT_NAME}" "${PROJECT_NAME}_compiler_flags")
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_compile_definitions(test_src_mocks_unit PRIVATE CDD_BUILD_TESTS)
+endif()
+add_test(NAME test_src_mocks_unit COMMAND test_src_mocks_unit WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+if (C_CDD_USE_ASAN)
+    set_tests_properties(test_src_mocks_unit PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
+endif()
+
+add_test(NAME test_src_mocks COMMAND src_mocks WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME test_src_mocks_arg COMMAND src_mocks --foo WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME test_src_mocks_fail COMMAND src_mocks --fail-alloc WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_tests_properties(test_src_mocks_fail PROPERTIES WILL_FAIL TRUE)
+
 if(TARGET test_c_cdd)
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
         # Strict compliance mode
@@ -334,7 +417,7 @@ if(TARGET test_c_cdd)
     endif()
 endif()
 
-foreach(_tgt IN ITEMS "${LIBRARY_NAME}" cdd-c cdd-c-transform cdd_test_helpers simple_mocks mocks test_c_cdd test_simple_json)
+foreach(_tgt IN ITEMS "${LIBRARY_NAME}" cdd-c cdd-c-transform cdd_test_helpers cdd_platform_cov_units simple_mocks mocks cdd_src_mocks src_mocks test_src_mocks_unit test_c_cdd test_simple_json)
     if(TARGET "${_tgt}")
         set_target_properties("${_tgt}" PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

@@ -749,6 +749,11 @@ TEST test_debug_fail(void) {
     rc = HazE_debug(haz, fh); /* Try to write to read-only stream */
     ASSERT_NEQ(0, rc);
 
+    rewind(fh);
+    ASSERT_NEQ(0, FooE_debug(NULL, fh));
+    rewind(fh);
+    ASSERT_NEQ(0, HazE_debug(NULL, fh));
+
     fclose(fh);
     remove(tmp_fname);
   }

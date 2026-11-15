@@ -22,8 +22,8 @@ cdd-c to_arazzo -i ./workflows -o extracted.arazzo.json
 # 4. Generate documentation code snippets JSON
 cdd-c to_docs_json --no-imports --no-wrapping -i openapi.json -o docs.json
 
-# 5. Generate 42-language FFI bindings from C headers
-cdd-c bind -i include/my_lib.h -o ./bindings -l python,rust,go,typescript -n my_lib -m MyLib
+# 5. Generate 43-language FFI bindings from C headers or .dsl specs (including OCaml, Fortran, and COBOL/cbl)
+cdd-c bind -i include/my_lib.h -o ./bindings -l python,rust,ocaml,fortran,cobol -n my_lib -m MyLib --generate-tests
 
 # 6. Run lossless CST transformers and GNU-to-C89 lowering
 cdd-c standardize-gnu --target-c89 --fix src/*.c

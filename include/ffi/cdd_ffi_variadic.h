@@ -3,37 +3,24 @@
  * @brief Variadic format parsing and C-level trampoline invocation.
  */
 #ifndef CDD_FFI_VARIADIC_H
+/** @brief Header guard for cdd_ffi_variadic.h */
 #define CDD_FFI_VARIADIC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-/* clang-format off */
-#include "../../src/cdd_api.h"
-#include "cdd_ffi_ir.h"
-#include <stddef.h>
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
+/* clang-format off */
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
 #include "msvc/stdint.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "c_cdd/msvc/stdint.h"
 #else
 #include <stdint.h>
 #endif
-#endif
+#include "../../src/cdd_api.h"
+#include "c_cdd/no_discard.h"
+#include "cdd_ffi_ir.h"
+#include <stddef.h>
 /* clang-format on */
-#endif
 
 /**
  * @brief Parses a printf-style format string and returns an array of types.
@@ -47,7 +34,7 @@ typedef unsigned __int64 uint64_t;
  * @param[out] out_count Pointer to receive the number of arguments found.
  * @return CDD_C_SUCCESS on success or error code.
  */
-C_CDD_EXPORT cdd_c_error_t
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t
 cdd_ffi_parse_printf_format(const char *fmt, cdd_ffi_type_t *out_types,
                             size_t max_types, size_t *out_count);
 
@@ -80,7 +67,7 @@ typedef union cdd_ffi_var_arg_t {
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
  * invalid arguments.
  */
-C_CDD_EXPORT cdd_c_error_t
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t
 cdd_ffi_format_variadic(char *out_buf, size_t out_cap, const char *fmt,
                         const cdd_ffi_var_arg_t *args, size_t argc);
 
@@ -97,7 +84,7 @@ cdd_ffi_format_variadic(char *out_buf, size_t out_cap, const char *fmt,
  * @param[in] argc Number of arguments in the args array.
  * @return The integer result of the variadic function.
  */
-C_CDD_EXPORT cdd_c_error_t
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t
 cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...), const char *fmt,
                         cdd_ffi_var_arg_t *args, size_t argc);
 

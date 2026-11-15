@@ -410,8 +410,10 @@ TEST test_audit_extras(void) {
   ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   {
-    const char *content = "short";
+    char content[16];
     size_t line = 0, col = 0;
+    memset(content, 0, sizeof(content));
+    memcpy(content, "short", 5);
     ASSERT_EQ(CDD_C_SUCCESS,
               audit_get_line_col(content, (const uint8_t *)content + 10, &line,
                                  &col));

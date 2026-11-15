@@ -2576,10 +2576,14 @@ TEST test_reflection_edge_cases_and_oom(void) {
                                          &le2, &le1, &lfields[3], &eq_res));
             ASSERT_EQ(0, eq_res);
 
-            *(const char ***)&le1.dyn_arr = s_arr1;
-            le1.n_dyn_arr = 2;
-            *(const char ***)&le2.dyn_arr = s_arr2;
-            le2.n_dyn_arr = 2;
+            {
+              const char **s_ptr1 = s_arr1;
+              const char **s_ptr2 = s_arr2;
+              memcpy(&le1.dyn_arr, &s_ptr1, sizeof(le1.dyn_arr));
+              le1.n_dyn_arr = 2;
+              memcpy(&le2.dyn_arr, &s_ptr2, sizeof(le2.dyn_arr));
+              le2.n_dyn_arr = 2;
+            }
             ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_eq_single_field(
                                          &le1, &le2, &lfields[9], &eq_res));
             ASSERT_EQ(0, eq_res);

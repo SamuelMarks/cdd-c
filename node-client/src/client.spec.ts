@@ -1,16 +1,52 @@
-import * as fs from "node:fs";
-import * as os from "node:os";
-import * as path from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { resolveCddBinary, runCddCli } from "./client.js";
 
+/**
+ * Narrows a resolved binary path or throws an error if missing.
+ *
+ * @param bin Candidate binary path or `null`.
+ * @returns Non-null binary path.
+ */
+function requireBinary(bin: string | null): string {
+  if (bin === null) {
+    throw new Error("cdd-c binary not found");
+  }
+  return bin;
+}
+
 describe("cdd-c node-client integration", () => {
-  const repoRoot = path.resolve(__dirname, "..", "..");
+  const repoRoot = resolve(__dirname, "..", "..");
+
+  it("resolves candidate binary paths and returns null when absent", () => {
+    const tmpRoot = mkdtempSync(join(tmpdir(), "cdd-c-resolve-"));
+    try {
+      expect(resolveCddBinary(tmpRoot)).toBeNull();
+      expect(() => requireBinary(null)).toThrow("cdd-c binary not found");
+
+      const fallbackDir = join(tmpRoot, "build_gcc", "bin");
+      const fallbackBin = join(fallbackDir, "cdd-c");
+      mkdirSync(fallbackDir, { recursive: true });
+      writeFileSync(fallbackBin, "", "utf-8");
+
+      expect(requireBinary(resolveCddBinary(tmpRoot))).toBe(fallbackBin);
+    } finally {
+      rmSync(tmpRoot, { recursive: true, force: true });
+    }
+  });
 
   it("reports CLI version and help", () => {
-    const bin = resolveCddBinary(repoRoot);
-    expect(bin).not.toBeNull();
-    if (!bin) return;
+    const bin = requireBinary(resolveCddBinary(repoRoot));
 
     const versionOut = runCddCli(bin, ["--version"]);
     expect(versionOut.trim().length).toBeGreaterThan(0);
@@ -21,16 +57,14 @@ describe("cdd-c node-client integration", () => {
   });
 
   it("generates C SDK from an OpenAPI 3.2.0 specification and round-trips to OpenAPI JSON", () => {
-    const bin = resolveCddBinary(repoRoot);
-    expect(bin).not.toBeNull();
-    if (!bin) return;
+    const bin = requireBinary(resolveCddBinary(repoRoot));
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-c-node-test-"));
+    const tmpDir = mkdtempSync(join(tmpdir(), "cdd-c-node-test-"));
     try {
-      const specPath = path.join(tmpDir, "openapi.json");
-      const sdkOutDir = path.join(tmpDir, "sdk");
-      const emittedSpecPath = path.join(tmpDir, "emitted_openapi.json");
-      fs.mkdirSync(sdkOutDir, { recursive: true });
+      const specPath = join(tmpDir, "openapi.json");
+      const sdkOutDir = join(tmpDir, "sdk");
+      const emittedSpecPath = join(tmpDir, "emitted_openapi.json");
+      mkdirSync(sdkOutDir, { recursive: true });
 
       const sampleSpec = {
         openapi: "3.2.0",
@@ -51,20 +85,20 @@ describe("cdd-c node-client integration", () => {
           },
         },
       };
-      fs.writeFileSync(specPath, JSON.stringify(sampleSpec, null, 2), "utf-8");
+      writeFileSync(specPath, JSON.stringify(sampleSpec, null, 2), "utf-8");
 
       runCddCli(bin, ["from_openapi", "to_sdk", "-i", specPath, "-o", sdkOutDir]);
-      const generatedFiles = fs.readdirSync(sdkOutDir);
+      const generatedFiles = readdirSync(sdkOutDir);
       expect(generatedFiles.length).toBeGreaterThan(0);
 
       runCddCli(bin, ["to_openapi", "-i", sdkOutDir, "-o", emittedSpecPath]);
-      expect(fs.existsSync(emittedSpecPath)).toBe(true);
+      expect(existsSync(emittedSpecPath)).toBe(true);
 
-      const roundTripped = JSON.parse(fs.readFileSync(emittedSpecPath, "utf-8"));
+      const roundTripped = JSON.parse(readFileSync(emittedSpecPath, "utf-8"));
       expect(roundTripped.openapi).toBeDefined();
       expect(roundTripped.paths).toBeDefined();
     } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+      rmSync(tmpDir, { recursive: true, force: true });
     }
   });
 });

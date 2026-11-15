@@ -23,9 +23,13 @@
 extern C_CDD_EXPORT int g_fail_io_after;
 /** @brief Test definition g_io_calls. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief External test variable `g_cdd_cst_emit_realloc_fail`. */
 extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
+/** @brief External test variable `g_schema_strdup_fail`. */
 extern C_CDD_EXPORT int g_schema_strdup_fail;
+/** @brief External test variable `g_schema_realloc_fail`. */
 extern C_CDD_EXPORT int g_schema_realloc_fail;
+/** @brief External test variable `g_schema_fail_io_after`. */
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 
 /** @brief Test definition g_force_gnu_alloc_fail. */
@@ -42,16 +46,27 @@ extern C_CDD_EXPORT int g_force_tokenize_fail;
 /** @brief Test definition g_cdd_wine_skip. */
 int g_cdd_wine_skip = 0;
 
+/** @brief External test variable `g_schema_io_calls`. */
 extern C_CDD_EXPORT int g_schema_io_calls;
+/** @brief External test variable `g_schema_codegen_force_fail`. */
 extern C_CDD_EXPORT int g_schema_codegen_force_fail;
+/** @brief External test variable `g_cdd_cst_realloc_fail`. */
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+/** @brief External test variable `g_cdd_cst_alloc_token_fail`. */
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+/** @brief External test variable `g_cdd_cst_alloc_node_fail`. */
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+/** @brief External test variable `g_fail_io_after`. */
 extern C_CDD_EXPORT int g_fail_io_after;
+/** @brief External test variable `g_io_calls`. */
 extern C_CDD_EXPORT int g_io_calls;
+/** @brief External test variable `g_cdd_cst_emit_realloc_fail`. */
 extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
+/** @brief External test variable `g_schema_strdup_fail`. */
 extern C_CDD_EXPORT int g_schema_strdup_fail;
+/** @brief External test variable `g_schema_realloc_fail`. */
 extern C_CDD_EXPORT int g_schema_realloc_fail;
+/** @brief External test variable `g_schema_fail_io_after`. */
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 
 
@@ -182,6 +197,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "ffi/test_ffi_e2e.h"
 #include "ffi/test_ffi_emitters.h"
 #include "ffi/test_ffi_emitters_edge.h"
+#include "ffi/test_ffi_ocaml_fortran_cobol.h"
 #include "dsl/test_dsl_tokenizer.h"
 #include "dsl/test_dsl_tokenizer_branches.h"
 #include "dsl/test_dsl_tokenizer_macros.h"
@@ -366,25 +382,40 @@ TEST test_cdd_helpers(void) {
 
   /* Moved extern declarations for C89 compliance */
   {
+    /** @brief External test variable `g_cdd_query_err_fail`. */
     extern C_CDD_EXPORT int g_cdd_query_err_fail;
+    /** @brief External test variable `g_schema_realloc_fail`. */
     extern C_CDD_EXPORT int g_schema_realloc_fail;
 
+    /** @brief External test variable `g_json_object_to_struct_fields_fail`. */
     extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
+    /** @brief External test variable `g_safe_crt_malloc_fail`. */
     extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
+    /** @brief External test variable `g_cdd_fprintf_fail`. */
     extern C_CDD_EXPORT int g_cdd_fprintf_fail;
+    /** @brief External test variable `g_cdd_ffi_ir_calloc_fail`. */
     extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
+    /** @brief External test variable `g_cdd_cst_emit_realloc_fail`. */
     extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
 
+    /** @brief External test variable `g_cdd_cst_realloc_fail`. */
     extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    /** @brief External test variable `g_fail_io_after`. */
     extern C_CDD_EXPORT int g_fail_io_after;
+    /** @brief External test variable `g_cdd_ffi_ir_toposort_fail`. */
     extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 
+    /** @brief External test variable `g_schema_codegen_force_fail`. */
     extern C_CDD_EXPORT int g_schema_codegen_force_fail;
+    /** @brief External test variable `g_cdd_ffi_ir_malloc_fail`. */
     extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
+    /** @brief External test variable `g_io_calls`. */
     extern C_CDD_EXPORT int g_io_calls;
 
+    /** @brief External test variable `g_schema_strdup_fail`. */
     extern C_CDD_EXPORT int g_schema_strdup_fail;
 
+    /** @brief External test variable `g_cdd_helpers_fopen_err`. */
     extern CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err;
 
     /* extern CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err; (moved to
@@ -428,15 +459,409 @@ TEST test_cdd_helpers(void) {
     ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_helpers.txt", "abc"));
     remove("test_helpers.txt");
 
+    /* Cover cdd_test_mut_str NULL and >= 512 truncation branches */
+    {
+      char long_buf[600];
+      char *mut_res;
+      memset(long_buf, 'x', sizeof(long_buf) - 1);
+      long_buf[sizeof(long_buf) - 1] = '\0';
+      ASSERT_EQ(NULL, cdd_test_mut_str(NULL));
+      mut_res = cdd_test_mut_str(long_buf);
+      ASSERT(mut_res != NULL);
+      ASSERT_EQ(511u, strlen(mut_res));
+    }
+
+    /* Cover cdd_test_tmpfile_global counter >= 1024 wraparound */
+    {
+      int k;
+      for (k = 0; k < 1026; k++) {
+        FILE *tf = cdd_test_tmpfile_global();
+        if (tf)
+          fclose(tf);
+      }
+    }
+
+    /* Cover cdd_test_rmdir_recursive nested subdirectory & broken symlink */
+    ASSERT_EQ(CDD_C_SUCCESS, makedirs("my_empty_dir" PATH_SEP "nested_sub"));
+    ASSERT_EQ(CDD_C_SUCCESS, write_to_file("my_empty_dir" PATH_SEP
+                                           "nested_sub" PATH_SEP "leaf.txt",
+                                           "x"));
+#if !defined(_WIN32) && !defined(__wasi__)
+    if (symlink("nonexistent_target_xyz",
+                "my_empty_dir" PATH_SEP "dangling_link") == 0) {
+    }
+#endif
+    cdd_test_tmpfile_cleanup();
+
     g_fail_io_after = -1;
     PASS();
   }
 }
 
 /**
+ * @brief Variadic helper invoking `c_cdd_crt_vfprintf`.
+ * @param[in,out] fp Output stream.
+ * @param[out] out_rc Optional `vfprintf` return code.
+ * @param[in] fmt Format string.
+ * @return Error status from `c_cdd_crt_vfprintf`.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 3, 4)))
+#endif
+static cdd_c_error_t
+call_crt_vfprintf(FILE *fp, int *out_rc, const char *fmt, ...) {
+  va_list args;
+  cdd_c_error_t rc;
+  va_start(args, fmt);
+  rc = c_cdd_crt_vfprintf(fp, fmt, args, out_rc);
+  va_end(args);
+  return rc;
+}
+
+/**
+ * @brief Variadic helper invoking `c_cdd_crt_vasprintf`.
+ * @param[out] out_str Allocated string output.
+ * @param[out] out_rc Optional `vasprintf` return code.
+ * @param[in] fmt Format string.
+ * @return Error status from `c_cdd_crt_vasprintf`.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 3, 4)))
+#endif
+static cdd_c_error_t
+call_crt_vasprintf(char **out_str, int *out_rc, const char *fmt, ...) {
+  va_list args;
+  cdd_c_error_t rc;
+  va_start(args, fmt);
+  rc = c_cdd_crt_vasprintf(out_str, fmt, args, out_rc);
+  va_end(args);
+  return rc;
+}
+
+/**
+ * @brief Variadic helper passing NULL `fmt` to `c_cdd_crt_vfprintf` and
+ * `c_cdd_crt_vasprintf` with an initialized `va_list`.
+ * @param[in,out] fp Output stream (or NULL to test `c_cdd_crt_vasprintf`).
+ * @param[out] out_str Output string pointer.
+ * @param[in] tag Dummy anchor parameter for `va_start`.
+ * @return Error status from the tested function.
+ */
+static cdd_c_error_t call_crt_null_fmt(FILE *fp, char **out_str, int tag, ...) {
+  va_list args;
+  cdd_c_error_t rc;
+  va_start(args, tag);
+  if (fp)
+    rc = c_cdd_crt_vfprintf(fp, NULL, args, NULL);
+  else
+    rc = c_cdd_crt_vasprintf(out_str, NULL, args, NULL);
+  va_end(args);
+  return rc;
+}
+
+/**
+ * @brief Unit test exercising all `c_cdd_crt_*` functions and fault-injection
+ * branches in `g_fail_io_after.c`.
+ * @return Greatest test result.
+ */
+TEST test_crt_bridge_wrappers(void) {
+  void *ptr = NULL;
+  void *ptr2 = NULL;
+  char *dup_s = NULL;
+  FILE *fp = NULL;
+  FILE *fp2 = NULL;
+  FILE *std_fp = NULL;
+  int err_val = 0;
+  int io_rc = 0;
+  long pos_val = 0;
+  size_t n_io = 0;
+  char read_buf[32];
+  char *fg_res = NULL;
+  fpos_t fpos;
+  int fd1 = -1;
+  int fd2 = -1;
+
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_init_runtime());
+
+  /* Heap wrappers: NULL args, OOM, countdown > 1, normal */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_malloc(8, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, c_cdd_crt_malloc(8, &ptr));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_malloc(8, &ptr));
+  c_cdd_crt_free(ptr);
+  g_crt_bridge_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_malloc(8, &ptr));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_realloc(ptr, 16, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, c_cdd_crt_realloc(ptr, 16, &ptr2));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_realloc(ptr, 16, &ptr2));
+  g_crt_bridge_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_realloc(ptr2, 24, &ptr));
+  c_cdd_crt_free(ptr);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_calloc(2, 4, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, c_cdd_crt_calloc(2, 4, &ptr));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_calloc(2, 4, &ptr));
+  c_cdd_crt_free(ptr);
+  g_crt_bridge_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_calloc(2, 4, &ptr));
+  c_cdd_crt_free(ptr);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_strdup("hi", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_strdup(NULL, &dup_s));
+  ASSERT_EQ(NULL, dup_s);
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, c_cdd_crt_strdup("hi", &dup_s));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_strdup("hi", &dup_s));
+  c_cdd_crt_free(dup_s);
+  g_crt_bridge_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_strdup("hi", &dup_s));
+  ASSERT_STR_EQ("hi", dup_s);
+  c_cdd_crt_free(dup_s);
+
+  /* fopen / fclose */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fopen("a.txt", "r", NULL, &err_val));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fopen(NULL, "r", &fp, &err_val));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fopen("a.txt", NULL, &fp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            c_cdd_crt_fopen("nonexistent_crt_dir_xyz/missing.txt", "r", &fp,
+                            &err_val));
+  ASSERT_EQ(
+      CDD_C_ERROR_IO,
+      c_cdd_crt_fopen("nonexistent_crt_dir_xyz/missing.txt", "r", &fp, NULL));
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_fopen("crt_bridge_tmp.txt", "w+b", &fp, &err_val));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fclose(fp, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_fopen("crt_bridge_tmp.txt", "w+b", &fp, NULL));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fclose(NULL, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fclose(NULL, NULL));
+
+  /* fwrite / fflush / fseek / ftell / rewind / fread / fputs / fgets / clearerr
+   */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fwrite(NULL, 1, 1, fp, &n_io));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fwrite("x", 1, 1, NULL, &n_io));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fwrite("x", 1, 1, fp, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fwrite("hello\n", 1, 6, fp, &n_io));
+  ASSERT_EQ(6u, n_io);
+
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fflush(fp, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fflush(fp, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fflush(fp, &io_rc));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fflush(fp, NULL));
+  g_crt_bridge_fail = 0;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fseek(NULL, 0L, SEEK_SET, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fseek(NULL, 0L, SEEK_SET, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fseek(fp, -100L, SEEK_SET, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fseek(fp, 0L, SEEK_SET, NULL));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_ftell(NULL, &pos_val));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_ftell(fp, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_ftell(fp, &pos_val));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_ftell(fp, &pos_val));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_ftell(fp, &pos_val));
+  g_crt_bridge_fail = 0;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_rewind(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_rewind(fp));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fread(NULL, 1, 1, fp, &n_io));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fread(read_buf, 1, 1, NULL, &n_io));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fread(read_buf, 1, 1, fp, NULL));
+  memset(read_buf, 0, sizeof(read_buf));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fread(read_buf, 1, 6, fp, &n_io));
+  ASSERT_EQ(6u, n_io);
+
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fseek(fp, 0L, SEEK_END, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fputs(NULL, fp, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fputs("a", NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fputs("line2\n", fp, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fputs("line3\n", fp, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fputs("fail\n", fp, &io_rc));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fputs("ok\n", fp, NULL));
+  g_crt_bridge_fail = 0;
+
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_rewind(fp));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fgets(NULL, 10, fp, &fg_res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fgets(read_buf, 10, NULL, &fg_res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fgets(read_buf, 10, fp, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_fgets(read_buf, (int)sizeof(read_buf), fp, &fg_res));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_clearerr(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_clearerr(fp));
+
+  /* vfprintf / vasprintf / jasprintf */
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fseek(fp, 0L, SEEK_END, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            call_crt_vfprintf(NULL, &io_rc, "%s", "x"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, call_crt_null_fmt(fp, NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, call_crt_vfprintf(fp, &io_rc, "%d", 42));
+  ASSERT_EQ(CDD_C_SUCCESS, call_crt_vfprintf(fp, NULL, "%d", 42));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, call_crt_vfprintf(fp, &io_rc, "%d", 42));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, call_crt_vfprintf(fp, NULL, "%d", 42));
+  g_crt_bridge_fail = 0;
+
+  dup_s = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            call_crt_vasprintf(NULL, &io_rc, "%d", 7));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, call_crt_null_fmt(NULL, &dup_s, 0));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, call_crt_vasprintf(&dup_s, &io_rc, "%d", 7));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, call_crt_vasprintf(&dup_s, NULL, "%d", 7));
+  c_cdd_crt_free(dup_s);
+  g_crt_bridge_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, call_crt_vasprintf(&dup_s, &io_rc, "%d", 7));
+  c_cdd_crt_free(dup_s);
+
+  dup_s = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_jasprintf(NULL, "a", &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_jasprintf(NULL, "a", NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, c_cdd_crt_jasprintf(&dup_s, "a", &io_rc));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_jasprintf(&dup_s, "a", NULL));
+  g_crt_bridge_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_jasprintf(&dup_s, NULL, &io_rc));
+  c_cdd_crt_free(dup_s);
+
+  /* putenv / std_stream */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_putenv(NULL, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_putenv(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_putenv("", &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_putenv("CDD_CRT_TEST_ENV=1", NULL));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_std_stream(0, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_std_stream(0, &std_fp));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_std_stream(1, &std_fp));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_std_stream(2, &std_fp));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_std_stream(9, &std_fp));
+
+  /* fgetpos / fsetpos / fileno / dup / dup2 / close */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fgetpos(NULL, &fpos, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fgetpos(fp, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fgetpos(fp, &fpos, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fgetpos(fp, &fpos, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fgetpos(fp, &fpos, &io_rc));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fgetpos(fp, &fpos, NULL));
+  g_crt_bridge_fail = 0;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_fsetpos(NULL, &fpos, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fsetpos(fp, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fsetpos(fp, &fpos, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fsetpos(fp, &fpos, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fsetpos(fp, &fpos, &io_rc));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fsetpos(fp, &fpos, NULL));
+  g_crt_bridge_fail = 0;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fileno(NULL, &fd1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_fileno(fp, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fileno(fp, &fd1));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fileno(fp, &fd2));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fileno(fp, &fd1));
+  g_crt_bridge_fail = 0;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_cdd_crt_dup(fd1, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_dup(-1, &fd2));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_dup(fd1, &fd2));
+
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_dup2(-1, -1, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_dup2(-1, -1, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_dup2(fd1, fd2, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_dup2(fd1, fd2, NULL));
+
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_close(-1, &io_rc));
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_close(-1, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_close(fd2, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_dup(fd1, &fd2));
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_close(fd2, NULL));
+
+  /* freopen + fclose fault injection */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_freopen("crt_bridge_tmp.txt", "r", fp, NULL, &err_val));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_freopen(NULL, "r", fp, &fp2, &err_val));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_freopen("crt_bridge_tmp.txt", NULL, fp, &fp2, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_crt_freopen("crt_bridge_tmp.txt", "r", NULL, &fp2, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_freopen("crt_bridge_tmp.txt", "r", fp, &fp2, &err_val));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_freopen("crt_bridge_tmp.txt", "r", fp2, &fp, NULL));
+
+  /* Test freopen failure on nonexistent path (closes fp) */
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            c_cdd_crt_freopen("nonexistent_crt_dir_xyz/missing.txt", "r", fp,
+                              &fp2, &err_val));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_fopen("crt_bridge_tmp.txt", "r", &fp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            c_cdd_crt_freopen("nonexistent_crt_dir_xyz/missing.txt", "r", fp,
+                              &fp2, NULL));
+
+  /* fclose fault injection */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_fopen("crt_bridge_tmp.txt", "r", &fp, NULL));
+  g_crt_bridge_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, c_cdd_crt_fclose(fp, &io_rc));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            c_cdd_crt_fopen("crt_bridge_tmp.txt", "r", &fp, NULL));
+  g_crt_bridge_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_crt_fclose(fp, &io_rc));
+  g_crt_bridge_fail = 0;
+
+  remove("crt_bridge_tmp.txt");
+  PASS();
+}
+
+/**
  * @brief Executes the cdd_helpers_suite test suite.
  */
-SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
+SUITE(cdd_helpers_suite) {
+  RUN_TEST(test_cdd_helpers);
+  RUN_TEST(test_crt_bridge_wrappers);
+}
 
 /**
  * @brief Executes the ffi_extractor_suite test suite.
@@ -584,6 +1009,7 @@ static void reset_mocks(void) {
     {
       {
         {
+          /** @brief External test variable `g_ffi_extractor_alloc_fail`. */
           extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
           g_ffi_extractor_alloc_fail = 0;
           /* extern C_CDD_EXPORT int g_force_find_allocations_fail; (moved to
@@ -652,6 +1078,13 @@ static void test_teardown_cb(void *udata) {
     SET_TEARDOWN(test_teardown_cb, NULL);                                      \
     RUN_SUITE(suite);                                                          \
   } while (0)
+
+/** @brief External test suite `safe_crt_msvc_suite`. */
+SUITE_EXTERN(safe_crt_msvc_suite);
+/** @brief External test suite `crt_bridge_header_suite`. */
+SUITE_EXTERN(crt_bridge_header_suite);
+/** @brief External test suite `platform_crypto_and_cst_suite`. */
+SUITE_EXTERN(platform_crypto_and_cst_suite);
 
 /**
  * @brief Helper function main.
@@ -832,6 +1265,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(ffi_variadic_suite);
   RUN_SUITE_RESET(ffi_emitters_suite);
   RUN_SUITE_RESET(ffi_emitters_edge_suite);
+  RUN_SUITE_RESET(ffi_ocaml_fortran_cobol_suite);
   RUN_SUITE_RESET(cli_gen_suite);
   RUN_SUITE_RESET(codegen_cli_suite);
   RUN_SUITE_RESET(codegen_json_suite);
@@ -955,6 +1389,9 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(arazzo_cli_gen_suite);
   RUN_SUITE_RESET(arazzo_server_gen_suite);
   RUN_SUITE_RESET(context_suite);
+  RUN_SUITE_RESET(safe_crt_msvc_suite);
+  RUN_SUITE_RESET(crt_bridge_header_suite);
+  RUN_SUITE_RESET(platform_crypto_and_cst_suite);
   reset_mocks();
   cdd_test_tmpfile_cleanup();
 

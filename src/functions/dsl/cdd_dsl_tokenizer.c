@@ -643,7 +643,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
 
 cleanup:
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_dsl_token_list_free(out_tokens));
+    rc = cdd_c_keep_err(rc, cdd_dsl_token_list_free(out_tokens));
   }
   return rc;
 }

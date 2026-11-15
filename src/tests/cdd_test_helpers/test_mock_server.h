@@ -320,6 +320,17 @@ TEST test_mock_server_destroy_cases(void) {
   rc = mock_server_destroy(server);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
+  /* Destroy after thread creation failure when server_fd is open but !running
+   */
+  rc = mock_server_init(&server);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_pthread_create_fail = 1;
+  rc = mock_server_start(server);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  g_pthread_create_fail = 0;
+  rc = mock_server_destroy(server);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
   rc = mock_server_init(&server);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = mock_server_start(server);

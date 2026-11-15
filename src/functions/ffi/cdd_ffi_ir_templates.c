@@ -107,6 +107,8 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
                       cdd_c_error_t rc_s =
                           cdd_ffi_do_strdup(base_struct->fields[f].name,
                                             &new_node->fields[f].name);
+                      if (rc_s != CDD_C_SUCCESS)
+                        return rc_s;
                       if (base_struct->fields[f].type.ref_name &&
                           strlen(base_struct->fields[f].type.ref_name) == 1) {
                         new_node->fields[f].type.kind =
@@ -118,9 +120,10 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
                           rc_s = cdd_ffi_do_strdup(
                               base_struct->fields[f].type.ref_name,
                               &new_node->fields[f].type.ref_name);
+                          if (rc_s != CDD_C_SUCCESS)
+                            return rc_s;
                         }
                       }
-                      rc_ex = (cdd_c_error_t)((int)rc_ex | (int)rc_s);
                     }
                   }
                 }
@@ -132,7 +135,8 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
               {
                 cdd_c_error_t rc_inst = cdd_ffi_do_strdup(
                     inst_name, &node->fields[j].type.ref_name);
-                rc_inst = (cdd_c_error_t)((int)rc_inst + 0);
+                if (rc_inst != CDD_C_SUCCESS)
+                  return rc_inst;
               }
               break;
             }
@@ -145,6 +149,12 @@ cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test wrapper exposing `instantiate_templates` for unit tests.
+ *
+ * @param[in,out] ir Target FFI IR structure.
+ * @return CDD_C_SUCCESS on success, or error code on OOM/invalid argument.
+ */
 C_CDD_EXPORT
 cdd_c_error_t cdd_ffi_instantiate_templates_test(cdd_ffi_ir_t *ir) {
   return instantiate_templates(ir);

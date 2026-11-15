@@ -53,7 +53,7 @@ static cdd_c_error_t tokenize_string(const char *s,
  * @return Greatest test result.
  */
 TEST test_trigraph_basic(void) {
-  struct TokenList *_ast_tokenize_string_0;
+  struct TokenList *_ast_tokenize_string_0 = NULL;
   struct TokenList *tl = NULL;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -87,7 +87,7 @@ TEST test_trigraph_basic(void) {
  * @return Greatest test result.
  */
 TEST test_splice_basic(void) {
-  struct TokenList *_ast_tokenize_string_1;
+  struct TokenList *_ast_tokenize_string_1 = NULL;
 
   /* i\nnt -> int */
 
@@ -114,7 +114,7 @@ TEST test_splice_basic(void) {
  * @return Greatest test result.
  */
 TEST test_trigraph_splice_interaction(void) {
-  struct TokenList *_ast_tokenize_string_2;
+  struct TokenList *_ast_tokenize_string_2 = NULL;
 
   /* Edge case: ??/ is backslash. ??/ followed by newline is a splice. */
 
@@ -139,7 +139,7 @@ TEST test_trigraph_splice_interaction(void) {
  * @return Greatest test result.
  */
 TEST test_splice_does_not_create_trigraph(void) {
-  struct TokenList *_ast_tokenize_string_3;
+  struct TokenList *_ast_tokenize_string_3 = NULL;
 
   /* ?\n?=  -> ? ? = (Tokens) */
 
@@ -188,7 +188,7 @@ TEST test_splice_does_not_create_trigraph(void) {
  * @return Greatest test result.
  */
 TEST test_matches_string_with_splice(void) {
-  struct TokenList *_ast_tokenize_string_4;
+  struct TokenList *_ast_tokenize_string_4 = NULL;
   int _ast_token_matches_string_0 = 0;
 
   struct TokenList *tl = (g_cdd_last_alloc_err = tokenize_string(

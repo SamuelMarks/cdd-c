@@ -26,9 +26,10 @@
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` if any
  * argument is NULL.
  */
-cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
-                                          cdd_ffi_type_t *out_types,
-                                          size_t max_types, size_t *out_count) {
+NO_DISCARD cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
+                                                     cdd_ffi_type_t *out_types,
+                                                     size_t max_types,
+                                                     size_t *out_count) {
   size_t count = 0;
   const char *p = fmt;
 
@@ -128,10 +129,10 @@ cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT` on
  * invalid arguments.
  */
-cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
-                                      const char *fmt,
-                                      const cdd_ffi_var_arg_t *args,
-                                      size_t argc) {
+NO_DISCARD cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
+                                                 const char *fmt,
+                                                 const cdd_ffi_var_arg_t *args,
+                                                 size_t argc) {
   const char *p = fmt;
   size_t pos = 0;
   size_t arg_idx = 0;
@@ -258,9 +259,9 @@ cdd_c_error_t cdd_ffi_format_variadic(char *out_buf, size_t out_cap,
  * @return Error code returned by `fn`, or `CDD_C_ERROR_INVALID_ARGUMENT` if
  * `argc > 8`.
  */
-cdd_c_error_t cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...),
-                                      const char *fmt, cdd_ffi_var_arg_t *args,
-                                      size_t argc) {
+NO_DISCARD cdd_c_error_t
+cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...), const char *fmt,
+                        cdd_ffi_var_arg_t *args, size_t argc) {
   /* This C-level trampoline uses a switch to unpack up to 8 arguments.
      We pass the arguments as 'void*', which works for pointers and integers
      on typical 64-bit platforms (size_t). */

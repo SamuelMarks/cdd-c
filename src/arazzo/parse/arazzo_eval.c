@@ -170,8 +170,8 @@ cdd_c_error_t arazzo_eval_xpath(const char *xml_str, const char *xpath,
     if (seg[0] == '@') {
       const char *attr_name = seg + 1;
       const char *search_base = last_open_tag ? last_open_tag : cur_xml;
-      char pat_dq[128];
-      char pat_sq[128];
+      char pat_dq[136];
+      char pat_sq[136];
       const char *found;
       char quote_ch = '"';
       const char *val_start;

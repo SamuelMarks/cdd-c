@@ -560,14 +560,14 @@ Options:
 
 While all compilers in this suite implement the full shared baseline above, `cdd-c` implements additional capabilities tailored to the `C (C89)` ecosystem:
 
-### 1. Universal 42-Language SWIG-like FFI Binding Generator (`cdd-c bind` & DSL)
+### 1. Universal 43-Language SWIG-like FFI Binding Generator (`cdd-c bind` & DSL)
 
-`cdd-c` includes a zero-dependency Foreign Function Interface (FFI) compiler (`src/functions/ffi/` and `src/functions/dsl/`) that parses standard C headers or a compact C-FFI Domain Specific Language (DSL, documented in [DSL.md](DSL.md)) into an intermediate representation (`CddFfiModule`) and emits idiomatic, memory-safe wrapper bindings across **42 target languages and runtimes**:
+`cdd-c` includes a zero-dependency Foreign Function Interface (FFI) compiler (`src/functions/ffi/` and `src/functions/dsl/`) that parses standard C headers or a compact C-FFI Domain Specific Language (DSL, documented in [DSL.md](DSL.md)) into an intermediate representation (`CddFfiModule`) and emits idiomatic, memory-safe wrapper bindings across **43 target languages and runtimes**:
 
-- **Systems & Native**: Rust (`extern "C"`), C++ (`std::string`/`std::vector` RAII wrappers), Zig, D, Nim, Ada, Fortran (`iso_c_binding`), Pascal, V, Odin, Crystal, Objective-C, Swift.
+- **Systems & Native**: Rust (`extern "C"`), C++ (`std::string`/`std::vector` RAII wrappers), Zig, D, Nim, Ada, Fortran (`ISO_C_BINDING` with `VALUE`/`INTENT`, `TYPE(C_FUNPTR)` + `ABSTRACT INTERFACE`, sized unions, `CONTAINS` string wrappers, and `fpm.toml`), COBOL (`cobol` / `cbl` Copybook `.cpy` with native-endian `BINARY-*`/`COMP-*` & `FILLER` alignment padding, `BY VALUE`/`BY REFERENCE` `.cbl` wrapper subprograms, and strict C89 ABI shims), Pascal, V, Odin, Crystal, Objective-C, Swift.
 - **Managed & Enterprise**: Java (Project Panama `java.lang.foreign` / JNI), Kotlin (Kotlin/Native `cinterop` & JVM), Scala, Groovy, Clojure, C# (`[DllImport]` / `[LibraryImport]`), F#, Visual Basic .NET.
 - **Scripting & Dynamic**: Python (`ctypes`), Ruby (`Fiddle`/`FFI`), PHP (`FFI::cdef`), Perl (`FFI::Platypus`), Lua (LuaJIT `ffi`), R (`Rcpp`/`.Call`), Julia (`@ccall`), Tcl, Raku.
-- **Web, Functional & BEAM**: TypeScript / Node.js (`koffi`/`ffi-napi`), WebAssembly (`WASM` imports/exports), Go (`cgo`), Haskell (`foreign import ccall`), OCaml (`Ctypes`), Erlang (NIFs), Elixir (`Rustler`/NIFs), Dart (`dart:ffi`), Scheme, Common Lisp (`CFFI`), Prolog, AssemblyScript.
+- **Web, Functional & BEAM**: TypeScript / Node.js (`koffi`/`ffi-napi`), WebAssembly (`WASM` imports/exports), Go (`cgo`), Haskell (`foreign import ccall`), OCaml (`Ctypes` `.ml`/`.mli`, `[out]`/`result` wrappers, `dune`/`dune-project`, and C89 `external` stubs), Erlang (NIFs), Elixir (`Rustler`/NIFs), Dart (`dart:ffi`), Scheme, Common Lisp (`CFFI`), Prolog, AssemblyScript.
 
 ```sh
 # Generate Python, Rust, Go, and TypeScript FFI bindings from a C header or directory

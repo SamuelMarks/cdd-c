@@ -63,6 +63,13 @@ TEST test_cdd_c_strerror(void) {
   rc = cdd_c_strerror(CDD_C_SUCCESS, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_c_keep_err(CDD_C_SUCCESS, CDD_C_SUCCESS));
+  ASSERT_EQ(CDD_C_ERROR_IO, cdd_c_keep_err(CDD_C_SUCCESS, CDD_C_ERROR_IO));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_c_keep_err(CDD_C_ERROR_MEMORY, CDD_C_SUCCESS));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_c_keep_err(CDD_C_ERROR_MEMORY, CDD_C_ERROR_IO));
+
   PASS();
 }
 

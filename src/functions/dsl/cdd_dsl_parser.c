@@ -291,9 +291,49 @@ static cdd_c_error_t parse_number(parser_state_t *state,
   return CDD_C_SUCCESS;
 }
 
+/*
+ * @brief Parses a single DSL function parameter or struct field declaration.
+ *
+ * @param[in,out] state Current parser state.
+ * @param[out] out_field Pointer to the `cdd_ffi_field_t` structure to populate.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+static cdd_c_error_t parse_field(parser_state_t *state,
+                                 cdd_ffi_field_t *out_field);
+
 /**
- * @brief Parses a DSL type specification (pointer prefixes, array bounds, and
- * base type).
+ * @brief Frees nested allocations inside a partially parsed `cdd_ffi_type_t`.
+ *
+ * @param[in,out] t Type structure to clean up.
+ * @return CDD_C_SUCCESS.
+ */
+static NO_DISCARD cdd_c_error_t cleanup_parsed_type(cdd_ffi_type_t *t) {
+  size_t k;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+  C_CDD_FREE(t->ref_name);
+  t->ref_name = NULL;
+  if (t->fn_return_type) {
+    rc = cdd_c_keep_err(rc, cleanup_parsed_type(t->fn_return_type));
+    C_CDD_FREE(t->fn_return_type);
+    t->fn_return_type = NULL;
+  }
+  if (t->fn_params) {
+    for (k = 0; k < t->fn_params_count; k++) {
+      C_CDD_FREE(t->fn_params[k].name);
+      C_CDD_FREE(t->fn_params[k].array_length_ref);
+      rc = cdd_c_keep_err(rc, cleanup_parsed_type(&t->fn_params[k].type));
+    }
+    C_CDD_FREE(t->fn_params);
+    t->fn_params = NULL;
+    t->fn_params_count = 0;
+  }
+  return rc;
+}
+
+/**
+ * @brief Parses a CDD DSL type specification (pointers, fixed arrays,
+ * primitives, struct references, and `func(...) ret` function pointers).
  *
  * @param[in,out] state Current parser state.
  * @param[out] out_type Pointer to the `cdd_ffi_type_t` structure to populate.
@@ -321,6 +361,7 @@ static cdd_c_error_t parse_type(parser_state_t *state,
       return rc;
     if (is_match) {
       out_type->pointer_depth++;
+      out_type->is_const = 1;
       continue;
     }
 
@@ -352,43 +393,135 @@ static cdd_c_error_t parse_type(parser_state_t *state,
     out_type->array_size = 0;
   }
 
-  rc = match(state, CDD_DSL_TOKEN_TYPE_I32, &is_match);
+  rc = peek(state, &tok);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  if (is_match) {
+
+  switch (tok.kind) {
+  case CDD_DSL_TOKEN_TYPE_I32:
     out_type->kind = CDD_FFI_KIND_INT32;
-  } else {
-    rc = match(state, CDD_DSL_TOKEN_TYPE_U8, &is_match);
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_U8:
+    out_type->kind = CDD_FFI_KIND_UINT8;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_VOID:
+    out_type->kind = CDD_FFI_KIND_VOID;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_I8:
+  case CDD_DSL_TOKEN_TYPE_CHAR:
+    out_type->kind = CDD_FFI_KIND_INT8;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_I16:
+    out_type->kind = CDD_FFI_KIND_INT16;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_U16:
+    out_type->kind = CDD_FFI_KIND_UINT16;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_U32:
+    out_type->kind = CDD_FFI_KIND_UINT32;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_I64:
+  case CDD_DSL_TOKEN_TYPE_ISIZE:
+    out_type->kind = CDD_FFI_KIND_INT64;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_U64:
+  case CDD_DSL_TOKEN_TYPE_USIZE:
+  case CDD_DSL_TOKEN_TYPE_SIZE_T:
+    out_type->kind = CDD_FFI_KIND_UINT64;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_F32:
+    out_type->kind = CDD_FFI_KIND_FLOAT32;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_F64:
+    out_type->kind = CDD_FFI_KIND_FLOAT64;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_TYPE_BOOL:
+    out_type->kind = CDD_FFI_KIND_BOOL;
+    return advance(state, &tok);
+  case CDD_DSL_TOKEN_IDENTIFIER:
+    out_type->kind = CDD_FFI_KIND_STRUCT_REF;
+    rc = advance(state, &tok);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (is_match) {
-      out_type->kind = CDD_FFI_KIND_UINT8;
-    } else {
-      rc = match(state, CDD_DSL_TOKEN_TYPE_VOID, &is_match);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-      if (is_match) {
-        out_type->kind = CDD_FFI_KIND_VOID;
-      } else {
-        rc = peek(state, &tok);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        if (tok.kind == CDD_DSL_TOKEN_IDENTIFIER) {
-          out_type->kind = CDD_FFI_KIND_STRUCT_REF;
-          rc = advance(state, &tok);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-          out_type->ref_name = CDD_STRDUP(tok.text_copy);
-          if (!out_type->ref_name)
-            return CDD_C_ERROR_MEMORY;
-        } else {
-          return CDD_C_ERROR_PARSE;
+    out_type->ref_name = CDD_STRDUP(tok.text_copy);
+    if (!out_type->ref_name)
+      return CDD_C_ERROR_MEMORY;
+    return CDD_C_SUCCESS;
+  case CDD_DSL_TOKEN_KW_FUNC: {
+    rc = advance(state, &tok);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    out_type->kind = CDD_FFI_KIND_FUNCTION_PTR;
+    rc = match(state, CDD_DSL_TOKEN_LPAREN, &is_match);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (!is_match)
+      return CDD_C_ERROR_PARSE;
+
+    while (1) {
+      rc = match(state, CDD_DSL_TOKEN_RPAREN, &is_match);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cleanup_parsed_type(out_type));
+      }
+      if (is_match)
+        break;
+      rc = peek(state, &tok);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cleanup_parsed_type(out_type));
+      }
+      if (tok.kind == CDD_DSL_TOKEN_EOF) {
+        return cdd_c_keep_err(CDD_C_ERROR_PARSE, cleanup_parsed_type(out_type));
+      }
+      if (tok.kind == CDD_DSL_TOKEN_IDENTIFIER &&
+          strcmp(tok.text_copy, "va_list") == 0) {
+        out_type->fn_is_variadic = 1;
+        rc = advance(state, &tok);
+        if (rc != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(rc, cleanup_parsed_type(out_type));
         }
+        rc = match(state, CDD_DSL_TOKEN_COMMA, &is_match);
+        if (rc != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(rc, cleanup_parsed_type(out_type));
+        }
+        continue;
+      }
+      {
+        cdd_ffi_field_t param_f;
+        cdd_ffi_field_t *new_params;
+        rc = parse_field(state, &param_f);
+        if (rc != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(rc, cleanup_parsed_type(out_type));
+        }
+        new_params = (cdd_ffi_field_t *)CDD_REALLOC(
+            out_type->fn_params,
+            (out_type->fn_params_count + 1) * sizeof(cdd_ffi_field_t));
+        if (!new_params) {
+          cdd_c_error_t clean_rc;
+          C_CDD_FREE(param_f.name);
+          C_CDD_FREE(param_f.array_length_ref);
+          clean_rc = cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                                    cleanup_parsed_type(&param_f.type));
+          return cdd_c_keep_err(clean_rc, cleanup_parsed_type(out_type));
+        }
+        out_type->fn_params = new_params;
+        out_type->fn_params[out_type->fn_params_count++] = param_f;
       }
     }
-  }
 
-  return CDD_C_SUCCESS;
+    out_type->fn_return_type =
+        (cdd_ffi_type_t *)CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
+    if (!out_type->fn_return_type) {
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY, cleanup_parsed_type(out_type));
+    }
+    rc = parse_type(state, out_type->fn_return_type);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cleanup_parsed_type(out_type));
+    }
+    return CDD_C_SUCCESS;
+  }
+  default:
+    return CDD_C_ERROR_PARSE;
+  }
 }
 
 /**
@@ -520,8 +653,7 @@ static cdd_c_error_t parse_field(parser_state_t *state,
 cleanup:
   C_CDD_FREE(out_field->array_length_ref);
   out_field->array_length_ref = NULL;
-  C_CDD_FREE(out_field->type.ref_name);
-  out_field->type.ref_name = NULL;
+  rc = cdd_c_keep_err(rc, cleanup_parsed_type(&out_field->type));
   C_CDD_FREE(out_field->name);
   out_field->name = NULL;
   return rc;
@@ -1012,6 +1144,16 @@ static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir) {
     node->fields[node->fields_count++] = field;
   }
 
+  rc = peek(state, &tok);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (tok.kind != CDD_DSL_TOKEN_EQUALS && tok.kind != CDD_DSL_TOKEN_LBRACE &&
+      tok.kind != CDD_DSL_TOKEN_SEMICOLON && tok.kind != CDD_DSL_TOKEN_EOF) {
+    rc = parse_type(state, &node->return_or_base_type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+
   rc = match(state, CDD_DSL_TOKEN_EQUALS, &is_match);
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -1162,7 +1304,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
   }
 
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(*out_ir));
+    rc = cdd_c_keep_err(rc, cdd_ffi_ir_free(*out_ir));
     C_CDD_FREE(*out_ir);
     *out_ir = NULL;
   }

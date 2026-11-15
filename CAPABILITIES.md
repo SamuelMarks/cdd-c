@@ -183,16 +183,16 @@ The FFI IR (`include/ffi/cdd_ffi_ir.h`) structures the API into:
 - **Opaque Pointers**: Unknown structs cleanly mapped to type-safe opaque handles.
 - **Trivia & Docstrings**: Preserved and emitted as native docstrings in the target languages (e.g., Python docstrings, Rust `///`, Javadoc `/** */`).
 
-### 42 Supported Target Languages
+### 43 Supported Target Languages
 
-The FFI backend contains 42 dedicated, handwritten code generators (`src/functions/ffi/`):
+The FFI backend contains 43 dedicated, handwritten code generators (`src/functions/ffi/`):
 
 | Target Family | Languages Supported | Generation Pattern |
 | :--- | :--- | :--- |
-| **Systems & Native** | C++, Rust, Zig, Odin, D, Nim, V (`vlang`), WebAssembly, Ada, Fortran | Direct ABI-compatible extern blocks, idiomatic RAII wrappers, and memory-safe abstractions. |
+| **Systems & Native** | C++, Rust, Zig, Odin, D, Nim, V (`vlang`), WebAssembly, Ada, Fortran, COBOL (`cobol`/`cbl`) | Direct ABI-compatible extern blocks, Fortran 2003/2008 `ISO_C_BINDING` + `fpm.toml`, COBOL `.cpy` Copybooks with exact `FILLER` alignment padding & `.cbl`/C89 ABI shims, and RAII wrappers. |
 | **Managed & OOP** | C#, Java, Kotlin, Scala, Groovy, Delphi, Objective-C, Swift | P/Invoke (`DllImport`), JNI/JNA bindings, Swift `@_silgen_name` wrappers, and native classes. |
 | **Dynamic & Scripting** | Python, Ruby, Perl, PHP, Lua, Tcl, R, MATLAB, Julia | `ctypes`/`cffi` modules, Ruby FFI gems, Perl XS wrappers, PHP FFI extensions, LuaJIT FFI tables. |
-| **Functional & Logic** | Haskell, OCaml, Elixir, Erlang, Clojure, Common Lisp, Racket, Scheme, F# | Foreign Function Interfaces, Erlang NIFs, OCaml `external` primitives, Haskell `foreign import`. |
+| **Functional & Logic** | Haskell, OCaml, Elixir, Erlang, Clojure, Common Lisp, Racket, Scheme, F# | Foreign Function Interfaces, Erlang NIFs, OCaml `Ctypes` (`.ml`/`.mli`, `[out]`/`result` marshaling, `dune`, and C89 `external` stubs), Haskell `foreign import`. |
 | **Web & Node.js** | TypeScript, Node.js N-API | Native N-API C++ addons, strongly typed `.d.ts` definitions, and WebAssembly glue code. |
 | **Data & Tooling** | Intermediate Representation JSON (`ir_dump.json`) | Normalized machine-readable JSON representation for custom toolchains and AST consumers. |
 

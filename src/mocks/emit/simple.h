@@ -1,9 +1,9 @@
 /**
  * @file simple.h
- * @brief Unit tests and mocks in simple.h.
+ * @brief Mock data structures and cleanup declarations in simple.h.
  */
-#ifndef C_CDD_TESTS_MOCKS_SIMPLE_H
-#define C_CDD_TESTS_MOCKS_SIMPLE_H
+#ifndef C_CDD_SRC_MOCKS_SIMPLE_H
+#define C_CDD_SRC_MOCKS_SIMPLE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,41 +11,41 @@ extern "C" {
 
 /* clang-format off */
 #include "cdd_c_error.h"
-#include "simple_mocks_export.h"
+#include "cdd_src_mocks_export.h"
 /* clang-format on */
 
-/** @brief Test definition Haz. */
+/** @brief Mock structure Haz. */
 struct Haz {
-  /** @brief Test definition bzr. */
+  /** @brief String member bzr. */
   char *bzr;
 };
 
 /**
  * @brief Releases memory owned by a Haz instance.
- * @param[in,out] haz Parameter haz.
- * @return Result status or value.
+ * @param[in,out] haz Pointer to Haz instance to free.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT`.
  */
-extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Haz_cleanup(struct Haz *haz);
+extern CDD_SRC_MOCKS_EXPORT cdd_c_error_t Haz_cleanup(struct Haz *haz);
 
-/** @brief Test definition Foo. */
+/** @brief Mock structure Foo. */
 struct Foo {
-  /** @brief Test definition bar. */
+  /** @brief String member bar. */
   char *bar;
-  /** @brief Test definition can. */
+  /** @brief Integer member can. */
   int can;
-  /** @brief Test definition haz. */
+  /** @brief Nested Haz pointer haz. */
   struct Haz *haz;
 };
 
 /**
  * @brief Releases memory owned by a Foo instance.
- * @param[in,out] foo Parameter foo.
- * @return Result status or value.
+ * @param[in,out] foo Pointer to Foo instance to free.
+ * @return `CDD_C_SUCCESS` on success, or error code from nested cleanup.
  */
-extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Foo_cleanup(struct Foo *foo);
+extern CDD_SRC_MOCKS_EXPORT cdd_c_error_t Foo_cleanup(struct Foo *foo);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* !C_CDD_TESTS_MOCKS_SIMPLE_H */
+#endif /* !C_CDD_SRC_MOCKS_SIMPLE_H */

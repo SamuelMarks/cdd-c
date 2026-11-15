@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
-import * as fs from "node:fs";
-import * as path from "node:path";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * Resolves the compiled `cdd-c` binary path from standard build directories.
@@ -10,16 +10,16 @@ import * as path from "node:path";
  */
 export function resolveCddBinary(repoRoot: string): string | null {
   const candidates = [
-    path.join(repoRoot, "build", "cdd-c"),
-    path.join(repoRoot, "build", "bin", "cdd-c"),
-    path.join(repoRoot, "build", "src", "cdd-c"),
-    path.join(repoRoot, "build_clang", "cdd-c"),
-    path.join(repoRoot, "build_clang", "bin", "cdd-c"),
-    path.join(repoRoot, "build_gcc", "cdd-c"),
-    path.join(repoRoot, "build_gcc", "bin", "cdd-c"),
+    join(repoRoot, "build", "cdd-c"),
+    join(repoRoot, "build", "bin", "cdd-c"),
+    join(repoRoot, "build", "src", "cdd-c"),
+    join(repoRoot, "build_clang", "cdd-c"),
+    join(repoRoot, "build_clang", "bin", "cdd-c"),
+    join(repoRoot, "build_gcc", "cdd-c"),
+    join(repoRoot, "build_gcc", "bin", "cdd-c"),
   ];
   for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
+    if (existsSync(candidate)) {
       return candidate;
     }
   }

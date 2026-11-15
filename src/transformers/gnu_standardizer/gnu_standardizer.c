@@ -278,13 +278,13 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
               }
             }
             if (!seen && num_caps < 32) {
-              CDD_SNPRINTF(caps[num_caps].name, sizeof(caps[0].name), "%s",
+              CDD_SNPRINTF(caps[num_caps].name, sizeof(caps[0].name), "%.95s",
                            outer_names[ov]);
-              CDD_SNPRINTF(caps[num_caps].type, sizeof(caps[0].type), "%s",
+              CDD_SNPRINTF(caps[num_caps].type, sizeof(caps[0].type), "%.127s",
                            outer_types[ov]);
               num_caps++;
             }
-            CDD_SNPRINTF(deref_buf, sizeof(deref_buf), "(*__cdd_frame->%s)",
+            CDD_SNPRINTF(deref_buf, sizeof(deref_buf), "(*__cdd_frame->%.95s)",
                          outer_names[ov]);
             rc = cdd_pool_string_safe(tree, deref_buf, &pooled_deref);
             if (rc != CDD_C_SUCCESS)

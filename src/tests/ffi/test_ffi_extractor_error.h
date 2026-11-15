@@ -334,7 +334,7 @@ TEST test_ffi_ir_extract_error_paths(void) {
     {
       int fail_idx;
       g_cdd_last_alloc_err = write_to_file("test_tramp_loop.h", "int a;\n");
-      for (fail_idx = 1; fail_idx <= 4; fail_idx++) {
+      for (fail_idx = 1; fail_idx <= 25; fail_idx++) {
         cdd_ffi_ir_t tramp_ir;
         memset(&tramp_ir, 0, sizeof(tramp_ir));
         tramp_ir.nodes_count = 1;
@@ -347,6 +347,21 @@ TEST test_ffi_ir_extract_error_paths(void) {
         tramp_ir.nodes[0].virtual_methods = (cdd_ffi_virtual_method_t *)calloc(
             1, sizeof(cdd_ffi_virtual_method_t));
         tramp_ir.nodes[0].virtual_methods[0].name = strdup("foo");
+        tramp_ir.nodes[0].virtual_methods[0].return_type.kind =
+            CDD_FFI_KIND_STRUCT_REF;
+        tramp_ir.nodes[0].virtual_methods[0].return_type.ref_name =
+            strdup("RetS");
+        tramp_ir.nodes[0].virtual_methods[0].args_count = 2;
+        tramp_ir.nodes[0].virtual_methods[0].args =
+            (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+        tramp_ir.nodes[0].virtual_methods[0].args[0].name = strdup("p0");
+        tramp_ir.nodes[0].virtual_methods[0].args[0].type.kind =
+            CDD_FFI_KIND_STRUCT_REF;
+        tramp_ir.nodes[0].virtual_methods[0].args[0].type.ref_name =
+            strdup("ArgS");
+        tramp_ir.nodes[0].virtual_methods[0].args[1].name = NULL;
+        tramp_ir.nodes[0].virtual_methods[0].args[1].type.kind =
+            CDD_FFI_KIND_INT32;
 
         g_ffi_extractor_alloc_fail = fail_idx;
         g_cdd_last_alloc_err = cdd_ffi_extract_single_file_exports_test(
@@ -612,34 +627,47 @@ TEST test_ffi_ir_extract_error_paths(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_instantiate_templates_test(&inst_ir));
     g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
 
-    /* OOM when allocating new_node->fields in instantiate_templates */
-    memset(&inst_ir, 0, sizeof(inst_ir));
-    inst_ir.nodes_count = 2;
-    inst_ir.nodes_capacity = 4;
-    inst_ir.nodes = (cdd_ffi_ir_node_t *)calloc(4, sizeof(cdd_ffi_ir_node_t));
-    inst_ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
-    inst_ir.nodes[0].name = strdup("TmplBase");
-    inst_ir.nodes[0].fields_count = 1;
-    inst_ir.nodes[0].fields =
-        (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
-    inst_ir.nodes[0].fields[0].name = strdup("v");
-    inst_ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
-    inst_ir.nodes[1].name = strdup("User");
-    inst_ir.nodes[1].fields_count = 1;
-    inst_ir.nodes[1].fields =
-        (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
-    inst_ir.nodes[1].fields[0].name = strdup("f");
-    inst_ir.nodes[1].fields[0].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
-    inst_ir.nodes[1].fields[0].type.ref_name = strdup("TmplBase");
-    inst_ir.nodes[1].fields[0].type.template_args_count = 1;
-    inst_ir.nodes[1].fields[0].type.template_args =
-        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
-    inst_ir.nodes[1].fields[0].type.template_args[0].kind = CDD_FFI_KIND_INT32;
+    /* OOM across all allocations in instantiate_templates */
+    {
+      int oom_idx;
+      cdd_c_error_t rc_oom;
+      for (oom_idx = 2; oom_idx <= 6; ++oom_idx) {
+        memset(&inst_ir, 0, sizeof(inst_ir));
+        inst_ir.nodes_count = 2;
+        inst_ir.nodes_capacity = 4;
+        inst_ir.nodes =
+            (cdd_ffi_ir_node_t *)calloc(4, sizeof(cdd_ffi_ir_node_t));
+        inst_ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+        inst_ir.nodes[0].name = strdup("TmplBase");
+        inst_ir.nodes[0].fields_count = 1;
+        inst_ir.nodes[0].fields =
+            (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+        inst_ir.nodes[0].fields[0].name = strdup("v");
+        inst_ir.nodes[0].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
+        inst_ir.nodes[0].fields[0].type.ref_name = strdup("InnerRef");
+        inst_ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
+        inst_ir.nodes[1].name = strdup("User");
+        inst_ir.nodes[1].fields_count = 1;
+        inst_ir.nodes[1].fields =
+            (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+        inst_ir.nodes[1].fields[0].name = strdup("f");
+        inst_ir.nodes[1].fields[0].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+        inst_ir.nodes[1].fields[0].type.ref_name = strdup("TmplBase");
+        inst_ir.nodes[1].fields[0].type.template_args_count = 1;
+        inst_ir.nodes[1].fields[0].type.template_args =
+            (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+        inst_ir.nodes[1].fields[0].type.template_args[0].kind =
+            CDD_FFI_KIND_INT32;
 
-    g_ffi_extractor_alloc_fail = 2;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_instantiate_templates_test(&inst_ir));
-    g_ffi_extractor_alloc_fail = 0;
-    g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
+        g_ffi_extractor_alloc_fail = oom_idx;
+        rc_oom = cdd_ffi_instantiate_templates_test(&inst_ir);
+        g_ffi_extractor_alloc_fail = 0;
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(&inst_ir);
+        if (rc_oom == CDD_C_SUCCESS)
+          break;
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
+      }
+    }
   }
 
   /* 9. Trivia copy OOM and CDD_STRDUP OOM on doc and _Out_writes_ */

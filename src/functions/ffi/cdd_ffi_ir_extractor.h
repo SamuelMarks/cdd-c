@@ -1,33 +1,27 @@
+/**
+ * @file cdd_ffi_ir_extractor.h
+ * @brief Logic for extracting exported symbols to the Universal FFI IR.
+ */
 #ifndef CDD_FFI_IR_EXTRACTOR_H
+/** @brief Header guard for cdd_ffi_ir_extractor.h */
 #define CDD_FFI_IR_EXTRACTOR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 /* clang-format off */
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
 #include "msvc/stdint.h"
 #else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "msvc/stdint.h"
-#else
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#include "c_cdd/msvc/stdint.h"
-#else
 #include <stdint.h>
 #endif
-#endif
-#endif
 #include "c_cdd_export.h"
+#include "c_cdd/no_discard.h"
 #include "cdd_c_error.h"
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include "../../src/cdd_api.h"
 /* clang-format on */
-
-/**
- * @file cdd_ffi_ir_extractor.h
- * @brief Logic for extracting exported symbols to the Universal FFI IR.
- */
 
 /**
  * @brief Generate a flattened C-compatible FFI symbol from C++ namespace,

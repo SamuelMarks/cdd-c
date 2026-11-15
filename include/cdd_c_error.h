@@ -56,6 +56,17 @@ extern C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err;
 C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_c_strerror(cdd_c_error_t err,
                                                      char **out);
 
+/**
+ * @brief Preserves the first non-success error code across primary and cleanup
+ * steps.
+ *
+ * @param[in] primary Primary operation status code.
+ * @param[in] cleanup_rc Cleanup operation status code.
+ * @return `primary` when `primary != CDD_C_SUCCESS`, otherwise `cleanup_rc`.
+ */
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_c_keep_err(cdd_c_error_t primary,
+                                                     cdd_c_error_t cleanup_rc);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -3,6 +3,7 @@
  * @brief FFI binding emitter for Dsl.
  */
 #ifndef CDD_FFI_EMIT_DSL_H
+/** @brief Header guard for cdd_ffi_emit_dsl.h */
 #define CDD_FFI_EMIT_DSL_H
 
 #ifdef __cplusplus
@@ -11,9 +12,9 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "c_cdd/no_discard.h"
 #include "cdd_c_error.h"
 #include "ffi/cdd_ffi_ir.h"
-/* #include "cdd_generate_bindings.h" */
 /* clang-format on */
 
 struct cdd_generate_bindings_config;
@@ -25,7 +26,7 @@ struct cdd_generate_bindings_config;
  * @param[in] config Binding generation configuration containing output paths.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_dsl(
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_ffi_emit_dsl(
     cdd_ffi_ir_t *ir, const struct cdd_generate_bindings_config *config);
 
 #ifdef __cplusplus

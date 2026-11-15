@@ -47,7 +47,7 @@ if(ENABLE_COVERAGE)
         if(GCOVR_PATH)
             add_custom_target(coverage
                 COMMAND ctest --output-on-failure
-                COMMAND ${GCOVR_PATH} -r ${CMAKE_SOURCE_DIR} --html --html-details -o coverage.html --fail-under-line 100 --fail-under-branch 100 --merge-mode-functions=separate
+                COMMAND ${GCOVR_PATH} -r ${CMAKE_SOURCE_DIR} --filter "${CMAKE_SOURCE_DIR}/src/" --filter "${CMAKE_SOURCE_DIR}/include/" --exclude "${CMAKE_SOURCE_DIR}/src/tests/" --exclude "${CMAKE_SOURCE_DIR}/src/mocks/" --html --html-details -o coverage.html --fail-under-line 100 --fail-under-branch 100 --merge-mode-functions=separate
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 COMMENT "Running gcovr and asserting 100% coverage"
             )
@@ -221,6 +221,7 @@ else()
     set(${PROJECT_NAME_UPPER}_THREADING "Multi-threaded" CACHE STRING "Threading: Multi-threaded or Single-threaded")
 endif()
 set(${PROJECT_NAME_UPPER}_LTO OFF CACHE BOOL "Enable Link-Time Optimization (LTO)")
+option(${PROJECT_NAME_UPPER}_ENABLE_LTO "Enable Link-Time Optimization (LTO)" OFF)
 
 if(MSVC)
     set(${PROJECT_NAME_UPPER}_CRT_LINKAGE "Shared" CACHE STRING "MSVC CRT Linkage: Static or Shared")
@@ -237,7 +238,7 @@ if(NOT CDD_MSVC_RTC STREQUAL "")
     set(${PROJECT_NAME_UPPER}_MSVC_RTC "${CDD_MSVC_RTC}")
 endif()
 
-if(${PROJECT_NAME_UPPER}_LTO)
+if(${PROJECT_NAME_UPPER}_LTO OR ${PROJECT_NAME_UPPER}_ENABLE_LTO)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT ipo_supported OUTPUT error)
     if(ipo_supported)
@@ -310,6 +311,8 @@ endif()
 
 if((${PROJECT_NAME_UPPER}_CHARSET STREQUAL "Unicode") OR (${PROJECT_NAME_UPPER}_CHARSET STREQUAL "UNICODE"))
     target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE UNICODE _UNICODE)
+elseif((${PROJECT_NAME_UPPER}_CHARSET STREQUAL "ANSI") OR (${PROJECT_NAME_UPPER}_CHARSET STREQUAL "MBCS"))
+    target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE _MBCS)
 endif()
 
 if((${PROJECT_NAME_UPPER}_THREADING STREQUAL "Multi-threaded") OR (${PROJECT_NAME_UPPER}_THREADING STREQUAL "ON"))
@@ -320,10 +323,12 @@ endif()
 
 if(MSVC)
     if(NOT ${PROJECT_NAME_UPPER}_MSVC_RTC STREQUAL "" AND NOT ${PROJECT_NAME_UPPER}_MSVC_RTC STREQUAL "OFF")
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
         foreach(_rtc_var CMAKE_C_FLAGS CMAKE_CXX_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_MINSIZEREL)
             if(DEFINED ${_rtc_var})
                 string(REGEX REPLACE "/RTC(1|c|s|u)+" "" ${_rtc_var} "${${_rtc_var}}")
                 string(REGEX REPLACE "/O(1|2|x)" "/Od" ${_rtc_var} "${${_rtc_var}}")
+                string(REGEX REPLACE "/GL" "" ${_rtc_var} "${${_rtc_var}}")
             endif()
         endforeach()
         if(${PROJECT_NAME_UPPER}_MSVC_RTC MATCHES "^RTC")

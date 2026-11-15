@@ -16,11 +16,25 @@
 #include "c_cdd/format_specifiers.h"
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+
+/**
+ * @brief Preserves the first non-success error code across two sequential
+ * calls.
+ *
+ * @param[in] first_rc Primary error code.
+ * @param[in] second_rc Secondary/cleanup error code.
+ * @return `first_rc` if non-success, otherwise `second_rc`.
+ */
+static NO_DISCARD cdd_c_error_t cdd_keep_err(cdd_c_error_t first_rc,
+                                             cdd_c_error_t second_rc) {
+  return (first_rc != CDD_C_SUCCESS) ? first_rc : second_rc;
+}
 
 /** @brief Counter to simulate allocation failure in FFI IR extractor tests. */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
@@ -140,7 +154,7 @@ static cdd_c_error_t find_class_visitor(cdd_cst_node_t *node, void *user_data) {
   const char *target_name = ctx->target_name;
   cdd_cst_node_t **out_node = ctx->out_node;
 
-  if (node->kind == CDD_CST_CLASS_DECLARATION) {
+  if (!*out_node && node->kind == CDD_CST_CLASS_DECLARATION) {
     size_t i;
     for (i = 0; i < node->num_children; i++) {
       if (node->children[i].val.token->kind == CDD_TOKEN_IDENTIFIER) {
@@ -148,7 +162,7 @@ static cdd_c_error_t find_class_visitor(cdd_cst_node_t *node, void *user_data) {
         if (tok->length == strlen(target_name) &&
             strncmp((const char *)tok->start, target_name, tok->length) == 0) {
           *out_node = node;
-          return CDD_C_ERROR_UNKNOWN; /* Stop traversal */
+          break;
         }
       }
     }
@@ -167,26 +181,24 @@ static cdd_c_error_t find_class_declaration_by_name(cdd_cst_tree_t *tree,
                                                     const char *name,
                                                     cdd_cst_node_t **out_node) {
   struct find_node_ctx_t ctx;
-  cdd_c_error_t rc;
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
-  rc = cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
-  return (cdd_c_error_t)((int)rc & ~(int)CDD_C_ERROR_UNKNOWN);
+  return cdd_cst_traverse_preorder(tree->root, find_class_visitor, &ctx);
 }
 
 /**
  * @brief Visitor to find a function definition by name.
  * @param[in,out] node The current node.
  * @param[in,out] user_data Pointer to user data.
- * @return CDD_C_ERROR_UNKNOWN to stop traversal, CDD_C_SUCCESS otherwise.
+ * @return CDD_C_SUCCESS.
  */
 static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
   struct find_node_ctx_t *ctx = (struct find_node_ctx_t *)user_data;
   const char *target_name = ctx->target_name;
   cdd_cst_node_t **out_node = ctx->out_node;
 
-  if (node->kind == CDD_CST_FUNCTION_DEFINITION) {
+  if (!*out_node && node->kind == CDD_CST_FUNCTION_DEFINITION) {
     size_t i;
     for (i = 0; i < node->num_children; i++) {
       if (node->children[i].val.token->kind == CDD_TOKEN_IDENTIFIER) {
@@ -194,7 +206,7 @@ static cdd_c_error_t find_func_visitor(cdd_cst_node_t *node, void *user_data) {
         if (tok->length == strlen(target_name) &&
             strncmp((const char *)tok->start, target_name, tok->length) == 0) {
           *out_node = node;
-          return CDD_C_ERROR_UNKNOWN; /* Stop traversal */
+          break;
         }
       }
     }
@@ -213,12 +225,10 @@ static cdd_c_error_t find_func_definition_by_name(cdd_cst_tree_t *tree,
                                                   const char *name,
                                                   cdd_cst_node_t **out_node) {
   struct find_node_ctx_t ctx;
-  cdd_c_error_t rc;
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
-  rc = cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
-  return (cdd_c_error_t)((int)rc & ~(int)CDD_C_ERROR_UNKNOWN);
+  return cdd_cst_traverse_preorder(tree->root, find_func_visitor, &ctx);
 }
 
 /**
@@ -319,6 +329,654 @@ static cdd_c_error_t copy_trivia_chain(const cdd_trivia_t *in_trivia,
 }
 
 /**
+ * @brief Deep-copies a `cdd_ffi_type_t` value for trampoline callback metadata.
+ *
+ * @param[in] src Source type descriptor.
+ * @param[out] dst Destination type descriptor (zeroed on entry).
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
+static NO_DISCARD cdd_c_error_t
+copy_ffi_type_shallow_sig(const cdd_ffi_type_t *src, cdd_ffi_type_t *dst) {
+  memset(dst, 0, sizeof(*dst));
+  dst->kind = src->kind;
+  dst->is_const = src->is_const;
+  dst->pointer_depth = src->pointer_depth;
+  dst->array_size = src->array_size;
+  if (src->ref_name) {
+    dst->ref_name = CDD_STRDUP(src->ref_name);
+    if (!dst->ref_name)
+      return CDD_C_ERROR_MEMORY;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Parses a simple C type slice (e.g., `const char *`, `struct Foo *`,
+ * `int32_t`) into a `cdd_ffi_type_t`.
+ *
+ * @param[in] raw Start of C type text.
+ * @param[in] len Byte length of `raw`.
+ * @param[out] out_type Destination FFI type structure.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
+static NO_DISCARD cdd_c_error_t
+parse_c_simple_type_str(const char *raw, size_t len, cdd_ffi_type_t *out_type) {
+  char buf[256];
+  char *p;
+  size_t end;
+  int ptr_depth;
+  int is_const;
+  cdd_c_error_t rc;
+
+  memset(out_type, 0, sizeof(*out_type));
+  if (len >= sizeof(buf))
+    len = sizeof(buf) - 1;
+  memcpy(buf, raw, len);
+  buf[len] = '\0';
+
+  p = buf;
+  while (memchr(" \t\r\n", (unsigned char)*p, 4) != NULL)
+    p++;
+  end = strlen(p);
+  while (end > 0 && memchr(" \t\r\n", (unsigned char)p[end - 1], 4) != NULL) {
+    p[--end] = '\0';
+  }
+
+  is_const = 0;
+  if (strncmp(p, "const ", 6) == 0) {
+    is_const = 1;
+    p += 6;
+    while (memchr(" \t", (unsigned char)*p, 2) != NULL)
+      p++;
+  }
+
+  end = strlen(p);
+  ptr_depth = 0;
+  while (end > 0 && memchr("* \t", (unsigned char)p[end - 1], 3) != NULL) {
+    if (p[end - 1] == '*')
+      ptr_depth++;
+    p[--end] = '\0';
+  }
+
+  if (end >= 6 && strcmp(p + end - 6, " const") == 0) {
+    is_const = 1;
+    end -= 6;
+    p[end] = '\0';
+    while (memchr(" \t", (unsigned char)p[end - 1], 2) != NULL)
+      p[--end] = '\0';
+  }
+
+  if (strncmp(p, "struct ", 7) == 0) {
+    p += 7;
+  } else if (strncmp(p, "union ", 6) == 0) {
+    p += 6;
+  } else if (strncmp(p, "enum ", 5) == 0) {
+    p += 5;
+    while (memchr(" \t", (unsigned char)*p, 2) != NULL)
+      p++;
+    out_type->kind = CDD_FFI_KIND_ENUM_REF;
+    out_type->is_const = is_const;
+    out_type->pointer_depth = ptr_depth;
+    out_type->ref_name = CDD_STRDUP(p);
+    return out_type->ref_name ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+  }
+  while (memchr(" \t", (unsigned char)*p, 2) != NULL)
+    p++;
+
+  if (strcmp(p, "void") == 0 && ptr_depth == 1 && !is_const) {
+    out_type->kind = CDD_FFI_KIND_OPAQUE_PTR;
+    out_type->pointer_depth = 0;
+    return CDD_C_SUCCESS;
+  }
+
+  rc = map_c_type_to_ffi_kind(p, &out_type->kind);
+  out_type->is_const = is_const;
+  out_type->pointer_depth = ptr_depth;
+  if (out_type->kind == CDD_FFI_KIND_STRUCT_REF) {
+    out_type->ref_name = CDD_STRDUP(p);
+    if (!out_type->ref_name)
+      return CDD_C_ERROR_MEMORY;
+  }
+  return rc;
+}
+
+/**
+ * @brief Splits a single trimmed C parameter declaration into type and optional
+ * name.
+ *
+ * @param[in] param_str Trimmed parameter slice (`param_len > 0`).
+ * @param[in] param_len Length of `param_str`.
+ * @param[out] out_field Destination parameter field structure.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
+static NO_DISCARD cdd_c_error_t parse_c_param_item(const char *param_str,
+                                                   size_t param_len,
+                                                   cdd_ffi_field_t *out_field) {
+  size_t id_start;
+
+  memset(out_field, 0, sizeof(*out_field));
+  id_start = param_len;
+  while (id_start > 0 && (isalnum((unsigned char)param_str[id_start - 1]) ||
+                          param_str[id_start - 1] == '_')) {
+    id_start--;
+  }
+
+  if (id_start > 0 && id_start < param_len) {
+    size_t name_len = param_len - id_start;
+    char kw_probe[32];
+    int is_type_kw = 0;
+
+    if (name_len < sizeof(kw_probe) - 2) {
+      kw_probe[0] = ' ';
+      memcpy(kw_probe + 1, param_str + id_start, name_len);
+      kw_probe[name_len + 1] = ' ';
+      kw_probe[name_len + 2] = '\0';
+      if (strstr(" int long short char void bool float double signed unsigned "
+                 "const ",
+                 kw_probe) != NULL) {
+        is_type_kw = 1;
+      }
+    }
+    if (!is_type_kw) {
+      out_field->name = (char *)CDD_CALLOC(name_len + 1, 1);
+      if (!out_field->name)
+        return CDD_C_ERROR_MEMORY;
+      memcpy(out_field->name, param_str + id_start, name_len);
+      return parse_c_simple_type_str(param_str, id_start, &out_field->type);
+    }
+  }
+
+  return parse_c_simple_type_str(param_str, param_len, &out_field->type);
+}
+
+/**
+ * @brief Parses a C function-pointer declaration `<ret> (*<name>)(<params>)`
+ * into a `CDD_FFI_KIND_FUNCTION_PTR` type with signature metadata.
+ *
+ * @param[in] decl Null-terminated declaration text (without trailing `;`).
+ * @param[out] out_name Non-NULL pointer receiving duplicated identifier name
+ * (or NULL if unnamed).
+ * @param[out] out_type Destination FFI type descriptor.
+ * @return CDD_C_SUCCESS if matched and parsed, CDD_C_ERROR_NOT_FOUND if `decl`
+ * is not a function-pointer declaration, or CDD_C_ERROR_MEMORY on OOM.
+ */
+static NO_DISCARD cdd_c_error_t parse_c_func_ptr_decl(
+    const char *decl, char **out_name, cdd_ffi_type_t *out_type) {
+  const char *open1;
+  const char *star;
+  const char *close1;
+  const char *open2;
+  const char *close2;
+  const char *id_s;
+  const char *id_e;
+  cdd_c_error_t rc;
+
+  *out_name = NULL;
+  memset(out_type, 0, sizeof(*out_type));
+
+  open1 = strchr(decl, '(');
+  if (!open1)
+    return CDD_C_ERROR_NOT_FOUND;
+  star = open1 + 1;
+  while (memchr(" \t", (unsigned char)*star, 2) != NULL)
+    star++;
+  if (*star != '*')
+    return CDD_C_ERROR_NOT_FOUND;
+  id_s = star + 1;
+  while (memchr(" \t*", (unsigned char)*id_s, 3) != NULL)
+    id_s++;
+  close1 = strchr(id_s, ')');
+  if (!close1)
+    return CDD_C_ERROR_NOT_FOUND;
+  id_e = close1;
+  while (id_e > id_s && memchr(" \t", (unsigned char)id_e[-1], 2) != NULL)
+    id_e--;
+
+  open2 = close1 + 1;
+  while (memchr(" \t", (unsigned char)*open2, 2) != NULL)
+    open2++;
+  if (*open2 != '(')
+    return CDD_C_ERROR_NOT_FOUND;
+  close2 = strrchr(open2, ')');
+  if (!close2)
+    return CDD_C_ERROR_NOT_FOUND;
+
+  out_type->kind = CDD_FFI_KIND_FUNCTION_PTR;
+  out_type->fn_return_type =
+      (cdd_ffi_type_t *)CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
+  if (!out_type->fn_return_type)
+    return CDD_C_ERROR_MEMORY;
+
+  rc = parse_c_simple_type_str(decl, (size_t)(open1 - decl),
+                               out_type->fn_return_type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  if (id_e > id_s) {
+    size_t nlen = (size_t)(id_e - id_s);
+    *out_name = (char *)CDD_CALLOC(nlen + 1, 1);
+    if (!*out_name)
+      return CDD_C_ERROR_MEMORY;
+    memcpy(*out_name, id_s, nlen);
+  }
+
+  {
+    const char *cur = open2 + 1;
+    while (cur < close2) {
+      const char *seg_end;
+      int depth;
+      size_t seg_len;
+      const char *trim_s;
+      const char *trim_e;
+
+      depth = 0;
+      seg_end = cur;
+      while (seg_end < close2) {
+        if (*seg_end == '(')
+          depth++;
+        else if (*seg_end == ')')
+          depth--;
+        else if (*seg_end == ',' && depth == 0)
+          break;
+        seg_end++;
+      }
+
+      trim_s = cur;
+      trim_e = seg_end;
+      while (trim_s < trim_e &&
+             memchr(" \t\r\n", (unsigned char)*trim_s, 4) != NULL)
+        trim_s++;
+      while (trim_e > trim_s &&
+             memchr(" \t\r\n", (unsigned char)trim_e[-1], 4) != NULL)
+        trim_e--;
+      seg_len = (size_t)(trim_e - trim_s);
+
+      if (seg_len == 3 && strncmp(trim_s, "...", 3) == 0) {
+        out_type->fn_is_variadic = 1;
+      } else if (seg_len > 0 &&
+                 !(seg_len == 4 && strncmp(trim_s, "void", 4) == 0)) {
+        cdd_ffi_field_t *new_params;
+        new_params = (cdd_ffi_field_t *)CDD_REALLOC(
+            out_type->fn_params,
+            (out_type->fn_params_count + 1) * sizeof(cdd_ffi_field_t));
+        if (!new_params)
+          return CDD_C_ERROR_MEMORY;
+        out_type->fn_params = new_params;
+        rc = parse_c_param_item(
+            trim_s, seg_len, &out_type->fn_params[out_type->fn_params_count]);
+        if (rc != CDD_C_SUCCESS) {
+          out_type->fn_params_count++;
+          return rc;
+        }
+        out_type->fn_params_count++;
+      }
+
+      cur = (seg_end < close2) ? (seg_end + 1) : close2;
+    }
+  }
+
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Populates callback signature metadata on a C++ `_Trampoline` vtable
+ * field (`void *ctx` plus optional virtual method parameters).
+ *
+ * @param[in,out] field Target trampoline callback field.
+ * @param[in] vm Optional virtual method descriptor (NULL for AddRef/Release).
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
+static NO_DISCARD cdd_c_error_t populate_trampoline_cb_sig(
+    cdd_ffi_field_t *field, const cdd_ffi_virtual_method_t *vm) {
+  size_t total_params;
+  size_t p_idx;
+  cdd_c_error_t rc;
+
+  field->type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+  field->type.fn_return_type =
+      (cdd_ffi_type_t *)CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
+  if (!field->type.fn_return_type)
+    return CDD_C_ERROR_MEMORY;
+
+  if (vm) {
+    rc =
+        copy_ffi_type_shallow_sig(&vm->return_type, field->type.fn_return_type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    total_params = vm->args_count + 1;
+  } else {
+    field->type.fn_return_type->kind = CDD_FFI_KIND_VOID;
+    total_params = 1;
+  }
+
+  field->type.fn_params =
+      (cdd_ffi_field_t *)CDD_CALLOC(total_params, sizeof(cdd_ffi_field_t));
+  if (!field->type.fn_params)
+    return CDD_C_ERROR_MEMORY;
+  field->type.fn_params_count = total_params;
+
+  field->type.fn_params[0].name = CDD_STRDUP("ctx");
+  if (!field->type.fn_params[0].name)
+    return CDD_C_ERROR_MEMORY;
+  field->type.fn_params[0].type.kind = CDD_FFI_KIND_OPAQUE_PTR;
+
+  if (vm) {
+    for (p_idx = 0; p_idx < vm->args_count; p_idx++) {
+      if (vm->args[p_idx].name) {
+        field->type.fn_params[p_idx + 1].name =
+            CDD_STRDUP(vm->args[p_idx].name);
+        if (!field->type.fn_params[p_idx + 1].name)
+          return CDD_C_ERROR_MEMORY;
+      }
+      rc = copy_ffi_type_shallow_sig(&vm->args[p_idx].type,
+                                     &field->type.fn_params[p_idx + 1].type);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Scans raw header text to extract `typedef Ret (*Name)(Args);`
+ * function-pointer typedefs, struct callback field signatures, and packed
+ * struct attributes.
+ *
+ * @param[in,out] ir Target FFI IR structure.
+ * @param[in] content Raw C/C++ header content.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
+ */
+static NO_DISCARD cdd_c_error_t
+extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
+  int global_pack_1;
+  const char *p;
+  size_t k;
+
+  global_pack_1 = (strstr(content, "#pragma pack(1)") != NULL ||
+                   strstr(content, "#pragma pack(push,") != NULL)
+                      ? 1
+                      : 0;
+
+  if (global_pack_1) {
+    for (k = 0; k < ir->nodes_count; k++) {
+      if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT ||
+          ir->nodes[k].kind == CDD_FFI_NODE_UNION) {
+        ir->nodes[k].is_packed = 1;
+      }
+    }
+  }
+
+  for (k = 0; k < ir->nodes_count; k++) {
+    if ((ir->nodes[k].kind == CDD_FFI_NODE_STRUCT ||
+         ir->nodes[k].kind == CDD_FFI_NODE_UNION) &&
+        ir->nodes[k].name) {
+      char pattern[256];
+      const char *found;
+#if defined(_MSC_VER)
+      sprintf_s(pattern, sizeof(pattern), "struct %s", ir->nodes[k].name);
+#else
+      CDD_SNPRINTF(pattern, sizeof(pattern), "struct %s", ir->nodes[k].name);
+#endif
+      found = strstr(content, pattern);
+      if (found) {
+        const char *lbrace = strchr(found, '{');
+        const char *rbrace = lbrace ? strchr(lbrace, '}') : NULL;
+        if (rbrace) {
+          const char *semi = strchr(rbrace, ';');
+          if (semi) {
+            size_t span = (size_t)(semi - found);
+            if (span < 4096) {
+              const char *attr = strstr(found, "packed");
+              if (attr && attr < semi) {
+                ir->nodes[k].is_packed = 1;
+              }
+            }
+          }
+          {
+            const char *stmt = lbrace + 1;
+            while (stmt < rbrace) {
+              const char *stmt_end = strchr(stmt, ';');
+              if (!stmt_end || stmt_end > rbrace)
+                break;
+              if (memchr(stmt, '(', (size_t)(stmt_end - stmt))) {
+                char decl_buf[512];
+                size_t dlen = (size_t)(stmt_end - stmt);
+                if (dlen < sizeof(decl_buf)) {
+                  char *cb_name = NULL;
+                  cdd_ffi_type_t cb_type;
+                  cdd_c_error_t fp_rc;
+                  memcpy(decl_buf, stmt, dlen);
+                  decl_buf[dlen] = '\0';
+                  fp_rc = parse_c_func_ptr_decl(decl_buf, &cb_name, &cb_type);
+                  if (fp_rc == CDD_C_ERROR_MEMORY) {
+                    C_CDD_FREE(cb_name);
+                    return CDD_C_ERROR_MEMORY;
+                  }
+                  if (fp_rc == CDD_C_SUCCESS && cb_name) {
+                    size_t f_idx;
+                    int matched = 0;
+                    for (f_idx = 0; f_idx < ir->nodes[k].fields_count;
+                         f_idx++) {
+                      if (ir->nodes[k].fields[f_idx].name &&
+                          strcmp(ir->nodes[k].fields[f_idx].name, cb_name) ==
+                              0) {
+                        if (ir->nodes[k].fields[f_idx].type.ref_name) {
+                          C_CDD_FREE(ir->nodes[k].fields[f_idx].type.ref_name);
+                        }
+                        ir->nodes[k].fields[f_idx].type = cb_type;
+                        C_CDD_FREE(cb_name);
+                        matched = 1;
+                        break;
+                      }
+                    }
+                    if (!matched) {
+                      cdd_ffi_field_t *nf = (cdd_ffi_field_t *)CDD_REALLOC(
+                          ir->nodes[k].fields, (ir->nodes[k].fields_count + 1) *
+                                                   sizeof(cdd_ffi_field_t));
+                      if (!nf) {
+                        C_CDD_FREE(cb_name);
+                        return CDD_C_ERROR_MEMORY;
+                      }
+                      ir->nodes[k].fields = nf;
+                      memset(&ir->nodes[k].fields[ir->nodes[k].fields_count], 0,
+                             sizeof(cdd_ffi_field_t));
+                      ir->nodes[k].fields[ir->nodes[k].fields_count].name =
+                          cb_name;
+                      ir->nodes[k].fields[ir->nodes[k].fields_count].type =
+                          cb_type;
+                      ir->nodes[k].fields_count++;
+                    }
+                  } else {
+                    C_CDD_FREE(cb_name);
+                  }
+                }
+              }
+              stmt = stmt_end + 1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  p = content;
+  while ((p = strstr(p, "typedef ")) != NULL) {
+    if (p == content || memchr("\n\r \t;", (unsigned char)p[-1], 5) != NULL) {
+      const char *semi = strchr(p + 8, ';');
+      const char *brace = strchr(p + 8, '{');
+      if (semi && (!brace || brace > semi)) {
+        size_t dlen = (size_t)(semi - (p + 8));
+        if (dlen < 512) {
+          char decl_buf[512];
+          char *td_name = NULL;
+          cdd_ffi_type_t td_type;
+          cdd_c_error_t fp_rc;
+          memcpy(decl_buf, p + 8, dlen);
+          decl_buf[dlen] = '\0';
+          fp_rc = parse_c_func_ptr_decl(decl_buf, &td_name, &td_type);
+          if (fp_rc == CDD_C_ERROR_MEMORY) {
+            C_CDD_FREE(td_name);
+            return CDD_C_ERROR_MEMORY;
+          }
+          if (fp_rc == CDD_C_SUCCESS && td_name) {
+            int exists = 0;
+            for (k = 0; k < ir->nodes_count; k++) {
+              if (ir->nodes[k].name &&
+                  strcmp(ir->nodes[k].name, td_name) == 0) {
+                exists = 1;
+                break;
+              }
+            }
+            if (!exists) {
+              cdd_ffi_ir_node_t *td_node = NULL;
+              cdd_c_error_t add_rc =
+                  ir_add_node(ir, CDD_FFI_NODE_TYPEDEF, td_name, &td_node);
+              C_CDD_FREE(td_name);
+              if (add_rc != CDD_C_SUCCESS)
+                return add_rc;
+              td_node->return_or_base_type = td_type;
+            } else {
+              C_CDD_FREE(td_name);
+              C_CDD_FREE(td_type.fn_return_type->ref_name);
+              C_CDD_FREE(td_type.fn_return_type);
+              if (td_type.fn_params) {
+                size_t pi;
+                for (pi = 0; pi < td_type.fn_params_count; pi++) {
+                  C_CDD_FREE(td_type.fn_params[pi].name);
+                  C_CDD_FREE(td_type.fn_params[pi].type.ref_name);
+                }
+                C_CDD_FREE(td_type.fn_params);
+              }
+            }
+          } else {
+            C_CDD_FREE(td_name);
+          }
+        }
+      }
+    }
+    p += 8;
+  }
+
+  /* Scan top-level C function prototypes/definitions containing callback
+   * parameters (`(*name)(...)`) skipped by `c_inspector_extract_signatures` */
+  {
+    const char *line = content;
+    int brace_depth = 0;
+    while (*line != '\0') {
+      const char *eol = strchr(line, '\n');
+      size_t llen = eol ? (size_t)(eol - line) : strlen(line);
+      if (brace_depth == 0 && llen > 0 && llen < 512) {
+        const char *ls = line;
+        size_t rem = llen;
+        while (rem > 0 && memchr(" \t", (unsigned char)*ls, 2) != NULL) {
+          ls++;
+          rem--;
+        }
+        if (rem > 0 && memchr("#/*}", (unsigned char)*ls, 4) == NULL &&
+            strncmp(ls, "typedef ", 8) != 0 && strncmp(ls, "struct ", 7) != 0 &&
+            strncmp(ls, "union ", 6) != 0 && strncmp(ls, "enum ", 5) != 0 &&
+            strncmp(ls, "class ", 6) != 0 && strncmp(ls, "template", 8) != 0 &&
+            strstr(ls, "(*") != NULL) {
+          const char *open_p = (const char *)memchr(ls, '(', rem);
+          const char *close_p = NULL;
+          if (open_p && open_p > ls) {
+            size_t si;
+            for (si = rem; si > 0; si--) {
+              if (ls[si - 1] == ')') {
+                close_p = ls + (si - 1);
+                break;
+              }
+            }
+          }
+          if (open_p && close_p && close_p > open_p) {
+            const char *id_e = open_p;
+            const char *id_s;
+            while (memchr(" \t", (unsigned char)id_e[-1], 2) != NULL)
+              id_e--;
+            id_s = id_e;
+            while (id_s > ls &&
+                   (isalnum((unsigned char)id_s[-1]) || id_s[-1] == '_'))
+              id_s--;
+            if (id_e > id_s && id_s > ls) {
+              char fn_nm[128];
+              size_t fn_len = (size_t)(id_e - id_s);
+              if (fn_len < sizeof(fn_nm) &&
+                  !(fn_len == 13 && strncmp(id_s, "__attribute__", 13) == 0)) {
+                int already = 0;
+                memcpy(fn_nm, id_s, fn_len);
+                fn_nm[fn_len] = '\0';
+                for (k = 0; k < ir->nodes_count; k++) {
+                  if (ir->nodes[k].name &&
+                      strcmp(ir->nodes[k].name, fn_nm) == 0) {
+                    already = 1;
+                    break;
+                  }
+                }
+                if (!already) {
+                  cdd_ffi_ir_node_t *fn_node = NULL;
+                  cdd_c_error_t add_rc =
+                      ir_add_node(ir, CDD_FFI_NODE_FUNCTION, fn_nm, &fn_node);
+                  if (add_rc != CDD_C_SUCCESS)
+                    return add_rc;
+                  add_rc = parse_c_simple_type_str(
+                      ls, (size_t)(id_s - ls), &fn_node->return_or_base_type);
+                  if (add_rc != CDD_C_SUCCESS)
+                    return add_rc;
+                  {
+                    char p_buf[512];
+                    size_t p_len = (size_t)(close_p - (open_p + 1));
+                    char *cb_nm = NULL;
+                    cdd_ffi_type_t cb_t;
+                    cdd_c_error_t fp_rc;
+                    memcpy(p_buf, open_p + 1, p_len);
+                    p_buf[p_len] = '\0';
+                    fp_rc = parse_c_func_ptr_decl(p_buf, &cb_nm, &cb_t);
+                    if (fp_rc == CDD_C_ERROR_MEMORY) {
+                      C_CDD_FREE(cb_nm);
+                      return CDD_C_ERROR_MEMORY;
+                    }
+                    if (fp_rc == CDD_C_SUCCESS) {
+                      fn_node->fields = (cdd_ffi_field_t *)CDD_CALLOC(
+                          1, sizeof(cdd_ffi_field_t));
+                      if (!fn_node->fields) {
+                        C_CDD_FREE(cb_nm);
+                        return CDD_C_ERROR_MEMORY;
+                      }
+                      fn_node->fields[0].name =
+                          cb_nm ? cb_nm : CDD_STRDUP("cb");
+                      fn_node->fields[0].type = cb_t;
+                      fn_node->fields_count = 1;
+                      if (!fn_node->fields[0].name)
+                        return CDD_C_ERROR_MEMORY;
+                    } else {
+                      C_CDD_FREE(cb_nm);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      {
+        size_t bi;
+        for (bi = 0; bi < llen; bi++) {
+          if (line[bi] == '{')
+            brace_depth++;
+          else if (line[bi] == '}' && brace_depth > 0)
+            brace_depth--;
+        }
+      }
+      if (!eol)
+        break;
+      line = eol + 1;
+    }
+  }
+
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Extracts types, functions, macros, base classes, and virtual method
  * trampolines from a single header file into the FFI IR.
  *
@@ -345,7 +1003,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
   /* Extract Types */
   rc = c_inspector_scan_file_types(filename, &types);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)type_def_list_free(&types));
+    rc = cdd_keep_err(rc, type_def_list_free(&types));
     return rc;
   }
 
@@ -419,7 +1077,9 @@ static cdd_c_error_t extract_single_file_exports_impl(
         az_span span_base;
         span_base = az_span_create_from_str(content);
         rc = cdd_cst_parse(span_base, &tree_base);
-        {
+        if (rc != CDD_C_SUCCESS) {
+          rc = CDD_C_SUCCESS;
+        } else {
           rc = cdd_cst_find_nodes_by_type(
               tree_base->root, CDD_CST_CLASS_DECLARATION, &structs_base);
 #ifdef CDD_BUILD_TESTS
@@ -428,7 +1088,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
 #endif
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(structs_base.nodes);
-            rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree_base));
+            rc = cdd_keep_err(rc, cdd_cst_tree_free(tree_base));
             break;
           }
           for (si = 0; si < structs_base.size; si++) {
@@ -510,7 +1170,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
             }
           }
           C_CDD_FREE(structs_base.nodes);
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree_base));
+          rc = cdd_keep_err(rc, cdd_cst_tree_free(tree_base));
         }
       }
       if (rc != CDD_C_SUCCESS)
@@ -582,7 +1242,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
       }
     }
   }
-  rc = (cdd_c_error_t)((int)rc | (int)type_def_list_free(&types));
+  rc = cdd_keep_err(rc, type_def_list_free(&types));
 
   if (rc != CDD_C_SUCCESS)
     return rc;
@@ -592,7 +1252,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
 
   rc = c_inspector_extract_signatures(content, &sigs);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)func_sig_list_free(&sigs));
+    rc = cdd_keep_err(rc, func_sig_list_free(&sigs));
     return rc;
   }
 
@@ -652,8 +1312,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
     rparen = strrchr(sigs.items[i].sig, ')');
     if (rparen > lparen + 1) {
       char params_str[1024];
-      char *p;
-      char *ctx = NULL;
+      char *seg_start;
       size_t len = (size_t)(rparen - lparen - 1);
       if (len >= sizeof(params_str))
         len = sizeof(params_str) - 1;
@@ -664,16 +1323,37 @@ static cdd_c_error_t extract_single_file_exports_impl(
 #endif
       params_str[len] = '\0';
 
-#if defined(_MSC_VER)
-      p = strtok_s(params_str, ",", &ctx);
-#else
-      p = strtok_r(params_str, ",", &ctx);
-#endif
-      while (p) {
-        char *param_trim = p;
-        while (*param_trim == ' ')
+      seg_start = params_str;
+      for (;;) {
+        char *seg_end = seg_start;
+        char *param_trim;
+        int pdepth = 0;
+        char saved_ch;
+
+        while (*seg_end != '\0') {
+          if (*seg_end == '(')
+            pdepth++;
+          else if (*seg_end == ')')
+            pdepth--;
+          else if (*seg_end == ',' && pdepth == 0)
+            break;
+          seg_end++;
+        }
+        saved_ch = *seg_end;
+        *seg_end = '\0';
+
+        param_trim = seg_start;
+        while (memchr(" \t", (unsigned char)*param_trim, 2) != NULL)
           param_trim++;
-        if (strcmp(param_trim, "void") != 0 && strcmp(param_trim, "...") != 0) {
+        {
+          size_t plen = strlen(param_trim);
+          while (plen > 0 &&
+                 memchr(" \t", (unsigned char)param_trim[plen - 1], 2) != NULL)
+            param_trim[--plen] = '\0';
+        }
+
+        if (param_trim[0] != '\0' && strcmp(param_trim, "void") != 0 &&
+            strcmp(param_trim, "...") != 0) {
           cdd_ffi_field_t *new_fields;
           size_t new_cap = node->fields_count + 1;
           new_fields = (cdd_ffi_field_t *)CDD_REALLOC(
@@ -682,6 +1362,9 @@ static cdd_c_error_t extract_single_file_exports_impl(
             rc = CDD_C_ERROR_MEMORY;
             break;
           }
+          node->fields = new_fields;
+          memset(&node->fields[node->fields_count], 0, sizeof(cdd_ffi_field_t));
+
           {
             char *last_space = strrchr(param_trim, ' ');
             char *name = last_space ? last_space + 1 : param_trim;
@@ -689,9 +1372,6 @@ static cdd_c_error_t extract_single_file_exports_impl(
             if (astx)
               name = astx + 1;
 
-            node->fields = new_fields;
-            memset(&node->fields[node->fields_count], 0,
-                   sizeof(cdd_ffi_field_t));
             node->fields[node->fields_count].name = CDD_STRDUP(name);
             if (!node->fields[node->fields_count].name) {
               node->fields_count++;
@@ -704,16 +1384,19 @@ static cdd_c_error_t extract_single_file_exports_impl(
             if (node->doc) {
               char search_out[128], search_in[128], search_inout[128];
 #if defined(_MSC_VER)
-              sprintf_s(search_out, sizeof(search_out), "@param[out] %s", name);
-              sprintf_s(search_in, sizeof(search_in), "@param[in] %s", name);
-              sprintf_s(search_inout, sizeof(search_inout), "@param[in,out] %s",
+              sprintf_s(search_out, sizeof(search_out), "@param[out] %.100s",
                         name);
+              sprintf_s(search_in, sizeof(search_in), "@param[in] %.100s",
+                        name);
+              sprintf_s(search_inout, sizeof(search_inout),
+                        "@param[in,out] %.100s", name);
 #else
-              CDD_SNPRINTF(search_out, sizeof(search_out), "@param[out] %s",
+              CDD_SNPRINTF(search_out, sizeof(search_out), "@param[out] %.100s",
                            name);
-              CDD_SNPRINTF(search_in, sizeof(search_in), "@param[in] %s", name);
+              CDD_SNPRINTF(search_in, sizeof(search_in), "@param[in] %.100s",
+                           name);
               CDD_SNPRINTF(search_inout, sizeof(search_inout),
-                           "@param[in,out] %s", name);
+                           "@param[in,out] %.100s", name);
 #endif
               if (strstr(node->doc, search_inout)) {
                 node->fields[node->fields_count].intent = CDD_FFI_INTENT_INOUT;
@@ -750,15 +1433,24 @@ static cdd_c_error_t extract_single_file_exports_impl(
             node->fields_count++;
           }
         }
-#if defined(_MSC_VER)
-        p = strtok_s(NULL, ",", &ctx);
-#else
-        p = strtok_r(NULL, ",", &ctx);
-#endif
+
+        if (saved_ch == '\0')
+          break;
+        seg_start = seg_end + 1;
       }
     }
   }
-  rc = func_sig_list_free(&sigs);
+  {
+    cdd_c_error_t rc_sigs = func_sig_list_free(&sigs);
+    if (rc == CDD_C_SUCCESS)
+      rc = rc_sigs;
+  }
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = extract_func_ptr_typedefs_and_packed(ir, content);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* Extract Macros as Constants */
   {
@@ -773,38 +1465,46 @@ static cdd_c_error_t extract_single_file_exports_impl(
           rc =
               ir_add_node(ir, CDD_FFI_NODE_MACRO, pp_ctx.macros[j].name, &node);
           if (rc != CDD_C_SUCCESS) {
-            rc = (cdd_c_error_t)((int)rc | (int)pp_context_free(&pp_ctx));
+            rc = cdd_keep_err(rc, pp_context_free(&pp_ctx));
             return rc;
           }
           {
             cdd_macro_eval_result_t eval_res;
+            cdd_c_error_t eval_rc;
+            memset(&eval_res, 0, sizeof(eval_res));
             node->variants_count = 1;
             node->variants = (cdd_ffi_enum_variant_t *)CDD_CALLOC(
                 1, sizeof(cdd_ffi_enum_variant_t));
             if (!node->variants) {
               node->variants_count = 0;
-              rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                   (int)pp_context_free(&pp_ctx));
-              return rc;
+              return cdd_keep_err(CDD_C_ERROR_MEMORY, pp_context_free(&pp_ctx));
             }
             node->variants[0].name = CDD_STRDUP(pp_ctx.macros[j].name);
             node->variants[0].value = CDD_STRDUP(pp_ctx.macros[j].value);
-            rc = cdd_macro_evaluate(&pp_ctx, pp_ctx.macros[j].value, &eval_res);
-            node->inferred_type = (cdd_ffi_macro_type_t)eval_res.type;
-            if (eval_res.type == MACRO_EVAL_TYPE_INT) {
-              char buf[64];
-              rc = int64_to_str(eval_res.int_val, buf, sizeof(buf));
-              node->evaluated_value = CDD_STRDUP(buf);
-            } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
-              char buf[64];
+            eval_rc =
+                cdd_macro_evaluate(&pp_ctx, pp_ctx.macros[j].value, &eval_res);
+            if (eval_rc == CDD_C_SUCCESS) {
+              node->inferred_type = (cdd_ffi_macro_type_t)eval_res.type;
+              if (eval_res.type == MACRO_EVAL_TYPE_INT) {
+                char buf[64];
+                rc = cdd_keep_err(
+                    rc, int64_to_str(eval_res.int_val, buf, sizeof(buf)));
+                node->evaluated_value = CDD_STRDUP(buf);
+              } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
+                char buf[64];
 #if defined(_MSC_VER)
-              sprintf_s(buf, sizeof(buf), "%f", eval_res.float_val);
+                sprintf_s(buf, sizeof(buf), "%f", eval_res.float_val);
 #else
-              CDD_SNPRINTF(buf, sizeof(buf), "%f", eval_res.float_val);
+                CDD_SNPRINTF(buf, sizeof(buf), "%f", eval_res.float_val);
 #endif
-              rc = cdd_ffi_do_strdup(buf, &node->evaluated_value);
+                rc = cdd_ffi_do_strdup(buf, &node->evaluated_value);
+              } else {
+                rc =
+                    cdd_ffi_do_strdup(eval_res.str_val, &node->evaluated_value);
+              }
             } else {
-              rc = cdd_ffi_do_strdup(eval_res.str_val, &node->evaluated_value);
+              node->inferred_type = CDD_FFI_MACRO_TYPE_UNKNOWN;
+              node->evaluated_value = NULL;
             }
             rc = cdd_macro_eval_result_free(&eval_res);
           }
@@ -907,10 +1607,14 @@ static cdd_c_error_t extract_single_file_exports_impl(
         trampoline_node->fields[0].type.kind = CDD_FFI_KIND_OPAQUE_PTR;
 
         trampoline_node->fields[1].name = CDD_STRDUP("cb_AddRef");
-        trampoline_node->fields[1].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+        rc = populate_trampoline_cb_sig(&trampoline_node->fields[1], NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
 
         trampoline_node->fields[2].name = CDD_STRDUP("cb_Release");
-        trampoline_node->fields[2].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+        rc = populate_trampoline_cb_sig(&trampoline_node->fields[2], NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
 
         for (m = 0; m < vm_count; m++) {
           char cb_name[256];
@@ -922,7 +1626,10 @@ static cdd_c_error_t extract_single_file_exports_impl(
                        ir->nodes[k].virtual_methods[m].name);
 #endif
           trampoline_node->fields[m + 3].name = CDD_STRDUP(cb_name);
-          trampoline_node->fields[m + 3].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+          rc = populate_trampoline_cb_sig(&trampoline_node->fields[m + 3],
+                                          &ir->nodes[k].virtual_methods[m]);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     }
@@ -961,7 +1668,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                                         tree_full);
 
   if (tree_full) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree_full));
+    rc = cdd_keep_err(rc, cdd_cst_tree_free(tree_full));
   }
 
   return rc;
@@ -1158,10 +1865,10 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
     C_CDD_FREE(ctx.visited[k]);
   }
   C_CDD_FREE(ctx.visited);
-  rc = (cdd_c_error_t)((int)rc | (int)pp_context_free(&pp_ctx));
+  rc = cdd_keep_err(rc, pp_context_free(&pp_ctx));
 
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
+    rc = cdd_keep_err(rc, cdd_ffi_ir_free(ir));
     C_CDD_FREE(ir);
     *out_ir = NULL;
     return rc;

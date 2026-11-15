@@ -264,7 +264,20 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
 
   ir.nodes[3].kind = CDD_FFI_NODE_TYPEDEF;
   ir.nodes[3].name = C_CDD_STRDUP("tdef");
-  ir.nodes[3].return_or_base_type.kind = CDD_FFI_KIND_INT16;
+  ir.nodes[3].return_or_base_type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+  ir.nodes[3].return_or_base_type.fn_is_variadic = 1;
+  ir.nodes[3].return_or_base_type.fn_return_type =
+      calloc(1, sizeof(cdd_ffi_type_t));
+  ir.nodes[3].return_or_base_type.fn_return_type->kind = CDD_FFI_KIND_INT32;
+  ir.nodes[3].return_or_base_type.fn_return_type->ref_name =
+      C_CDD_STRDUP("CbRet");
+  ir.nodes[3].return_or_base_type.fn_params_count = 2;
+  ir.nodes[3].return_or_base_type.fn_params =
+      calloc(2, sizeof(cdd_ffi_field_t));
+  ir.nodes[3].return_or_base_type.fn_params[0].name = C_CDD_STRDUP("cb_p0");
+  ir.nodes[3].return_or_base_type.fn_params[0].type.kind = CDD_FFI_KIND_INT32;
+  ir.nodes[3].return_or_base_type.fn_params[1].name = C_CDD_STRDUP("cb_p1");
+  ir.nodes[3].return_or_base_type.fn_params[1].type.kind = CDD_FFI_KIND_FLOAT64;
 
   ir.nodes[4].kind = CDD_FFI_NODE_MACRO;
   ir.nodes[4].name = C_CDD_STRDUP("MACRO_VAL");
@@ -318,8 +331,10 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   {
     cdd_ffi_ir_t *triv_ir = NULL;
     rc = cdd_ffi_ir_from_json(
-        "{\"nodes\":[{\"kind\":0,\"name\":\"f\","
-        "\"return_or_base_type\":{\"kind\":0,\"template_args\":[null]},"
+        "{\"nodes\":[{\"kind\":\"bad\",\"name\":\"f\","
+        "\"return_or_base_type\":{\"kind\":0,\"template_args\":[null],"
+        "\"fn_return_type\":null},"
+        "\"fields\":[{}],"
         "\"leading_trivia\":[null,{\"kind\":0,\"text\":\"x\"}],"
         "\"base_classes\":[null],"
         "\"macro_expansions\":[null]}]}",

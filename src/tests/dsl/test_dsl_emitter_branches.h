@@ -163,10 +163,59 @@ TEST test_dsl_emitter_exhaustive(void) {
 
   {
     cdd_ffi_ir_node_t *node4;
+    cdd_ffi_ir_node_t *node5;
+    int fail_at;
     rc = ir_add_node(ir, CDD_FFI_NODE_STRUCT, "some_struct", &node4);
+    ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
+
+    rc = ir_add_node(ir, CDD_FFI_NODE_FUNCTION, "tmp_anon", &node5);
+    ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
+    free(node5->name);
+    node5->name = NULL;
+    node5->raw_body = strdup(" return 1; ");
+    node5->fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+    node5->fields_count = 2;
+    node5->fields[0].name = strdup("cb_var");
+    node5->fields[0].leading_trivia =
+        (cdd_ffi_trivia_t *)calloc(1, sizeof(cdd_ffi_trivia_t));
+    node5->fields[0].leading_trivia->kind = CDD_FFI_TRIVIA_WHITESPACE;
+    node5->fields[0].leading_trivia->text = strdup(" ");
+    node5->fields[0].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+    node5->fields[0].type.fn_is_variadic = 1;
+    node5->fields[0].type.fn_params_count = 2;
+    node5->fields[0].type.fn_params =
+        (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+    node5->fields[0].type.fn_params[0].name = strdup("p0");
+    node5->fields[0].type.fn_params[0].type.kind = CDD_FFI_KIND_INT32;
+    node5->fields[0].type.fn_params[1].name = strdup("p1");
+    node5->fields[0].type.fn_params[1].type.kind = CDD_FFI_KIND_UINT8;
+    node5->fields[0].type.fn_return_type =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    node5->fields[0].type.fn_return_type->kind = CDD_FFI_KIND_INT32;
+
+    node5->fields[1].name = strdup("cb_void");
+    node5->fields[1].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+    node5->fields[1].type.fn_is_variadic = 0;
+    node5->fields[1].type.fn_params_count = 1;
+    node5->fields[1].type.fn_params =
+        (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+    node5->fields[1].type.fn_params[0].type.kind = CDD_FFI_KIND_BOOL;
+    node5->fields[1].type.fn_return_type = NULL;
+
+    for (fail_at = 1; fail_at <= 90; ++fail_at) {
+      g_io_calls = 0;
+      g_fail_io_after = fail_at;
+      rc = cdd_ffi_emit_dsl(ir, (const void *)&config);
+      g_fail_io_after = -1;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_EQ_FMT(CDD_C_ERROR_IO, rc, "%d");
+    }
+    g_fail_io_after = -1;
   }
   rc = cdd_ffi_emit_dsl(ir, (const void *)&config);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
+  remove("test_out_dsl.dsl");
 
   g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
   free(ir);

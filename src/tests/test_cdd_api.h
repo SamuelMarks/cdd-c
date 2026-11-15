@@ -521,7 +521,7 @@ TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
   size_t i;
-  const char *langs[46];
+  const char *langs[48];
 
   /* NULL config / args */
 
@@ -571,11 +571,15 @@ TEST test_cdd_generate_bindings(void) {
   langs[43] = cdd_test_mut_str("crystal");
   langs[44] = cdd_test_mut_str("all");
   langs[45] = cdd_test_mut_str("*");
+  langs[46] = cdd_test_mut_str("cobol");
+  langs[47] = cdd_test_mut_str("cbl");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_bindings(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_bindings(&config));
   config.input = cdd_test_mut_str("input");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_bindings(&config));
   config.output_dir = cdd_test_mut_str("out");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_bindings(&config));
+  config.target_langs = cdd_test_mut_str("");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_bindings(&config));
 
   config.input = cdd_test_mut_str("nonexistent.c");
@@ -626,7 +630,7 @@ TEST test_cdd_generate_bindings(void) {
   ASSERT_EQ(0, cdd_generate_bindings(&config));
 
   config.target_langs = cdd_test_mut_str("xyzwasmAbc");
-  ASSERT_EQ(0, cdd_generate_bindings(&config));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_generate_bindings(&config));
 
   remove("build/test_dummy_bindings.h");
 
@@ -673,13 +677,71 @@ TEST test_cdd_generate_bindings_from_dsl(void) {
   /* valid, no target_langs */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
 
+  /* valid, empty target_langs string */
+  config.target_langs = "";
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  /* Toposort OOM in prepare_ffi_ir_for_emission from DSL */
+  g_cdd_ffi_ir_calloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_generate_bindings_from_dsl("func f();", &config));
+  g_cdd_ffi_ir_calloc_fail = 0;
+
   /* valid, with target_langs = dsl */
   config.target_langs = "dsl";
   ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+  remove("test_out_dsl.dsl");
 
-  /* valid, with target_langs not containing dsl */
-  config.target_langs = "c";
+  /* dsl emitter write failure propagation */
+#ifdef CDD_BUILD_TESTS
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+  g_fail_io_after = -1;
+  remove("test_out_dsl.dsl");
+#endif
+
+  /* whitespace/tabs around tokens */
+  config.target_langs = " \t ocaml \t , \t fortran \t ";
   ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  /* empty token, trailing comma, and >63-char token */
+  config.target_langs = "ocaml, ,fortran";
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_generate_bindings_from_dsl(valid_dsl, &config));
+  config.target_langs = "ocaml,";
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_generate_bindings_from_dsl(valid_dsl, &config));
+  config.target_langs =
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  /* .dsl input file tokenize OOM in cdd_generate_bindings */
+#ifdef CDD_BUILD_TESTS
+  {
+    cdd_generate_bindings_config_t dsl_cfg;
+    memset(&dsl_cfg, 0, sizeof(dsl_cfg));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_to_file("build/test_tok_oom.dsl", "func f();"));
+    dsl_cfg.input = "build/test_tok_oom.dsl";
+    dsl_cfg.output_dir = "build";
+    dsl_cfg.target_langs = "ocaml";
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_generate_bindings(&dsl_cfg));
+    g_ffi_extractor_alloc_fail = 0;
+    remove("build/test_tok_oom.dsl");
+  }
+#endif
+
+  /* valid, with target_langs = ocaml */
+  config.target_langs = "ocaml";
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_generate_bindings_from_dsl(valid_dsl, &config));
+
+  /* unknown target_langs token rejected with CDD_C_ERROR_NOT_FOUND */
+  config.target_langs = "c";
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            cdd_generate_bindings_from_dsl(valid_dsl, &config));
 
   PASS();
 }

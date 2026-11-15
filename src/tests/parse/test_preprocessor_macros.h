@@ -177,6 +177,9 @@ TEST test_macro_evaluator_errors(void) {
   rc = cdd_macro_evaluate(&ctx, NULL, &res);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
+  rc = cdd_macro_evaluate(&ctx, "1", NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+
   rc = cdd_macro_evaluate(&ctx, "1 / 0", &res);
   ASSERT_NEQ(0, rc);
 

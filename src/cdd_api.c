@@ -17,6 +17,7 @@
 #include "dsl/cdd_ffi_emit_dsl.h"
 #include "functions/ffi/cdd_ffi_emit_ada.h"
 #include "functions/ffi/cdd_ffi_emit_clojure.h"
+#include "functions/ffi/cdd_ffi_emit_cobol.h"
 #include "functions/ffi/cdd_ffi_emit_common_lisp.h"
 #include "functions/ffi/cdd_ffi_emit_cpp.h"
 #include "functions/ffi/cdd_ffi_emit_crystal.h"
@@ -564,30 +565,6 @@ cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
   return serve_json_rpc_run(config);
 }
 
-/**
- * @brief Checks if a comma-separated list of target languages contains `lang`.
- *
- * @param[in] langs Comma-separated target language string.
- * @param[in] lang Language name or alias to search for.
- * @param[out] out_result Pointer to receive 1 if matched, 0 otherwise.
- * @return CDD_C_SUCCESS on success.
- */
-static cdd_c_error_t cdd_target_langs_contains(const char *langs,
-                                               const char *lang,
-                                               int *out_result) {
-  const char *p = langs;
-  size_t len = strlen(lang);
-  *out_result = 0;
-  while ((p = strstr(p, lang)) != NULL) {
-    if ((p == langs || p[-1] == ',') && (p[len] == '\0' || p[len] == ',')) {
-      *out_result = 1;
-      break;
-    }
-    p += len;
-  }
-  return CDD_C_SUCCESS;
-}
-
 /** @brief Function pointer type for FFI target language emitters */
 typedef enum cdd_c_error (*ffi_emitter_fn_t)(
     cdd_ffi_ir_t *, const cdd_generate_bindings_config_t *);
@@ -640,11 +617,110 @@ static const struct FfiEmitterEntry EMITTERS[] = {
     {"perl", NULL, cdd_ffi_emit_perl},
     {"tcl", NULL, cdd_ffi_emit_tcl},
     {"fortran", NULL, cdd_ffi_emit_fortran},
+    {"cobol", "cbl", cdd_ffi_emit_cobol},
     {"delphi", "pascal", cdd_ffi_emit_delphi},
     {"ada", NULL, cdd_ffi_emit_ada},
     {"objc", "objective-c", cdd_ffi_emit_objc},
     {"crystal", NULL, cdd_ffi_emit_crystal},
     {"ir", "json", cdd_ffi_emit_ir_json}};
+
+/**
+ * @brief Topologically sorts `ir` and computes target ABI struct/union layouts.
+ *
+ * @param[in,out] ir FFI IR to prepare for code emission.
+ * @return CDD_C_SUCCESS on success, or error code on OOM/invalid IR.
+ */
+static NO_DISCARD cdd_c_error_t prepare_ffi_ir_for_emission(cdd_ffi_ir_t *ir) {
+  cdd_c_error_t rc;
+
+  rc = cdd_ffi_ir_topological_sort(ir);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_ffi_ir_compute_layout(ir, NULL);
+  if (rc == CDD_C_ERROR_NOT_FOUND) {
+    cdd_ffi_abi_profile_t relaxed_abi;
+    rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &relaxed_abi);
+    relaxed_abi.allow_unresolved_refs = 1;
+    rc = cdd_c_keep_err(rc, cdd_ffi_ir_compute_layout(ir, &relaxed_abi));
+  }
+  return rc;
+}
+
+/**
+ * @brief Dispatches comma-separated `config->target_langs` tokens across
+ * `EMITTERS[]` and `"dsl"`, rejecting unknown tokens with
+ * `CDD_C_ERROR_NOT_FOUND`.
+ *
+ * @param[in,out] ir Prepared FFI IR structure.
+ * @param[in] config Binding generation configuration (with non-empty
+ * `target_langs`).
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT on empty
+ * token, CDD_C_ERROR_NOT_FOUND on unknown language, or emitter error code.
+ */
+static NO_DISCARD cdd_c_error_t dispatch_ffi_emitters(
+    cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
+  const char *cur = config->target_langs;
+  cdd_c_error_t rc;
+
+  for (;;) {
+    const char *comma;
+    const char *tok_s;
+    const char *tok_e;
+    size_t tok_len;
+    char tok_buf[64];
+
+    comma = strchr(cur, ',');
+    tok_s = cur;
+    tok_e = comma ? comma : (cur + strlen(cur));
+    while (tok_s < tok_e && (*tok_s == ' ' || *tok_s == '\t'))
+      tok_s++;
+    while (tok_e > tok_s && (tok_e[-1] == ' ' || tok_e[-1] == '\t'))
+      tok_e--;
+    tok_len = (size_t)(tok_e - tok_s);
+    if (tok_len == 0 || tok_len >= sizeof(tok_buf))
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+
+    memcpy(tok_buf, tok_s, tok_len);
+    tok_buf[tok_len] = '\0';
+
+    if (strcmp(tok_buf, "all") == 0 || strcmp(tok_buf, "*") == 0) {
+      size_t i;
+      for (i = 0; i < sizeof(EMITTERS) / sizeof(EMITTERS[0]); ++i) {
+        rc = EMITTERS[i].emit(ir, config);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+    } else if (strcmp(tok_buf, "dsl") == 0) {
+      rc = cdd_ffi_emit_dsl(ir, config);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    } else {
+      size_t i;
+      int matched = 0;
+      for (i = 0; i < sizeof(EMITTERS) / sizeof(EMITTERS[0]); ++i) {
+        if (strcmp(tok_buf, EMITTERS[i].name) == 0 ||
+            (EMITTERS[i].alias && strcmp(tok_buf, EMITTERS[i].alias) == 0)) {
+          matched = 1;
+          rc = EMITTERS[i].emit(ir, config);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          break;
+        }
+      }
+      if (!matched)
+        return CDD_C_ERROR_NOT_FOUND;
+    }
+
+    if (!comma)
+      break;
+    cur = comma + 1;
+    if (*cur == '\0')
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+
+  return CDD_C_SUCCESS;
+}
 
 /*
  * @brief Generate FFI bindings directly from an IR DSL string.
@@ -667,16 +743,17 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     return rc;
 
   rc = cdd_dsl_parse(&tokens, &ir);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_dsl_token_list_free(&tokens));
+  rc = cdd_c_keep_err(rc, cdd_dsl_token_list_free(&tokens));
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  /* If target_langs includes "dsl", we can emit it back */
-  if (config->target_langs && strstr(config->target_langs, "dsl")) {
-    rc = cdd_ffi_emit_dsl(ir, config);
+  rc = prepare_ffi_ir_for_emission(ir);
+  if (rc == CDD_C_SUCCESS && config->target_langs &&
+      config->target_langs[0] != '\0') {
+    rc = dispatch_ffi_emitters(ir, config);
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
+  rc = cdd_c_keep_err(rc, cdd_ffi_ir_free(ir));
   C_CDD_FREE(ir);
   return rc;
 }
@@ -689,87 +766,48 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
-
   cdd_ffi_ir_t *ir = NULL;
   cdd_c_error_t rc;
-
   char *file_content = NULL;
   size_t file_size = 0;
+  size_t len;
 
   if (!config || !config->input || !config->output_dir ||
-      !config->target_langs) {
-    return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */
+      !config->target_langs || config->target_langs[0] == '\0') {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  /* Read file to string */
   rc = read_to_file(config->input, "rb", &file_content, &file_size);
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
-  /* Parse IR from JSON or extract from C */
-  {
-    size_t len = strlen(config->input);
-    if (len > 5 && strcmp(config->input + len - 5, ".json") == 0) {
-      rc = cdd_ffi_ir_from_json(file_content, &ir);
-    } else {
-      rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
+  len = strlen(config->input);
+  if (len > 5 && strcmp(config->input + len - 5, ".json") == 0) {
+    rc = cdd_ffi_ir_from_json(file_content, &ir);
+  } else if (len > 4 && strcmp(config->input + len - 4, ".dsl") == 0) {
+    cdd_dsl_token_list_t tokens;
+    rc = cdd_dsl_tokenize(file_content, &tokens);
+    if (rc == CDD_C_SUCCESS) {
+      rc = cdd_dsl_parse(&tokens, &ir);
+      rc = cdd_c_keep_err(rc, cdd_dsl_token_list_free(&tokens));
     }
+  } else {
+    rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
   }
-  if (rc != CDD_C_SUCCESS) {
-    C_CDD_FREE(file_content);
-    return rc;
-  }
-
-  /* Sort IR dependencies */
-  rc = cdd_ffi_ir_topological_sort(ir);
-  if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
-    C_CDD_FREE(ir);
-    C_CDD_FREE(file_content);
-    return rc;
-  }
-
-  /* Dispatch to Emitters */
-  {
-    size_t i;
-    for (i = 0; i < sizeof(EMITTERS) / sizeof(EMITTERS[0]); ++i) {
-      int should_emit = 0;
-      if (strcmp(config->target_langs, "all") == 0 ||
-          strcmp(config->target_langs, "*") == 0) {
-        should_emit = 1;
-      } else {
-        int out_result = 0;
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_target_langs_contains(
-                                           config->target_langs,
-                                           EMITTERS[i].name, &out_result));
-        if (out_result) {
-          should_emit = 1;
-        } else if (EMITTERS[i].alias) {
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_target_langs_contains(
-                                             config->target_langs,
-                                             EMITTERS[i].alias, &out_result));
-          if (out_result)
-            should_emit = 1;
-        }
-      }
-      if (should_emit) {
-        rc = (cdd_c_error_t)((int)rc | (int)EMITTERS[i].emit(ir, config));
-        if (rc != CDD_C_SUCCESS) {
-          printf("Failed at %s, rc = %d\n", EMITTERS[i].name, rc);
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
-          C_CDD_FREE(ir);
-          C_CDD_FREE(file_content);
-          return rc;
-        }
-      }
-    }
-  }
-
-  /* Cleanup */
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_ffi_ir_free(ir));
-  C_CDD_FREE(ir);
   C_CDD_FREE(file_content);
+  file_content = NULL;
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+
+  rc = prepare_ffi_ir_for_emission(ir);
+  if (rc == CDD_C_SUCCESS) {
+    rc = dispatch_ffi_emitters(ir, config);
+  }
+
+  rc = cdd_c_keep_err(rc, cdd_ffi_ir_free(ir));
+  C_CDD_FREE(ir);
 
   return rc;
 }

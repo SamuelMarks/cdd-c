@@ -3,6 +3,7 @@
  * @brief CDD FFI Domain-Specific Language (DSL) parser.
  */
 #ifndef CDD_DSL_PARSER_H
+/** @brief Header guard for cdd_dsl_parser.h */
 #define CDD_DSL_PARSER_H
 
 #ifdef __cplusplus
@@ -11,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "c_cdd/no_discard.h"
 #include "cdd_c_error.h"
 #include "dsl/cdd_dsl_tokenizer.h"
 #include "ffi/cdd_ffi_ir.h"
@@ -23,8 +25,8 @@ extern "C" {
  * @param[out] out_ir The FFI IR object to populate.
  * @return CDD_C_SUCCESS on success, error code otherwise.
  */
-C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
-                                         cdd_ffi_ir_t **out_ir);
+C_CDD_EXPORT NO_DISCARD cdd_c_error_t
+cdd_dsl_parse(const cdd_dsl_token_list_t *tokens, cdd_ffi_ir_t **out_ir);
 
 #ifdef __cplusplus
 }

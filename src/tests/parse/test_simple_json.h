@@ -190,6 +190,8 @@ TEST test_foo_e_full_coverage(void) {
 
   f = open_simple_json_tmp();
   ASSERT(f);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_display(haz_e, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_debug(haz_e, NULL));
   ASSERT_EQ(0, HazE_display(haz_e, f));
   ASSERT_EQ(0, HazE_debug(haz_e, f));
   ASSERT_EQ(0, HazE_debug(NULL, f));
@@ -235,6 +237,8 @@ TEST test_foo_e_full_coverage(void) {
   fflush(stdout);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json("[]", &foo_e2));
 
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_display(foo_e, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_debug(foo_e, NULL));
   ASSERT_EQ(0, FooE_display(foo_e, f));
   ASSERT_EQ(0, FooE_debug(foo_e, f));
   ASSERT_EQ(0, FooE_debug(NULL, f));

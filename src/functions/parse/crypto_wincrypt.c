@@ -24,11 +24,7 @@
 #endif
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include "win_compat_sym.h"
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
 #include <winsock2.h>
-
 #include <wincrypt.h>
 #endif
 
@@ -36,12 +32,44 @@
 #include "functions/parse/crypto_types.h"
 /* clang-format on */
 
+#ifdef CDD_CRYPTO_WINCRYPT_STANDALONE_TEST
+/** @brief Standalone test symbol name for WinCrypt SHA-256. */
+#define CDD_WINCRYPT_CRYPTO_SHA256 cdd_wincrypt_crypto_sha256
+/** @brief Standalone test symbol name for WinCrypt HMAC-SHA-256. */
+#define CDD_WINCRYPT_CRYPTO_HMAC_SHA256 cdd_wincrypt_crypto_hmac_sha256
+/**
+ * @brief Standalone test entrypoint `cdd_wincrypt_crypto_sha256`.
+ * @param data Parameter `data`.
+ * @param data_len Parameter `data_len`.
+ * @param out_digest Parameter `out_digest`.
+ * @return `CDD_C_SUCCESS` on success, or an error code.
+ */
+NO_DISCARD cdd_c_error_t cdd_wincrypt_crypto_sha256(const void *data,
+                                                    size_t data_len,
+                                                    unsigned char *out_digest);
+/**
+ * @brief Standalone test entrypoint `cdd_wincrypt_crypto_hmac_sha256`.
+ * @param key Parameter `key`.
+ * @param key_len Parameter `key_len`.
+ * @param data Parameter `data`.
+ * @param data_len Parameter `data_len`.
+ * @param out_mac Parameter `out_mac`.
+ * @return `CDD_C_SUCCESS` on success, or an error code.
+ */
+NO_DISCARD cdd_c_error_t cdd_wincrypt_crypto_hmac_sha256(
+    const void *key, size_t key_len, const void *data, size_t data_len,
+    unsigned char *out_mac);
+#else
+/** @brief Production symbol name for WinCrypt SHA-256. */
+#define CDD_WINCRYPT_CRYPTO_SHA256 crypto_sha256
+/** @brief Production symbol name for WinCrypt HMAC-SHA-256. */
+#define CDD_WINCRYPT_CRYPTO_HMAC_SHA256 crypto_hmac_sha256
+#endif
+
 #ifdef _WIN32
 
 /**
  * @brief Internal structure for importing plaintext keys into CAPI.
- * See:
- * https://docs.microsoft.com/en-us/windows/win32/seccrypto/example-c-program-importing-a-plaintext-key
  */
 struct PlainTextKeyBlob {
   /** @brief The blob header */
@@ -53,13 +81,21 @@ struct PlainTextKeyBlob {
 };
 
 #ifdef CDD_BUILD_TESTS
+/** @brief External test variable `g_crypto_fail_sha256`. */
 extern C_CDD_EXPORT int g_crypto_fail_sha256;
+/** @brief External test variable `g_crypto_fail_mdctx_new`. */
 extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
+/** @brief External test variable `g_crypto_fail_digestinit`. */
 extern C_CDD_EXPORT int g_crypto_fail_digestinit;
+/** @brief External test variable `g_crypto_fail_digestupdate`. */
 extern C_CDD_EXPORT int g_crypto_fail_digestupdate;
+/** @brief External test variable `g_crypto_fail_digestfinal`. */
 extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
+/** @brief External test variable `g_crypto_fail_digestfinal_len`. */
 extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
+/** @brief External test variable `g_crypto_fail_hmac`. */
 extern C_CDD_EXPORT int g_crypto_fail_hmac;
+/** @brief External test variable `g_crypto_fail_hmac_len`. */
 extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
 #endif
 
@@ -70,11 +106,9 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
  * @param[out] hProv Pointer receiving the acquired `HCRYPTPROV` handle.
  * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_IO` on failure.
  */
-static cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
+static NO_DISCARD cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
   if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                            CRYPT_VERIFYCONTEXT)) {
-    /* If failed, try creating new keyset (rarely needed for VERIFYCONTEXT but
-     * safe practice) */
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                                CRYPT_NEWKEYSET | CRYPT_VERIFYCONTEXT)) {
@@ -90,10 +124,13 @@ static cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
 /**
  * @brief Computes a 32-byte SHA-256 digest over a data buffer.
  *
+ * @param[in] data Pointer to the input buffer to hash.
+ * @param[in] data_len Length of the input buffer in bytes.
+ * @param[out] out_digest Output buffer receiving the 32-byte SHA-256 digest.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
-cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
-                            unsigned char *out_digest) {
+cdd_c_error_t CDD_WINCRYPT_CRYPTO_SHA256(const void *data, size_t data_len,
+                                         unsigned char *out_digest) {
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   DWORD cbHash = CRYPTO_SHA256_SIZE;
@@ -104,11 +141,14 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
     return CDD_C_ERROR_IO;
 #endif
 
-  if ((!data && data_len > 0) || !out_digest)
+  if (!out_digest)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!data && data_len > 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (acquire_context(&hProv) != 0)
-    return CDD_C_ERROR_IO;
+  rc = acquire_context(&hProv);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
 #ifdef CDD_BUILD_TESTS
   if (g_crypto_fail_mdctx_new) {
@@ -163,11 +203,16 @@ cleanup:
 /**
  * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer.
  *
+ * @param[in] key Secret key bytes.
+ * @param[in] key_len Length of `key` in bytes.
+ * @param[in] data Message payload bytes to authenticate.
+ * @param[in] data_len Length of `data` in bytes.
+ * @param[out] out_mac Output buffer receiving the 32-byte HMAC-SHA256 tag.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
-cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
-                                 const void *data, size_t data_len,
-                                 unsigned char *out_mac) {
+cdd_c_error_t CDD_WINCRYPT_CRYPTO_HMAC_SHA256(const void *key, size_t key_len,
+                                              const void *data, size_t data_len,
+                                              unsigned char *out_mac) {
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   HCRYPTKEY hKey = 0;
@@ -182,23 +227,23 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
     return CDD_C_ERROR_IO;
 #endif
 
-  if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
+  if (!out_mac)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!key && key_len > 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!data && data_len > 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  /* CAPI CryptImportKey fails with 0-length keys, and also small keys might
-     trigger NTE_BAD_LEN. HMAC pads keys with 0s to the block size (64 for
-     SHA256), so we can just use 64 zero bytes. */
   if (key_len == 0) {
     static const unsigned char zero_pad[16] = {0};
     key = zero_pad;
     key_len = 16;
   }
 
-  if (acquire_context(&hProv) != 0)
-    return CDD_C_ERROR_IO;
+  rc = acquire_context(&hProv);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  /* 1. Import the Key */
-  /* CAPI requires keys to be imported via blobs. We build a PLAINTEXTKEYBLOB */
   blobSize = (DWORD)(sizeof(BLOBHEADER) + sizeof(DWORD) + key_len);
   pBlob = (struct PlainTextKeyBlob *)C_CDD_MALLOC(blobSize);
   if (!pBlob) {
@@ -209,28 +254,23 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
   pBlob->hdr.bType = PLAINTEXTKEYBLOB;
   pBlob->hdr.bVersion = CUR_BLOB_VERSION;
   pBlob->hdr.reserved = 0;
-  /* CALG_RC2 is required for plaintext import usually, even though we use it
-   * for HMAC */
   pBlob->hdr.aiKeyAlg = CALG_RC2;
   pBlob->cbKeySize = (DWORD)key_len;
   if (key_len > 0) {
     memcpy(pBlob->rgbKeyData, key, key_len);
   }
 
-  /* CRYPT_IPSEC_HMAC_KEY flag allows importing generic keys for HMAC */
   if (!CryptImportKey(hProv, (const BYTE *)pBlob, (DWORD)blobSize, 0,
                       CRYPT_IPSEC_HMAC_KEY, &hKey)) {
-    rc = CDD_C_ERROR_IO; /* GetLastError() mapping */
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
-  /* 2. Create HMAC Hash Object */
   if (!CryptCreateHash(hProv, CALG_HMAC, hKey, 0, &hHash)) {
     rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
-  /* 3. Set HMAC Info (Alg ID) */
   memset(&HmacInfo, 0, sizeof(HmacInfo));
   HmacInfo.HashAlgid = CALG_SHA_256;
 
@@ -239,7 +279,6 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
     goto cleanup;
   }
 
-  /* 4. Hash Data */
   if (data_len > 0) {
     if (!CryptHashData(hHash, (const BYTE *)data, (DWORD)data_len, 0)) {
       rc = CDD_C_ERROR_IO;
@@ -247,7 +286,6 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
     }
   }
 
-  /* 5. Get Result */
   if (!CryptGetHashParam(hHash, HP_HASHVAL, out_mac, &cbHash, 0)) {
     rc = CDD_C_ERROR_IO;
     goto cleanup;
@@ -268,7 +306,7 @@ cleanup:
 
 #else /* Non-Windows Support Stub */
 
-/*
+/**
  * @brief Computes a 32-byte SHA-256 digest over a data buffer (non-Windows
  * stub).
  *
@@ -277,14 +315,16 @@ cleanup:
  * @param[out] out_digest Output buffer receiving the 32-byte SHA-256 digest.
  * @return `CDD_C_ERROR_SYSTEM` when compiled without Windows CAPI.
  */
-cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
-                            unsigned char *out_digest) {
-  if (!data && data_len > 0 && !out_digest)
+cdd_c_error_t CDD_WINCRYPT_CRYPTO_SHA256(const void *data, size_t data_len,
+                                         unsigned char *out_digest) {
+  if (!out_digest)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!data && data_len > 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
 
-/*
+/**
  * @brief Computes a 32-byte HMAC-SHA256 digest over a data buffer (non-Windows
  * stub).
  *
@@ -295,10 +335,14 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
  * @param[out] out_mac Output buffer receiving the 32-byte HMAC-SHA256 tag.
  * @return `CDD_C_ERROR_SYSTEM` when compiled without Windows CAPI.
  */
-cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
-                                 const void *data, size_t data_len,
-                                 unsigned char *out_mac) {
-  if (!key && key_len > 0 && !data && data_len > 0 && !out_mac)
+cdd_c_error_t CDD_WINCRYPT_CRYPTO_HMAC_SHA256(const void *key, size_t key_len,
+                                              const void *data, size_t data_len,
+                                              unsigned char *out_mac) {
+  if (!out_mac)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!key && key_len > 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!data && data_len > 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   return CDD_C_ERROR_SYSTEM;
 }
