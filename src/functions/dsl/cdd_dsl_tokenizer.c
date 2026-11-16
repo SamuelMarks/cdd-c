@@ -177,6 +177,27 @@ static cdd_c_error_t match_keyword(const char *text, size_t length,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Appends an identifier token and classifies it if it matches a DSL
+ * keyword or built-in type.
+ *
+ * @param[in,out] list Target DSL token list.
+ * @param[in] state Current tokenizer state.
+ * @param[in] start_pos Byte offset where the identifier begins.
+ * @param[in] length Length of the identifier in bytes.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t add_ident_or_kw_token(cdd_dsl_token_list_t *list,
+                                           const tokenizer_state_t *state,
+                                           size_t start_pos, size_t length) {
+  cdd_c_error_t rc =
+      add_token(list, CDD_DSL_TOKEN_IDENTIFIER, state, start_pos, length);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return match_keyword(state->source + start_pos, length,
+                       &list->tokens[list->count - 1].kind);
+}
+
 /*
  * @brief Frees all tokens and text copies within a CDD DSL token list.
  *
@@ -597,13 +618,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
             goto cleanup;
         }
       }
-      {
-        cdd_dsl_token_kind_t kw_kind;
-        rc = match_keyword(state.source + start_pos,
-                           state.current_pos - start_pos, &kw_kind);
-        rc = add_token(out_tokens, kw_kind, &state, start_pos,
-                       state.current_pos - start_pos);
-      }
+      rc = add_ident_or_kw_token(out_tokens, &state, start_pos,
+                                 state.current_pos - start_pos);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       continue;
@@ -640,10 +656,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_tokenize(const char *source,
   }
 
   rc = add_token(out_tokens, CDD_DSL_TOKEN_EOF, &state, state.current_pos, 0);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  return CDD_C_SUCCESS;
 
-cleanup:
-  if (rc != CDD_C_SUCCESS) {
-    rc = cdd_c_keep_err(rc, cdd_dsl_token_list_free(out_tokens));
-  }
-  return rc;
+cleanup: { return cdd_c_keep_err(rc, cdd_dsl_token_list_free(out_tokens)); }
 }

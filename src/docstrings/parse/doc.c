@@ -291,9 +291,141 @@ cdd_c_error_t doc_metadata_free(struct DocMetadata *meta) {
     C_CDD_FREE(meta->request_body_content_type);
 
   {
-    cdd_c_error_t rc = doc_free_arazzo_metadata(meta);
+    struct DocMetadata meta_copy = *meta;
     memset(meta, 0, sizeof(*meta));
-    return rc;
+    return doc_free_arazzo_metadata(&meta_copy);
+  }
+}
+
+/**
+ * @brief Dispatches a single `@<cmd>` or `\<cmd>` documentation directive.
+ *
+ * @param[in] cmd Null-terminated directive name (without leading `@` or `\`).
+ * @param[in] cmd_end Pointer immediately following the directive token.
+ * @param[in] line_end Pointer to the end of the current comment line.
+ * @param[in,out] out Target `DocMetadata` structure to populate.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
+static cdd_c_error_t doc_dispatch_directive(const char *cmd,
+                                            const char *cmd_end,
+                                            const char *line_end,
+                                            struct DocMetadata *out) {
+  if (strcmp(cmd, "route") == 0) {
+    out->is_webhook = 0;
+    return doc_parse_route_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "webhook") == 0) {
+    out->is_webhook = 1;
+    return doc_parse_route_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "param") == 0) {
+    return doc_parse_param_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "return") == 0 || strcmp(cmd, "returns") == 0) {
+    return doc_parse_return_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "responseHeader") == 0 ||
+      strcmp(cmd, "responseheader") == 0) {
+    return doc_parse_response_header_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "link") == 0) {
+    return doc_parse_link_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "summary") == 0 || strcmp(cmd, "brief") == 0) {
+    if (out->summary)
+      C_CDD_FREE(out->summary);
+    return doc_extract_rest(cmd_end, line_end, &out->summary);
+  }
+  if (strcmp(cmd, "operationId") == 0 || strcmp(cmd, "operationid") == 0) {
+    if (out->operation_id)
+      C_CDD_FREE(out->operation_id);
+    return doc_extract_rest(cmd_end, line_end, &out->operation_id);
+  }
+  if (strcmp(cmd, "description") == 0 || strcmp(cmd, "details") == 0) {
+    if (out->description)
+      C_CDD_FREE(out->description);
+    return doc_extract_rest(cmd_end, line_end, &out->description);
+  }
+  if (strcmp(cmd, "tag") == 0 || strcmp(cmd, "tags") == 0) {
+    return doc_parse_tags_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "tagMeta") == 0 || strcmp(cmd, "tagmeta") == 0) {
+    return doc_parse_tag_meta_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "deprecated") == 0) {
+    return doc_parse_deprecated_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "externalDocs") == 0 || strcmp(cmd, "externaldocs") == 0) {
+    return doc_parse_external_docs_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "security") == 0) {
+    return doc_parse_security_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "securityScheme") == 0 ||
+      strcmp(cmd, "securityscheme") == 0) {
+    return doc_parse_security_scheme_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "server") == 0) {
+    return doc_parse_server_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "serverVar") == 0 || strcmp(cmd, "servervar") == 0) {
+    return doc_parse_server_var_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "requestBody") == 0 || strcmp(cmd, "requestbody") == 0) {
+    return doc_parse_request_body_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "encoding") == 0) {
+    return doc_parse_encoding_line(cmd_end, line_end, out, 0);
+  }
+  if (strcmp(cmd, "prefixEncoding") == 0 ||
+      strcmp(cmd, "prefixencoding") == 0) {
+    return doc_parse_encoding_line(cmd_end, line_end, out, 1);
+  }
+  if (strcmp(cmd, "itemEncoding") == 0 || strcmp(cmd, "itemencoding") == 0) {
+    return doc_parse_encoding_line(cmd_end, line_end, out, 2);
+  }
+  if (strcmp(cmd, "jsonSchemaDialect") == 0 ||
+      strcmp(cmd, "jsonschemadialect") == 0) {
+    if (out->json_schema_dialect)
+      C_CDD_FREE(out->json_schema_dialect);
+    return doc_extract_rest(cmd_end, line_end, &out->json_schema_dialect);
+  }
+  if (strcmp(cmd, "infoTitle") == 0 || strcmp(cmd, "infotitle") == 0) {
+    if (out->info_title)
+      C_CDD_FREE(out->info_title);
+    return doc_extract_rest(cmd_end, line_end, &out->info_title);
+  }
+  if (strcmp(cmd, "infoVersion") == 0 || strcmp(cmd, "infoversion") == 0) {
+    if (out->info_version)
+      C_CDD_FREE(out->info_version);
+    return doc_extract_rest(cmd_end, line_end, &out->info_version);
+  }
+  if (strcmp(cmd, "infoSummary") == 0 || strcmp(cmd, "infosummary") == 0) {
+    if (out->info_summary)
+      C_CDD_FREE(out->info_summary);
+    return doc_extract_rest(cmd_end, line_end, &out->info_summary);
+  }
+  if (strcmp(cmd, "infoDescription") == 0 ||
+      strcmp(cmd, "infodescription") == 0) {
+    if (out->info_description)
+      C_CDD_FREE(out->info_description);
+    return doc_extract_rest(cmd_end, line_end, &out->info_description);
+  }
+  if (strcmp(cmd, "termsOfService") == 0 ||
+      strcmp(cmd, "termsofservice") == 0) {
+    if (out->terms_of_service)
+      C_CDD_FREE(out->terms_of_service);
+    return doc_extract_rest(cmd_end, line_end, &out->terms_of_service);
+  }
+  if (strcmp(cmd, "contact") == 0) {
+    return doc_parse_contact_line(cmd_end, line_end, out);
+  }
+  if (strcmp(cmd, "license") == 0) {
+    return doc_parse_license_line(cmd_end, line_end, out);
+  }
+  {
+    int handled = 0;
+    return doc_parse_arazzo_directive(cmd, cmd_end, line_end, out, &handled);
   }
 }
 
@@ -385,109 +517,12 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
         memcpy(cmd, cmd_start, cmd_len);
         cmd[cmd_len] = '\0';
 
-        /* Dispatch */
-        if (strcmp(cmd, "route") == 0) {
-          rc = doc_parse_route_line(cmd_end, line_end, out);
-          out->is_webhook = 0;
-        } else if (strcmp(cmd, "webhook") == 0) {
-          rc = doc_parse_route_line(cmd_end, line_end, out);
-          out->is_webhook = 1;
-        } else if (strcmp(cmd, "param") == 0) {
-          rc = doc_parse_param_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "return") == 0 || strcmp(cmd, "returns") == 0) {
-          rc = doc_parse_return_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "responseHeader") == 0 ||
-                   strcmp(cmd, "responseheader") == 0) {
-          rc = doc_parse_response_header_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "link") == 0) {
-          rc = doc_parse_link_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "summary") == 0 || strcmp(cmd, "brief") == 0) {
-          if (out->summary)
-            C_CDD_FREE(out->summary);
-          rc = doc_extract_rest(cmd_end, line_end, &out->summary);
-        } else if (strcmp(cmd, "operationId") == 0 ||
-                   strcmp(cmd, "operationid") == 0) {
-          if (out->operation_id)
-            C_CDD_FREE(out->operation_id);
-          rc = doc_extract_rest(cmd_end, line_end, &out->operation_id);
-        } else if (strcmp(cmd, "description") == 0 ||
-                   strcmp(cmd, "details") == 0) {
-          if (out->description)
-            C_CDD_FREE(out->description);
-          rc = doc_extract_rest(cmd_end, line_end, &out->description);
-        } else if (strcmp(cmd, "tag") == 0 || strcmp(cmd, "tags") == 0) {
-          rc = doc_parse_tags_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "tagMeta") == 0 || strcmp(cmd, "tagmeta") == 0) {
-          rc = doc_parse_tag_meta_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "deprecated") == 0) {
-          rc = doc_parse_deprecated_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "externalDocs") == 0 ||
-                   strcmp(cmd, "externaldocs") == 0) {
-          rc = doc_parse_external_docs_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "security") == 0) {
-          rc = doc_parse_security_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "securityScheme") == 0 ||
-                   strcmp(cmd, "securityscheme") == 0) {
-          rc = doc_parse_security_scheme_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "server") == 0) {
-          rc = doc_parse_server_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "serverVar") == 0 ||
-                   strcmp(cmd, "servervar") == 0) {
-          rc = doc_parse_server_var_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "requestBody") == 0 ||
-                   strcmp(cmd, "requestbody") == 0) {
-          rc = doc_parse_request_body_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "encoding") == 0) {
-          rc = doc_parse_encoding_line(cmd_end, line_end, out, 0);
-        } else if (strcmp(cmd, "prefixEncoding") == 0 ||
-                   strcmp(cmd, "prefixencoding") == 0) {
-          rc = doc_parse_encoding_line(cmd_end, line_end, out, 1);
-        } else if (strcmp(cmd, "itemEncoding") == 0 ||
-                   strcmp(cmd, "itemencoding") == 0) {
-          rc = doc_parse_encoding_line(cmd_end, line_end, out, 2);
-        } else if (strcmp(cmd, "jsonSchemaDialect") == 0 ||
-                   strcmp(cmd, "jsonschemadialect") == 0) {
-          if (out->json_schema_dialect)
-            C_CDD_FREE(out->json_schema_dialect);
-          rc = doc_extract_rest(cmd_end, line_end, &out->json_schema_dialect);
-        } else if (strcmp(cmd, "infoTitle") == 0 ||
-                   strcmp(cmd, "infotitle") == 0) {
-          if (out->info_title)
-            C_CDD_FREE(out->info_title);
-          rc = doc_extract_rest(cmd_end, line_end, &out->info_title);
-        } else if (strcmp(cmd, "infoVersion") == 0 ||
-                   strcmp(cmd, "infoversion") == 0) {
-          if (out->info_version)
-            C_CDD_FREE(out->info_version);
-          rc = doc_extract_rest(cmd_end, line_end, &out->info_version);
-        } else if (strcmp(cmd, "infoSummary") == 0 ||
-                   strcmp(cmd, "infosummary") == 0) {
-          if (out->info_summary)
-            C_CDD_FREE(out->info_summary);
-          rc = doc_extract_rest(cmd_end, line_end, &out->info_summary);
-        } else if (strcmp(cmd, "infoDescription") == 0 ||
-                   strcmp(cmd, "infodescription") == 0) {
-          if (out->info_description)
-            C_CDD_FREE(out->info_description);
-          rc = doc_extract_rest(cmd_end, line_end, &out->info_description);
-        } else if (strcmp(cmd, "termsOfService") == 0 ||
-                   strcmp(cmd, "termsofservice") == 0) {
-          if (out->terms_of_service)
-            C_CDD_FREE(out->terms_of_service);
-          rc = doc_extract_rest(cmd_end, line_end, &out->terms_of_service);
-        } else if (strcmp(cmd, "contact") == 0) {
-          rc = doc_parse_contact_line(cmd_end, line_end, out);
-        } else if (strcmp(cmd, "license") == 0) {
-          rc = doc_parse_license_line(cmd_end, line_end, out);
-        } else {
-          int handled = 0;
-          rc =
-              doc_parse_arazzo_directive(cmd, cmd_end, line_end, out, &handled);
-        }
-
-        C_CDD_FREE(cmd);
-        if (rc != CDD_C_SUCCESS)
+        rc = doc_dispatch_directive(cmd, cmd_end, line_end, out);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(cmd);
           goto cleanup;
+        }
+        C_CDD_FREE(cmd);
       }
     } else {
       /* Continuation / Description lines not handled in this basic pass */

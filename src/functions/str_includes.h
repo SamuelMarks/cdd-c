@@ -8,7 +8,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
+#if defined(HAVE_ASPRINTF)
 /* clang-format off */
 #include <stdio.h>
 #else

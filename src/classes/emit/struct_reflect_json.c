@@ -192,15 +192,15 @@ static cdd_c_error_t serialize_field_to_json(const void *obj,
       } else {
         const struct cdd_type_info *elem_ti = NULL;
         const void *elem_obj;
+        int is_ptr = 0;
         JSON_Value *ev_obj = NULL;
         JSON_Object *ev_jobj = NULL;
         rc = cdd_reflect_type_by_name(f->ref_name, &elem_ti);
         if (rc != CDD_C_SUCCESS) {
           return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(arr_val));
         }
-        elem_obj = (f->elem_size == sizeof(void *))
-                       ? *(const void *const *)elem_ptr
-                       : elem_ptr;
+        rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr);
+        elem_obj = is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
         if (!elem_obj) {
           rc = cdd_json_array_append_null(jarr);
           continue;
@@ -622,10 +622,12 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
       } else {
         const struct cdd_type_info *elem_ti = NULL;
         JSON_Object *ev_jobj = NULL;
+        int is_ptr = 0;
         rc = cdd_reflect_type_by_name(f->ref_name, &elem_ti);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        if (et == JSONNull && f->elem_size == sizeof(void *)) {
+        rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr);
+        if (et == JSONNull && is_ptr) {
           void **ep_ptr = (void **)elem_ptr;
           if (*ep_ptr) {
             rc = cdd_reflect_struct_cleanup(*ep_ptr, elem_ti);
@@ -637,7 +639,7 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
         if (et != JSONObject)
           return CDD_C_ERROR_INVALID_ARGUMENT;
         rc = cdd_json_value_get_object(ev, &ev_jobj);
-        if (f->elem_size == sizeof(void *)) {
+        if (is_ptr) {
           void **ep_ptr = (void **)elem_ptr;
           if (!*ep_ptr) {
             rc = cdd_reflect_struct_default(elem_ti, ep_ptr);

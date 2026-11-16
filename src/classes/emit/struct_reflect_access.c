@@ -768,6 +768,32 @@ cdd_c_error_t cdd_reflect_array_at_mut(void *obj,
   return CDD_C_SUCCESS;
 }
 
+/*
+ * @brief Determines whether an array field with `CDD_FIELD_KIND_OBJECT`
+ * elements stores pointers to heap objects (`struct T **`) rather than inline
+ * contiguous structs (`struct T *` or `struct T[N]`).
+ *
+ * @param[in] f Reflected array field descriptor.
+ * @param[in] elem_ti Optional resolved element type descriptor (may be NULL).
+ * @param[out] out_is_ptr Set to `1` for pointer elements, `0` for inline value
+ * elements.
+ * @return CDD_C_SUCCESS on success.
+ */
+cdd_c_error_t cdd_reflect_is_obj_elem_ptr(const struct cdd_field_info *f,
+                                          const struct cdd_type_info *elem_ti,
+                                          int *out_is_ptr) {
+  if (f->c_type && f->c_type[0] != '\0') {
+    *out_is_ptr = (strstr(f->c_type, "**") != NULL) ? 1 : 0;
+  } else if (elem_ti) {
+    *out_is_ptr =
+        (f->elem_size == sizeof(void *) && f->elem_size != elem_ti->size) ? 1
+                                                                          : 0;
+  } else {
+    *out_is_ptr = (f->elem_size == sizeof(void *)) ? 1 : 0;
+  }
+  return CDD_C_SUCCESS;
+}
+
 /**
  * @brief Cleans up truncated elements `[new_len .. old_len - 1]` of a dynamic
  * array buffer before shrinking or freeing.
@@ -794,8 +820,11 @@ cdd_reflect_cleanup_shrunk_array_elements(void *buf,
     }
   } else if (field->elem_kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *elem_ti = NULL;
+    int is_ptr = 0;
     rc = cdd_reflect_type_by_name(field->ref_name, &elem_ti);
-    if (field->elem_size == sizeof(void *)) {
+    rc = cdd_c_keep_err(rc,
+                        cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_ptr));
+    if (is_ptr) {
       void **parr = (void **)buf;
       for (k = new_len; k < old_len; ++k) {
         if (parr[k]) {
@@ -930,11 +959,13 @@ static cdd_c_error_t visit_deep_field_cb(const struct cdd_field_info *f,
       rc = cdd_reflect_array_len(ctx->obj, f, &alen);
       for (idx = 0; idx < alen; ++idx) {
         const void *elem_ptr = NULL;
+        int is_ptr = 0;
         rc = cdd_reflect_array_at(ctx->obj, f, idx, &elem_ptr);
+        rc = cdd_c_keep_err(rc,
+                            cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr));
         {
-          const void *elem_obj = (f->elem_size == sizeof(void *))
-                                     ? *(const void *const *)elem_ptr
-                                     : elem_ptr;
+          const void *elem_obj =
+              is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
           if (elem_obj) {
             rc = visit_deep_recursive(elem_obj, elem_ti, ctx->visitor,
                                       ctx->user_data, ctx->visited,
@@ -1054,10 +1085,12 @@ static cdd_c_error_t visit_deep_mut_field_cb(const struct cdd_field_info *f,
       rc = cdd_reflect_array_len(ctx->obj, f, &alen);
       for (idx = 0; idx < alen; ++idx) {
         void *elem_ptr = NULL;
+        int is_ptr = 0;
         rc = cdd_reflect_array_at_mut(ctx->obj, f, idx, &elem_ptr);
+        rc = cdd_c_keep_err(rc,
+                            cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr));
         {
-          void *elem_obj =
-              (f->elem_size == sizeof(void *)) ? *(void **)elem_ptr : elem_ptr;
+          void *elem_obj = is_ptr ? *(void **)elem_ptr : elem_ptr;
           if (elem_obj) {
             rc = visit_deep_mut_recursive(elem_obj, elem_ti, ctx->visitor,
                                           ctx->user_data, ctx->visited,

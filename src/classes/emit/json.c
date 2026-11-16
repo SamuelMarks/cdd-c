@@ -313,18 +313,29 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
           fn_buf, n, kn));
     } else if (strcmp(t, "int64") == 0 || strcmp(t, "int64_t") == 0 ||
                (strcmp(t, "integer") == 0 && strcmp(f->format, "int64") == 0)) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  rc = c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": %%lld\", (long long)obj->%s);\n",
-                            kn, n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)\n"
+                       "  rc = c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": %%I64d\", (__int64)obj->%s);\n"
+                       "#else\n"
+                       "  rc = c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": %%lld\", (long long)obj->%s);\n"
+                       "#endif\n",
+                       kn, n, kn, n));
     } else if (strcmp(t, "uint64") == 0 || strcmp(t, "uint64_t") == 0 ||
                (strcmp(t, "integer") == 0 &&
                 strcmp(f->format, "uint64") == 0)) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
+                       "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)\n"
                        "  rc = c89stringutils_jasprintf(json, "
-                       "\"\\\"%s\\\": %%llu\", (unsigned long long)obj->%s);\n",
-                       kn, n));
+                       "\"\\\"%s\\\": %%I64u\", (unsigned __int64)obj->%s);\n"
+                       "#else\n"
+                       "  rc = c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": %%llu\", (unsigned long long)obj->%s);\n"
+                       "#endif\n",
+                       kn, n, kn, n));
     } else if (strcmp(t, "integer") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
                             "  rc = c89stringutils_jasprintf(json, "

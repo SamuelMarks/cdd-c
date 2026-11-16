@@ -534,8 +534,12 @@ call_crt_vasprintf(char **out_str, int *out_rc, const char *fmt, ...) {
   cdd_c_error_t rc;
   va_start(args, fmt);
   rc = c_cdd_crt_vasprintf(out_str, fmt, args, out_rc);
+  if (rc != CDD_C_SUCCESS) {
+    va_end(args);
+    return rc;
+  }
   va_end(args);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -550,12 +554,21 @@ static cdd_c_error_t call_crt_null_fmt(FILE *fp, char **out_str, int tag, ...) {
   va_list args;
   cdd_c_error_t rc;
   va_start(args, tag);
-  if (fp)
+  if (fp) {
     rc = c_cdd_crt_vfprintf(fp, NULL, args, NULL);
-  else
+    if (rc != CDD_C_SUCCESS) {
+      va_end(args);
+      return rc;
+    }
+  } else {
     rc = c_cdd_crt_vasprintf(out_str, NULL, args, NULL);
+    if (rc != CDD_C_SUCCESS) {
+      va_end(args);
+      return rc;
+    }
+  }
   va_end(args);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -960,6 +973,16 @@ extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
 extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
 
 /**
+ * @brief Asserts an infallible reset call succeeds in test teardown.
+ * @param expr Expression returning `cdd_c_error_t`.
+ */
+#define CDD_TEST_MUST_SUCCEED(expr)                                            \
+  do {                                                                         \
+    if ((expr) != CDD_C_SUCCESS)                                               \
+      abort();                                                                 \
+  } while (0)
+
+/**
  * @brief Helper function reset_mocks.
  */
 static void reset_mocks(void) {
@@ -1052,7 +1075,7 @@ static void reset_mocks(void) {
           g_str_unquote_malloc_fail = 0;
           /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
           g_io_calls = 0;
-          json_set_allocation_functions(NULL, NULL);
+          CDD_TEST_MUST_SUCCEED(cdd_json_set_allocation_functions(NULL, NULL));
         }
       }
     }

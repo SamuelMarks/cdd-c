@@ -27,7 +27,6 @@ TEST test_dsl_tokenizer_basic(void) {
   rc = cdd_dsl_tokenize(source, &list);
   ASSERT_EQ_FMT(CDD_C_SUCCESS, rc, "%d");
 
-  /* ASSERT_EQ_FMT((size_t)14, list.count, "%zu"); */
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_KW_FUNC, list.tokens[0].kind, "%d");
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_WHITESPACE, list.tokens[1].kind, "%d");
   ASSERT_EQ_FMT(CDD_DSL_TOKEN_IDENTIFIER, list.tokens[2].kind, "%d");

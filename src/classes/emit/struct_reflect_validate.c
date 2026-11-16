@@ -651,11 +651,15 @@ validate_array_unique_items(const void *obj, const struct cdd_field_info *field,
         const struct cdd_type_info *elem_ti = NULL;
         if (cdd_reflect_type_by_name(field->ref_name, &elem_ti) ==
             CDD_C_SUCCESS) {
-          int is_p = (field->elem_size == sizeof(void *));
-          const void *oi = is_p ? *(const void *const *)pi : pi;
-          const void *oj = is_p ? *(const void *const *)pj : pj;
+          int is_p = 0;
+          const void *oi;
+          const void *oj;
           int is_eq = 0;
-          rc = cdd_reflect_struct_eq(oi, oj, elem_ti, &is_eq);
+          rc = cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_p);
+          oi = is_p ? *(const void *const *)pi : pi;
+          oj = is_p ? *(const void *const *)pj : pj;
+          rc = cdd_c_keep_err(rc,
+                              cdd_reflect_struct_eq(oi, oj, elem_ti, &is_eq));
           if (is_eq)
             return CDD_C_ERROR_INVALID_ARGUMENT;
         }
@@ -842,11 +846,13 @@ static cdd_c_error_t validate_field_visitor(const struct cdd_field_info *field,
       rc = cdd_reflect_array_len(ctx->obj, field, &alen);
       for (idx = 0; idx < alen; ++idx) {
         const void *elem_ptr = NULL;
+        int is_ptr = 0;
         rc = cdd_reflect_array_at(ctx->obj, field, idx, &elem_ptr);
+        rc = cdd_c_keep_err(
+            rc, cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_ptr));
         {
-          const void *elem_obj = (field->elem_size == sizeof(void *))
-                                     ? *(const void *const *)elem_ptr
-                                     : elem_ptr;
+          const void *elem_obj =
+              is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
           if (elem_obj) {
             rc = validate_struct_recursive(elem_obj, elem_ti, ctx->visited,
                                            ctx->depth + 1U);

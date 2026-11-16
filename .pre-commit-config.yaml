@@ -102,6 +102,12 @@ repos:
     language: python
     additional_dependencies: [libclang]
     types: [c]
+  - id: check-error-percolation-clang
+    name: Check Error Percolation
+    entry: python -c "import os, re, subprocess, sys, urllib.request; pending = set(re.findall(r'^- \[ \] `(src/[^`]+\.c)`', open('TODO_PLAN.md').read(), re.M)) if os.path.exists('TODO_PLAN.md') else set(); files = [f for f in sys.argv[1:] if f.startswith('src/') and f.endswith('.c') and f != 'src/tests/transformers/safe_crt/full_code.c' and f not in pending]; sys.exit(0) if not files else None; cargs = ['-DC_CDD_EXPORT=', '-DSIMPLE_MOCKS_EXPORT=', '-DCDD_SRC_MOCKS_EXPORT=', '-Iinclude', '-Isrc', '-Isrc/mocks', '-Isrc/tests']; [cargs.extend(['-I' + d]) for d in ('build', 'build/include', 'build/src', 'build/_deps/cfs-src/include', 'build/_deps/c_str_span-src', 'build/_deps/c89stringutils-src/c89stringutils', 'build/_deps/greatest-src') if os.path.exists(d)]; sdk = subprocess.check_output(['xcrun', '--show-sdk-path'], text=True).strip() if sys.platform == 'darwin' else ''; rdir = subprocess.check_output(['clang', '-print-resource-dir'], text=True).strip() if sys.platform == 'darwin' else ''; (cargs.append('--isysroot=' + sdk) if sdk else None); (cargs.append('-isystem' + rdir + '/include') if rdir else None); sys.argv = [sys.argv[0]] + files + ['--compile-args'] + cargs; hp = os.path.expanduser('~/repos/c-ci/precommit_hooks/check_error_percolation_clang.py'); src = open(hp).read() if os.path.exists(hp) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/refs/heads/master/precommit_hooks/check_error_percolation_clang.py').read().decode('utf-8'); exec(src)"
+    language: python
+    additional_dependencies: [libclang]
+    types: [c]
   - id: check-az-span-casts
     name: Check az_span_create Casts
     entry: python scripts/check_az_span_casts.py

@@ -292,10 +292,12 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
         }
       } else if (f->elem_kind == CDD_FIELD_KIND_OBJECT) {
         const struct cdd_type_info *elem_ti = NULL;
+        int is_ptr = 0;
         rc = cdd_reflect_type_by_name(f->ref_name, &elem_ti);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        if (f->elem_size == sizeof(void *)) {
+        rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr);
+        if (is_ptr) {
           const void *so = *(const void *const *)src_elem;
           void **do_ptr = (void **)dst_elem;
           *do_ptr = NULL;
@@ -524,13 +526,16 @@ cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
           *out_eq = 0;
       } else if (f->elem_kind == CDD_FIELD_KIND_OBJECT) {
         const struct cdd_type_info *elem_ti = NULL;
-        int is_p = (f->elem_size == sizeof(void *));
-        const void *oa = is_p ? *(const void *const *)ea : ea;
-        const void *ob = is_p ? *(const void *const *)eb : eb;
+        int is_p = 0;
+        const void *oa;
+        const void *ob;
         rc = cdd_reflect_type_by_name(f->ref_name, &elem_ti);
         if (rc != CDD_C_SUCCESS)
           return rc;
-        rc = cdd_reflect_struct_eq(oa, ob, elem_ti, out_eq);
+        rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_p);
+        oa = is_p ? *(const void *const *)ea : ea;
+        ob = is_p ? *(const void *const *)eb : eb;
+        rc = cdd_c_keep_err(rc, cdd_reflect_struct_eq(oa, ob, elem_ti, out_eq));
       } else {
         *out_eq = (memcmp(ea, eb, f->elem_size) == 0) ? 1 : 0;
       }

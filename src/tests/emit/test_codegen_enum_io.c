@@ -21,8 +21,7 @@ cdd_c_error_t main(void) {
   f = fopen("test.txt", "w");
 #endif
   if (f)
-    if (f)
-      fclose(f);
+    fclose(f);
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test.txt", "r") != 0)
     f = NULL;

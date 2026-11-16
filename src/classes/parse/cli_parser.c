@@ -719,11 +719,15 @@ C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void);
 C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void) {
   char *out = NULL;
   struct CliOption *opt = NULL;
+  struct CliCommand dummy_cmd;
   cdd_c_error_t err1 = cdd_strndup2(NULL, 0, &out);
   cdd_c_error_t err2 = cdd_strndup2("abc", 3, NULL);
   cdd_c_error_t err3 = add_option(NULL, &opt);
-  cdd_c_error_t err4 = add_option((struct CliCommand *)1, NULL);
+  cdd_c_error_t err4;
   cdd_c_error_t err5, err6, err_extra;
+
+  memset(&dummy_cmd, 0, sizeof(dummy_cmd));
+  err4 = add_option(&dummy_cmd, NULL);
 
   g_cdd_alloc_fail = 1;
   err5 = cdd_strndup2("abc", 3, &out);

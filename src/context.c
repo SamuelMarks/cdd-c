@@ -315,15 +315,18 @@ static cdd_c_error_t default_vfs_stat(const char *path, int *out_is_dir) {
  * @return `CDD_C_SUCCESS` if directory exists, or error code.
  */
 static cdd_c_error_t default_vfs_opendir(const char *path, void **out_dir) {
+  static int g_dummy_vfs_dir = 1;
   int is_dir = 0;
   cdd_c_error_t rc;
-  if (!path || !out_dir)
+  if (!out_dir)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = fs_is_directory(path, &is_dir);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!is_dir)
     return CDD_C_ERROR_NOT_FOUND;
-  *out_dir = (void *)1;
-  return rc;
+  *out_dir = &g_dummy_vfs_dir;
+  return CDD_C_SUCCESS;
 }
 
 /** @brief Built-in default dependency-injection context. */

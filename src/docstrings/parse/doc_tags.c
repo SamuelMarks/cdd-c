@@ -46,7 +46,7 @@ cdd_c_error_t doc_add_tag(struct DocMetadata *out, const char *tag) {
   out->tags = new_tags;
   rc = c_cdd_strdup(tag, &out->tags[out->n_tags]);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   out->n_tags++;
   return CDD_C_SUCCESS;
 }
@@ -317,14 +317,21 @@ cdd_c_error_t doc_parse_deprecated_line(const char *line, const char *end,
 
   out->deprecated_set = 1;
   rc = doc_extract_rest(line, end, &rest);
-  if (rc != CDD_C_SUCCESS || !rest) {
+  if (rc != CDD_C_SUCCESS) {
+    out->deprecated = 1;
+    return rc;
+  }
+  if (!rest) {
     out->deprecated = 1;
     return CDD_C_SUCCESS;
   }
-  if (doc_parse_bool_text(rest, &value) == CDD_C_SUCCESS)
+  rc = doc_parse_bool_text(rest, &value);
+  if (rc == CDD_C_SUCCESS) {
     out->deprecated = value;
-  else
-    out->deprecated = 1;
+    C_CDD_FREE(rest);
+    return rc;
+  }
+  out->deprecated = 1;
   C_CDD_FREE(rest);
   return CDD_C_SUCCESS;
 }
@@ -353,7 +360,9 @@ cdd_c_error_t doc_parse_external_docs_line(const char *line, const char *end,
   out->external_docs_url = url;
 
   rc = doc_extract_rest(cur, end, &desc);
-  if (rc == CDD_C_SUCCESS && desc) {
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (desc) {
     if (out->external_docs_description)
       C_CDD_FREE(out->external_docs_description);
     out->external_docs_description = desc;
@@ -633,7 +642,11 @@ cdd_c_error_t doc_parse_server_line(const char *line, const char *end,
     return rc;
 
   rc = doc_extract_rest(cur, end, &rest);
-  if (rc == CDD_C_SUCCESS && rest) {
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(url);
+    return rc;
+  }
+  if (rest) {
     size_t name_key_len = 0;
     size_t desc_key_len = 0;
     char *name_key = NULL;
@@ -886,14 +899,15 @@ cdd_c_error_t doc_parse_server_var_line(const char *line, const char *end,
     var->default_value = default_value;
     var->description = description;
     if (enum_raw) {
-      if (doc_split_enum_values(enum_raw, &var->enum_values,
-                                &var->n_enum_values) != CDD_C_SUCCESS) {
+      rc = doc_split_enum_values(enum_raw, &var->enum_values,
+                                 &var->n_enum_values);
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(enum_raw);
         C_CDD_FREE(var->name);
         C_CDD_FREE(var->default_value);
         if (var->description)
           C_CDD_FREE(var->description);
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
       C_CDD_FREE(enum_raw);
     }
@@ -910,6 +924,71 @@ fail_server_var:
   return rc;
 }
 
+/**
+ * @brief Tries to parse an optional style attribute value into `entry`.
+ *
+ * @param[in] val Style name string.
+ * @param[in,out] entry Target `DocEncoding` structure.
+ * @return `CDD_C_SUCCESS`.
+ */
+static cdd_c_error_t apply_optional_encoding_style(const char *val,
+                                                   struct DocEncoding *entry) {
+  enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
+  cdd_c_error_t rc = doc_parse_style_text(val, &style);
+  if (rc == CDD_C_SUCCESS) {
+    entry->style = style;
+    entry->style_set = 1;
+    return rc;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Parses a single bracketed `[...]` attribute into `entry`.
+ *
+ * @param[in,out] attr Mutable attribute content inside `[...]`.
+ * @param[in,out] entry Target `DocEncoding` structure.
+ * @return `CDD_C_SUCCESS` on success, or an error code on OOM/trim failure.
+ */
+static cdd_c_error_t parse_encoding_bracket_attr(char *attr,
+                                                 struct DocEncoding *entry) {
+  cdd_c_error_t rc;
+  cdd_c_error_t rc_opt;
+
+  if (strncmp(attr, "contentType:", 12) == 0 ||
+      strncmp(attr, "contentType=", 12) == 0) {
+    char *val = NULL;
+    rc = doc_trim_segment(attr + 12, &val);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (*val) {
+      C_CDD_FREE(entry->content_type);
+      return c_cdd_strdup(val, &entry->content_type);
+    }
+    return CDD_C_SUCCESS;
+  }
+  if (strncmp(attr, "style:", 6) == 0 || strncmp(attr, "style=", 6) == 0) {
+    char *val = NULL;
+    rc = doc_trim_segment(attr + 6, &val);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (*val) {
+      return apply_optional_encoding_style(val, entry);
+    }
+    return CDD_C_SUCCESS;
+  }
+  rc_opt = doc_parse_optional_bool_attr(attr, "explode", &entry->explode_set,
+                                        &entry->explode);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  rc_opt = doc_parse_optional_bool_attr(attr, "allowReserved",
+                                        &entry->allow_reserved_set,
+                                        &entry->allow_reserved);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Parses an `@encoding`, `@prefixEncoding`, or `@itemEncoding`
  * directive line into `out->encodings`.
@@ -923,7 +1002,6 @@ fail_server_var:
  */
 cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
                                       struct DocMetadata *out, int kind) {
-  cdd_c_error_t rc_opt;
   const char *cur = line;
   struct DocEncoding *new_arr;
   struct DocEncoding *entry;
@@ -956,7 +1034,7 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
       rc = doc_extract_rest(cur, name_end, &entry->name);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
     }
     cur = name_end;
@@ -970,52 +1048,13 @@ cdd_c_error_t doc_parse_encoding_line(const char *line, const char *end,
     if (close_bracket && close_bracket < end) {
       char *attr = NULL;
       rc = doc_extract_rest(cur + 1, close_bracket, &attr);
-      if (rc == CDD_C_SUCCESS && attr) {
-        if (strncmp(attr, "contentType:", 12) == 0 ||
-            strncmp(attr, "contentType=", 12) == 0) {
-          char *val = NULL;
-          rc = doc_trim_segment(attr + 12, &val);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(attr);
-            return rc;
-          }
-          if (*val) {
-            C_CDD_FREE(entry->content_type);
-            rc = c_cdd_strdup(val, &entry->content_type);
-            if (rc != CDD_C_SUCCESS) {
-              C_CDD_FREE(attr);
-              return rc;
-            }
-          }
-        } else if (strncmp(attr, "style:", 6) == 0 ||
-                   strncmp(attr, "style=", 6) == 0) {
-          char *val = NULL;
-          rc = doc_trim_segment(attr + 6, &val);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(attr);
-            return rc;
-          }
-          if (*val) {
-            enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
-            if (doc_parse_style_text(val, &style) == CDD_C_SUCCESS) {
-              entry->style = style;
-              entry->style_set = 1;
-            }
-          }
-        } else {
-          rc_opt = doc_parse_optional_bool_attr(
-              attr, "explode", &entry->explode_set, &entry->explode);
-          if (rc_opt == CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return rc_opt;
-          }
-          rc_opt = doc_parse_optional_bool_attr(attr, "allowReserved",
-                                                &entry->allow_reserved_set,
-                                                &entry->allow_reserved);
-          if (rc_opt == CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return rc_opt;
-          }
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (attr) {
+        rc = parse_encoding_bracket_attr(attr, entry);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
         }
         C_CDD_FREE(attr);
       }
@@ -1066,7 +1105,9 @@ cdd_c_error_t doc_parse_route_line(const char *line, const char *end,
 
     /* Next word should be path */
     rc = doc_extract_word(cur, end, &cur, &word2);
-    if (rc == CDD_C_SUCCESS && word2) {
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (word2) {
       if (out->route)
         C_CDD_FREE(out->route);
       out->route = word2;

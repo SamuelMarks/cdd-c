@@ -304,31 +304,57 @@ static cdd_c_error_t parse_field(parser_state_t *state,
 /**
  * @brief Frees nested allocations inside a partially parsed `cdd_ffi_type_t`.
  *
- * @param[in,out] t Type structure to clean up.
+ * @param[in,out] root_t Type structure to clean up.
  * @return CDD_C_SUCCESS.
  */
-static NO_DISCARD cdd_c_error_t cleanup_parsed_type(cdd_ffi_type_t *t) {
-  size_t k;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+static NO_DISCARD cdd_c_error_t cleanup_parsed_type(cdd_ffi_type_t *root_t) {
+  cdd_ffi_type_t *type_stack[64];
+  void *free_stack[64];
+  size_t sp = 0;
 
-  C_CDD_FREE(t->ref_name);
-  t->ref_name = NULL;
-  if (t->fn_return_type) {
-    rc = cdd_c_keep_err(rc, cleanup_parsed_type(t->fn_return_type));
-    C_CDD_FREE(t->fn_return_type);
-    t->fn_return_type = NULL;
-  }
-  if (t->fn_params) {
-    for (k = 0; k < t->fn_params_count; k++) {
-      C_CDD_FREE(t->fn_params[k].name);
-      C_CDD_FREE(t->fn_params[k].array_length_ref);
-      rc = cdd_c_keep_err(rc, cleanup_parsed_type(&t->fn_params[k].type));
+  type_stack[0] = root_t;
+  free_stack[0] = NULL;
+  sp = 1;
+
+  while (sp > 0) {
+    cdd_ffi_type_t *t;
+    void *ptr_to_free;
+    size_t k;
+
+    sp--;
+    t = type_stack[sp];
+    ptr_to_free = free_stack[sp];
+    if (t) {
+      C_CDD_FREE(t->ref_name);
+      t->ref_name = NULL;
+      if (t->fn_return_type) {
+        type_stack[sp] = t->fn_return_type;
+        free_stack[sp] = t->fn_return_type;
+        sp++;
+        t->fn_return_type = NULL;
+      }
+      if (t->fn_params) {
+        cdd_ffi_field_t *params = t->fn_params;
+        size_t n_params = t->fn_params_count;
+        t->fn_params = NULL;
+        t->fn_params_count = 0;
+        type_stack[sp] = NULL;
+        free_stack[sp] = params;
+        sp++;
+        for (k = 0; k < n_params; k++) {
+          C_CDD_FREE(params[k].name);
+          C_CDD_FREE(params[k].array_length_ref);
+          type_stack[sp] = &params[k].type;
+          free_stack[sp] = NULL;
+          sp++;
+        }
+      }
     }
-    C_CDD_FREE(t->fn_params);
-    t->fn_params = NULL;
-    t->fn_params_count = 0;
+    if (ptr_to_free) {
+      C_CDD_FREE(ptr_to_free);
+    }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -496,12 +522,12 @@ static cdd_c_error_t parse_type(parser_state_t *state,
             out_type->fn_params,
             (out_type->fn_params_count + 1) * sizeof(cdd_ffi_field_t));
         if (!new_params) {
-          cdd_c_error_t clean_rc;
           C_CDD_FREE(param_f.name);
           C_CDD_FREE(param_f.array_length_ref);
-          clean_rc = cdd_c_keep_err(CDD_C_ERROR_MEMORY,
-                                    cleanup_parsed_type(&param_f.type));
-          return cdd_c_keep_err(clean_rc, cleanup_parsed_type(out_type));
+          return cdd_c_keep_err(
+              cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                             cleanup_parsed_type(&param_f.type)),
+              cleanup_parsed_type(out_type));
         }
         out_type->fn_params = new_params;
         out_type->fn_params[out_type->fn_params_count++] = param_f;
@@ -653,10 +679,9 @@ static cdd_c_error_t parse_field(parser_state_t *state,
 cleanup:
   C_CDD_FREE(out_field->array_length_ref);
   out_field->array_length_ref = NULL;
-  rc = cdd_c_keep_err(rc, cleanup_parsed_type(&out_field->type));
   C_CDD_FREE(out_field->name);
   out_field->name = NULL;
-  return rc;
+  return cdd_c_keep_err(rc, cleanup_parsed_type(&out_field->type));
 }
 
 static cdd_c_error_t parse_func_decl(parser_state_t *state, cdd_ffi_ir_t *ir);
@@ -1257,42 +1282,42 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
   while (1) {
     rc = peek_raw(&state, &tok);
     if (rc != CDD_C_SUCCESS)
-      break;
+      goto cleanup;
     if (tok.kind == CDD_DSL_TOKEN_EOF)
       break;
 
     rc = collect_trivia(&state);
     if (rc != CDD_C_SUCCESS)
-      break;
+      goto cleanup;
 
     rc = peek(&state, &tok);
     if (rc != CDD_C_SUCCESS)
-      break;
+      goto cleanup;
 
     if (tok.kind == CDD_DSL_TOKEN_KW_FUNC ||
         tok.kind == CDD_DSL_TOKEN_KW_VIRTUAL ||
         tok.kind == CDD_DSL_TOKEN_KW_PURE) {
       rc = parse_func_decl(&state, *out_ir);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup;
     } else if (tok.kind == CDD_DSL_TOKEN_KW_ENUM) {
       rc = parse_enum_decl(&state, *out_ir);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup;
     } else if (tok.kind == CDD_DSL_TOKEN_KW_MACRO_CONST ||
                tok.kind == CDD_DSL_TOKEN_KW_MACRO_EXPR ||
                tok.kind == CDD_DSL_TOKEN_KW_MACRO_STMT) {
       rc = parse_macro_decl(&state, *out_ir);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup;
     } else if (tok.kind == CDD_DSL_TOKEN_KW_NAMESPACE) {
       rc = parse_namespace_decl(&state, *out_ir);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup;
     } else {
       rc = advance(&state, &tok);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup;
     }
   }
 
@@ -1302,11 +1327,19 @@ C_CDD_EXPORT cdd_c_error_t cdd_dsl_parse(const cdd_dsl_token_list_t *tokens,
     C_CDD_FREE(state.pending_trivia);
     state.pending_trivia = next;
   }
+  return CDD_C_SUCCESS;
 
-  if (rc != CDD_C_SUCCESS) {
-    rc = cdd_c_keep_err(rc, cdd_ffi_ir_free(*out_ir));
+cleanup:
+  while (state.pending_trivia) {
+    cdd_ffi_trivia_t *next = state.pending_trivia->next;
+    C_CDD_FREE(state.pending_trivia->text);
+    C_CDD_FREE(state.pending_trivia);
+    state.pending_trivia = next;
+  }
+  {
+    cdd_ffi_ir_t ir_copy = **out_ir;
     C_CDD_FREE(*out_ir);
     *out_ir = NULL;
+    return cdd_c_keep_err(rc, cdd_ffi_ir_free(&ir_copy));
   }
-  return rc;
 }

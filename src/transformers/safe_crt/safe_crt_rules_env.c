@@ -440,7 +440,7 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
           str_node->tok->kind == CDD_TOKEN_STRING) {
         const char *s = (const char *)str_node->tok->start;
         size_t slen = str_node->tok->length;
-        char *eq = (char *)memchr(s, '=', slen);
+        const char *eq = (const char *)memchr(s, '=', slen);
         if (eq && (s[0] == '"' || (s[0] == 'L' && s[1] == '"'))) {
           split = 1;
           rc_err = cdd_cst_bld_ident(

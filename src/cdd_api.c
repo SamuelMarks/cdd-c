@@ -77,6 +77,36 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Runs the selected OpenAPI target code generator(s) (`server`, `sdk`,
+ * `gui`, and optional `cli`).
+ *
+ * @param[in] spec Loaded OpenAPI specification.
+ * @param[in] client_cfg Output path and generation options.
+ * @param[in] is_server Non-zero to emit server stubs instead of client SDK.
+ * @param[in] is_cli Non-zero to emit CLI client alongside SDK and GUI.
+ * @return `CDD_C_SUCCESS` on success, or generator error code.
+ */
+static cdd_c_error_t
+run_openapi_target_generators(const struct OpenAPI_Spec *spec,
+                              const struct OpenApiClientConfig *client_cfg,
+                              int is_server, int is_cli) {
+  cdd_c_error_t rc;
+  if (is_server) {
+    return openapi_server_generate(spec, client_cfg);
+  }
+  rc = openapi_client_generate(spec, client_cfg);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = openapi_client_gui_generate(spec, client_cfg);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (is_cli) {
+    return openapi_cli_generate(spec, client_cfg);
+  }
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Generate C code (SDK, CLI, or Server) from an OpenAPI specification.
  *
@@ -107,23 +137,23 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
 
   if (config->input) {
     char *alloc_path = NULL;
-    if (cdd_json_parse_file(config->input, &root) != CDD_C_SUCCESS) {
+    rc = cdd_json_parse_file(config->input, &root);
+    if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to parse JSON file: %s\n", config->input);
-      return CDD_C_ERROR_PARSE;
+      return cdd_c_keep_err(CDD_C_ERROR_PARSE, rc);
     }
 
     rc = openapi_load_from_json(root, &spec);
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root));
-
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to load openapi spec from %s\n", config->input);
-      return rc;
+      return cdd_c_keep_err(rc, cdd_json_value_free(root));
     }
 
     if (config->output) {
       rc = fs_path_join(config->output, "generated_client", &alloc_path);
       if (rc != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+        return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_json_value_free(root)),
+                              openapi_spec_free(&spec));
       }
       client_cfg.filename_base = alloc_path;
     } else {
@@ -131,25 +161,17 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
     }
     client_cfg.func_prefix = "api_";
 
-    if (is_server) {
-      rc = openapi_server_generate(&spec, &client_cfg);
-    } else {
-      rc = openapi_client_generate(&spec, &client_cfg);
-      if (rc == CDD_C_SUCCESS) {
-        rc = openapi_client_gui_generate(&spec, &client_cfg);
-      }
-      if (rc == CDD_C_SUCCESS && is_cli) {
-        rc = openapi_cli_generate(&spec, &client_cfg);
-      }
-    }
-
-    if (alloc_path) {
+    rc = run_openapi_target_generators(&spec, &client_cfg, is_server, is_cli);
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(alloc_path);
+      return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_json_value_free(root)),
+                            openapi_spec_free(&spec));
     }
-    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+    C_CDD_FREE(alloc_path);
+    return cdd_c_keep_err(cdd_json_value_free(root), openapi_spec_free(&spec));
   }
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -163,7 +185,7 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
   const char *out_file;
   char *snapshot_path = NULL;
   FILE *f = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc_join;
   cdd_to_openapi_config_t run_cfg;
 
   if (!config || !config->input) {
@@ -182,8 +204,8 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
   run_cfg.dialect_uri = config->dialect_uri;
 
   if (!run_cfg.base_file) {
-    rc = fs_path_join(input_dir, "openapi.snapshot.json", &snapshot_path);
-    if (rc == CDD_C_SUCCESS) {
+    rc_join = fs_path_join(input_dir, "openapi.snapshot.json", &snapshot_path);
+    if (rc_join == CDD_C_SUCCESS) {
 #if defined(_MSC_VER)
       if (fopen_s(&f, snapshot_path, "r") != 0)
         f = NULL;
@@ -191,11 +213,16 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
       f = fopen(snapshot_path, "r");
 #endif
       if (f) {
+        cdd_c_error_t gen_rc;
         fclose(f);
         run_cfg.base_file = snapshot_path;
-        rc = c2openapi_generate(&run_cfg);
+        gen_rc = c2openapi_generate(&run_cfg);
+        if (gen_rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(snapshot_path);
+          return gen_rc;
+        }
         C_CDD_FREE(snapshot_path);
-        return rc;
+        return rc_join;
       }
       C_CDD_FREE(snapshot_path);
     }
@@ -205,13 +232,45 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
 }
 
 /**
+ * @brief Allocates a `JSON_Value` object and retrieves its inner `JSON_Object`.
+ *
+ * @param[out] out_val Output `JSON_Value` pointer.
+ * @param[out] out_obj Output `JSON_Object` pointer.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t init_json_object_pair(JSON_Value **out_val,
+                                           JSON_Object **out_obj) {
+  cdd_c_error_t rc = cdd_json_value_init_object(out_val);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return cdd_json_value_get_object(*out_val, out_obj);
+}
+
+/**
+ * @brief Sets `key` on `obj` to newly created `val`, freeing `val` on failure.
+ *
+ * @param[in,out] obj Target `JSON_Object`.
+ * @param[in] key Property name.
+ * @param[in] val Newly created `JSON_Value` whose ownership is transferred.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+static cdd_c_error_t set_json_object_owned(JSON_Object *obj, const char *key,
+                                           JSON_Value *val) {
+  cdd_c_error_t rc = cdd_json_object_set_value(obj, key, val);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(val));
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Build a structured documentation code JSON object.
  *
  * @param[in] snippet Core C SDK invocation snippet string.
  * @param[in] no_imports Non-zero to omit the imports field.
  * @param[in] no_wrapping Non-zero to omit wrapper_start and wrapper_end fields.
  * @param[out] out_val Pointer to receive the constructed JSON_Value object.
- * @return CDD_C_SUCCESS on success.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 static cdd_c_error_t cdd_docs_build_code_val(const char *snippet,
                                              int no_imports, int no_wrapping,
@@ -220,44 +279,58 @@ static cdd_c_error_t cdd_docs_build_code_val(const char *snippet,
   JSON_Object *code_obj = NULL;
   cdd_c_error_t rc;
 
-  rc = cdd_json_value_init_object(&code_val);
-  rc = cdd_json_value_get_object(code_val, &code_obj);
+  rc = init_json_object_pair(&code_val, &code_obj);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (!no_imports) {
     rc = cdd_json_object_set_string(
         code_obj, "imports",
         "#include \"generated_client.h\"\n#include <stdio.h>");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (!no_wrapping) {
     rc = cdd_json_object_set_string(
         code_obj, "wrapper_start",
         "int main(void) {\n  struct HttpClient client;\n  struct ApiError *err "
         "= NULL;\n  cdd_c_error_t rc;");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   rc = cdd_json_object_set_string(code_obj, "snippet", snippet);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   if (!no_wrapping) {
     rc = cdd_json_object_set_string(
         code_obj, "wrapper_end",
         "  api_cleanup(&client);\n  return (int)CDD_C_SUCCESS;\n}");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   *out_val = code_val;
-  return rc;
+  return CDD_C_SUCCESS;
+
+cleanup: { return cdd_c_keep_err(rc, cdd_json_value_free(code_val)); }
 }
 
 /**
- * @brief Format the C SDK invocation snippet for an OpenAPI operation.
+ * @brief Format the C SDK invocation snippet for an OpenAPI operation and
+ * build its documentation JSON object.
  *
  * @param[in] op OpenAPI operation structure.
- * @param[in] no_wrapping Non-zero to omit the 2-space leading indentation.
- * @param[out] snippet Output buffer for the formatted C code snippet.
- * @param[in] snippet_sz Size of the snippet buffer in bytes.
- * @return CDD_C_SUCCESS on success.
+ * @param[in] no_imports Non-zero to omit the imports field.
+ * @param[in] no_wrapping Non-zero to omit the 2-space leading indentation and
+ * wrapper fields.
+ * @param[out] out_val Output pointer receiving the constructed code JSON_Value.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 static cdd_c_error_t
-cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, int no_wrapping,
-                           char *snippet, size_t snippet_sz) {
+cdd_docs_build_op_code_val(const struct OpenAPI_Operation *op, int no_imports,
+                           int no_wrapping, JSON_Value **out_val) {
   const char *op_id = op->operation_id ? op->operation_id : "unknown";
   const char *ind = no_wrapping ? "" : "  ";
+  char snippet[4096];
   char decls[2048];
   char call_args[1024];
   size_t k;
@@ -311,20 +384,20 @@ cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, int no_wrapping,
   }
 
   if (no_wrapping) {
-    CDD_SNPRINTF(snippet, snippet_sz,
+    CDD_SNPRINTF(snippet, sizeof(snippet),
                  "%s/* Call the %s API */\nrc = "
                  "api_%s(&client%s, &err);\nif (rc != CDD_C_SUCCESS) {\n  "
                  "fprintf(stderr, \"Error: %%d\\n\", rc);\n}",
                  decls, op_id, op_id, call_args);
   } else {
-    CDD_SNPRINTF(snippet, snippet_sz,
+    CDD_SNPRINTF(snippet, sizeof(snippet),
                  "%s%sapi_init(&client, \"https://api.example.com\");\n"
                  "%s/* Call the %s API */\n%src = "
                  "api_%s(&client%s, &err);\n%sif (rc != CDD_C_SUCCESS) {\n%s  "
                  "fprintf(stderr, \"Error: %%d\\n\", rc);\n%s}",
                  decls, ind, ind, op_id, ind, op_id, call_args, ind, ind, ind);
   }
-  return CDD_C_SUCCESS;
+  return cdd_docs_build_code_val(snippet, no_imports, no_wrapping, out_val);
 }
 
 /**
@@ -336,27 +409,29 @@ cdd_docs_format_op_snippet(const struct OpenAPI_Operation *op, int no_wrapping,
  * @param[in] n_paths Number of path items.
  * @param[in] no_imports Non-zero to omit imports.
  * @param[in] no_wrapping Non-zero to omit main() wrapper.
- * @return CDD_C_SUCCESS on success.
+ * @return CDD_C_SUCCESS on success, or error code on OOM.
  */
 static cdd_c_error_t
 cdd_docs_populate_path_map(JSON_Object *target_obj,
                            const struct OpenAPI_Path *paths, size_t n_paths,
                            int no_imports, int no_wrapping) {
   size_t p, op_idx;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   for (p = 0; p < n_paths; p++) {
     const struct OpenAPI_Path *pi = &paths[p];
     JSON_Value *path_val = NULL;
     JSON_Object *path_obj = NULL;
-    rc = cdd_json_value_init_object(&path_val);
-    rc = cdd_json_value_get_object(path_val, &path_obj);
-    rc = cdd_json_object_set_value(target_obj, pi->route, path_val);
+    rc = init_json_object_pair(&path_val, &path_obj);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = set_json_object_owned(target_obj, pi->route, path_val);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     for (op_idx = 0; op_idx < pi->n_operations; op_idx++) {
       const struct OpenAPI_Operation *op = &pi->operations[op_idx];
       const char *method = "";
-      char snippet[4096];
       JSON_Value *code_val = NULL;
 
       switch (op->verb) {
@@ -389,13 +464,221 @@ cdd_docs_populate_path_map(JSON_Object *target_obj,
         break;
       }
 
-      rc =
-          cdd_docs_format_op_snippet(op, no_wrapping, snippet, sizeof(snippet));
-      rc = cdd_docs_build_code_val(snippet, no_imports, no_wrapping, &code_val);
-      rc = cdd_json_object_set_value(path_obj, method, code_val);
+      rc = cdd_docs_build_op_code_val(op, no_imports, no_wrapping, &code_val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = set_json_object_owned(path_obj, method, code_val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Builds the root documentation `JSON_Value` for a loaded Arazzo spec.
+ *
+ * @param[in] az_spec Loaded Arazzo specification.
+ * @param[in] no_imports Non-zero to omit imports.
+ * @param[in] no_wrapping Non-zero to omit `main()` wrapper.
+ * @param[out] out_root_val Output pointer receiving the root `JSON_Value`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+static cdd_c_error_t build_arazzo_docs_root(const struct Arazzo_Spec *az_spec,
+                                            int no_imports, int no_wrapping,
+                                            JSON_Value **out_root_val) {
+  size_t w;
+  const char *ind = no_wrapping ? "" : "  ";
+  JSON_Value *root_val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Value *endpoints_val = NULL;
+  JSON_Value *workflows_val = NULL;
+  JSON_Object *workflows_obj = NULL;
+  cdd_c_error_t rc;
+
+  rc = init_json_object_pair(&root_val, &root_obj);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_json_value_init_object(&endpoints_val);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = set_json_object_owned(root_obj, "endpoints", endpoints_val);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = init_json_object_pair(&workflows_val, &workflows_obj);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = set_json_object_owned(root_obj, "workflows", workflows_val);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+
+  for (w = 0; w < az_spec->n_workflows; w++) {
+    const char *wf_id = az_spec->workflows[w].workflow_id;
+    char snippet[1024];
+    JSON_Value *code_val = NULL;
+
+    if (no_wrapping) {
+      CDD_SNPRINTF(snippet, sizeof(snippet),
+                   "cdd_c_error_t rc;\n"
+                   "struct arazzo_%s_inputs inputs = {0};\n"
+                   "struct arazzo_%s_outputs outputs = {0};\n"
+                   "rc = arazzo_run_workflow_%s(&clients, &inputs, "
+                   "&outputs);\n"
+                   "if (rc != CDD_C_SUCCESS) {\n"
+                   "  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
+                   "}\n"
+                   "arazzo_%s_outputs_free(&outputs);",
+                   wf_id, wf_id, wf_id, wf_id);
+    } else {
+      CDD_SNPRINTF(snippet, sizeof(snippet),
+                   "%sstruct arazzo_%s_inputs inputs = {0};\n"
+                   "%sstruct arazzo_%s_outputs outputs = {0};\n"
+                   "%sapi_init(&client, \"https://api.example.com\");\n"
+                   "%src = arazzo_run_workflow_%s(&clients, &inputs, "
+                   "&outputs);\n"
+                   "%sif (rc != CDD_C_SUCCESS) {\n"
+                   "%s  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
+                   "%s}\n"
+                   "%sarazzo_%s_outputs_free(&outputs);",
+                   ind, wf_id, ind, wf_id, ind, ind, wf_id, ind, ind, ind, ind,
+                   wf_id);
+    }
+    rc = cdd_docs_build_code_val(snippet, no_imports, no_wrapping, &code_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = set_json_object_owned(workflows_obj, wf_id, code_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+  }
+
+  *out_root_val = root_val;
+  return CDD_C_SUCCESS;
+
+cleanup: { return cdd_c_keep_err(rc, cdd_json_value_free(root_val)); }
+}
+
+/**
+ * @brief Builds the root documentation `JSON_Value` for a loaded OpenAPI spec.
+ *
+ * @param[in] spec Loaded OpenAPI specification.
+ * @param[in] no_imports Non-zero to omit imports.
+ * @param[in] no_wrapping Non-zero to omit `main()` wrapper.
+ * @param[out] out_root_val Output pointer receiving the root `JSON_Value`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+static cdd_c_error_t build_openapi_docs_root(const struct OpenAPI_Spec *spec,
+                                             int no_imports, int no_wrapping,
+                                             JSON_Value **out_root_val) {
+  JSON_Value *root_val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Value *endpoints_val = NULL;
+  JSON_Object *endpoints_obj = NULL;
+  cdd_c_error_t rc;
+
+  rc = init_json_object_pair(&root_val, &root_obj);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = init_json_object_pair(&endpoints_val, &endpoints_obj);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = set_json_object_owned(root_obj, "endpoints", endpoints_val);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = cdd_docs_populate_path_map(endpoints_obj, spec->paths, spec->n_paths,
+                                  no_imports, no_wrapping);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+
+  if (spec->n_webhooks > 0) {
+    JSON_Value *webhooks_val = NULL;
+    JSON_Object *webhooks_obj = NULL;
+    rc = init_json_object_pair(&webhooks_val, &webhooks_obj);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = set_json_object_owned(root_obj, "webhooks", webhooks_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = cdd_docs_populate_path_map(webhooks_obj, spec->webhooks,
+                                    spec->n_webhooks, no_imports, no_wrapping);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+  }
+
+  *out_root_val = root_val;
+  return CDD_C_SUCCESS;
+
+cleanup: { return cdd_c_keep_err(rc, cdd_json_value_free(root_val)); }
+}
+
+/**
+ * @brief Writes serialized documentation JSON once `is_dir` has been resolved.
+ *
+ * @param[in] output_target Non-NULL output file or directory path.
+ * @param[in] serialized Null-terminated pretty-printed JSON string.
+ * @param[in] is_dir_ptr Pointer to directory flag populated by caller.
+ * @param[in] dir_rc Status from `fs_is_directory`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM/I/O failure.
+ */
+static cdd_c_error_t write_docs_json_target_resolved(const char *output_target,
+                                                     const char *serialized,
+                                                     const int *is_dir_ptr,
+                                                     cdd_c_error_t dir_rc) {
+  if (*is_dir_ptr) {
+    char *out_file = NULL;
+    cdd_c_error_t rc = fs_path_join(output_target, "docs.json", &out_file);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = fs_write_to_file(out_file, serialized);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(out_file);
+      return rc;
+    }
+    C_CDD_FREE(out_file);
+    return dir_rc;
+  }
+  return cdd_c_keep_err(fs_write_to_file(output_target, serialized), dir_rc);
+}
+
+/**
+ * @brief Writes serialized documentation JSON to `output_target` (directory or
+ * file path) or `stdout` if `output_target` is `NULL`.
+ *
+ * @param[in] output_target Optional output file or directory path.
+ * @param[in] serialized Null-terminated pretty-printed JSON string.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM/I/O failure.
+ */
+static cdd_c_error_t write_docs_json_output(const char *output_target,
+                                            const char *serialized) {
+  int is_dir = 0;
+
+  if (!output_target) {
+    printf("%s\n", serialized);
+    return CDD_C_SUCCESS;
+  }
+  return write_docs_json_target_resolved(
+      output_target, serialized, &is_dir,
+      fs_is_directory(output_target, &is_dir));
+}
+
+/**
+ * @brief Serializes `root_val` as pretty-printed JSON and writes it to
+ * `output_target` (or `stdout`).
+ *
+ * @param[in] root_val Constructed documentation root `JSON_Value`.
+ * @param[in] output_target Optional output file/directory path.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM/I/O failure.
+ */
+static cdd_c_error_t serialize_and_write_docs_json(JSON_Value *root_val,
+                                                   const char *output_target) {
+  char *serialized = NULL;
+  cdd_c_error_t rc = cdd_json_serialize_to_string_pretty(root_val, &serialized);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = write_docs_json_output(output_target, serialized);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_free_serialized_string(serialized));
+  }
+  return cdd_json_free_serialized_string(serialized);
 }
 
 /*
@@ -411,13 +694,10 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   int no_wrapping;
   struct OpenAPI_Spec spec = {0};
   struct Arazzo_Spec az_spec;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+  cdd_c_error_t az_rc;
   JSON_Value *parsed_root = NULL;
   JSON_Value *root_val = NULL;
-  JSON_Object *root_obj = NULL;
-  JSON_Value *endpoints_val = NULL;
-  JSON_Object *endpoints_obj = NULL;
-  char *serialized = NULL;
 
   if (!config || !config->input)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -426,133 +706,58 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   no_imports = (int)config->no_imports;
   no_wrapping = (int)config->no_wrapping;
 
-  if (cdd_json_parse_file(input_file, &parsed_root) != CDD_C_SUCCESS)
-    return CDD_C_ERROR_PARSE;
+  rc = cdd_json_parse_file(input_file, &parsed_root);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(CDD_C_ERROR_PARSE, rc);
+  }
 
   memset(&az_spec, 0, sizeof(az_spec));
-  if (arazzo_load_from_json_value(parsed_root, &az_spec) == CDD_C_SUCCESS) {
-    size_t w;
-    const char *ind = no_wrapping ? "" : "  ";
-    JSON_Value *workflows_val = NULL;
-    JSON_Object *workflows_obj = NULL;
-
-    rc = cdd_json_value_free(parsed_root);
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_value_init_object(&workflows_val));
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
-                                       workflows_val, &workflows_obj));
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_init_object(&root_val));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_value_get_object(root_val, &root_obj));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_value_init_object(&endpoints_val));
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
-                                       root_obj, "endpoints", endpoints_val));
-
-    for (w = 0; w < az_spec.n_workflows; w++) {
-      const char *wf_id = az_spec.workflows[w].workflow_id;
-      char snippet[1024];
-      JSON_Value *code_val = NULL;
-
-      if (no_wrapping) {
-        CDD_SNPRINTF(snippet, sizeof(snippet),
-                     "cdd_c_error_t rc;\n"
-                     "struct arazzo_%s_inputs inputs = {0};\n"
-                     "struct arazzo_%s_outputs outputs = {0};\n"
-                     "rc = arazzo_run_workflow_%s(&clients, &inputs, "
-                     "&outputs);\n"
-                     "if (rc != CDD_C_SUCCESS) {\n"
-                     "  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
-                     "}\n"
-                     "arazzo_%s_outputs_free(&outputs);",
-                     wf_id, wf_id, wf_id, wf_id);
-      } else {
-        CDD_SNPRINTF(snippet, sizeof(snippet),
-                     "%sstruct arazzo_%s_inputs inputs = {0};\n"
-                     "%sstruct arazzo_%s_outputs outputs = {0};\n"
-                     "%sapi_init(&client, \"https://api.example.com\");\n"
-                     "%src = arazzo_run_workflow_%s(&clients, &inputs, "
-                     "&outputs);\n"
-                     "%sif (rc != CDD_C_SUCCESS) {\n"
-                     "%s  fprintf(stderr, \"Error: %%d\\n\", rc);\n"
-                     "%s}\n"
-                     "%sarazzo_%s_outputs_free(&outputs);",
-                     ind, wf_id, ind, wf_id, ind, ind, wf_id, ind, ind, ind,
-                     ind, wf_id);
-      }
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)cdd_docs_build_code_val(
-                               snippet, no_imports, no_wrapping, &code_val));
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
-                                         workflows_obj, wf_id, code_val));
+  az_rc = arazzo_load_from_json_value(parsed_root, &az_spec);
+  if (az_rc == CDD_C_SUCCESS) {
+    rc = build_arazzo_docs_root(&az_spec, no_imports, no_wrapping, &root_val);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(
+          cdd_c_keep_err(rc, cdd_json_value_free(parsed_root)),
+          arazzo_spec_free(&az_spec));
     }
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
-                                       root_obj, "workflows", workflows_val));
-    rc = (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&az_spec));
-  } else {
-    rc = arazzo_spec_free(&az_spec);
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)openapi_load_from_json(parsed_root, &spec));
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(parsed_root));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-
-    rc = cdd_json_value_init_object(&root_val);
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_value_get_object(root_val, &root_obj));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_value_init_object(&endpoints_val));
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
-                                       endpoints_val, &endpoints_obj));
-
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_docs_populate_path_map(
-                                       endpoints_obj, spec.paths, spec.n_paths,
-                                       no_imports, no_wrapping));
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
-                                       root_obj, "endpoints", endpoints_val));
-
-    if (spec.n_webhooks > 0) {
-      JSON_Value *webhooks_val = NULL;
-      JSON_Object *webhooks_obj = NULL;
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)cdd_json_value_init_object(&webhooks_val));
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
-                                         webhooks_val, &webhooks_obj));
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_docs_populate_path_map(
-                                         webhooks_obj, spec.webhooks,
-                                         spec.n_webhooks, no_imports,
-                                         no_wrapping));
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value(
-                                         root_obj, "webhooks", webhooks_val));
+    rc = serialize_and_write_docs_json(root_val, config->output);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(
+          cdd_c_keep_err(cdd_c_keep_err(rc, cdd_json_value_free(parsed_root)),
+                         cdd_json_value_free(root_val)),
+          arazzo_spec_free(&az_spec));
     }
-    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+    return cdd_c_keep_err(
+        cdd_c_keep_err(cdd_c_keep_err(az_rc, cdd_json_value_free(parsed_root)),
+                       cdd_json_value_free(root_val)),
+        arazzo_spec_free(&az_spec));
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_serialize_to_string_pretty(
-                                     root_val, &serialized));
-  if (config->output) {
-    int is_dir = 0;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)fs_is_directory(config->output, &is_dir));
-    if (is_dir) {
-      char *out_file = NULL;
-      rc = (cdd_c_error_t)((int)rc | (int)fs_path_join(config->output,
-                                                       "docs.json", &out_file));
-      if (rc == CDD_C_SUCCESS) {
-        rc = fs_write_to_file(out_file, serialized);
-        C_CDD_FREE(out_file);
-      }
-    } else {
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)fs_write_to_file(config->output, serialized));
-    }
-  } else {
-    printf("%s\n", serialized);
+  rc = openapi_load_from_json(parsed_root, &spec);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_json_value_free(parsed_root)),
+                          arazzo_spec_free(&az_spec));
   }
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_free_serialized_string(serialized));
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
-  return rc;
+  rc = build_openapi_docs_root(&spec, no_imports, no_wrapping, &root_val);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(
+        cdd_c_keep_err(cdd_c_keep_err(rc, cdd_json_value_free(parsed_root)),
+                       openapi_spec_free(&spec)),
+        arazzo_spec_free(&az_spec));
+  }
+  rc = serialize_and_write_docs_json(root_val, config->output);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(
+        cdd_c_keep_err(
+            cdd_c_keep_err(cdd_c_keep_err(rc, cdd_json_value_free(parsed_root)),
+                           cdd_json_value_free(root_val)),
+            openapi_spec_free(&spec)),
+        arazzo_spec_free(&az_spec));
+  }
+  return cdd_c_keep_err(
+      cdd_c_keep_err(cdd_json_value_free(parsed_root),
+                     cdd_json_value_free(root_val)),
+      cdd_c_keep_err(openapi_spec_free(&spec), arazzo_spec_free(&az_spec)));
 }
 
 /*
@@ -631,20 +836,63 @@ static const struct FfiEmitterEntry EMITTERS[] = {
  * @return CDD_C_SUCCESS on success, or error code on OOM/invalid IR.
  */
 static NO_DISCARD cdd_c_error_t prepare_ffi_ir_for_emission(cdd_ffi_ir_t *ir) {
+  cdd_ffi_abi_profile_t relaxed_abi;
   cdd_c_error_t rc;
 
   rc = cdd_ffi_ir_topological_sort(ir);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = cdd_ffi_ir_compute_layout(ir, NULL);
-  if (rc == CDD_C_ERROR_NOT_FOUND) {
-    cdd_ffi_abi_profile_t relaxed_abi;
-    rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &relaxed_abi);
-    relaxed_abi.allow_unresolved_refs = 1;
-    rc = cdd_c_keep_err(rc, cdd_ffi_ir_compute_layout(ir, &relaxed_abi));
+  memset(&relaxed_abi, 0, sizeof(relaxed_abi));
+  relaxed_abi.kind = CDD_FFI_ABI_HOST;
+  relaxed_abi.allow_unresolved_refs = 1;
+  return cdd_ffi_ir_compute_layout(ir, &relaxed_abi);
+}
+
+/**
+ * @brief Frees a heap-allocated `cdd_ffi_ir_t` and its contents while
+ * propagating `err`.
+ *
+ * @param[in,out] ir Heap-allocated FFI IR pointer to free.
+ * @param[in] err Primary status code to preserve.
+ * @return `err` if non-zero, otherwise `cdd_ffi_ir_free` status.
+ */
+static NO_DISCARD cdd_c_error_t free_boxed_ffi_ir_err(cdd_ffi_ir_t *ir,
+                                                      cdd_c_error_t err) {
+  cdd_ffi_ir_t ir_copy = *ir;
+  C_CDD_FREE(ir);
+  return cdd_c_keep_err(err, cdd_ffi_ir_free(&ir_copy));
+}
+
+/**
+ * @brief Parses an in-memory `.json`, `.dsl`, or C/C++ header buffer into
+ * `*out_ir`.
+ *
+ * @param[in] config Binding generation configuration.
+ * @param[in] file_content Null-terminated source buffer.
+ * @param[out] out_ir Output pointer receiving the allocated `cdd_ffi_ir_t`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
+static NO_DISCARD cdd_c_error_t
+load_ffi_ir_from_buffer(const cdd_generate_bindings_config_t *config,
+                        const char *file_content, cdd_ffi_ir_t **out_ir) {
+  size_t len = strlen(config->input);
+  if (len > 5 && strcmp(config->input + len - 5, ".json") == 0) {
+    return cdd_ffi_ir_from_json(file_content, out_ir);
   }
-  return rc;
+  if (len > 4 && strcmp(config->input + len - 4, ".dsl") == 0) {
+    cdd_dsl_token_list_t tokens;
+    cdd_c_error_t rc = cdd_dsl_tokenize(file_content, &tokens);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_dsl_parse(&tokens, out_ir);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_dsl_token_list_free(&tokens));
+    }
+    return cdd_dsl_token_list_free(&tokens);
+  }
+  return cdd_ffi_ir_extract_exports(config->input, file_content, config,
+                                    out_ir);
 }
 
 /**
@@ -743,19 +991,24 @@ C_CDD_EXPORT cdd_c_error_t cdd_generate_bindings_from_dsl(
     return rc;
 
   rc = cdd_dsl_parse(&tokens, &ir);
-  rc = cdd_c_keep_err(rc, cdd_dsl_token_list_free(&tokens));
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
-  rc = prepare_ffi_ir_for_emission(ir);
-  if (rc == CDD_C_SUCCESS && config->target_langs &&
-      config->target_langs[0] != '\0') {
-    rc = dispatch_ffi_emitters(ir, config);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_dsl_token_list_free(&tokens));
   }
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_ir_free(ir));
-  C_CDD_FREE(ir);
-  return rc;
+  rc = prepare_ffi_ir_for_emission(ir);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(free_boxed_ffi_ir_err(ir, rc),
+                          cdd_dsl_token_list_free(&tokens));
+  }
+  if (config->target_langs && config->target_langs[0] != '\0') {
+    rc = dispatch_ffi_emitters(ir, config);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(free_boxed_ffi_ir_err(ir, rc),
+                            cdd_dsl_token_list_free(&tokens));
+    }
+  }
+  return cdd_c_keep_err(free_boxed_ffi_ir_err(ir, CDD_C_SUCCESS),
+                        cdd_dsl_token_list_free(&tokens));
 }
 
 /*
@@ -770,7 +1023,6 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;
   char *file_content = NULL;
   size_t file_size = 0;
-  size_t len;
 
   if (!config || !config->input || !config->output_dir ||
       !config->target_langs || config->target_langs[0] == '\0') {
@@ -782,34 +1034,120 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
     return rc;
   }
 
-  len = strlen(config->input);
-  if (len > 5 && strcmp(config->input + len - 5, ".json") == 0) {
-    rc = cdd_ffi_ir_from_json(file_content, &ir);
-  } else if (len > 4 && strcmp(config->input + len - 4, ".dsl") == 0) {
-    cdd_dsl_token_list_t tokens;
-    rc = cdd_dsl_tokenize(file_content, &tokens);
-    if (rc == CDD_C_SUCCESS) {
-      rc = cdd_dsl_parse(&tokens, &ir);
-      rc = cdd_c_keep_err(rc, cdd_dsl_token_list_free(&tokens));
-    }
-  } else {
-    rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
-  }
-  C_CDD_FREE(file_content);
-  file_content = NULL;
+  rc = load_ffi_ir_from_buffer(config, file_content, &ir);
   if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(file_content);
     return rc;
   }
+  C_CDD_FREE(file_content);
 
   rc = prepare_ffi_ir_for_emission(ir);
-  if (rc == CDD_C_SUCCESS) {
-    rc = dispatch_ffi_emitters(ir, config);
+  if (rc != CDD_C_SUCCESS) {
+    return free_boxed_ffi_ir_err(ir, rc);
   }
+  return free_boxed_ffi_ir_err(ir, dispatch_ffi_emitters(ir, config));
+}
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_ir_free(ir));
-  C_CDD_FREE(ir);
+/**
+ * @brief Optionally loads an auxiliary OpenAPI specification when readable and
+ * valid.
+ *
+ * @param[in] openapi_input Path to the optional OpenAPI JSON file.
+ * @param[out] openapi_spec Target `OpenAPI_Spec` structure.
+ * @param[out] out_has_openapi Set to 1 if loaded successfully, 0 otherwise.
+ * @return `CDD_C_SUCCESS`.
+ */
+static cdd_c_error_t
+try_load_optional_openapi_spec(const char *openapi_input,
+                               struct OpenAPI_Spec *openapi_spec,
+                               int *out_has_openapi) {
+  JSON_Value *oa_root = NULL;
+  cdd_c_error_t rc = cdd_json_parse_file(openapi_input, &oa_root);
+  if (rc == CDD_C_SUCCESS) {
+    cdd_c_error_t load_rc = openapi_load_from_json(oa_root, openapi_spec);
+    if (load_rc == CDD_C_SUCCESS) {
+      *out_has_openapi = 1;
+      return cdd_c_keep_err(load_rc, cdd_json_value_free(oa_root));
+    }
+    return cdd_c_keep_err(rc, cdd_json_value_free(oa_root));
+  }
+  return CDD_C_SUCCESS;
+}
 
-  return rc;
+/**
+ * @brief Dispatches the selected Arazzo code generator (`to_sdk_cli`,
+ * `to_server`, or `to_sdk`).
+ *
+ * @param[in] subcommand Requested Arazzo generation subcommand.
+ * @param[in] arazzo_spec Loaded Arazzo specification.
+ * @param[in] openapi_spec Optional companion OpenAPI specification (or `NULL`).
+ * @param[in] client_cfg Output path and function-prefix configuration.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+static cdd_c_error_t
+dispatch_arazzo_generator(cdd_arazzo_subcommand_t subcommand,
+                          const struct Arazzo_Spec *arazzo_spec,
+                          const struct OpenAPI_Spec *openapi_spec,
+                          const struct OpenApiClientConfig *client_cfg) {
+  if (subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI) {
+    return arazzo_cli_generate(arazzo_spec, openapi_spec, client_cfg);
+  }
+  if (subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SERVER) {
+    return arazzo_server_generate(arazzo_spec, openapi_spec, client_cfg);
+  }
+  if (subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK) {
+    return arazzo_client_generate(arazzo_spec, openapi_spec, client_cfg);
+  }
+  return CDD_C_ERROR_INVALID_ARGUMENT;
+}
+
+/**
+ * @brief Runs the requested Arazzo generator and frees loaded specs.
+ *
+ * @param[in] config Arazzo generation configuration.
+ * @param[in,out] arazzo_spec Loaded Arazzo specification.
+ * @param[in,out] openapi_spec Auxiliary OpenAPI specification buffer.
+ * @param[in] has_openapi_ptr Pointer to `has_openapi` flag populated by caller.
+ * @param[in,out] root Parsed Arazzo JSON root value.
+ * @param[in] opt_rc Status from optional OpenAPI loader.
+ * @return `CDD_C_SUCCESS` on success, or error code on failure.
+ */
+static cdd_c_error_t finish_generate_from_arazzo(
+    const cdd_from_arazzo_config_t *config, struct Arazzo_Spec *arazzo_spec,
+    struct OpenAPI_Spec *openapi_spec, const int *has_openapi_ptr,
+    JSON_Value *root, cdd_c_error_t opt_rc) {
+  struct OpenApiClientConfig client_cfg;
+  memset(&client_cfg, 0, sizeof(client_cfg));
+  client_cfg.filename_base =
+      config->output ? config->output : "generated_arazzo";
+  client_cfg.func_prefix = config->func_prefix ? config->func_prefix : "api_";
+
+  if (*has_openapi_ptr) {
+    cdd_c_error_t gen_rc = dispatch_arazzo_generator(
+        config->subcommand, arazzo_spec, openapi_spec, &client_cfg);
+    if (gen_rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(
+          cdd_c_keep_err(cdd_c_keep_err(cdd_c_keep_err(gen_rc, opt_rc),
+                                        cdd_json_value_free(root)),
+                         openapi_spec_free(openapi_spec)),
+          arazzo_spec_free(arazzo_spec));
+    }
+    return cdd_c_keep_err(
+        cdd_c_keep_err(cdd_c_keep_err(opt_rc, cdd_json_value_free(root)),
+                       openapi_spec_free(openapi_spec)),
+        arazzo_spec_free(arazzo_spec));
+  }
+  {
+    cdd_c_error_t gen_rc = dispatch_arazzo_generator(
+        config->subcommand, arazzo_spec, NULL, &client_cfg);
+    if (gen_rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(cdd_c_keep_err(cdd_c_keep_err(gen_rc, opt_rc),
+                                           cdd_json_value_free(root)),
+                            arazzo_spec_free(arazzo_spec));
+    }
+    return cdd_c_keep_err(cdd_c_keep_err(opt_rc, cdd_json_value_free(root)),
+                          arazzo_spec_free(arazzo_spec));
+  }
 }
 
 /*
@@ -823,7 +1161,6 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
   struct Arazzo_Spec arazzo_spec;
   struct OpenAPI_Spec openapi_spec;
   int has_openapi = 0;
-  struct OpenApiClientConfig client_cfg;
   JSON_Value *root = NULL;
   cdd_c_error_t rc;
 
@@ -833,55 +1170,24 @@ cdd_c_error_t cdd_generate_from_arazzo(const cdd_from_arazzo_config_t *config) {
 
   memset(&arazzo_spec, 0, sizeof(arazzo_spec));
   memset(&openapi_spec, 0, sizeof(openapi_spec));
-  memset(&client_cfg, 0, sizeof(client_cfg));
 
-  if (cdd_json_parse_file(config->input, &root) != CDD_C_SUCCESS) {
-    return CDD_C_ERROR_IO;
+  rc = cdd_json_parse_file(config->input, &root);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(CDD_C_ERROR_IO, rc);
   }
   rc = arazzo_load_from_json_value(root, &arazzo_spec);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root));
   if (rc != CDD_C_SUCCESS) {
-    return rc;
+    return cdd_c_keep_err(rc, cdd_json_value_free(root));
   }
 
   if (config->openapi_input) {
-    JSON_Value *oa_root = NULL;
-    if (cdd_json_parse_file(config->openapi_input, &oa_root) == CDD_C_SUCCESS) {
-      if (openapi_load_from_json(oa_root, &openapi_spec) == CDD_C_SUCCESS) {
-        has_openapi = 1;
-      }
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(oa_root));
-    }
+    return finish_generate_from_arazzo(
+        config, &arazzo_spec, &openapi_spec, &has_openapi, root,
+        try_load_optional_openapi_spec(config->openapi_input, &openapi_spec,
+                                       &has_openapi));
   }
-
-  client_cfg.filename_base =
-      config->output ? config->output : "generated_arazzo";
-  client_cfg.func_prefix = config->func_prefix ? config->func_prefix : "api_";
-
-  if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK_CLI) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)arazzo_cli_generate(
-                             &arazzo_spec, has_openapi ? &openapi_spec : NULL,
-                             &client_cfg));
-  } else if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SERVER) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)arazzo_server_generate(
-                             &arazzo_spec, has_openapi ? &openapi_spec : NULL,
-                             &client_cfg));
-  } else if (config->subcommand == CDD_ARAZZO_SUBCOMMAND_TO_SDK) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)arazzo_client_generate(
-                             &arazzo_spec, has_openapi ? &openapi_spec : NULL,
-                             &client_cfg));
-  } else {
-    rc = CDD_C_ERROR_INVALID_ARGUMENT;
-  }
-
-  if (has_openapi) {
-    rc = (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&openapi_spec));
-  }
-  rc = (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&arazzo_spec));
-  return rc;
+  return finish_generate_from_arazzo(config, &arazzo_spec, &openapi_spec,
+                                     &has_openapi, root, CDD_C_SUCCESS);
 }
 
 /*
@@ -908,24 +1214,27 @@ cdd_c_error_t cdd_generate_to_arazzo(const cdd_to_arazzo_config_t *config) {
   }
   rc = c2arazzo_parse_dir(config->input, &spec);
   if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&spec));
+    return cdd_c_keep_err(rc, arazzo_spec_free(&spec));
   }
   if (config->self_uri && *config->self_uri) {
     C_CDD_FREE(spec.self_uri);
     spec.self_uri = NULL;
     rc = c_cdd_strdup(config->self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&spec));
+      return cdd_c_keep_err(rc, arazzo_spec_free(&spec));
     }
   }
   rc = arazzo_write_spec_to_json(&spec, &json);
-  rc = (cdd_c_error_t)((int)rc | (int)arazzo_spec_free(&spec));
   if (rc != CDD_C_SUCCESS) {
-    return rc;
+    return cdd_c_keep_err(rc, arazzo_spec_free(&spec));
   }
   rc = fs_write_to_file(out_path, json);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(json);
+    return cdd_c_keep_err(rc, arazzo_spec_free(&spec));
+  }
   C_CDD_FREE(json);
-  return rc;
+  return arazzo_spec_free(&spec);
 }
 
 /** @brief Reflected fields for `cdd_from_openapi_config_t`. */

@@ -21,7 +21,7 @@
 #include "cdd_c_error.h"
 #include "c_cdd_stdbool.h"
 
-#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
+#if defined(HAVE_ASPRINTF)
 /* Standard libraries have asprintf */
 #else
 /* Fallback for systems without asprintf (e.g. MSVC, pure C89) */

@@ -225,55 +225,31 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     /* Using asprintf for consistency as per previous project standards */
     /* However, strict C89 doesn't have it. We assume project provides it via
      * c89stringutils. */
-#ifdef HAVE_ASPRINTF
-    {
-      int asprintf_rc =
-          asprintf(&replacement,
-                   "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
-                   "_safe_tmp; }",
-                   call_expr, DEFAULT_ERROR_CODE, site->var_name);
-#ifdef CDD_BUILD_TESTS
-      if (g_cdd_fail_asprintf) {
-        C_CDD_FREE(replacement);
-        asprintf_rc = -1;
-      }
-#endif
-      if (asprintf_rc == -1) {
-        C_CDD_FREE(call_expr);
-        return CDD_C_ERROR_MEMORY;
-      }
-    }
-#else
-    /* Fallback logic or assume HAVE_ASPRINTF is defined by build system */
-    /* This sample assumes HAVE_ASPRINTF */
     {
       size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
       replacement = (char *)C_CDD_MALLOC(replacement_len);
-      if (replacement) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sprintf_s(replacement, replacement_len,
-                  "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
-                  "_safe_tmp; }",
-                  call_expr, DEFAULT_ERROR_CODE, site->var_name);
-#else
-        CDD_SNPRINTF(replacement, replacement_len,
-                     "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
-                     "_safe_tmp; }",
-                     call_expr, DEFAULT_ERROR_CODE, site->var_name);
-#endif
 #ifdef CDD_BUILD_TESTS
-        if (g_cdd_fail_asprintf) {
-          C_CDD_FREE(replacement);
-          replacement = NULL;
-        }
-#endif
+      if (g_cdd_fail_asprintf) {
+        C_CDD_FREE(replacement);
+        replacement = NULL;
       }
+#endif
       if (!replacement) {
         C_CDD_FREE(call_expr);
         return CDD_C_ERROR_MEMORY;
       }
-    }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(replacement, replacement_len,
+                "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                "_safe_tmp; }",
+                call_expr, DEFAULT_ERROR_CODE, site->var_name);
+#else
+      CDD_SNPRINTF(replacement, replacement_len,
+                   "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                   "_safe_tmp; }",
+                   call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #endif
+    }
     C_CDD_FREE(call_expr);
 
     /* Replace the entire statement "p = realloc(...);" with the block */

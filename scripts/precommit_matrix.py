@@ -51,10 +51,15 @@ def has_msvc():
 def has_msvc_wine():
     if os.name == "nt":
         return False
-    msvc_wine_path = os.environ.get(
-        "MSVC_WINE_PATH", os.path.expanduser("~/my_msvc/opt/msvc")
-    )
-    return is_tool("wine") and os.path.exists(msvc_wine_path)
+    if not is_tool("wine"):
+        return False
+    env_path = os.environ.get("MSVC_WINE_PATH")
+    if env_path:
+        return os.path.exists(env_path)
+    for cand in ("~/my_msvc/bin/x64", "~/my_msvc/opt/msvc"):
+        if os.path.exists(os.path.expanduser(cand)):
+            return True
+    return False
 
 
 def has_mingw():
@@ -109,15 +114,20 @@ def main():
                     "cppcheck",
                     "-j",
                     "4",
+                    "--max-configs=1",
+                    "-DCDD_BUILD_TESTS",
+                    "--error-exitcode=1",
                     "--enable=warning,performance,portability",
                     "--suppress=missingIncludeSystem",
                     "--suppress=unknownMacro",
                     "--suppress=unusedFunction",
+                    "-i",
+                    "src/tests/transformers/safe_crt/full_code.c",
                 ]
                 if os.path.isdir("include"):
                     cmd.extend(["-I", "include"])
                 cmd.extend(dirs)
-                run_cmd(cmd, check=False)
+                run_cmd(cmd, check=True)
             else:
                 print("No src or include directory found. Skipping cppcheck.")
         else:
@@ -153,7 +163,6 @@ def main():
             run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
             # copy binary to bin/ so we can run audit later
             os.makedirs("bin", exist_ok=True)
-            import shutil
 
             if os.path.exists(os.path.join(build_dir, "bin", "cdd-c")):
                 shutil.copy(os.path.join(build_dir, "bin", "cdd-c"), "bin/cdd-c")
@@ -182,7 +191,6 @@ def main():
             )
             run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
             os.makedirs("bin", exist_ok=True)
-            import shutil
 
             if os.path.exists(os.path.join(build_dir, "bin", "cdd-c")):
                 shutil.copy(os.path.join(build_dir, "bin", "cdd-c"), "bin/cdd-c")

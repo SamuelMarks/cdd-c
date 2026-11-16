@@ -14,6 +14,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "classes/emit/struct_internal.h"
 #include "emit/test_codegen_struct_common.h"
 /* clang-format on */
 
@@ -1403,9 +1404,107 @@ TEST test_struct_reflection_and_codegen(void) {
                     cdd_reflect_visit_deep(&child_inst, &child_ti,
                                            test_reflect_visitor_cb, &deep_cnt));
           ASSERT_EQ(1, deep_cnt);
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_clear_registry());
         }
 
-        ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_clear_registry());
+        /* Pointer-sized inline struct array (`sizeof == sizeof(void *)`) and
+         * `cdd_reflect_is_obj_elem_ptr` branch coverage across 32/64-bit */
+        {
+          struct PtrSizedChild {
+            void *slot;
+          };
+          struct PtrSizedParent {
+            struct PtrSizedChild *items;
+            size_t n_items;
+          };
+          struct PtrSizedChild ps_items[2];
+          struct PtrSizedParent ps_parent;
+          struct cdd_field_info ps_cfields[1];
+          struct cdd_field_info ps_pfields[1];
+          struct cdd_type_info ps_cti;
+          struct cdd_type_info ps_pti;
+          struct cdd_type_info big_ti;
+          int is_ptr = -1;
+          int ps_cnt = 0;
+
+          memset(ps_items, 0, sizeof(ps_items));
+          memset(&ps_parent, 0, sizeof(ps_parent));
+          memset(ps_cfields, 0, sizeof(ps_cfields));
+          memset(ps_pfields, 0, sizeof(ps_pfields));
+          memset(&ps_cti, 0, sizeof(ps_cti));
+          memset(&ps_pti, 0, sizeof(ps_pti));
+          memset(&big_ti, 0, sizeof(big_ti));
+
+          ps_parent.items = ps_items;
+          ps_parent.n_items = 2;
+
+          ps_cfields[0].name = "slot";
+          ps_cfields[0].kind = CDD_FIELD_KIND_INTEGER;
+          ps_cfields[0].offset = offsetof(struct PtrSizedChild, slot);
+          ps_cfields[0].size = sizeof(void *);
+
+          ps_cti.name = "PtrSizedChild";
+          ps_cti.size = sizeof(struct PtrSizedChild);
+          ps_cti.fields = ps_cfields;
+          ps_cti.n_fields = 1;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_register_type(&ps_cti));
+
+          ps_pfields[0].name = "items";
+          ps_pfields[0].ref_name = "PtrSizedChild";
+          ps_pfields[0].kind = CDD_FIELD_KIND_ARRAY;
+          ps_pfields[0].elem_kind = CDD_FIELD_KIND_OBJECT;
+          ps_pfields[0].offset = offsetof(struct PtrSizedParent, items);
+          ps_pfields[0].array_len_offset =
+              offsetof(struct PtrSizedParent, n_items);
+          ps_pfields[0].elem_size = sizeof(struct PtrSizedChild);
+          ps_pfields[0].is_pointer = 1;
+
+          ps_pti.name = "PtrSizedParent";
+          ps_pti.size = sizeof(struct PtrSizedParent);
+          ps_pti.fields = ps_pfields;
+          ps_pti.n_fields = 1;
+
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_visit_deep(&ps_parent, &ps_pti,
+                                           test_reflect_visitor_cb, &ps_cnt));
+          ASSERT_EQ(3, ps_cnt);
+
+          /* Branch checks for cdd_reflect_is_obj_elem_ptr */
+          ps_pfields[0].c_type = "";
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_is_obj_elem_ptr(
+                                       &ps_pfields[0], &ps_cti, &is_ptr));
+          ASSERT_EQ(0, is_ptr);
+
+          ps_pfields[0].c_type = "struct PtrSizedChild *";
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_is_obj_elem_ptr(
+                                       &ps_pfields[0], &ps_cti, &is_ptr));
+          ASSERT_EQ(0, is_ptr);
+
+          ps_pfields[0].c_type = "struct PtrSizedChild **";
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_is_obj_elem_ptr(
+                                       &ps_pfields[0], &ps_cti, &is_ptr));
+          ASSERT_EQ(1, is_ptr);
+
+          ps_pfields[0].c_type = NULL;
+          big_ti.size = sizeof(void *) * 2U;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_is_obj_elem_ptr(
+                                       &ps_pfields[0], &big_ti, &is_ptr));
+          ASSERT_EQ(1, is_ptr);
+
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_is_obj_elem_ptr(&ps_pfields[0], NULL, &is_ptr));
+          ASSERT_EQ(1, is_ptr);
+
+          ps_pfields[0].elem_size = sizeof(void *) * 2U;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_is_obj_elem_ptr(
+                                       &ps_pfields[0], &big_ti, &is_ptr));
+          ASSERT_EQ(0, is_ptr);
+
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_is_obj_elem_ptr(&ps_pfields[0], NULL, &is_ptr));
+          ASSERT_EQ(0, is_ptr);
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_clear_registry());
+        }
       }
 
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

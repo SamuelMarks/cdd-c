@@ -976,8 +976,9 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           rc = cdd_c_keep_err(
               rc, ocaml_normalize_int_literal(v_src, v_norm, sizeof(v_norm)));
         } else {
-          rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                      v_norm, sizeof(v_norm), "%" CDD_PRIz, j));
+          rc = cdd_c_keep_err(
+              rc, cdd_ffi_snprintf_checked(v_norm, sizeof(v_norm), "%lu",
+                                           (unsigned long)j));
         }
 
         rc = cdd_c_keep_err(

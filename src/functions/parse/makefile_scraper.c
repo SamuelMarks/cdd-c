@@ -150,8 +150,8 @@ static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
   }
 
   if (len > 2) {
-    char *inc = strstr(tok, "-I");
-    char *def = strstr(tok, "-D");
+    const char *inc = strstr(tok, "-I");
+    const char *def = strstr(tok, "-D");
     if (inc) {
       rc = add_string_to_array(&info->include_dirs, &info->include_dirs_n,
                                inc + 2);

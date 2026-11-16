@@ -209,8 +209,11 @@ cdd_c_error_t cdd_code_writer_write(cdd_code_writer_t *writer,
         if (rc != CDD_C_SUCCESS)
           return rc;
       }
-      if (writer_raw_append(writer, "\n", 1) != CDD_C_SUCCESS)
-        return writer->error;
+      {
+        cdd_c_error_t rc_nl = writer_raw_append(writer, "\n", 1);
+        if (rc_nl != CDD_C_SUCCESS)
+          return rc_nl;
+      }
       writer->at_line_start = 1;
       p = nl + 1;
     } else {
@@ -295,8 +298,12 @@ cdd_c_error_t cdd_code_writer_printf(cdd_code_writer_t *writer, const char *fmt,
 #endif
     va_end(args);
     rc = cdd_code_writer_write(writer, dyn_buf);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(dyn_buf);
+      return rc;
+    }
     C_CDD_FREE(dyn_buf);
-    return rc;
+    return CDD_C_SUCCESS;
   }
 }
 

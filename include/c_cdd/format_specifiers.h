@@ -12,19 +12,30 @@ extern "C" {
 #include <stddef.h>
 /* clang-format on */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) ||                                                       \
+    (defined(_WIN32) &&                                                        \
+     (!defined(__USE_MINGW_ANSI_STDIO) || (__USE_MINGW_ANSI_STDIO + 0) == 0))
+/** @brief 64-bit signed integer printf format specifier */
 #define CDD_PRId64 "I64d"
+/** @brief 64-bit unsigned integer printf format specifier */
 #define CDD_PRIu64 "I64u"
+/** @brief 64-bit hexadecimal integer printf format specifier */
 #define CDD_PRIx64 "I64x"
 #if defined(_WIN64)
+/** @brief size_t printf format specifier */
 #define CDD_PRIz "I64u"
 #else
+/** @brief size_t printf format specifier */
 #define CDD_PRIz "u"
 #endif
 #elif defined(__APPLE__)
+/** @brief 64-bit signed integer printf format specifier */
 #define CDD_PRId64 "lld"
+/** @brief 64-bit unsigned integer printf format specifier */
 #define CDD_PRIu64 "llu"
+/** @brief 64-bit hexadecimal integer printf format specifier */
 #define CDD_PRIx64 "llx"
+/** @brief size_t printf format specifier */
 #define CDD_PRIz "lu"
 #else
 #if (defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__) ||      \

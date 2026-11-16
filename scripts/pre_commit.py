@@ -1,6 +1,8 @@
 import sys
 import subprocess
 import os
+import re
+import shutil
 
 # Strip git environment variables that are set by pre-commit hooks,
 # because they leak into CMake's FetchContent and break internal git clones.
@@ -44,7 +46,6 @@ def main():
         )
         run_cmd(["cmake", "--build", ".", "--config", "Release"], cwd="build_cmake")
         os.makedirs("bin", exist_ok=True)
-        import shutil
 
         if os.path.exists("build_cmake/bin/cdd-c"):
             shutil.copy("build_cmake/bin/cdd-c", "bin/cdd-c")
@@ -97,7 +98,6 @@ def main():
 
     elif job == "lint":
         print("=== Linting ===")
-        import re
 
         test_lint_errors = 0
         void_rc_re = re.compile(r"\(void\)\s*rc\b")
@@ -146,6 +146,7 @@ def main():
         if test_lint_errors > 0:
             sys.exit(1)
         run_cmd([sys.executable, "scripts/check_az_span_casts.py", "src", "include"])
+        has_cppcheck = False
         try:
             subprocess.run(
                 ["cppcheck", "--version"],
@@ -153,20 +154,31 @@ def main():
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
+            has_cppcheck = True
+        except Exception:
+            print("Warning: cppcheck is not installed. Skipping cppcheck.")
+        if has_cppcheck:
             print("Running cppcheck...")
             run_cmd(
                 [
                     "cppcheck",
+                    "-j",
+                    "4",
+                    "--max-configs=1",
+                    "-DCDD_BUILD_TESTS",
+                    "--error-exitcode=1",
                     "--enable=warning,performance,portability",
                     "--suppress=missingIncludeSystem",
                     "--suppress=unknownMacro",
                     "--suppress=unusedFunction",
+                    "-i",
+                    "src/tests/transformers/safe_crt/full_code.c",
+                    "-I",
+                    "include",
                     "src",
                     "include",
                 ]
             )
-        except Exception:
-            print("Warning: cppcheck is not installed. Skipping cppcheck.")
 
     elif job == "valgrind":
         if sys.platform.startswith("linux"):
@@ -215,8 +227,6 @@ def main():
         run_cmd([sys.executable, "scripts/update_badges.py"])
 
     elif job == "integration":
-        import shutil
-
         has_docker = shutil.which("docker") is not None
         has_java = shutil.which("java") is not None
 
@@ -225,7 +235,6 @@ def main():
             print("=== Trying JVM Petstore Servers ===")
             import urllib.request
             import urllib.error
-            import subprocess
             import time
 
             os.makedirs(".cache", exist_ok=True)
@@ -422,8 +431,6 @@ def main():
         if os.path.exists(spec_oas3) and os.path.exists(cdd_c_bin):
             print("=== OpenAPI 3.2.0 Petstore Test ===")
             if os.path.exists("test_out_oas3"):
-                import shutil
-
                 shutil.rmtree("test_out_oas3")
             os.makedirs("test_out_oas3", exist_ok=True)
             run_cmd(
@@ -464,8 +471,6 @@ def main():
         if os.path.exists(spec_sw2) and os.path.exists(cdd_c_bin):
             print("=== Swagger 2.0 Petstore Test ===")
             if os.path.exists("test_out_sw2"):
-                import shutil
-
                 shutil.rmtree("test_out_sw2")
             os.makedirs("test_out_sw2", exist_ok=True)
             run_cmd(

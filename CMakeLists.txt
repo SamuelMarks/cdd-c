@@ -121,6 +121,11 @@ set(C89STRINGUTILS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 if(APPLE)
     set(C89STRINGUTILS_STRERROR_R_CHAR_P OFF CACHE BOOL "" FORCE)
     add_compile_definitions(_DARWIN_C_SOURCE _POSIX_C_SOURCE=200809L)
+elseif(NOT MSVC AND NOT CMAKE_C_COMPILER_ID MATCHES "Watcom")
+    set(C89STRINGUTILS_HAVE_ASPRINTF OFF CACHE BOOL "" FORCE)
+    set(C89STRINGUTILS_HAVE_VASPRINTF OFF CACHE BOOL "" FORCE)
+    set(C89STRINGUTILS_HAVE_STRCASESTR OFF CACHE BOOL "" FORCE)
+    set(C89STRINGUTILS_STRERROR_R_CHAR_P OFF CACHE BOOL "" FORCE)
 endif()
 set(CFS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(PARSON_BUILD_TESTING OFF CACHE BOOL "" FORCE)
@@ -278,6 +283,7 @@ endif()
 set(CMAKE_C_STANDARD 90)
 if (NOT (CMAKE_C_COMPILER_ID MATCHES "Watcom"))
     set(CMAKE_C_STANDARD_REQUIRED ON)
+    set(CMAKE_C_EXTENSIONS OFF)
 endif()
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
@@ -421,21 +427,23 @@ endif ()
 
 if (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
 else ()
-    include(CheckCSourceCompiles)
-    check_c_source_compiles("
-    #if defined(__linux__) || defined(__linux)
-    # include <features.h>
-    #endif
-    #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 20))
-    #error glibc >= 2.20
-    #endif
-    int main(void) { return 0; }
-    " USE_BSD_SOURCE_INSTEAD_OF_DEFAULT)
+    if (NOT WIN32 AND NOT APPLE)
+        include(CheckCSourceCompiles)
+        check_c_source_compiles("
+        #if defined(__linux__) || defined(__linux)
+        # include <features.h>
+        #endif
+        #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 20))
+        #error glibc >= 2.20
+        #endif
+        int main(void) { return 0; }
+        " USE_BSD_SOURCE_INSTEAD_OF_DEFAULT)
 
-    if (USE_BSD_SOURCE_INSTEAD_OF_DEFAULT)
-        add_compile_definitions(_GNU_SOURCE _BSD_SOURCE)
-    else ()
-        add_compile_definitions(_GNU_SOURCE _DEFAULT_SOURCE)
+        if (USE_BSD_SOURCE_INSTEAD_OF_DEFAULT)
+            add_compile_definitions(_BSD_SOURCE _POSIX_C_SOURCE=200809L)
+        else ()
+            add_compile_definitions(_DEFAULT_SOURCE _POSIX_C_SOURCE=200809L)
+        endif ()
     endif ()
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
     ensure_symbol(
@@ -445,7 +453,6 @@ else ()
     )
 endif (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
 if (DEFINED HAVE_ASPRINTF)
-    set(CMAKE_C_EXTENSIONS ON)
     add_compile_definitions(HAVE_ASPRINTF)
 endif (DEFINED HAVE_ASPRINTF)
 

@@ -22,19 +22,6 @@
 #include "classes/parse/numeric.h"
 /* clang-format on */
 
-#ifndef UINT64_MAX
-#if defined(_UI64_MAX)
-#define UINT64_MAX _UI64_MAX
-#else
-/** @brief UINT64_MAX macro */
-#define UINT64_MAX ((uint64_t) - 1)
-#endif
-#endif
-
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#define strtoull _strtoui64
-#endif
-
 /**
  * @brief Parse integer type suffixes (u, l, ll).
  *
@@ -126,6 +113,48 @@ static cdd_c_error_t parse_binary_str(const char *str, const char **endptr,
     *_out_val = val;
     return CDD_C_SUCCESS;
   }
+}
+
+/**
+ * @brief Manually parse octal, decimal, or hexadecimal digits into a 64-bit
+ * unsigned integer in strict ISO C89 without relying on C99 `strtoull`.
+ *
+ * @param[in] str Pointer to the start of digits.
+ * @param[in] base Numeric radix (`8`, `10`, or `16`).
+ * @param[out] endptr Pointer to receive the first unparsed character.
+ * @param[out] _out_val Pointer to receive the parsed 64-bit unsigned value.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t parse_uint64_base(const char *str, int base,
+                                       const char **endptr,
+                                       uint64_t *_out_val) {
+  uint64_t val = 0;
+  uint64_t ubase = (uint64_t)base;
+  const char *p = str;
+  while (*p != '\0') {
+    unsigned char uch = (unsigned char)*p;
+    int digit;
+    if (isdigit(uch)) {
+      digit = (int)(uch - (unsigned char)'0');
+    } else if (isxdigit(uch)) {
+      digit = tolower(uch) - 'a' + 10;
+    } else {
+      break;
+    }
+    if (digit >= base) {
+      break;
+    }
+    if (val > (((uint64_t)-1) - (uint64_t)digit) / ubase) {
+      val = ((uint64_t)-1);
+      errno = ERANGE;
+    } else {
+      val = val * ubase + (uint64_t)digit;
+    }
+    p++;
+  }
+  *endptr = p;
+  *_out_val = val;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -244,23 +273,18 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
     /* Integer */
     uint64_t val;
     const char *end_cptr = NULL;
+    cdd_c_error_t rc_num = CDD_C_SUCCESS;
     out->kind = NUMERIC_INTEGER;
     errno = 0;
 
     if (is_bin) {
-      {
-        cdd_c_error_t rc = parse_binary_str(start_digits, &end_cptr, &val);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-      }
+      rc_num = parse_binary_str(start_digits, &end_cptr, &val);
+      if (rc_num != CDD_C_SUCCESS)
+        return rc_num;
       out->data.integer.base = 2;
     } else {
-      /* Handle hex/oct/dec via strtoull */
       int base = is_hex ? 16 : (is_oct ? 8 : 10);
-      /* Use base 0 to let stdlib handle prefixes if we preserved them?
-         We advanced 'start_digits' past 0x. */
-      val = strtoull(start_digits, &end_ptr, base);
-      end_cptr = end_ptr;
+      rc_num = parse_uint64_base(start_digits, base, &end_cptr, &val);
       out->data.integer.base = base;
     }
 
@@ -277,6 +301,7 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
         return CDD_C_ERROR_PARSE;
       }
     }
+    return rc_num;
   }
 
   return CDD_C_SUCCESS;

@@ -78,6 +78,26 @@ cdd_reflect_cleanup_single_field(void *obj, const struct cdd_field_info *f);
 extern C_CDD_EXPORT cdd_c_error_t cdd_reflect_eq_single_field(
     const void *a, const void *b, const struct cdd_field_info *f, int *out_eq);
 
+/**
+ * @brief Determines whether an array field with `CDD_FIELD_KIND_OBJECT`
+ * elements stores pointers to heap objects (`struct T **`) rather than inline
+ * contiguous structs (`struct T *` or `struct T[N]`).
+ *
+ * Inspects `f->c_type` when populated and compares `f->elem_size` against
+ * `elem_ti->size` so 32-bit targets (such as WebAssembly where
+ * `sizeof(void *) == 4`) and pointer-sized structs (`sizeof(struct T) ==
+ * sizeof(void *)`) are never misclassified as pointer arrays.
+ *
+ * @param[in] f Reflected array field descriptor.
+ * @param[in] elem_ti Optional resolved element type descriptor (may be NULL).
+ * @param[out] out_is_ptr Set to `1` for pointer elements, `0` for inline value
+ * elements.
+ * @return CDD_C_SUCCESS on success.
+ */
+extern C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_reflect_is_obj_elem_ptr(
+    const struct cdd_field_info *f, const struct cdd_type_info *elem_ti,
+    int *out_is_ptr);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

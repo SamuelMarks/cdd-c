@@ -22,65 +22,6 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
-/**
- * @brief Frees a `DocArazzoParam` array and its elements.
- *
- * @param[in,out] params Array of parameters to free.
- * @param[in] n_params Number of parameters in the array.
- * @return CDD_C_SUCCESS.
- */
-static cdd_c_error_t free_doc_arazzo_params(struct DocArazzoParam *params,
-                                            size_t n_params) {
-  size_t i;
-  for (i = 0; i < n_params; ++i) {
-    C_CDD_FREE(params[i].name);
-    C_CDD_FREE(params[i].in_loc);
-    C_CDD_FREE(params[i].value);
-    C_CDD_FREE(params[i].reference);
-  }
-  C_CDD_FREE(params);
-  return CDD_C_SUCCESS;
-}
-
-/**
- * @brief Frees a `DocArazzoKeyVal` array and its elements.
- *
- * @param[in,out] kvs Array of key-value pairs to free.
- * @param[in] n_kvs Number of key-value pairs in the array.
- * @return CDD_C_SUCCESS.
- */
-static cdd_c_error_t free_doc_arazzo_kvs(struct DocArazzoKeyVal *kvs,
-                                         size_t n_kvs) {
-  size_t i;
-  for (i = 0; i < n_kvs; ++i) {
-    C_CDD_FREE(kvs[i].key);
-    C_CDD_FREE(kvs[i].value);
-  }
-  C_CDD_FREE(kvs);
-  return CDD_C_SUCCESS;
-}
-
-/**
- * @brief Frees a `DocArazzoAction` array and its elements.
- *
- * @param[in,out] actions Array of actions to free.
- * @param[in] n_actions Number of actions in the array.
- * @return CDD_C_SUCCESS.
- */
-static cdd_c_error_t free_doc_arazzo_actions(struct DocArazzoAction *actions,
-                                             size_t n_actions) {
-  size_t i;
-  for (i = 0; i < n_actions; ++i) {
-    C_CDD_FREE(actions[i].name);
-    C_CDD_FREE(actions[i].type);
-    C_CDD_FREE(actions[i].workflow_id);
-    C_CDD_FREE(actions[i].step_id);
-    C_CDD_FREE(actions[i].reference);
-  }
-  C_CDD_FREE(actions);
-  return CDD_C_SUCCESS;
-}
-
 /*
  * @brief Frees all Arazzo-specific fields inside a `DocMetadata` structure.
  *
@@ -90,7 +31,6 @@ static cdd_c_error_t free_doc_arazzo_actions(struct DocArazzoAction *actions,
  */
 cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
   size_t i, j;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!meta) {
     return CDD_C_SUCCESS;
   }
@@ -109,12 +49,18 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
   }
   C_CDD_FREE(meta->workflow_depends_on);
   C_CDD_FREE(meta->workflow_inputs_json);
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)free_doc_arazzo_kvs(meta->workflow_outputs,
-                                                meta->n_workflow_outputs));
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)free_doc_arazzo_params(meta->workflow_params,
-                                                   meta->n_workflow_params));
+  for (i = 0; i < meta->n_workflow_outputs; ++i) {
+    C_CDD_FREE(meta->workflow_outputs[i].key);
+    C_CDD_FREE(meta->workflow_outputs[i].value);
+  }
+  C_CDD_FREE(meta->workflow_outputs);
+  for (i = 0; i < meta->n_workflow_params; ++i) {
+    C_CDD_FREE(meta->workflow_params[i].name);
+    C_CDD_FREE(meta->workflow_params[i].in_loc);
+    C_CDD_FREE(meta->workflow_params[i].value);
+    C_CDD_FREE(meta->workflow_params[i].reference);
+  }
+  C_CDD_FREE(meta->workflow_params);
 
   for (i = 0; i < meta->n_arazzo_steps; ++i) {
     struct DocArazzoStep *st = &meta->arazzo_steps[i];
@@ -130,8 +76,13 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
       C_CDD_FREE(st->depends_on[j]);
     }
     C_CDD_FREE(st->depends_on);
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)free_doc_arazzo_params(st->params, st->n_params));
+    for (j = 0; j < st->n_params; ++j) {
+      C_CDD_FREE(st->params[j].name);
+      C_CDD_FREE(st->params[j].in_loc);
+      C_CDD_FREE(st->params[j].value);
+      C_CDD_FREE(st->params[j].reference);
+    }
+    C_CDD_FREE(st->params);
     C_CDD_FREE(st->request_body_content_type);
     C_CDD_FREE(st->request_body_payload);
     for (j = 0; j < st->n_replacements; ++j) {
@@ -146,12 +97,27 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
       C_CDD_FREE(st->criteria[j].version);
     }
     C_CDD_FREE(st->criteria);
-    rc = (cdd_c_error_t)((int)rc | (int)free_doc_arazzo_actions(
-                                       st->on_success, st->n_on_success));
-    rc = (cdd_c_error_t)((int)rc | (int)free_doc_arazzo_actions(
-                                       st->on_failure, st->n_on_failure));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)free_doc_arazzo_kvs(st->outputs, st->n_outputs));
+    for (j = 0; j < st->n_on_success; ++j) {
+      C_CDD_FREE(st->on_success[j].name);
+      C_CDD_FREE(st->on_success[j].type);
+      C_CDD_FREE(st->on_success[j].workflow_id);
+      C_CDD_FREE(st->on_success[j].step_id);
+      C_CDD_FREE(st->on_success[j].reference);
+    }
+    C_CDD_FREE(st->on_success);
+    for (j = 0; j < st->n_on_failure; ++j) {
+      C_CDD_FREE(st->on_failure[j].name);
+      C_CDD_FREE(st->on_failure[j].type);
+      C_CDD_FREE(st->on_failure[j].workflow_id);
+      C_CDD_FREE(st->on_failure[j].step_id);
+      C_CDD_FREE(st->on_failure[j].reference);
+    }
+    C_CDD_FREE(st->on_failure);
+    for (j = 0; j < st->n_outputs; ++j) {
+      C_CDD_FREE(st->outputs[j].key);
+      C_CDD_FREE(st->outputs[j].value);
+    }
+    C_CDD_FREE(st->outputs);
   }
   C_CDD_FREE(meta->arazzo_steps);
 
@@ -162,10 +128,12 @@ cdd_c_error_t doc_free_arazzo_metadata(struct DocMetadata *meta) {
   }
   C_CDD_FREE(meta->arazzo_components);
 
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)free_doc_arazzo_kvs(meta->arazzo_extensions,
-                                                meta->n_arazzo_extensions));
-  return rc;
+  for (i = 0; i < meta->n_arazzo_extensions; ++i) {
+    C_CDD_FREE(meta->arazzo_extensions[i].key);
+    C_CDD_FREE(meta->arazzo_extensions[i].value);
+  }
+  C_CDD_FREE(meta->arazzo_extensions);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -356,15 +324,16 @@ static cdd_c_error_t parse_arazzo_param_line(const char *line, const char *end,
 static cdd_c_error_t ensure_current_step(struct DocMetadata *out,
                                          struct DocArazzoStep **out_step) {
   if (out->n_arazzo_steps == 0) {
+    cdd_c_error_t rc;
     struct DocArazzoStep *next_arr =
         (struct DocArazzoStep *)C_CDD_CALLOC(1, sizeof(struct DocArazzoStep));
     if (!next_arr) {
       return CDD_C_ERROR_MEMORY;
     }
     out->arazzo_steps = next_arr;
-    if (c_cdd_strdup("step_1", &out->arazzo_steps[0].step_id) !=
-        CDD_C_SUCCESS) {
-      return CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup("step_1", &out->arazzo_steps[0].step_id);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
     }
     out->n_arazzo_steps = 1;
   }
@@ -495,6 +464,47 @@ static cdd_c_error_t parse_workflow_line(const char *line, const char *end,
 }
 
 /**
+ * @brief Applies a single bracketed `[key:val]` attribute to a `DocArazzoStep`.
+ *
+ * @param[in] attr Null-terminated attribute content inside `[...]`.
+ * @param[in,out] st Target step structure.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t apply_step_attr(const char *attr,
+                                     struct DocArazzoStep *st) {
+  if (strncmp(attr, "operationId:", 12) == 0) {
+    C_CDD_FREE(st->operation_id);
+    return c_cdd_strdup(attr + 12, &st->operation_id);
+  }
+  if (strncmp(attr, "operationPath:", 14) == 0) {
+    C_CDD_FREE(st->operation_path);
+    return c_cdd_strdup(attr + 14, &st->operation_path);
+  }
+  if (strncmp(attr, "channelPath:", 12) == 0) {
+    C_CDD_FREE(st->channel_path);
+    return c_cdd_strdup(attr + 12, &st->channel_path);
+  }
+  if (strncmp(attr, "workflowId:", 11) == 0) {
+    C_CDD_FREE(st->workflow_id);
+    return c_cdd_strdup(attr + 11, &st->workflow_id);
+  }
+  if (strncmp(attr, "timeout:", 8) == 0) {
+    st->timeout_ms = atoi(attr + 8);
+    st->has_timeout = 1;
+    return CDD_C_SUCCESS;
+  }
+  if (strncmp(attr, "correlationId:", 14) == 0) {
+    C_CDD_FREE(st->correlation_id);
+    return c_cdd_strdup(attr + 14, &st->correlation_id);
+  }
+  if (strncmp(attr, "action:", 7) == 0) {
+    C_CDD_FREE(st->action);
+    return c_cdd_strdup(attr + 7, &st->action);
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Parses `@step <stepId> [operationId:...] [operationPath:...]
  * [channelPath:...] [workflowId:...] [timeout:...] [correlationId:...]
  * [action:...] <description>`.
@@ -541,32 +551,12 @@ static cdd_c_error_t parse_step_line(const char *line, const char *end,
       }
       memcpy(attr, cur + 1, len);
       attr[len] = '\0';
-      if (strncmp(attr, "operationId:", 12) == 0) {
-        C_CDD_FREE(st->operation_id);
-        rc = c_cdd_strdup(attr + 12, &st->operation_id);
-      } else if (strncmp(attr, "operationPath:", 14) == 0) {
-        C_CDD_FREE(st->operation_path);
-        rc = c_cdd_strdup(attr + 14, &st->operation_path);
-      } else if (strncmp(attr, "channelPath:", 12) == 0) {
-        C_CDD_FREE(st->channel_path);
-        rc = c_cdd_strdup(attr + 12, &st->channel_path);
-      } else if (strncmp(attr, "workflowId:", 11) == 0) {
-        C_CDD_FREE(st->workflow_id);
-        rc = c_cdd_strdup(attr + 11, &st->workflow_id);
-      } else if (strncmp(attr, "timeout:", 8) == 0) {
-        st->timeout_ms = atoi(attr + 8);
-        st->has_timeout = 1;
-      } else if (strncmp(attr, "correlationId:", 14) == 0) {
-        C_CDD_FREE(st->correlation_id);
-        rc = c_cdd_strdup(attr + 14, &st->correlation_id);
-      } else if (strncmp(attr, "action:", 7) == 0) {
-        C_CDD_FREE(st->action);
-        rc = c_cdd_strdup(attr + 7, &st->action);
-      }
-      C_CDD_FREE(attr);
+      rc = apply_step_attr(attr, st);
       if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(attr);
         return rc;
       }
+      C_CDD_FREE(attr);
       cur = close_b + 1;
       while (*cur == ' ')
         cur++;
@@ -721,17 +711,26 @@ static cdd_c_error_t parse_step_criterion_line(const char *line,
       if (strncmp(attr, "context:", 8) == 0) {
         C_CDD_FREE(crit->context);
         rc = c_cdd_strdup(attr + 8, &crit->context);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       } else if (strncmp(attr, "type:", 5) == 0) {
         C_CDD_FREE(crit->type);
         rc = c_cdd_strdup(attr + 5, &crit->type);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       } else if (strncmp(attr, "version:", 8) == 0) {
         C_CDD_FREE(crit->version);
         rc = c_cdd_strdup(attr + 8, &crit->version);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       }
       C_CDD_FREE(attr);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
       cur = close_b + 1;
       while (*cur == ' ')
         cur++;
@@ -801,15 +800,31 @@ static cdd_c_error_t parse_step_action_line(const char *line, const char *end,
       if (strncmp(attr, "type:", 5) == 0) {
         C_CDD_FREE(act->type);
         rc = c_cdd_strdup(attr + 5, &act->type);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       } else if (strncmp(attr, "stepId:", 7) == 0) {
         C_CDD_FREE(act->step_id);
         rc = c_cdd_strdup(attr + 7, &act->step_id);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       } else if (strncmp(attr, "workflowId:", 11) == 0) {
         C_CDD_FREE(act->workflow_id);
         rc = c_cdd_strdup(attr + 11, &act->workflow_id);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       } else if (strncmp(attr, "reference:", 10) == 0) {
         C_CDD_FREE(act->reference);
         rc = c_cdd_strdup(attr + 10, &act->reference);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
+        }
       } else if (strncmp(attr, "retryAfter:", 11) == 0) {
         act->retry_after = atof(attr + 11);
         act->has_retry_after = 1;
@@ -818,9 +833,6 @@ static cdd_c_error_t parse_step_action_line(const char *line, const char *end,
         act->has_retry_limit = 1;
       }
       C_CDD_FREE(attr);
-      if (rc != CDD_C_SUCCESS) {
-        return rc;
-      }
       cur = close_b + 1;
       while (*cur == ' ')
         cur++;

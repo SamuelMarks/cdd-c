@@ -378,6 +378,7 @@ cdd_c_error_t doc_parse_optional_bool_attr(char *attr, const char *key,
     if (parsed == CDD_C_SUCCESS) {
       *out_set = 1;
       *out_val = value;
+      return parsed;
     }
   }
   return CDD_C_SUCCESS;
@@ -412,7 +413,7 @@ cdd_c_error_t doc_parse_optional_example_attr(char *attr, char **out_example) {
 
   rc = c_cdd_strdup(val, &dup_val);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
+    return rc;
 
   *out_example = dup_val;
   return CDD_C_SUCCESS;
@@ -490,7 +491,7 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
   rc = c_cdd_strdup(input, &buf);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
 #ifdef _WIN32
@@ -535,7 +536,7 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
         C_CDD_FREE(scopes[i]);
       C_CDD_FREE(scopes);
       C_CDD_FREE(buf);
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
     n++;
 #ifdef _WIN32
@@ -577,13 +578,17 @@ cdd_c_error_t doc_split_enum_values(const char *input, char ***out_vals,
   rc = c_cdd_strdup(input, &buf);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
   for (i = 0; buf[i]; ++i) {
     if (buf[i] == '|')
       buf[i] = ',';
   }
   rc = doc_split_scopes(buf, out_vals, out_count);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
+    return rc;
+  }
   C_CDD_FREE(buf);
-  return rc;
+  return CDD_C_SUCCESS;
 }

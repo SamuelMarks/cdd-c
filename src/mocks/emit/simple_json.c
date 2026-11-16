@@ -461,34 +461,39 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
   const char *tank_str = NULL;
   enum Tank tank_val = Tank_UNKNOWN;
   struct HazE *new_haz;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+  cdd_c_error_t opt_rc;
 
   if (jsonObject == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (cdd_json_object_get_string(jsonObject, "tank", &tank_str) !=
-      CDD_C_SUCCESS)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = cdd_c_keep_err(rc, Tank_from_str(tank_str, &tank_val));
+  rc = cdd_json_object_get_string(jsonObject, "tank", &tank_str);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  }
+  rc = Tank_from_str(tank_str, &tank_val);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   new_haz = malloc(sizeof(*new_haz));
   if (new_haz == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  if (cdd_json_object_get_string(jsonObject, "bzr", &bzr_str) ==
-      CDD_C_SUCCESS) {
+  opt_rc = cdd_json_object_get_string(jsonObject, "bzr", &bzr_str);
+  if (opt_rc == CDD_C_SUCCESS) {
     new_haz->bzr = strdup(bzr_str);
     if (new_haz->bzr == NULL) {
       free(new_haz);
       return CDD_C_ERROR_MEMORY;
     }
-  } else {
-    new_haz->bzr = NULL;
+    new_haz->tank = tank_val;
+    *haz_e = new_haz;
+    return opt_rc;
   }
-
+  new_haz->bzr = NULL;
   new_haz->tank = tank_val;
   *haz_e = new_haz;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -502,29 +507,34 @@ cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
   if (json == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (cdd_json_parse_string(json, &root) != CDD_C_SUCCESS)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = cdd_json_parse_string(json, &root);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  }
 
-  if (cdd_json_value_get_object(root, &jsonObject) != CDD_C_SUCCESS) {
-    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
-                          cdd_json_value_free(root));
+  rc = cdd_json_value_get_object(root, &jsonObject);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root));
   }
 
   rc = HazE_from_jsonObject(jsonObject, haz_e);
-  return cdd_c_keep_err(rc, cdd_json_value_free(root));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root));
+  }
+  return cdd_json_value_free(root);
 }
 
 /**
  * @brief Frees a FooE struct and its owned members.
  */
 cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  struct HazE *haz;
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
+  haz = foo_e->haz;
   free(foo_e->bar);
-  rc = cdd_c_keep_err(rc, HazE_cleanup(foo_e->haz));
   free(foo_e);
-  return rc;
+  return HazE_cleanup(haz);
 }
 
 /**
@@ -717,13 +727,53 @@ cleanup:
 }
 
 /**
+ * @brief Optionally copies string field `"bar"` from `jsonObject` into
+ * `new_foo`.
+ *
+ * @param[in] jsonObject Source JSON object.
+ * @param[in,out] new_foo Target `FooE` instance.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t FooE_load_bar_opt(const JSON_Object *jsonObject,
+                                       struct FooE *new_foo) {
+  const char *bar_str = NULL;
+  cdd_c_error_t rc = cdd_json_object_get_string(jsonObject, "bar", &bar_str);
+  if (rc == CDD_C_SUCCESS) {
+    new_foo->bar = strdup(bar_str);
+    if (new_foo->bar == NULL) {
+      return CDD_C_ERROR_MEMORY;
+    }
+    return rc;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Optionally copies numeric field `"can"` from `jsonObject` into
+ * `new_foo`.
+ *
+ * @param[in] jsonObject Source JSON object.
+ * @param[in,out] new_foo Target `FooE` instance.
+ * @return `CDD_C_SUCCESS`.
+ */
+static cdd_c_error_t FooE_load_can_opt(const JSON_Object *jsonObject,
+                                       struct FooE *new_foo) {
+  double can_num = 0.0;
+  cdd_c_error_t rc = cdd_json_object_get_number(jsonObject, "can", &can_num);
+  if (rc == CDD_C_SUCCESS) {
+    new_foo->can = (int)can_num;
+    return rc;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Deserializes a FooE instance from a JSON_Object.
  */
 cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
                                    struct FooE **foo_e) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-  const char *bar_str = NULL;
-  double can_num = 0.0;
+  cdd_c_error_t rc;
+  cdd_c_error_t opt_rc;
   JSON_Object *haz_obj = NULL;
   struct FooE *new_foo;
 
@@ -734,30 +784,29 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
   if (new_foo == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  if (cdd_json_object_get_string(jsonObject, "bar", &bar_str) ==
-      CDD_C_SUCCESS) {
-    new_foo->bar = strdup(bar_str);
-    if (new_foo->bar == NULL) {
-      free(new_foo);
-      return CDD_C_ERROR_MEMORY;
-    }
+  rc = FooE_load_bar_opt(jsonObject, new_foo);
+  if (rc != CDD_C_SUCCESS) {
+    free(new_foo);
+    return rc;
   }
 
-  if (cdd_json_object_get_number(jsonObject, "can", &can_num) ==
-      CDD_C_SUCCESS) {
-    new_foo->can = (int)can_num;
+  rc = FooE_load_can_opt(jsonObject, new_foo);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, FooE_cleanup(new_foo));
   }
 
-  if (cdd_json_object_get_object(jsonObject, "haz", &haz_obj) ==
-      CDD_C_SUCCESS) {
+  opt_rc = cdd_json_object_get_object(jsonObject, "haz", &haz_obj);
+  if (opt_rc == CDD_C_SUCCESS) {
     rc = HazE_from_jsonObject(haz_obj, &new_foo->haz);
     if (rc != CDD_C_SUCCESS) {
       return cdd_c_keep_err(rc, FooE_cleanup(new_foo));
     }
+    *foo_e = new_foo;
+    return opt_rc;
   }
 
   *foo_e = new_foo;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -771,16 +820,21 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   if (json == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (cdd_json_parse_string(json, &root) != CDD_C_SUCCESS)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = cdd_json_parse_string(json, &root);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  }
 
-  if (cdd_json_value_get_object(root, &jsonObject) != CDD_C_SUCCESS) {
-    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
-                          cdd_json_value_free(root));
+  rc = cdd_json_value_get_object(root, &jsonObject);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root));
   }
 
   rc = FooE_from_jsonObject(jsonObject, foo_e);
-  return cdd_c_keep_err(rc, cdd_json_value_free(root));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root));
+  }
+  return cdd_json_value_free(root);
 }
 
 /**
@@ -826,8 +880,13 @@ cdd_c_error_t run_mocks_test(void) {
   rc = HazE_from_json(haz_e_mock0, &haz_e0);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = cdd_c_keep_err(rc, HazE_eq(haz_e0, &haz_e));
-  rc = cdd_c_keep_err(rc, HazE_cleanup(haz_e0));
+  rc = HazE_eq(haz_e0, &haz_e);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, HazE_cleanup(haz_e0));
+  }
+  rc = HazE_cleanup(haz_e0);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   rc = FooE_to_json(&foo_e, &foo_e_json);
   if (rc != CDD_C_SUCCESS)
@@ -837,8 +896,9 @@ cdd_c_error_t run_mocks_test(void) {
   rc = FooE_from_json(foo_e_mock0, &foo_e0);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = cdd_c_keep_err(rc, FooE_eq(foo_e0, &foo_e));
-  rc = cdd_c_keep_err(rc, FooE_cleanup(foo_e0));
-
-  return rc;
+  rc = FooE_eq(foo_e0, &foo_e);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, FooE_cleanup(foo_e0));
+  }
+  return FooE_cleanup(foo_e0);
 }

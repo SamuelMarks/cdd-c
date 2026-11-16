@@ -22,6 +22,96 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/**
+ * @brief Tries to parse an optional style attribute value into `p`.
+ *
+ * @param[in] val Style name string.
+ * @param[in,out] p Target `DocParam` structure.
+ * @return `CDD_C_SUCCESS`.
+ */
+static cdd_c_error_t apply_optional_param_style(const char *val,
+                                                struct DocParam *p) {
+  enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
+  cdd_c_error_t rc = doc_parse_style_text(val, &style);
+  if (rc == CDD_C_SUCCESS) {
+    p->style = style;
+    p->style_set = 1;
+    return rc;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Parses a single bracketed `[...]` attribute into `p`.
+ *
+ * @param[in,out] attr Mutable attribute content inside `[...]`.
+ * @param[in,out] p Target `DocParam` structure.
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_MEMORY` on OOM.
+ */
+static cdd_c_error_t parse_param_bracket_attr(char *attr, struct DocParam *p) {
+  cdd_c_error_t rc;
+  cdd_c_error_t rc_opt;
+
+  if (strncmp(attr, "in:", 3) == 0) {
+    return c_cdd_strdup(attr + 3, &p->in_loc);
+  }
+  if (strcmp(attr, "required") == 0) {
+    p->required = 1;
+    return CDD_C_SUCCESS;
+  }
+  if (strncmp(attr, "contentType:", 12) == 0) {
+    if (p->content_type)
+      C_CDD_FREE(p->content_type);
+    return c_cdd_strdup(attr + 12, &p->content_type);
+  }
+  if (strncmp(attr, "format:", 7) == 0 || strncmp(attr, "format=", 7) == 0) {
+    char *val = NULL;
+    rc = doc_trim_segment(attr + 7, &val);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (*val) {
+      if (p->format)
+        C_CDD_FREE(p->format);
+      return c_cdd_strdup(val, &p->format);
+    }
+    return CDD_C_SUCCESS;
+  }
+  if (strncmp(attr, "collectionFormat:", 17) == 0 ||
+      strncmp(attr, "collectionFormat=", 17) == 0) {
+    if (p->collection_format)
+      C_CDD_FREE(p->collection_format);
+    return c_cdd_strdup(attr + 17, &p->collection_format);
+  }
+  if (strncmp(attr, "style:", 6) == 0) {
+    return apply_optional_param_style(attr + 6, p);
+  }
+  rc_opt = doc_parse_optional_bool_attr(attr, "explode", &p->explode_set,
+                                        &p->explode);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  rc_opt = doc_parse_optional_bool_attr(
+      attr, "allowReserved", &p->allow_reserved_set, &p->allow_reserved);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  rc_opt = doc_parse_optional_bool_attr(attr, "allowEmptyValue",
+                                        &p->allow_empty_value_set,
+                                        &p->allow_empty_value);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  if (strcmp(attr, "itemSchema") == 0 || strcmp(attr, "itemSchema:true") == 0 ||
+      strcmp(attr, "itemSchema=true") == 0) {
+    p->item_schema = 1;
+  }
+  rc_opt = doc_parse_optional_bool_attr(attr, "deprecated", &p->deprecated_set,
+                                        &p->deprecated);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  rc_opt = doc_parse_optional_example_attr(attr, &p->example);
+  if (rc_opt == CDD_C_ERROR_MEMORY)
+    return rc_opt;
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Parses an `@param` directive line into `out->params`.
  *
@@ -32,7 +122,6 @@
  */
 cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
-  cdd_c_error_t rc_opt;
   struct DocParam *new_params;
   struct DocParam *p;
   const char *cur = line;
@@ -77,92 +166,10 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
-
-        if (strncmp(attr, "in:", 3) == 0) {
-          rc = c_cdd_strdup(attr + 3, &p->in_loc);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(attr);
-            return rc;
-          }
-        } else if (strcmp(attr, "required") == 0) {
-          p->required = 1;
-        } else if (strncmp(attr, "contentType:", 12) == 0) {
-          if (p->content_type)
-            C_CDD_FREE(p->content_type);
-          rc = c_cdd_strdup(attr + 12, &p->content_type);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(attr);
-            return rc;
-          }
-        } else if (strncmp(attr, "format:", 7) == 0 ||
-                   strncmp(attr, "format=", 7) == 0) {
-          char *val = NULL;
-          rc = doc_trim_segment(attr + 7, &val);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(attr);
-            return rc;
-          }
-          if (*val) {
-            if (p->format)
-              C_CDD_FREE(p->format);
-            rc = c_cdd_strdup(val, &p->format);
-            if (rc != CDD_C_SUCCESS) {
-              C_CDD_FREE(attr);
-              return rc;
-            }
-          }
-        } else if (strncmp(attr, "collectionFormat:", 17) == 0 ||
-                   strncmp(attr, "collectionFormat=", 17) == 0) {
-          if (p->collection_format)
-            C_CDD_FREE(p->collection_format);
-          rc = c_cdd_strdup(attr + 17, &p->collection_format);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(attr);
-            return rc;
-          }
-        } else if (strncmp(attr, "style:", 6) == 0) {
-          enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
-          if (doc_parse_style_text(attr + 6, &style) == CDD_C_SUCCESS) {
-            p->style = style;
-            p->style_set = 1;
-          }
-        } else {
-          rc_opt = doc_parse_optional_bool_attr(attr, "explode",
-                                                &p->explode_set, &p->explode);
-          if (rc_opt == CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return rc_opt;
-          }
-          rc_opt = doc_parse_optional_bool_attr(attr, "allowReserved",
-                                                &p->allow_reserved_set,
-                                                &p->allow_reserved);
-          if (rc_opt == CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return rc_opt;
-          }
-          rc_opt = doc_parse_optional_bool_attr(attr, "allowEmptyValue",
-                                                &p->allow_empty_value_set,
-                                                &p->allow_empty_value);
-          if (rc_opt == CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return rc_opt;
-          }
-          if (strcmp(attr, "itemSchema") == 0 ||
-              strcmp(attr, "itemSchema:true") == 0 ||
-              strcmp(attr, "itemSchema=true") == 0) {
-            p->item_schema = 1;
-          }
-          rc_opt = doc_parse_optional_bool_attr(
-              attr, "deprecated", &p->deprecated_set, &p->deprecated);
-          if (rc_opt == CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return rc_opt;
-          }
-          if (doc_parse_optional_example_attr(attr, &p->example) ==
-              CDD_C_ERROR_MEMORY) {
-            C_CDD_FREE(attr);
-            return CDD_C_ERROR_MEMORY;
-          }
+        rc = parse_param_bracket_attr(attr, p);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr);
+          return rc;
         }
         C_CDD_FREE(attr);
       }
@@ -176,8 +183,7 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
   }
 
   /* 3. Description */
-  rc = doc_extract_rest(cur, end, &p->description);
-  return rc;
+  return doc_extract_rest(cur, end, &p->description);
 }
 
 /*
@@ -270,10 +276,13 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
                    strcmp(attr, "itemSchema:true") == 0 ||
                    strcmp(attr, "itemSchema=true") == 0) {
           r->item_schema = 1;
-        } else if (doc_parse_optional_example_attr(attr, &r->example) ==
-                   CDD_C_ERROR_MEMORY) {
-          C_CDD_FREE(attr);
-          return CDD_C_ERROR_MEMORY;
+        } else {
+          cdd_c_error_t rc_ex =
+              doc_parse_optional_example_attr(attr, &r->example);
+          if (rc_ex == CDD_C_ERROR_MEMORY) {
+            C_CDD_FREE(attr);
+            return rc_ex;
+          }
         }
         C_CDD_FREE(attr);
       }
@@ -287,8 +296,7 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
   }
 
   /* 3. Description */
-  rc = doc_extract_rest(cur, end, &r->description);
-  return rc;
+  return doc_extract_rest(cur, end, &r->description);
 }
 
 /*
@@ -423,11 +431,12 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
               return rc;
             }
           }
-        } else if (doc_parse_optional_example_attr(attr, &h->example) ==
-                   CDD_C_ERROR_MEMORY) {
-          C_CDD_FREE(attr);
-          return CDD_C_ERROR_MEMORY;
         } else {
+          rc_opt = doc_parse_optional_example_attr(attr, &h->example);
+          if (rc_opt == CDD_C_ERROR_MEMORY) {
+            C_CDD_FREE(attr);
+            return rc_opt;
+          }
           rc_opt = doc_parse_optional_bool_attr(attr, "required",
                                                 &h->required_set, &h->required);
           if (rc_opt == CDD_C_ERROR_MEMORY) {
@@ -446,8 +455,7 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
     }
   }
 
-  rc = doc_extract_rest(cur, end, &h->description);
-  return rc;
+  return doc_extract_rest(cur, end, &h->description);
 }
 
 /*
@@ -777,12 +785,14 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
                    strcmp(attr, "itemSchema:true") == 0 ||
                    strcmp(attr, "itemSchema=true") == 0) {
           item_schema = 1;
-        } else if (doc_parse_optional_example_attr(attr, &example) ==
-                   CDD_C_ERROR_MEMORY) {
-          C_CDD_FREE(attr);
-          C_CDD_FREE(content_type);
-          C_CDD_FREE(example);
-          return CDD_C_ERROR_MEMORY;
+        } else {
+          rc_opt = doc_parse_optional_example_attr(attr, &example);
+          if (rc_opt == CDD_C_ERROR_MEMORY) {
+            C_CDD_FREE(attr);
+            C_CDD_FREE(content_type);
+            C_CDD_FREE(example);
+            return rc_opt;
+          }
         }
 
         C_CDD_FREE(attr);
@@ -842,7 +852,7 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
     rc = c_cdd_strdup(entry->content_type, &out->request_body_content_type);
     if (rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
   }
   if (entry->description) {
@@ -851,7 +861,7 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
     rc = c_cdd_strdup(entry->description, &out->request_body_description);
     if (rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
   }
   return CDD_C_SUCCESS;

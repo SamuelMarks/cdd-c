@@ -6,6 +6,7 @@
 #include "c_cdd/memory.h"
 #include "c_cdd/safe_crt_msvc.h"
 
+#include "classes/parse/numeric.h"
 #include "macro_evaluator.h"
 #include <ctype.h>
 #include <errno.h>
@@ -155,16 +156,14 @@ static cdd_c_error_t next_tok(macro_lexer_t *lex) {
           lex->cur.kind = TOK_FLOAT;
           lex->cur.float_val = strtod(buf, NULL);
         } else {
+          struct NumericValue nv;
           lex->cur.kind = TOK_INT;
-#if defined(_MSC_VER) && _MSC_VER < 1800
-          lex->cur.int_val = _strtoi64(buf, NULL, 0);
-#else
-          lex->cur.int_val = strtoll(buf, NULL, 0);
-#endif
+          rc = cdd_c_keep_err(rc, parse_numeric_literal(buf, &nv));
+          lex->cur.int_val = (int64_t)nv.data.integer.value;
         }
         C_CDD_FREE(buf);
       }
-      return CDD_C_SUCCESS;
+      return rc;
     }
 
     if (isalpha((unsigned char)c) || c == '_') {

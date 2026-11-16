@@ -18,13 +18,16 @@
  * @brief Application entry point helper.
  *
  * Forwards arguments to the core command-line dispatcher (`cdd_main` or
- * `cli_transform_dispatch_main` when built with `CDD_C_TRANSFORMER_ONLY`).
+ * `cli_transform_dispatch_main` when built with `CDD_C_TRANSFORMER_ONLY`)
+ * after propagating initial GUI-suppression status.
  *
+ * @param[in] init_rc Initial status returned by `cdd_suppress_gui_popups`.
  * @param[in] argc Argument count
  * @param[in] argv Argument values
- * @return CDD_C_SUCCESS on success, CDD_C_ERROR_UNKNOWN otherwise
+ * @return CDD_C_SUCCESS on success, error code otherwise
  */
-static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
+static cdd_c_error_t cdd_cli_main_internal(cdd_c_error_t init_rc, int argc,
+                                           char **argv) {
   cdd_c_error_t rc;
 #ifdef CDD_C_TRANSFORMER_ONLY
   rc = cli_transform_dispatch_main(argc, argv);
@@ -32,9 +35,9 @@ static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
   rc = cdd_main(argc, argv);
 #endif
   if (rc != CDD_C_SUCCESS) {
-    return CDD_C_ERROR_UNKNOWN;
+    return rc;
   }
-  return CDD_C_SUCCESS;
+  return init_rc;
 }
 
 /**
@@ -45,12 +48,8 @@ static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
  * @return EXIT_SUCCESS on success, EXIT_FAILURE otherwise
  */
 int main(int argc, char **argv) {
-  cdd_c_error_t rc;
-
-  rc = (cdd_c_error_t)((int)cdd_suppress_gui_popups() |
-                       (int)cdd_cli_main_internal(argc, argv));
-  if (rc != CDD_C_SUCCESS) {
-    return 1;
-  }
-  return 0;
+  return cdd_cli_main_internal(cdd_suppress_gui_popups(), argc, argv) !=
+                 CDD_C_SUCCESS
+             ? 1
+             : 0;
 }

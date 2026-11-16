@@ -567,8 +567,11 @@ static cdd_c_error_t resolve_path_mut(void *obj, const struct cdd_type_info *ti,
       rc = cdd_reflect_type_by_name(cur_field->ref_name, &cur_ti);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      cur_obj = (cur_field->elem_size == sizeof(void *)) ? *(void **)elem_ptr
-                                                         : elem_ptr;
+      {
+        int is_ptr = 0;
+        rc = cdd_reflect_is_obj_elem_ptr(cur_field, cur_ti, &is_ptr);
+        cur_obj = is_ptr ? *(void **)elem_ptr : elem_ptr;
+      }
       if (!cur_obj)
         return CDD_C_ERROR_NOT_FOUND;
     } else {

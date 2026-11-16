@@ -559,18 +559,20 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
           if (current_flow) {
             struct DocOAuthScope *scopes = NULL;
             size_t n_scopes = 0;
-            if (doc_parse_oauth_scopes(val, &scopes, &n_scopes) ==
-                CDD_C_SUCCESS) {
-              size_t i;
-              for (i = 0; i < current_flow->n_scopes; ++i) {
-                C_CDD_FREE(current_flow->scopes[i].name);
-                C_CDD_FREE(current_flow->scopes[i].description);
-              }
-              if (current_flow->scopes)
-                C_CDD_FREE(current_flow->scopes);
-              current_flow->scopes = scopes;
-              current_flow->n_scopes = n_scopes;
+            size_t i;
+            rc = doc_parse_oauth_scopes(val, &scopes, &n_scopes);
+            if (rc != CDD_C_SUCCESS) {
+              C_CDD_FREE(attr);
+              return rc;
             }
+            for (i = 0; i < current_flow->n_scopes; ++i) {
+              C_CDD_FREE(current_flow->scopes[i].name);
+              C_CDD_FREE(current_flow->scopes[i].description);
+            }
+            if (current_flow->scopes)
+              C_CDD_FREE(current_flow->scopes);
+            current_flow->scopes = scopes;
+            current_flow->n_scopes = n_scopes;
           }
         } else {
           rc_opt = doc_parse_optional_bool_attr(

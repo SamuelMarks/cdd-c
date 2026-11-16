@@ -332,9 +332,15 @@ TEST test_code_writer_and_ffi_common(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_code_writer_printf(&w, "%s", "def"));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_free(&w));
 
-  /* OOM on large printf malloc */
+  /* OOM on large printf malloc and subsequent buffer write realloc */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_init_buffer(&w));
   g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_code_writer_printf(&w, "%s", long_buf));
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_free(&w));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_init_buffer(&w));
+  g_cdd_alloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_code_writer_printf(&w, "%s", long_buf));
   g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_code_writer_free(&w));
@@ -903,6 +909,151 @@ TEST test_cdd_api_cli_reflect_roundtrip(void) {
   PASS();
 }
 
+/** @brief Countdown counter for JSON DOM allocation fault injection in cdd_api
+ * tests. */
+static int g_cdd_api_json_oom_countdown = 0;
+
+/**
+ * @brief Custom JSON malloc callback that fails when
+ * `g_cdd_api_json_oom_countdown` decrements to 0.
+ * @param[in] sz Requested allocation size in bytes.
+ * @return Allocated block or `NULL` on simulated OOM.
+ */
+static void *cdd_api_test_json_malloc(size_t sz) {
+  if (g_cdd_api_json_oom_countdown > 0) {
+    g_cdd_api_json_oom_countdown--;
+    if (g_cdd_api_json_oom_countdown == 0) {
+      return NULL;
+    }
+  }
+  return malloc(sz);
+}
+
+/**
+ * @brief Exercises all OOM and I/O error branches across
+ * `cdd_generate_to_openapi`, `cdd_generate_docs_json` (OpenAPI + webhooks +
+ * Arazzo), and `cdd_generate_to_arazzo`.
+ * @return Greatest test result.
+ */
+TEST test_cdd_api_oom_and_io_branches(void) {
+  const char *oa_part1 =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"R\",\"version\":\"1\"},"
+      "\"paths\":{\"/pets\":{\"post\":{\"operationId\":\"createPet\","
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},";
+  const char *oa_part2 =
+      "\"webhooks\":{\"newPet\":{\"post\":{\"operationId\":\"onNewPet\","
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
+  const char *az_json = "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"Flow\","
+                        "\"version\":\"1.0.0\"},"
+                        "\"sourceDescriptions\":[{\"name\":\"api\",\"url\":\"./"
+                        "oa.json\",\"type\":\"openapi\"}],"
+                        "\"workflows\":[{\"workflowId\":\"wf1\",\"steps\":[{"
+                        "\"stepId\":\"s1\",\"operationId\":\"op1\"}]}]}";
+  char oa_buf[1024];
+  cdd_c_error_t last_rc = CDD_C_ERROR_UNKNOWN;
+  int step;
+
+  CDD_STRCPY(oa_buf, sizeof(oa_buf), oa_part1);
+  CDD_STRCAT(oa_buf, sizeof(oa_buf), oa_part2);
+
+  ASSERT_EQ(CDD_C_SUCCESS, makedirs("test_build_dir/api_cov_snap"));
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      fs_write_to_file("test_build_dir/api_cov_snap/openapi.snapshot.json",
+                       "{invalid_json"));
+  {
+    cdd_to_openapi_config_t to_cfg;
+    memset(&to_cfg, 0, sizeof(to_cfg));
+    to_cfg.input = "test_build_dir/api_cov_snap";
+    to_cfg.output = "test_build_dir/api_cov_snap/out.json";
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_to_openapi(&to_cfg));
+  }
+  remove("test_build_dir/api_cov_snap/openapi.snapshot.json");
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            fs_write_to_file("test_build_dir/api_cov_oa.json", oa_buf));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            fs_write_to_file("test_build_dir/api_cov_az.json", az_json));
+
+  /* Directory collision on docs.json inside output directory */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            makedirs("test_build_dir/api_cov_dir_out/docs.json"));
+  {
+    cdd_docs_json_config_t dcfg;
+    memset(&dcfg, 0, sizeof(dcfg));
+    dcfg.input = "test_build_dir/api_cov_oa.json";
+    dcfg.output = "test_build_dir/api_cov_dir_out";
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_docs_json(&dcfg));
+
+    dcfg.input = "test_build_dir/api_cov_az.json";
+    dcfg.output = "test_build_dir/api_cov_dir_out";
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_docs_json(&dcfg));
+  }
+
+  /* Sweep JSON DOM OOM across OpenAPI (with webhooks) and Arazzo docs_json */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_set_allocation_functions(cdd_api_test_json_malloc, free));
+  for (step = 1; step <= 2000; ++step) {
+    cdd_docs_json_config_t dcfg;
+    memset(&dcfg, 0, sizeof(dcfg));
+    dcfg.input = "test_build_dir/api_cov_oa.json";
+    dcfg.output = "test_build_dir/api_cov_docs_out.json";
+    g_cdd_api_json_oom_countdown = step;
+    last_rc = cdd_generate_docs_json(&dcfg);
+    g_cdd_api_json_oom_countdown = 0;
+    if (last_rc == CDD_C_SUCCESS) {
+      break;
+    }
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, last_rc);
+  last_rc = CDD_C_ERROR_UNKNOWN;
+  for (step = 1; step <= 2000; ++step) {
+    cdd_docs_json_config_t dcfg;
+    memset(&dcfg, 0, sizeof(dcfg));
+    dcfg.input = "test_build_dir/api_cov_az.json";
+    dcfg.output = "test_build_dir/api_cov_docs_az_out.json";
+    g_cdd_api_json_oom_countdown = step;
+    last_rc = cdd_generate_docs_json(&dcfg);
+    g_cdd_api_json_oom_countdown = 0;
+    if (last_rc == CDD_C_SUCCESS) {
+      break;
+    }
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, last_rc);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+
+  /* Unwritable output file (existing directory) in cdd_generate_to_arazzo */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            fs_write_to_file("test_build_dir/api_cov_tiny.c", "int x = 1;\n"));
+  {
+    cdd_to_arazzo_config_t tacfg;
+    memset(&tacfg, 0, sizeof(tacfg));
+    tacfg.input = "test_build_dir/api_cov_tiny.c";
+    tacfg.output = "test_build_dir/api_cov_dir_out";
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_to_arazzo(&tacfg));
+  }
+
+  /* Malformed .dsl file in cdd_generate_bindings */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            fs_write_to_file("test_build_dir/api_cov_bad.dsl", "func (\n"));
+  {
+    cdd_generate_bindings_config_t bcfg;
+    memset(&bcfg, 0, sizeof(bcfg));
+    bcfg.input = "test_build_dir/api_cov_bad.dsl";
+    bcfg.output_dir = "test_build_dir";
+    bcfg.target_langs = "c";
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_generate_bindings(&bcfg));
+  }
+  remove("test_build_dir/api_cov_bad.dsl");
+
+  remove("test_build_dir/api_cov_tiny.c");
+  remove("test_build_dir/api_cov_oa.json");
+  remove("test_build_dir/api_cov_az.json");
+  remove("test_build_dir/api_cov_docs_out.json");
+  remove("test_build_dir/api_cov_docs_az_out.json");
+  PASS();
+}
+
 /**
  * @brief Executes the cdd_api_suite test suite.
  */
@@ -919,6 +1070,7 @@ SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_bindings_from_dsl);
   RUN_TEST(test_cdd_generate_bindings_json);
   RUN_TEST(test_cdd_api_cli_reflect_roundtrip);
+  RUN_TEST(test_cdd_api_oom_and_io_branches);
 }
 
 #ifdef __cplusplus

@@ -51,11 +51,16 @@ GREATEST_MAIN_DEFS();
 /**
  * @brief Setup: Create a basic enum member list for testing.
  * @param[in,out] em Parameter em.
+ * @return `CDD_C_SUCCESS` on success, or an error code.
  */
-static void setup_basic_enum(struct EnumMembers *em) {
-  enum_members_init(em);
-  enum_members_add(em, "RED");
-  enum_members_add(em, "GREEN");
+static cdd_c_error_t setup_basic_enum(struct EnumMembers *em) {
+  cdd_c_error_t rc = enum_members_init(em);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = enum_members_add(em, "RED");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return enum_members_add(em, "GREEN");
 }
 
 /**
@@ -64,18 +69,18 @@ static void setup_basic_enum(struct EnumMembers *em) {
  */
 TEST test_enum_to_str_basic(void) {
   FILE *tmp;
+  struct EnumMembers em;
+  long sz;
+  char *content = NULL;
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
   tmp = cdd_test_tmpfile_global();
 #endif
-  struct EnumMembers em;
-  long sz;
-  char *content = NULL;
 
   ASSERT(tmp != NULL);
-  setup_basic_enum(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, setup_basic_enum(&em));
 
   ASSERT_EQ(0, write_enum_to_str_func(tmp, "Color", &em, NULL));
 
@@ -96,7 +101,7 @@ TEST test_enum_to_str_basic(void) {
   ASSERT(strstr(content, "case Color_UNKNOWN:"));
 
   free(content);
-  enum_members_free(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_free(&em));
   if (tmp)
     fclose(tmp);
   g_fail_io_after = -1;
@@ -109,18 +114,18 @@ TEST test_enum_to_str_basic(void) {
  */
 TEST test_enum_from_str_basic(void) {
   FILE *tmp;
+  struct EnumMembers em;
+  long sz;
+  char *content = NULL;
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
   tmp = cdd_test_tmpfile_global();
 #endif
-  struct EnumMembers em;
-  long sz;
-  char *content = NULL;
 
   ASSERT(tmp != NULL);
-  setup_basic_enum(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, setup_basic_enum(&em));
 
   ASSERT_EQ(0, write_enum_from_str_func(tmp, "Color", &em, NULL));
 
@@ -141,7 +146,7 @@ TEST test_enum_from_str_basic(void) {
   ASSERT(strstr(content, "*val = Color_UNKNOWN;"));
 
   free(content);
-  enum_members_free(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_free(&em));
   if (tmp)
     fclose(tmp);
   g_fail_io_after = -1;
@@ -154,20 +159,19 @@ TEST test_enum_from_str_basic(void) {
  */
 TEST test_enum_guards(void) {
   FILE *tmp;
+  struct EnumMembers em;
+  struct CodegenEnumConfig config;
+  long sz;
+  char *content = NULL;
 #if defined(_MSC_VER)
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
   tmp = cdd_test_tmpfile_global();
 #endif
-  struct EnumMembers em;
-  struct CodegenEnumConfig config;
-  long sz;
-  char *content = NULL;
 
   ASSERT(tmp != NULL);
-  setup_basic_enum(&em);
-
+  ASSERT_EQ(CDD_C_SUCCESS, setup_basic_enum(&em));
   memset(&config, 0, sizeof(config));
   config.guard_macro = cdd_test_mut_str("USE_ENUMS");
 
@@ -178,13 +182,14 @@ TEST test_enum_guards(void) {
   rewind(tmp);
 
   content = (char *)calloc(1, (size_t)sz + 1);
+  ASSERT(content != NULL);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "#ifdef USE_ENUMS"));
   ASSERT(strstr(content, "#endif /* USE_ENUMS */"));
 
   free(content);
-  enum_members_free(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_free(&em));
   if (tmp)
     fclose(tmp);
   g_fail_io_after = -1;
@@ -205,7 +210,7 @@ TEST test_enum_null_safety(void) {
   f = cdd_test_tmpfile_global();
 #endif /* Valid file */
 
-  setup_basic_enum(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, setup_basic_enum(&em));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_enum_to_str_func(NULL, "E", &em, NULL));
@@ -223,7 +228,7 @@ TEST test_enum_null_safety(void) {
 
   if (f)
     fclose(f);
-  enum_members_free(&em);
+  ASSERT_EQ(CDD_C_SUCCESS, enum_members_free(&em));
   g_fail_io_after = -1;
   PASS();
 }

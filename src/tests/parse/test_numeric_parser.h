@@ -242,6 +242,8 @@ TEST test_parse_errors(void) {
   struct NumericValue nv;
   /* Bad hex */
   ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0xZZ", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("08", &nv));
+  ASSERT_EQ(CDD_C_SUCCESS, parse_numeric_literal("0xff", &nv));
 
   ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0x", &nv));
   ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0b", &nv));
