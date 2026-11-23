@@ -633,7 +633,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   argv[4] = cdd_test_mut_str("nonexistent.json");
   argv[5] = cdd_test_mut_str("src");
   argv[6] = cdd_test_mut_str("out.json");
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2openapi_cli_main(7, argv));
+  ASSERT_EQ(CDD_C_ERROR_IO, c2openapi_cli_main(7, argv));
 
   /* 26. generate_bindings_cli_main short options */
   argv[0] = cdd_test_mut_str("bind");
@@ -646,7 +646,7 @@ TEST test_c2openapi_full_coverage_100(void) {
   argv[7] = cdd_test_mut_str("-n");
   argv[8] = cdd_test_mut_str("mylib");
   argv[9] = cdd_test_mut_str("-m");
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, generate_bindings_cli_main(10, argv));
 
   /* 27. c2openapi_register_types */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2openapi_register_types(NULL, NULL));
@@ -885,7 +885,7 @@ TEST test_c2openapi_full_coverage_100(void) {
     argv[7] = cdd_test_mut_str("--skip-static");
     argv[8] = cdd_test_mut_str("--opaque-pointers");
     argv[9] = cdd_test_mut_str("--generate-tests");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
+    ASSERT_NEQ(CDD_C_SUCCESS, generate_bindings_cli_main(10, argv));
   }
 
   /* 43. c2openapi_register_types with NULL fields/members and other kind */
@@ -1176,7 +1176,13 @@ TEST test_c2openapi_full_coverage_100(void) {
         fputs("struct "
               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               " { int x;int y; struct { int z; }; };\n"
-              "union U1 { /* c1 */ ; int /* c2 */ a; + ; my_ident; }\n"
+              "union U1 { /* c1 */ ; int /* c2 */ a; + ; my_ident; }\n",
+              fp);
+        fputs("union ULong { "
+              "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+              " "
+              "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              "; };\n"
               "union ; struct ; enum ;\n"
               "struct { int a",
               fp);

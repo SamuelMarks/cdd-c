@@ -30,6 +30,10 @@ extern volatile int g_fail_io_after;
  */
 static cdd_c_error_t map_groovy_jna_type(cdd_ffi_type_t *t,
                                          const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
@@ -165,14 +169,19 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "class %s extends Structure {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *gt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)map_groovy_jna_type(
-                                               &node->fields[j].type, &gt));
+        rc_emit = map_groovy_jna_type(&node->fields[j].type, &gt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    public %s %s\n", gt, node->fields[j].name);
       }
       fprintf(f, "\n    @Override\n");
@@ -195,17 +204,24 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_gt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_groovy_jna_type(
-                                    &node->return_or_base_type, &ret_gt));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
+      rc_emit = map_groovy_jna_type(&node->return_or_base_type, &ret_gt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "    %s %s(", ret_gt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *gt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)map_groovy_jna_type(
-                                               &node->fields[j].type, &gt));
+        rc_emit = map_groovy_jna_type(&node->fields[j].type, &gt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", gt, node->fields[j].name);
       }
       fprintf(f, ")\n");

@@ -176,6 +176,8 @@ static NO_DISCARD cdd_c_error_t fortran_scope_register(fortran_scope_t *scope,
   cdd_c_error_t rc;
 
   rc = cdd_ffi_snprintf_checked(base, sizeof(base), "%s", io_ident);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (;;) {
     size_t i;
@@ -193,9 +195,10 @@ static NO_DISCARD cdd_c_error_t fortran_scope_register(fortran_scope_t *scope,
       char sfx[24];
       size_t sfx_len;
       size_t base_len;
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(sfx, sizeof(sfx), "_%lu",
-                                       (unsigned long)suffix_num++));
+      rc = cdd_ffi_snprintf_checked(sfx, sizeof(sfx), "_%lu",
+                                    (unsigned long)suffix_num++);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       sfx_len = strlen(sfx);
       base_len = strlen(base);
       if (base_len + sfx_len > max_len) {
@@ -234,6 +237,10 @@ static NO_DISCARD cdd_c_error_t fortran_is_reserved(const char *word,
   size_t i;
   size_t count;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_reserved = 0;
   count = sizeof(k_fortran_keywords) / sizeof(k_fortran_keywords[0]);
   for (i = 0; i < count; i++) {
@@ -256,6 +263,10 @@ static NO_DISCARD cdd_c_error_t fortran_is_reserved(const char *word,
 static NO_DISCARD cdd_c_error_t fortran_hash16(const char *s,
                                                unsigned int *out_hash) {
   unsigned int h = 2166136261u;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   while (*s != '\0') {
     h ^= (unsigned int)(unsigned char)(*s++);
     h *= 16777619u;
@@ -288,6 +299,11 @@ NO_DISCARD cdd_c_error_t cdd_fortran_sanitize_ident(const char *c_ident,
 
   if (!out_buf || out_cap < 8)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
 
   if (!c_ident || c_ident[0] == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "arg_%lu",
@@ -330,23 +346,24 @@ NO_DISCARD cdd_c_error_t cdd_fortran_sanitize_ident(const char *c_ident,
   if (pos > eff_max) {
     unsigned int h = 0;
     size_t keep;
-    rc = cdd_c_keep_err(rc, fortran_hash16(c_ident, &h));
+    rc = fortran_hash16(c_ident, &h);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     keep = eff_max - 5;
     tmp[keep] = '\0';
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(out_buf, out_cap, "%s_%04x", tmp, h));
+    return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s_%04x", tmp, h);
   }
 
-  rc = cdd_c_keep_err(rc, fortran_is_reserved(tmp, &is_res));
+  rc = fortran_is_reserved(tmp, &is_res);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (is_res) {
     if (pos + 1 > eff_max)
       tmp[eff_max - 1] = '\0';
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(out_buf, out_cap, "%s_", tmp));
+    return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s_", tmp);
   }
 
-  return cdd_c_keep_err(rc,
-                        cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", tmp));
+  return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", tmp);
 }
 
 /*
@@ -525,8 +542,12 @@ static NO_DISCARD cdd_c_error_t fortran_write_line_fmt(FILE *fp,
 
   va_start(ap, fmt);
   rc = cdd_ffi_vsnprintf_checked(buf, sizeof(buf), fmt, ap);
+  if (rc != CDD_C_SUCCESS) {
+    va_end(ap);
+    return rc;
+  }
   va_end(ap);
-  return cdd_c_keep_err(rc, cdd_fortran_write_wrapped_line(fp, buf));
+  return cdd_fortran_write_wrapped_line(fp, buf);
 }
 
 /**
@@ -550,8 +571,13 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_int_literal(
   size_t dpos = 0;
   int neg = 0;
 
-  if (raw[0] == '\0')
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+  if (raw[0] == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+  }
 
   p = raw;
   while (memchr(" \t(", (unsigned char)*p, 3) != NULL)
@@ -569,15 +595,17 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_int_literal(
   while (len > 0 && memchr(" \t)uUlL", (unsigned char)p[len - 1], 7) != NULL) {
     len--;
   }
-  if (len == 0)
+  if (len == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+  }
 
   if (len > 2 && p[0] == '0' && memchr("xX", (unsigned char)p[1], 2) != NULL) {
     for (i = 2; i < len && dpos + 1 < sizeof(digits); i++) {
       if (p[i] == '\'')
         continue;
-      if (!isxdigit((unsigned char)p[i]))
+      if (!isxdigit((unsigned char)p[i])) {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+      }
       digits[dpos++] = (char)toupper((unsigned char)p[i]);
     }
     digits[dpos] = '\0';
@@ -589,8 +617,9 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_int_literal(
     for (i = 2; i < len && dpos + 1 < sizeof(digits); i++) {
       if (p[i] == '\'')
         continue;
-      if (p[i] != '0' && p[i] != '1')
+      if (p[i] != '0' && p[i] != '1') {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+      }
       digits[dpos++] = p[i];
     }
     digits[dpos] = '\0';
@@ -602,8 +631,9 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_int_literal(
     for (i = 1; i < len && dpos + 1 < sizeof(digits); i++) {
       if (p[i] == '\'')
         continue;
-      if (p[i] < '0' || p[i] > '7')
+      if (p[i] < '0' || p[i] > '7') {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+      }
       digits[dpos++] = p[i];
     }
     digits[dpos] = '\0';
@@ -614,13 +644,15 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_int_literal(
   for (i = 0; i < len && dpos + 1 < sizeof(digits); i++) {
     if (p[i] == '\'')
       continue;
-    if (!isdigit((unsigned char)p[i]))
+    if (!isdigit((unsigned char)p[i])) {
       return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+    }
     digits[dpos++] = p[i];
   }
   digits[dpos] = '\0';
-  if (dpos == 0)
+  if (dpos == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "0_%s", kind_name);
+  }
   return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s%s_%s", neg ? "-" : "",
                                   digits, kind_name);
 }
@@ -641,8 +673,13 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_float_literal(
   size_t i;
   int has_dot = 0;
 
-  if (raw[0] == '\0')
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+  if (raw[0] == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0.0_C_DOUBLE");
+  }
 
   for (i = 0; raw[i] != '\0' && pos + 4 < sizeof(clean); i++) {
     char c = raw[i];
@@ -655,8 +692,9 @@ static NO_DISCARD cdd_c_error_t fortran_normalize_float_literal(
       clean[pos++] = c;
     }
   }
-  if (pos == 0)
+  if (pos == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0.0_C_DOUBLE");
+  }
   if (!has_dot) {
     clean[pos++] = '.';
     clean[pos++] = '0';
@@ -681,6 +719,10 @@ static NO_DISCARD cdd_c_error_t fortran_resolve_ref(
     const cdd_ffi_ir_node_t **out_node, const char **out_fname) {
   size_t i;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_node = NULL;
   *out_fname = NULL;
   if (!ref_name)
@@ -715,6 +757,10 @@ static NO_DISCARD cdd_c_error_t fortran_import_add(char *io_list,
   char tmp[1024];
   cdd_c_error_t rc;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   sym_len = strlen(sym);
   p = io_list;
   while ((p = strstr(p, sym)) != NULL) {
@@ -729,8 +775,9 @@ static NO_DISCARD cdd_c_error_t fortran_import_add(char *io_list,
     return cdd_ffi_snprintf_checked(io_list, list_cap, "%s", sym);
   }
   rc = cdd_ffi_snprintf_checked(tmp, sizeof(tmp), "%s, %s", io_list, sym);
-  return cdd_c_keep_err(rc,
-                        cdd_ffi_snprintf_checked(io_list, list_cap, "%s", tmp));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return cdd_ffi_snprintf_checked(io_list, list_cap, "%s", tmp);
 }
 
 /**
@@ -760,46 +807,70 @@ static NO_DISCARD cdd_c_error_t fortran_map_base_type(
   *out_is_bindable = 1;
 
   switch (type->kind) {
-  case CDD_FFI_KIND_BOOL:
+  case CDD_FFI_KIND_BOOL: {
     imp = "C_BOOL";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "LOGICAL(C_BOOL)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   case CDD_FFI_KIND_INT8:
-  case CDD_FFI_KIND_UINT8:
+  case CDD_FFI_KIND_UINT8: {
     imp = "C_INT8_T";
     rc =
         cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "INTEGER(C_INT8_T)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   case CDD_FFI_KIND_INT16:
-  case CDD_FFI_KIND_UINT16:
+  case CDD_FFI_KIND_UINT16: {
     imp = "C_INT16_T";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s",
                                   "INTEGER(C_INT16_T)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   case CDD_FFI_KIND_INT32:
-  case CDD_FFI_KIND_UINT32:
+  case CDD_FFI_KIND_UINT32: {
     imp = "C_INT32_T";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s",
                                   "INTEGER(C_INT32_T)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   case CDD_FFI_KIND_INT64:
-  case CDD_FFI_KIND_UINT64:
+  case CDD_FFI_KIND_UINT64: {
     imp = "C_INT64_T";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s",
                                   "INTEGER(C_INT64_T)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_FLOAT32:
+  }
+  case CDD_FFI_KIND_FLOAT32: {
     imp = "C_FLOAT";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "REAL(C_FLOAT)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_FLOAT64:
+  }
+  case CDD_FFI_KIND_FLOAT64: {
     imp = "C_DOUBLE";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "REAL(C_DOUBLE)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_ENUM_REF:
+  }
+  case CDD_FFI_KIND_ENUM_REF: {
     imp = "C_INT";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "INTEGER(C_INT)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   case CDD_FFI_KIND_TYPEDEF_REF: {
     const cdd_ffi_ir_node_t *rn = NULL;
     const char *rfn = NULL;
@@ -808,19 +879,23 @@ static NO_DISCARD cdd_c_error_t fortran_map_base_type(
       imp = "C_SIZE_T";
       rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s",
                                     "INTEGER(C_SIZE_T)");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       break;
     }
     rc = fortran_resolve_ref(ir, node_fnames, type->ref_name, &rn, &rfn);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (rn && rn->kind == CDD_FFI_NODE_TYPEDEF) {
-      return cdd_c_keep_err(
-          rc, fortran_map_base_type(ir, node_fnames, &rn->return_or_base_type,
-                                    out_spec, spec_cap, io_imports, imports_cap,
-                                    out_is_bindable));
+      return fortran_map_base_type(ir, node_fnames, &rn->return_or_base_type,
+                                   out_spec, spec_cap, io_imports, imports_cap,
+                                   out_is_bindable);
     }
     *out_is_bindable = 0;
     imp = "C_PTR";
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)"));
+    rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
   }
   case CDD_FFI_KIND_STRUCT_REF:
@@ -828,40 +903,52 @@ static NO_DISCARD cdd_c_error_t fortran_map_base_type(
     const cdd_ffi_ir_node_t *rn = NULL;
     const char *rfn = NULL;
     rc = fortran_resolve_ref(ir, node_fnames, type->ref_name, &rn, &rfn);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (rn &&
         (rn->kind == CDD_FFI_NODE_STRUCT || rn->kind == CDD_FFI_NODE_UNION)) {
       if (rn->fields_count == 0) {
         *out_is_bindable = 0;
       }
       imp = rfn;
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(out_spec, spec_cap, "TYPE(%s)", rfn));
+      rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "TYPE(%s)", rfn);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else {
       *out_is_bindable = 0;
       imp = "C_PTR";
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s",
-                                                       "TYPE(C_PTR)"));
+      rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     break;
   }
-  case CDD_FFI_KIND_FUNCTION_PTR:
+  case CDD_FFI_KIND_FUNCTION_PTR: {
     *out_is_bindable = 0;
     imp = "C_FUNPTR";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_FUNPTR)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   case CDD_FFI_KIND_VOID:
   case CDD_FFI_KIND_OPAQUE_PTR:
-  default:
+  default: {
     *out_is_bindable = 0;
     imp = "C_PTR";
     rc = cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   }
 
   if (io_imports) {
-    rc = cdd_c_keep_err(rc, fortran_import_add(io_imports, imports_cap, imp));
+    rc = fortran_import_add(io_imports, imports_cap, imp);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -899,19 +986,21 @@ static NO_DISCARD cdd_c_error_t fortran_format_param_decl(
 
     if (fld->type.kind == CDD_FFI_KIND_INT8) {
       rc = fortran_import_add(io_imports, imports_cap, "C_CHAR");
-      return cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(
-                  out_decl, decl_cap,
-                  "      CHARACTER(KIND=C_CHAR), DIMENSION(%ld)%s :: %s",
-                  fld->type.array_size, intent_attr, arg_name));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      return cdd_ffi_snprintf_checked(
+          out_decl, decl_cap,
+          "      CHARACTER(KIND=C_CHAR), DIMENSION(%ld)%s :: %s",
+          fld->type.array_size, intent_attr, arg_name);
     }
     rc = fortran_map_base_type(ir, node_fnames, &fld->type, base_spec,
                                sizeof(base_spec), io_imports, imports_cap,
                                &is_bindable);
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  out_decl, decl_cap,
-                                  "      %s, DIMENSION(%ld)%s :: %s", base_spec,
-                                  fld->type.array_size, intent_attr, arg_name));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return cdd_ffi_snprintf_checked(
+        out_decl, decl_cap, "      %s, DIMENSION(%ld)%s :: %s", base_spec,
+        fld->type.array_size, intent_attr, arg_name);
   }
 
   /* Pass-by-value C scalars, function pointers, opaque handles, and structs */
@@ -919,9 +1008,10 @@ static NO_DISCARD cdd_c_error_t fortran_format_param_decl(
     rc = fortran_map_base_type(ir, node_fnames, &fld->type, base_spec,
                                sizeof(base_spec), io_imports, imports_cap,
                                &is_bindable);
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(out_decl, decl_cap,
-                                                       "      %s, VALUE :: %s",
-                                                       base_spec, arg_name));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return cdd_ffi_snprintf_checked(out_decl, decl_cap, "      %s, VALUE :: %s",
+                                    base_spec, arg_name);
   }
 
   /* Single-indirection C pointers (`pointer_depth == 1`) */
@@ -933,12 +1023,12 @@ static NO_DISCARD cdd_c_error_t fortran_format_param_decl(
         fld->intent != CDD_FFI_INTENT_OUT &&
         fld->intent != CDD_FFI_INTENT_INOUT) {
       rc = fortran_import_add(io_imports, imports_cap, "C_CHAR");
-      return cdd_c_keep_err(
-          rc,
-          cdd_ffi_snprintf_checked(
-              out_decl, decl_cap,
-              "      CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(IN) :: %s",
-              arg_name));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      return cdd_ffi_snprintf_checked(
+          out_decl, decl_cap,
+          "      CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(IN) :: %s",
+          arg_name);
     }
 
     if (fld->type.kind != CDD_FFI_KIND_VOID &&
@@ -947,10 +1037,13 @@ static NO_DISCARD cdd_c_error_t fortran_format_param_decl(
       char trial_imports[1024];
       rc = cdd_ffi_snprintf_checked(trial_imports, sizeof(trial_imports), "%s",
                                     io_imports);
-      rc = cdd_c_keep_err(
-          rc, fortran_map_base_type(ir, node_fnames, &fld->type, base_spec,
-                                    sizeof(base_spec), trial_imports,
-                                    sizeof(trial_imports), &is_bindable));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = fortran_map_base_type(ir, node_fnames, &fld->type, base_spec,
+                                 sizeof(base_spec), trial_imports,
+                                 sizeof(trial_imports), &is_bindable);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
 
       if (is_bindable) {
         const char *ptr_intent = NULL;
@@ -962,13 +1055,13 @@ static NO_DISCARD cdd_c_error_t fortran_format_param_decl(
           ptr_intent = "IN";
         }
         if (ptr_intent) {
-          rc = cdd_c_keep_err(rc,
-                              cdd_ffi_snprintf_checked(io_imports, imports_cap,
-                                                       "%s", trial_imports));
-          return cdd_c_keep_err(
-              rc, cdd_ffi_snprintf_checked(out_decl, decl_cap,
-                                           "      %s, INTENT(%s) :: %s",
-                                           base_spec, ptr_intent, arg_name));
+          rc = cdd_ffi_snprintf_checked(io_imports, imports_cap, "%s",
+                                        trial_imports);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          return cdd_ffi_snprintf_checked(out_decl, decl_cap,
+                                          "      %s, INTENT(%s) :: %s",
+                                          base_spec, ptr_intent, arg_name);
         }
       }
     }
@@ -976,9 +1069,10 @@ static NO_DISCARD cdd_c_error_t fortran_format_param_decl(
 
   /* Generic `void *`, opaque struct pointers, unannotated pointers, `T **` */
   rc = fortran_import_add(io_imports, imports_cap, "C_PTR");
-  return cdd_c_keep_err(
-      rc, cdd_ffi_snprintf_checked(out_decl, decl_cap,
-                                   "      TYPE(C_PTR), VALUE :: %s", arg_name));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return cdd_ffi_snprintf_checked(out_decl, decl_cap,
+                                  "      TYPE(C_PTR), VALUE :: %s", arg_name);
 }
 
 /**
@@ -1003,31 +1097,33 @@ static NO_DISCARD cdd_c_error_t fortran_format_return_spec(
   if (ret_type->pointer_depth > 0 ||
       ret_type->kind == CDD_FFI_KIND_OPAQUE_PTR) {
     if (io_imports) {
-      rc = cdd_c_keep_err(rc,
-                          fortran_import_add(io_imports, imports_cap, "C_PTR"));
+      rc = fortran_import_add(io_imports, imports_cap, "C_PTR");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)"));
+    return cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)");
   }
   if (ret_type->kind == CDD_FFI_KIND_FUNCTION_PTR) {
     if (io_imports) {
-      rc = cdd_c_keep_err(
-          rc, fortran_import_add(io_imports, imports_cap, "C_FUNPTR"));
+      rc = fortran_import_add(io_imports, imports_cap, "C_FUNPTR");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s",
-                                                       "TYPE(C_FUNPTR)"));
+    return cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_FUNPTR)");
   }
   rc = fortran_map_base_type(ir, node_fnames, ret_type, out_spec, spec_cap,
                              io_imports, imports_cap, &is_bindable);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!is_bindable) {
     if (io_imports) {
-      rc = cdd_c_keep_err(rc,
-                          fortran_import_add(io_imports, imports_cap, "C_PTR"));
+      rc = fortran_import_add(io_imports, imports_cap, "C_PTR");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)"));
+    return cdd_ffi_snprintf_checked(out_spec, spec_cap, "%s", "TYPE(C_PTR)");
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1059,10 +1155,10 @@ static NO_DISCARD cdd_c_error_t fortran_emit_callback_abstract_iface(
   imports[0] = '\0';
   ret_spec[0] = '\0';
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(iface_reg, sizeof(iface_reg),
-                                                   "%s", iface_name));
-  rc = cdd_c_keep_err(
-      rc, fortran_scope_register(&arg_scope, iface_reg, sizeof(iface_reg)));
+  rc = cdd_ffi_snprintf_checked(iface_reg, sizeof(iface_reg), "%s", iface_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = fortran_scope_register(&arg_scope, iface_reg, sizeof(iface_reg));
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
@@ -1076,11 +1172,11 @@ static NO_DISCARD cdd_c_error_t fortran_emit_callback_abstract_iface(
   }
 
   for (k = 0; k < fp_type->fn_params_count; k++) {
-    rc = cdd_c_keep_err(
-        rc, cdd_fortran_sanitize_ident(fp_type->fn_params[k].name, k,
-                                       arg_names[k], sizeof(arg_names[k])));
-    rc = cdd_c_keep_err(rc, fortran_scope_register(&arg_scope, arg_names[k],
-                                                   sizeof(arg_names[k])));
+    rc = cdd_fortran_sanitize_ident(fp_type->fn_params[k].name, k, arg_names[k],
+                                    sizeof(arg_names[k]));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = fortran_scope_register(&arg_scope, arg_names[k], sizeof(arg_names[k]));
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
   }
@@ -1092,28 +1188,33 @@ static NO_DISCARD cdd_c_error_t fortran_emit_callback_abstract_iface(
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                              header_line, sizeof(header_line), "    %s %s(",
-                              is_void ? "SUBROUTINE" : "FUNCTION", iface_name));
+  rc =
+      cdd_ffi_snprintf_checked(header_line, sizeof(header_line), "    %s %s(",
+                               is_void ? "SUBROUTINE" : "FUNCTION", iface_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   for (k = 0; k < fp_type->fn_params_count; k++) {
     char next_hdr[2048];
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(
-                next_hdr, sizeof(next_hdr), "%s%s%s", header_line, arg_names[k],
-                (k + 1 < fp_type->fn_params_count) ? ", " : ""));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(header_line,
-                                                     sizeof(header_line), "%s",
-                                                     next_hdr));
+    rc = cdd_ffi_snprintf_checked(
+        next_hdr, sizeof(next_hdr), "%s%s%s", header_line, arg_names[k],
+        (k + 1 < fp_type->fn_params_count) ? ", " : "");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = cdd_ffi_snprintf_checked(header_line, sizeof(header_line), "%s",
+                                  next_hdr);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
   {
     char next_hdr[2048];
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(next_hdr, sizeof(next_hdr),
-                                     "%s) BIND(C)%s", header_line,
-                                     is_void ? "" : " RESULT(cdd_ret_)"));
-    rc = cdd_c_keep_err(rc, cdd_fortran_write_wrapped_line(fp, next_hdr));
+    rc = cdd_ffi_snprintf_checked(next_hdr, sizeof(next_hdr), "%s) BIND(C)%s",
+                                  header_line,
+                                  is_void ? "" : " RESULT(cdd_ret_)");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = cdd_fortran_write_wrapped_line(fp, next_hdr);
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
   }
@@ -1121,21 +1222,22 @@ static NO_DISCARD cdd_c_error_t fortran_emit_callback_abstract_iface(
   /* Collect IMPORT symbols before emitting declarations */
   for (k = 0; k < fp_type->fn_params_count; k++) {
     char dummy_decl[512];
-    rc = cdd_c_keep_err(rc, fortran_format_param_decl(
-                                ir, node_fnames, &fp_type->fn_params[k],
-                                arg_names[k], dummy_decl, sizeof(dummy_decl),
-                                imports, sizeof(imports)));
+    rc = fortran_format_param_decl(ir, node_fnames, &fp_type->fn_params[k],
+                                   arg_names[k], dummy_decl, sizeof(dummy_decl),
+                                   imports, sizeof(imports));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (!is_void) {
-    rc = cdd_c_keep_err(
-        rc, fortran_format_return_spec(ir, node_fnames, fp_type->fn_return_type,
-                                       ret_spec, sizeof(ret_spec), imports,
-                                       sizeof(imports)));
+    rc = fortran_format_return_spec(ir, node_fnames, fp_type->fn_return_type,
+                                    ret_spec, sizeof(ret_spec), imports,
+                                    sizeof(imports));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
   if (imports[0] != '\0') {
-    rc = cdd_c_keep_err(
-        rc, fortran_write_line_fmt(fp, "      IMPORT :: %s", imports));
+    rc = fortran_write_line_fmt(fp, "      IMPORT :: %s", imports);
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
   }
@@ -1145,11 +1247,12 @@ static NO_DISCARD cdd_c_error_t fortran_emit_callback_abstract_iface(
 
   for (k = 0; k < fp_type->fn_params_count; k++) {
     char decl_line[512];
-    rc = cdd_c_keep_err(rc, fortran_format_param_decl(
-                                ir, node_fnames, &fp_type->fn_params[k],
-                                arg_names[k], decl_line, sizeof(decl_line),
-                                imports, sizeof(imports)));
-    rc = cdd_c_keep_err(rc, cdd_fortran_write_wrapped_line(fp, decl_line));
+    rc = fortran_format_param_decl(ir, node_fnames, &fp_type->fn_params[k],
+                                   arg_names[k], decl_line, sizeof(decl_line),
+                                   imports, sizeof(imports));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = cdd_fortran_write_wrapped_line(fp, decl_line);
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
   }
@@ -1168,10 +1271,15 @@ static NO_DISCARD cdd_c_error_t fortran_emit_callback_abstract_iface(
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
   rc = cdd_ffi_write_str(fp, "\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
 cleanup:
   C_CDD_FREE(arg_names);
-  return cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
+  {
+    cdd_c_error_t sf = fortran_scope_free(&arg_scope);
+    return cdd_c_keep_err(rc, sf);
+  }
 }
 
 /**
@@ -1184,6 +1292,10 @@ cleanup:
  */
 static NO_DISCARD cdd_c_error_t
 fortran_is_const_cstr_param(const cdd_ffi_field_t *fld, int *out_is_cstr) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_is_cstr =
       (fld->type.pointer_depth == 1 && fld->type.array_size <= 0 &&
        (fld->type.kind == CDD_FFI_KIND_INT8 ||
@@ -1205,6 +1317,10 @@ fortran_is_const_cstr_param(const cdd_ffi_field_t *fld, int *out_is_cstr) {
  */
 static NO_DISCARD cdd_c_error_t
 fortran_is_cstr_return(const cdd_ffi_type_t *ret_type, int *out_is_cstr_ret) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_is_cstr_ret =
       (ret_type->pointer_depth == 1 && ret_type->array_size <= 0 &&
        ret_type->kind == CDD_FFI_KIND_INT8)
@@ -1242,7 +1358,10 @@ static NO_DISCARD cdd_c_error_t emit_fortran_fpm_and_tests(
                          "[build]\n"
                          "link = [\"%s\"]\n",
                          lib_stem, lib_stem);
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  }
+  rc = cdd_ffi_close_output_file(&fp);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -1253,10 +1372,12 @@ static NO_DISCARD cdd_c_error_t emit_fortran_fpm_and_tests(
 
     rc = cdd_ffi_snprintf_checked(test_file, sizeof(test_file), "%s_test.f90",
                                   mod_name);
-    rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(test_file, 0, test_prog,
-                                                       sizeof(test_prog)));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_open_output_file(config->output_dir, test_file, &fp));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_fortran_sanitize_ident(test_file, 0, test_prog, sizeof(test_prog));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_open_output_file(config->output_dir, test_file, &fp);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
@@ -1299,22 +1420,30 @@ static NO_DISCARD cdd_c_error_t emit_fortran_fpm_and_tests(
           rc = fortran_write_line_fmt(
               fp, "  IF (C_SIZEOF(v_%lu) /= %lu_C_SIZE_T) STOP 1",
               (unsigned long)i, (unsigned long)node->size_bytes);
+          if (rc != CDD_C_SUCCESS)
+            goto test_cleanup;
         } else {
           rc = fortran_write_line_fmt(
               fp, "  IF (C_SIZEOF(v_%lu) <= 0_C_SIZE_T) STOP 1",
               (unsigned long)i);
+          if (rc != CDD_C_SUCCESS)
+            goto test_cleanup;
         }
-        if (rc != CDD_C_SUCCESS)
-          goto test_cleanup;
       }
     }
 
     rc = fortran_write_line_fmt(fp, "END PROGRAM %s", test_prog);
+    if (rc != CDD_C_SUCCESS)
+      goto test_cleanup;
 
-  test_cleanup:
-    rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  test_cleanup: {
+    cdd_c_error_t close_rc = cdd_ffi_close_output_file(&fp);
+    if (close_rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, close_rc);
+    }
     if (rc != CDD_C_SUCCESS)
       return rc;
+  }
   }
 
   return CDD_C_SUCCESS;
@@ -1352,27 +1481,34 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
   memset(&mod_scope, 0, sizeof(mod_scope));
 
   /* Ensure struct and union ABI sizes are populated */
-  rc = cdd_ffi_ir_compute_layout(ir, NULL);
-  if (rc == CDD_C_ERROR_NOT_FOUND) {
-    cdd_ffi_abi_profile_t relaxed_abi;
-    rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &relaxed_abi);
-    relaxed_abi.allow_unresolved_refs = 1;
-    rc = cdd_c_keep_err(rc, cdd_ffi_ir_compute_layout(ir, &relaxed_abi));
+  {
+    cdd_c_error_t lrc = cdd_ffi_ir_compute_layout(ir, NULL);
+    if (lrc != CDD_C_SUCCESS) {
+      cdd_ffi_abi_profile_t relaxed_abi;
+      if (lrc != CDD_C_ERROR_NOT_FOUND)
+        return lrc;
+      rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &relaxed_abi);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      relaxed_abi.allow_unresolved_refs = 1;
+      rc = cdd_ffi_ir_compute_layout(ir, &relaxed_abi);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
   }
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
   raw_lib = config->library_name
                 ? config->library_name
                 : (ir->module_name ? ir->module_name : "mylib");
   raw_mod = config->module_name ? config->module_name : "mylib_bindings";
 
-  rc = cdd_c_keep_err(
-      rc, cdd_fortran_sanitize_ident(raw_lib, 0, lib_stem, sizeof(lib_stem)));
-  rc = cdd_c_keep_err(
-      rc, cdd_fortran_sanitize_ident(raw_mod, 0, mod_name, sizeof(mod_name)));
-  rc = cdd_c_keep_err(
-      rc, fortran_scope_register(&mod_scope, mod_name, sizeof(mod_name)));
+  rc = cdd_fortran_sanitize_ident(raw_lib, 0, lib_stem, sizeof(lib_stem));
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = cdd_fortran_sanitize_ident(raw_mod, 0, mod_name, sizeof(mod_name));
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = fortran_scope_register(&mod_scope, mod_name, sizeof(mod_name));
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
@@ -1384,10 +1520,10 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
     }
     for (i = 0; i < ir->nodes_count; i++) {
       char sbuf[FORTRAN_MAX_IDENT_LEN + 1];
-      rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(ir->nodes[i].name, i,
-                                                         sbuf, sizeof(sbuf)));
-      rc = cdd_c_keep_err(
-          rc, fortran_scope_register(&mod_scope, sbuf, sizeof(sbuf)));
+      rc = cdd_fortran_sanitize_ident(ir->nodes[i].name, i, sbuf, sizeof(sbuf));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = fortran_scope_register(&mod_scope, sbuf, sizeof(sbuf));
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       node_fnames[i] = C_CDD_STRDUP(sbuf);
@@ -1398,10 +1534,10 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
     }
   }
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(mod_file, sizeof(mod_file),
-                                                   "%s.f90", mod_name));
-  rc = cdd_c_keep_err(
-      rc, cdd_ffi_open_output_file(config->output_dir, mod_file, &f));
+  rc = cdd_ffi_snprintf_checked(mod_file, sizeof(mod_file), "%s.f90", mod_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = cdd_ffi_open_output_file(config->output_dir, mod_file, &f);
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
@@ -1451,21 +1587,22 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
 
       if (node->inferred_type == CDD_FFI_MACRO_TYPE_INT) {
         char norm[160];
-        rc = cdd_c_keep_err(rc, fortran_normalize_int_literal(
-                                    raw_val, "C_INT64_T", norm, sizeof(norm)));
-        rc = cdd_c_keep_err(rc,
-                            fortran_write_line_fmt(
-                                f, "  INTEGER(C_INT64_T), PARAMETER :: %s = %s",
-                                node_fnames[i], norm));
+        rc = fortran_normalize_int_literal(raw_val, "C_INT64_T", norm,
+                                           sizeof(norm));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = fortran_write_line_fmt(
+            f, "  INTEGER(C_INT64_T), PARAMETER :: %s = %s", node_fnames[i],
+            norm);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       } else if (node->inferred_type == CDD_FFI_MACRO_TYPE_FLOAT) {
         char norm[160];
-        rc = cdd_c_keep_err(
-            rc, fortran_normalize_float_literal(raw_val, norm, sizeof(norm)));
-        rc = cdd_c_keep_err(rc, fortran_write_line_fmt(
-                                    f, "  REAL(C_DOUBLE), PARAMETER :: %s = %s",
-                                    node_fnames[i], norm));
+        rc = fortran_normalize_float_literal(raw_val, norm, sizeof(norm));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = fortran_write_line_fmt(f, "  REAL(C_DOUBLE), PARAMETER :: %s = %s",
+                                    node_fnames[i], norm);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       } else if (node->inferred_type == CDD_FFI_MACRO_TYPE_STRING) {
@@ -1503,10 +1640,10 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
           }
-          rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(
-                                      var->name, j, v_name, sizeof(v_name)));
-          rc = cdd_c_keep_err(
-              rc, fortran_scope_register(&mod_scope, v_name, sizeof(v_name)));
+          rc = cdd_fortran_sanitize_ident(var->name, j, v_name, sizeof(v_name));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc = fortran_scope_register(&mod_scope, v_name, sizeof(v_name));
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
 
@@ -1514,17 +1651,18 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
                       ? var->number_details->raw_spelling
                       : var->value;
           if (v_src) {
-            rc =
-                cdd_c_keep_err(rc, fortran_normalize_int_literal(
-                                       v_src, "C_INT", v_expr, sizeof(v_expr)));
+            rc = fortran_normalize_int_literal(v_src, "C_INT", v_expr,
+                                               sizeof(v_expr));
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
           } else {
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_snprintf_checked(v_expr, sizeof(v_expr),
-                                             "%lu_C_INT", (unsigned long)j));
+            rc = cdd_ffi_snprintf_checked(v_expr, sizeof(v_expr), "%lu_C_INT",
+                                          (unsigned long)j);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
           }
-          rc = cdd_c_keep_err(
-              rc, fortran_write_line_fmt(f, "    ENUMERATOR :: %s = %s", v_name,
-                                         v_expr));
+          rc = fortran_write_line_fmt(f, "    ENUMERATOR :: %s = %s", v_name,
+                                      v_expr);
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
         }
@@ -1559,48 +1697,55 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
             rc = cdd_ffi_emit_translated_doc(f, fld->doc, "    ",
                                              &k_fortran_comment_style);
             if (rc != CDD_C_SUCCESS)
-              break;
+              goto cleanup_field_scope;
           }
-          rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(
-                                      fld->name, j, f_name, sizeof(f_name)));
-          rc = cdd_c_keep_err(
-              rc, fortran_scope_register(&field_scope, f_name, sizeof(f_name)));
+          rc = cdd_fortran_sanitize_ident(fld->name, j, f_name, sizeof(f_name));
           if (rc != CDD_C_SUCCESS)
-            break;
+            goto cleanup_field_scope;
+          rc = fortran_scope_register(&field_scope, f_name, sizeof(f_name));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_field_scope;
 
           if (fld->type.pointer_depth > 0 ||
               fld->type.kind == CDD_FFI_KIND_OPAQUE_PTR) {
-            rc = cdd_c_keep_err(rc,
-                                cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec),
-                                                         "%s", "TYPE(C_PTR)"));
+            rc = cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
+                                          "TYPE(C_PTR)");
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_field_scope;
           } else if (fld->type.kind == CDD_FFI_KIND_FUNCTION_PTR) {
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
-                                             "TYPE(C_FUNPTR)"));
+            rc = cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
+                                          "TYPE(C_FUNPTR)");
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_field_scope;
           } else if (fld->type.array_size > 0 &&
                      fld->type.kind == CDD_FFI_KIND_INT8) {
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
-                                             "CHARACTER(KIND=C_CHAR)"));
+            rc = cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
+                                          "CHARACTER(KIND=C_CHAR)");
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_field_scope;
           } else {
             int bind_ok = 0;
-            rc = cdd_c_keep_err(
-                rc, fortran_map_base_type(ir, node_fnames, &fld->type, f_spec,
-                                          sizeof(f_spec), NULL, 0, &bind_ok));
+            rc = fortran_map_base_type(ir, node_fnames, &fld->type, f_spec,
+                                       sizeof(f_spec), NULL, 0, &bind_ok);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_field_scope;
           }
 
           if (fld->type.array_size > 0) {
-            rc = cdd_c_keep_err(rc, fortran_write_line_fmt(
-                                        f, "    %s, DIMENSION(%ld) :: %s",
-                                        f_spec, fld->type.array_size, f_name));
+            rc = fortran_write_line_fmt(f, "    %s, DIMENSION(%ld) :: %s",
+                                        f_spec, fld->type.array_size, f_name);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_field_scope;
           } else {
-            rc = cdd_c_keep_err(
-                rc, fortran_write_line_fmt(f, "    %s :: %s", f_spec, f_name));
+            rc = fortran_write_line_fmt(f, "    %s :: %s", f_spec, f_name);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_field_scope;
           }
-          if (rc != CDD_C_SUCCESS)
-            break;
         }
-        rc = cdd_c_keep_err(rc, fortran_scope_free(&field_scope));
+      cleanup_field_scope: {
+        cdd_c_error_t sf = fortran_scope_free(&field_scope);
+        rc = (cdd_c_error_t)((int)rc | (int)sf);
+      }
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1636,13 +1781,15 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
           !node->return_or_base_type.fn_is_variadic) {
         char cb_iface[FORTRAN_MAX_IDENT_LEN + 1];
         char raw_iface[128];
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(raw_iface, sizeof(raw_iface), "%s_cb",
-                                         node_fnames[i]));
-        rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(
-                                    raw_iface, i, cb_iface, sizeof(cb_iface)));
-        rc = cdd_c_keep_err(
-            rc, fortran_scope_register(&mod_scope, cb_iface, sizeof(cb_iface)));
+        rc = cdd_ffi_snprintf_checked(raw_iface, sizeof(raw_iface), "%s_cb",
+                                      node_fnames[i]);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_fortran_sanitize_ident(raw_iface, i, cb_iface,
+                                        sizeof(cb_iface));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = fortran_scope_register(&mod_scope, cb_iface, sizeof(cb_iface));
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc = fortran_emit_callback_abstract_iface(f, ir, node_fnames, cb_iface,
@@ -1668,14 +1815,16 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
             fld->type.fn_return_type && !fld->type.fn_is_variadic) {
           char raw_cb[128];
           char cb_iface[FORTRAN_MAX_IDENT_LEN + 1];
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_snprintf_checked(raw_cb, sizeof(raw_cb), "%s_%s_cb",
-                                           node_fnames[i],
-                                           fld->name ? fld->name : "fn"));
-          rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(
-                                      raw_cb, j, cb_iface, sizeof(cb_iface)));
-          rc = cdd_c_keep_err(rc, fortran_scope_register(&mod_scope, cb_iface,
-                                                         sizeof(cb_iface)));
+          rc = cdd_ffi_snprintf_checked(raw_cb, sizeof(raw_cb), "%s_%s_cb",
+                                        node_fnames[i],
+                                        fld->name ? fld->name : "fn");
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc =
+              cdd_fortran_sanitize_ident(raw_cb, j, cb_iface, sizeof(cb_iface));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc = fortran_scope_register(&mod_scope, cb_iface, sizeof(cb_iface));
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
           rc = fortran_emit_callback_abstract_iface(f, ir, node_fnames,
@@ -1733,46 +1882,42 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
     imports[0] = '\0';
     ret_spec[0] = '\0';
 
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(fn_reg, sizeof(fn_reg),
-                                                     "%s", node_fnames[i]));
-    rc = cdd_c_keep_err(
-        rc, fortran_scope_register(&arg_scope, fn_reg, sizeof(fn_reg)));
-    if (rc != CDD_C_SUCCESS) {
-      rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
-      goto cleanup;
-    }
+    rc = cdd_ffi_snprintf_checked(fn_reg, sizeof(fn_reg), "%s", node_fnames[i]);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
+    rc = fortran_scope_register(&arg_scope, fn_reg, sizeof(fn_reg));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
 
     if (node->fields_count > 0) {
       arg_names = (char(*)[FORTRAN_MAX_IDENT_LEN + 1])
           C_CDD_CALLOC(node->fields_count, sizeof(*arg_names));
       if (!arg_names) {
-        rc = cdd_c_keep_err(CDD_C_ERROR_MEMORY, fortran_scope_free(&arg_scope));
-        goto cleanup;
+        rc = CDD_C_ERROR_MEMORY;
+        goto cleanup_fn_arg;
       }
     }
 
     for (j = 0; j < node->fields_count; j++) {
       int is_cs = 0;
-      rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(node->fields[j].name,
-                                                         j, arg_names[j],
-                                                         sizeof(arg_names[j])));
-      rc = cdd_c_keep_err(rc, fortran_scope_register(&arg_scope, arg_names[j],
-                                                     sizeof(arg_names[j])));
+      rc = cdd_fortran_sanitize_ident(node->fields[j].name, j, arg_names[j],
+                                      sizeof(arg_names[j]));
       if (rc != CDD_C_SUCCESS)
-        break;
-      rc = cdd_c_keep_err(
-          rc, fortran_is_const_cstr_param(&node->fields[j], &is_cs));
+        goto cleanup_fn_arg;
+      rc = fortran_scope_register(&arg_scope, arg_names[j],
+                                  sizeof(arg_names[j]));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
+      rc = fortran_is_const_cstr_param(&node->fields[j], &is_cs);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
       if (is_cs)
         fn_has_cstr_arg = 1;
     }
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(arg_names);
-      rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
-      goto cleanup;
-    }
 
-    rc = cdd_c_keep_err(rc, fortran_is_cstr_return(&node->return_or_base_type,
-                                                   &fn_has_cstr_ret));
+    rc = fortran_is_cstr_return(&node->return_or_base_type, &fn_has_cstr_ret);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
     if (fn_has_cstr_arg)
       has_cstr_arg_wrapper = 1;
     if (fn_has_cstr_ret)
@@ -1781,77 +1926,86 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
     is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                node->return_or_base_type.pointer_depth == 0);
 
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(sig_line, sizeof(sig_line), "    %s %s(",
-                                     is_void ? "SUBROUTINE" : "FUNCTION",
-                                     node_fnames[i]));
+    rc = cdd_ffi_snprintf_checked(sig_line, sizeof(sig_line), "    %s %s(",
+                                  is_void ? "SUBROUTINE" : "FUNCTION",
+                                  node_fnames[i]);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
     for (j = 0; j < node->fields_count; j++) {
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  next_sig, sizeof(next_sig), "%s%s%s",
-                                  sig_line, arg_names[j],
-                                  (j + 1 < node->fields_count) ? ", " : ""));
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  sig_line, sizeof(sig_line), "%s", next_sig));
+      rc = cdd_ffi_snprintf_checked(next_sig, sizeof(next_sig), "%s%s%s",
+                                    sig_line, arg_names[j],
+                                    (j + 1 < node->fields_count) ? ", " : "");
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
+      rc = cdd_ffi_snprintf_checked(sig_line, sizeof(sig_line), "%s", next_sig);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
     }
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(next_sig, sizeof(next_sig),
-                                     "%s) BIND(C, NAME=\"%s\")%s", sig_line,
-                                     node->name ? node->name : node_fnames[i],
-                                     is_void ? "" : " RESULT(cdd_ret_)"));
-    rc = cdd_c_keep_err(rc, cdd_fortran_write_wrapped_line(f, next_sig));
-    if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(arg_names);
-      rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
-      goto cleanup;
-    }
+    rc = cdd_ffi_snprintf_checked(next_sig, sizeof(next_sig),
+                                  "%s) BIND(C, NAME=\"%s\")%s", sig_line,
+                                  node->name ? node->name : node_fnames[i],
+                                  is_void ? "" : " RESULT(cdd_ret_)");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
+    rc = cdd_fortran_write_wrapped_line(f, next_sig);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
 
     /* Pre-scan declarations to build selective IMPORT :: list */
     for (j = 0; j < node->fields_count; j++) {
       char dummy_decl[512];
-      rc = cdd_c_keep_err(rc, fortran_format_param_decl(
-                                  ir, node_fnames, &node->fields[j],
-                                  arg_names[j], dummy_decl, sizeof(dummy_decl),
-                                  imports, sizeof(imports)));
+      rc = fortran_format_param_decl(
+          ir, node_fnames, &node->fields[j], arg_names[j], dummy_decl,
+          sizeof(dummy_decl), imports, sizeof(imports));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
     }
     if (!is_void) {
-      rc = cdd_c_keep_err(rc, fortran_format_return_spec(
-                                  ir, node_fnames, &node->return_or_base_type,
-                                  ret_spec, sizeof(ret_spec), imports,
-                                  sizeof(imports)));
+      rc = fortran_format_return_spec(
+          ir, node_fnames, &node->return_or_base_type, ret_spec,
+          sizeof(ret_spec), imports, sizeof(imports));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
     }
     if (imports[0] != '\0') {
-      rc = cdd_c_keep_err(
-          rc, fortran_write_line_fmt(f, "      IMPORT :: %s", imports));
+      rc = fortran_write_line_fmt(f, "      IMPORT :: %s", imports);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
     }
-    if (rc == CDD_C_SUCCESS) {
-      rc = cdd_fortran_write_wrapped_line(f, "      IMPLICIT NONE");
+    rc = cdd_fortran_write_wrapped_line(f, "      IMPLICIT NONE");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
+    for (j = 0; j < node->fields_count; j++) {
+      char decl_line[512];
+      rc = fortran_format_param_decl(ir, node_fnames, &node->fields[j],
+                                     arg_names[j], decl_line, sizeof(decl_line),
+                                     imports, sizeof(imports));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
+      rc = cdd_fortran_write_wrapped_line(f, decl_line);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
     }
-    if (rc == CDD_C_SUCCESS) {
-      for (j = 0; j < node->fields_count; j++) {
-        char decl_line[512];
-        rc = cdd_c_keep_err(rc, fortran_format_param_decl(
-                                    ir, node_fnames, &node->fields[j],
-                                    arg_names[j], decl_line, sizeof(decl_line),
-                                    imports, sizeof(imports)));
-        rc = cdd_c_keep_err(rc, cdd_fortran_write_wrapped_line(f, decl_line));
-        if (rc != CDD_C_SUCCESS)
-          break;
-      }
-    }
-    if (rc == CDD_C_SUCCESS && !is_void) {
+    if (!is_void) {
       rc = fortran_write_line_fmt(f, "      %s :: cdd_ret_", ret_spec);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_fn_arg;
     }
-    if (rc == CDD_C_SUCCESS) {
-      rc = fortran_write_line_fmt(f, "    END %s %s",
-                                  is_void ? "SUBROUTINE" : "FUNCTION",
-                                  node_fnames[i]);
-    }
-    if (rc == CDD_C_SUCCESS) {
-      rc = cdd_ffi_write_str(f, "\n");
-    }
+    rc = fortran_write_line_fmt(f, "    END %s %s",
+                                is_void ? "SUBROUTINE" : "FUNCTION",
+                                node_fnames[i]);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
+    rc = cdd_ffi_write_str(f, "\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_fn_arg;
 
+  cleanup_fn_arg:
     C_CDD_FREE(arg_names);
-    rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
+    {
+      cdd_c_error_t sf = fortran_scope_free(&arg_scope);
+      rc = (cdd_c_error_t)((int)rc | (int)sf);
+    }
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
   }
@@ -1925,43 +2079,49 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
         if (fld->type.array_size > 0)
           continue;
 
-        rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(fld->name, j, f_name,
-                                                           sizeof(f_name)));
+        rc = cdd_fortran_sanitize_ident(fld->name, j, f_name, sizeof(f_name));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
 
         if (fld->type.pointer_depth > 0 ||
             fld->type.kind == CDD_FFI_KIND_OPAQUE_PTR) {
-          rc = cdd_c_keep_err(rc,
-                              cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec),
-                                                       "%s", "TYPE(C_PTR)"));
+          rc = cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
+                                        "TYPE(C_PTR)");
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else if (fld->type.kind == CDD_FFI_KIND_FUNCTION_PTR) {
-          rc = cdd_c_keep_err(rc,
-                              cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec),
-                                                       "%s", "TYPE(C_FUNPTR)"));
+          rc = cdd_ffi_snprintf_checked(f_spec, sizeof(f_spec), "%s",
+                                        "TYPE(C_FUNPTR)");
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else {
-          rc = cdd_c_keep_err(
-              rc, fortran_map_base_type(ir, node_fnames, &fld->type, f_spec,
-                                        sizeof(f_spec), NULL, 0, &bind_ok));
+          rc = fortran_map_base_type(ir, node_fnames, &fld->type, f_spec,
+                                     sizeof(f_spec), NULL, 0, &bind_ok);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
           if (!bind_ok)
             continue;
         }
 
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(raw_get, sizeof(raw_get), "%s_get_%s",
-                                         node_fnames[i], f_name));
-        rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(raw_get, j, get_name,
-                                                           sizeof(get_name)));
-        rc = cdd_c_keep_err(
-            rc, fortran_scope_register(&mod_scope, get_name, sizeof(get_name)));
+        rc = cdd_ffi_snprintf_checked(raw_get, sizeof(raw_get), "%s_get_%s",
+                                      node_fnames[i], f_name);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_fortran_sanitize_ident(raw_get, j, get_name, sizeof(get_name));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = fortran_scope_register(&mod_scope, get_name, sizeof(get_name));
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
 
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(raw_set, sizeof(raw_set), "%s_set_%s",
-                                         node_fnames[i], f_name));
-        rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(raw_set, j, set_name,
-                                                           sizeof(set_name)));
-        rc = cdd_c_keep_err(
-            rc, fortran_scope_register(&mod_scope, set_name, sizeof(set_name)));
+        rc = cdd_ffi_snprintf_checked(raw_set, sizeof(raw_set), "%s_set_%s",
+                                      node_fnames[i], f_name);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_fortran_sanitize_ident(raw_set, j, set_name, sizeof(set_name));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = fortran_scope_register(&mod_scope, set_name, sizeof(set_name));
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
 
@@ -2030,158 +2190,172 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
       char next_hdr[2048];
       char call_args[2048];
 
+      memset(&arg_scope, 0, sizeof(arg_scope));
+
       if (node->kind != CDD_FFI_NODE_FUNCTION || node->is_variadic)
         continue;
 
       for (j = 0; j < node->fields_count; j++) {
         int cs = 0;
-        rc = cdd_c_keep_err(rc,
-                            fortran_is_const_cstr_param(&node->fields[j], &cs));
+        rc = fortran_is_const_cstr_param(&node->fields[j], &cs);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
         if (cs)
           fn_cstr_arg = 1;
       }
-      rc = cdd_c_keep_err(
-          rc, fortran_is_cstr_return(&node->return_or_base_type, &fn_cstr_ret));
+      rc = fortran_is_cstr_return(&node->return_or_base_type, &fn_cstr_ret);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
       if (!fn_cstr_arg && !fn_cstr_ret)
         continue;
 
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(raw_wrap, sizeof(raw_wrap),
-                                                   "%s_str", node_fnames[i]));
-      rc = cdd_c_keep_err(rc, cdd_fortran_sanitize_ident(raw_wrap, i, wrap_name,
-                                                         sizeof(wrap_name)));
-      rc = cdd_c_keep_err(
-          rc, fortran_scope_register(&mod_scope, wrap_name, sizeof(wrap_name)));
+      rc = cdd_ffi_snprintf_checked(raw_wrap, sizeof(raw_wrap), "%s_str",
+                                    node_fnames[i]);
       if (rc != CDD_C_SUCCESS)
-        goto cleanup;
+        goto cleanup_wrap_arg;
+      rc =
+          cdd_fortran_sanitize_ident(raw_wrap, i, wrap_name, sizeof(wrap_name));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
+      rc = fortran_scope_register(&mod_scope, wrap_name, sizeof(wrap_name));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
 
-      memset(&arg_scope, 0, sizeof(arg_scope));
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  wrap_reg, sizeof(wrap_reg), "%s", wrap_name));
-      rc = cdd_c_keep_err(
-          rc, fortran_scope_register(&arg_scope, wrap_reg, sizeof(wrap_reg)));
-      if (rc != CDD_C_SUCCESS) {
-        rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
-        goto cleanup;
-      }
+      rc =
+          cdd_ffi_snprintf_checked(wrap_reg, sizeof(wrap_reg), "%s", wrap_name);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
+      rc = fortran_scope_register(&arg_scope, wrap_reg, sizeof(wrap_reg));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
 
       if (node->fields_count > 0) {
         arg_names = (char(*)[FORTRAN_MAX_IDENT_LEN + 1])
             C_CDD_CALLOC(node->fields_count, sizeof(*arg_names));
         if (!arg_names) {
-          rc = cdd_c_keep_err(CDD_C_ERROR_MEMORY,
-                              fortran_scope_free(&arg_scope));
-          goto cleanup;
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup_wrap_arg;
         }
       }
       for (j = 0; j < node->fields_count; j++) {
-        rc = cdd_c_keep_err(
-            rc, cdd_fortran_sanitize_ident(node->fields[j].name, j,
-                                           arg_names[j], sizeof(arg_names[j])));
-        rc = cdd_c_keep_err(rc, fortran_scope_register(&arg_scope, arg_names[j],
-                                                       sizeof(arg_names[j])));
+        rc = cdd_fortran_sanitize_ident(node->fields[j].name, j, arg_names[j],
+                                        sizeof(arg_names[j]));
         if (rc != CDD_C_SUCCESS)
-          break;
-      }
-      if (rc != CDD_C_SUCCESS) {
-        C_CDD_FREE(arg_names);
-        rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
-        goto cleanup;
+          goto cleanup_wrap_arg;
+        rc = fortran_scope_register(&arg_scope, arg_names[j],
+                                    sizeof(arg_names[j]));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
       }
 
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
 
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(hdr, sizeof(hdr), "  %s %s(",
-                                       is_void ? "SUBROUTINE" : "FUNCTION",
-                                       wrap_name));
+      rc = cdd_ffi_snprintf_checked(hdr, sizeof(hdr), "  %s %s(",
+                                    is_void ? "SUBROUTINE" : "FUNCTION",
+                                    wrap_name);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
       call_args[0] = '\0';
       for (j = 0; j < node->fields_count; j++) {
         int cs = 0;
         char next_call[2048];
-        rc = cdd_c_keep_err(rc,
-                            fortran_is_const_cstr_param(&node->fields[j], &cs));
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                    next_hdr, sizeof(next_hdr), "%s%s%s", hdr,
-                                    arg_names[j],
-                                    (j + 1 < node->fields_count) ? ", " : ""));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(hdr, sizeof(hdr), "%s", next_hdr));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(
-                    next_call, sizeof(next_call),
-                    cs ? "%sTRIM(%s) // C_NULL_CHAR%s" : "%s%s%s", call_args,
-                    arg_names[j], (j + 1 < node->fields_count) ? ", " : ""));
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(call_args,
-                                                         sizeof(call_args),
-                                                         "%s", next_call));
+        rc = fortran_is_const_cstr_param(&node->fields[j], &cs);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = cdd_ffi_snprintf_checked(next_hdr, sizeof(next_hdr), "%s%s%s", hdr,
+                                      arg_names[j],
+                                      (j + 1 < node->fields_count) ? ", " : "");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = cdd_ffi_snprintf_checked(hdr, sizeof(hdr), "%s", next_hdr);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = cdd_ffi_snprintf_checked(
+            next_call, sizeof(next_call),
+            cs ? "%sTRIM(%s) // C_NULL_CHAR%s" : "%s%s%s", call_args,
+            arg_names[j], (j + 1 < node->fields_count) ? ", " : "");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = cdd_ffi_snprintf_checked(call_args, sizeof(call_args), "%s",
+                                      next_call);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
       }
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(next_hdr, sizeof(next_hdr), "%s)%s", hdr,
-                                       is_void ? "" : " RESULT(cdd_ret_)"));
-      rc = cdd_c_keep_err(rc, cdd_fortran_write_wrapped_line(f, next_hdr));
+      rc = cdd_ffi_snprintf_checked(next_hdr, sizeof(next_hdr), "%s)%s", hdr,
+                                    is_void ? "" : " RESULT(cdd_ret_)");
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
+      rc = cdd_fortran_write_wrapped_line(f, next_hdr);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
 
-      if (rc == CDD_C_SUCCESS) {
-        for (j = 0; j < node->fields_count; j++) {
-          int cs = 0;
-          rc = cdd_c_keep_err(
-              rc, fortran_is_const_cstr_param(&node->fields[j], &cs));
-          if (cs) {
-            rc = cdd_c_keep_err(
-                rc,
-                fortran_write_line_fmt(
-                    f, "    CHARACTER(LEN=*), INTENT(IN) :: %s", arg_names[j]));
-          } else {
-            char decl_line[512];
-            char dummy_imp[128];
-            dummy_imp[0] = '\0';
-            rc = cdd_c_keep_err(
-                rc, fortran_format_param_decl(ir, node_fnames, &node->fields[j],
-                                              arg_names[j], decl_line,
-                                              sizeof(decl_line), dummy_imp,
-                                              sizeof(dummy_imp)));
-            rc = cdd_c_keep_err(
-                rc, cdd_fortran_write_wrapped_line(f, decl_line + 2));
-          }
+      for (j = 0; j < node->fields_count; j++) {
+        int cs = 0;
+        rc = fortran_is_const_cstr_param(&node->fields[j], &cs);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        if (cs) {
+          rc = fortran_write_line_fmt(
+              f, "    CHARACTER(LEN=*), INTENT(IN) :: %s", arg_names[j]);
           if (rc != CDD_C_SUCCESS)
-            break;
-        }
-      }
-
-      if (rc == CDD_C_SUCCESS) {
-        if (is_void) {
-          rc = fortran_write_line_fmt(f, "    CALL %s(%s)", node_fnames[i],
-                                      call_args);
-        } else if (fn_cstr_ret) {
-          rc = cdd_fortran_write_wrapped_line(
-              f, "    CHARACTER(LEN=:), ALLOCATABLE :: cdd_ret_");
-          if (rc == CDD_C_SUCCESS) {
-            rc = fortran_write_line_fmt(
-                f, "    cdd_ret_ = cdd_c_ptr_to_f_string(%s(%s))",
-                node_fnames[i], call_args);
-          }
+            goto cleanup_wrap_arg;
         } else {
-          char ret_spec[256];
-          rc = cdd_c_keep_err(rc,
-                              fortran_format_return_spec(
-                                  ir, node_fnames, &node->return_or_base_type,
-                                  ret_spec, sizeof(ret_spec), NULL, 0));
-          rc = cdd_c_keep_err(
-              rc, fortran_write_line_fmt(f, "    %s :: cdd_ret_", ret_spec));
-          if (rc == CDD_C_SUCCESS) {
-            rc = fortran_write_line_fmt(f, "    cdd_ret_ = %s(%s)",
-                                        node_fnames[i], call_args);
-          }
+          char decl_line[512];
+          char dummy_imp[128];
+          dummy_imp[0] = '\0';
+          rc = fortran_format_param_decl(
+              ir, node_fnames, &node->fields[j], arg_names[j], decl_line,
+              sizeof(decl_line), dummy_imp, sizeof(dummy_imp));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_wrap_arg;
+          rc = cdd_fortran_write_wrapped_line(f, decl_line + 2);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_wrap_arg;
         }
       }
-      if (rc == CDD_C_SUCCESS) {
-        rc = fortran_write_line_fmt(
-            f, "  END %s %s\n", is_void ? "SUBROUTINE" : "FUNCTION", wrap_name);
-      }
 
+      if (is_void) {
+        rc = fortran_write_line_fmt(f, "    CALL %s(%s)", node_fnames[i],
+                                    call_args);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+      } else if (fn_cstr_ret) {
+        rc = cdd_fortran_write_wrapped_line(
+            f, "    CHARACTER(LEN=:), ALLOCATABLE :: cdd_ret_");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = fortran_write_line_fmt(
+            f, "    cdd_ret_ = cdd_c_ptr_to_f_string(%s(%s))", node_fnames[i],
+            call_args);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+      } else {
+        char ret_spec[256];
+        rc = fortran_format_return_spec(ir, node_fnames,
+                                        &node->return_or_base_type, ret_spec,
+                                        sizeof(ret_spec), NULL, 0);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = fortran_write_line_fmt(f, "    %s :: cdd_ret_", ret_spec);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+        rc = fortran_write_line_fmt(f, "    cdd_ret_ = %s(%s)", node_fnames[i],
+                                    call_args);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_wrap_arg;
+      }
+      rc = fortran_write_line_fmt(
+          f, "  END %s %s\n", is_void ? "SUBROUTINE" : "FUNCTION", wrap_name);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_wrap_arg;
+
+    cleanup_wrap_arg:
       C_CDD_FREE(arg_names);
-      rc = cdd_c_keep_err(rc, fortran_scope_free(&arg_scope));
+      {
+        cdd_c_error_t sf = fortran_scope_free(&arg_scope);
+        rc = (cdd_c_error_t)((int)rc | (int)sf);
+      }
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
@@ -2191,21 +2365,24 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_fortran(
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&f));
+  rc = cdd_ffi_close_output_file(&f);
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
   rc = emit_fortran_fpm_and_tests(ir, config, lib_stem, mod_name, node_fnames);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
 cleanup:
-  if (f) {
-    rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&f));
-  }
   if (node_fnames) {
     for (i = 0; i < ir->nodes_count; i++) {
       C_CDD_FREE(node_fnames[i]);
     }
     C_CDD_FREE(node_fnames);
+  }
+  if (f) {
+    return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_ffi_close_output_file(&f)),
+                          fortran_scope_free(&mod_scope));
   }
   return cdd_c_keep_err(rc, fortran_scope_free(&mod_scope));
 }

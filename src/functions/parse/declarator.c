@@ -248,11 +248,11 @@ cdd_c_error_t decl_info_init(struct DeclInfo *info) {
  * @param[in] t Node to free.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_decl_type(struct DeclType *t) {
+static cdd_c_error_t decl_type_free(struct DeclType *t) {
   cdd_c_error_t rc;
   if (!t)
     return CDD_C_SUCCESS;
-  rc = free_decl_type(t->inner);
+  rc = decl_type_free(t->inner);
   switch (t->kind) {
   case DECL_BASE:
     if (t->data.base.name)
@@ -282,7 +282,6 @@ static cdd_c_error_t free_decl_type(struct DeclType *t) {
  * @return CDD_C_SUCCESS.
  */
 cdd_c_error_t decl_info_free(struct DeclInfo *info) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!info)
     return CDD_C_SUCCESS;
   if (info->identifier) {
@@ -290,10 +289,11 @@ cdd_c_error_t decl_info_free(struct DeclInfo *info) {
     info->identifier = NULL;
   }
   if (info->type) {
-    rc = free_decl_type(info->type);
+    struct DeclType *t = info->type;
     info->type = NULL;
+    return decl_type_free(t);
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -800,9 +800,10 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
 
 error:
   if (node) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_decl_type(node));
+    return cdd_c_keep_err(cdd_c_keep_err(rc, decl_type_free(node)),
+                          decl_info_free(out_info));
   }
-  return (cdd_c_error_t)((int)rc | (int)decl_info_free(out_info));
+  return cdd_c_keep_err(rc, decl_info_free(out_info));
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -908,6 +909,6 @@ cdd_c_error_t cdd_test_find_pivot(const struct TokenList *tokens, size_t start,
  * @return CDD_C_SUCCESS.
  */
 cdd_c_error_t cdd_test_free_decl_type(struct DeclType *t) {
-  return free_decl_type(t);
+  return decl_type_free(t);
 }
 #endif

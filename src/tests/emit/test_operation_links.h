@@ -368,12 +368,14 @@ TEST test_operation_ensure_response_for_code_oom(void) {
   memset(&op, 0, sizeof(op));
 
   g_cdd_strdup_fail = 1;
-  ASSERT_EQ(CDD_C_SUCCESS, ensure_response_for_code(&op, "200", &out_resp));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            ensure_response_for_code(&op, "200", &out_resp));
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(NULL, out_resp);
 
   g_cdd_strdup_fail = 2;
-  ASSERT_EQ(CDD_C_SUCCESS, ensure_response_for_code(&op, "200", &out_resp));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            ensure_response_for_code(&op, "200", &out_resp));
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(NULL, out_resp);
 

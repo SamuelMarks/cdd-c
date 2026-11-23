@@ -465,6 +465,26 @@ TEST test_cdd_cst_scope_extensions(void) {
                 cdd_cst_symbol_add_field(sym, "oom", "int", 0, 0));
       g_cdd_alloc_fail = 0;
     }
+    for (f = 1; f <= 20; f++) {
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = f;
+      s_rc = cdd_cst_scope_find_for_node(env, &n_leaf, &sc);
+      if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+      g_cdd_step_fail = 0;
+    }
+    for (f = 1; f <= 20; f++) {
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = f;
+      s_rc = cdd_cst_scope_remap_ast_node(env, &n_blk, &n_blk);
+      if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+      g_cdd_step_fail = 0;
+    }
   }
 #endif
 

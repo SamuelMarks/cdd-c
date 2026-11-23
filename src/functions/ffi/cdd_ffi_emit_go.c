@@ -137,8 +137,11 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "type %s int32\n", node->name);
@@ -162,8 +165,11 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "type %s struct {\n", node->name);
@@ -175,9 +181,11 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *gtype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_go_type(node->fields[j].type, &gtype));
+        rc_emit = get_go_type(node->fields[j].type, &gtype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "func (s *%s) Get%s() %s {\n", node->name, fname, gtype);
         fprintf(f, "    return (%s)(s.inner.%s)\n", gtype, fname);
         fprintf(f, "}\n\n");
@@ -190,8 +198,11 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_gtype = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "func %s(", node->name);
@@ -203,15 +214,20 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
           arg_name = "func_";
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)get_go_type(node->fields[j].type, &gt));
+        rc_emit = get_go_type(node->fields[j].type, &gt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s %s", arg_name, gt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_go_type(node->return_or_base_type,
-                                                 &ret_gtype));
+      rc_emit = get_go_type(node->return_or_base_type, &ret_gtype);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, ") %s {\n", ret_gtype);
 
       fprintf(f, "    ");
@@ -227,9 +243,11 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
           arg_name = "func_";
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_go_c_type(node->fields[j].type, &gct));
+        rc_emit = get_go_c_type(node->fields[j].type, &gct);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "(%s)(%s)", gct, arg_name);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -244,7 +262,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   }
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }
 
 /**

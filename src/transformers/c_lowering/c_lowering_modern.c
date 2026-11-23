@@ -8,22 +8,22 @@
 /* clang-format on */
 
 /**
- * @brief Appends a string fragment into `buf` within `cap`.
+ * @brief Appends a string fragment into `buf`.
  *
  * @param[in,out] buf Destination buffer.
- * @param[in] cap Capacity of `buf`.
  * @param[in,out] io_len Current string length in `buf`.
  * @param[in] str Fragment to append.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t c_low_buf_cat(char *buf, size_t cap, size_t *io_len,
-                                   const char *str) {
+static cdd_c_error_t c_low_buf_cat(char *buf, size_t *io_len, const char *str) {
   size_t sl = strlen(str);
-  if (*io_len + sl + 1 < cap) {
-    memcpy(buf + *io_len, str, sl);
-    *io_len += sl;
-    buf[*io_len] = '\0';
-  }
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  memcpy(buf + *io_len, str, sl);
+  *io_len += sl;
+  buf[*io_len] = '\0';
   return CDD_C_SUCCESS;
 }
 
@@ -39,6 +39,10 @@ static cdd_c_error_t c_low_tok_contains(const cdd_token_t *t,
                                         const char *needle, int *out_has) {
   size_t nlen = strlen(needle);
   size_t k;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_has = 0;
   for (k = 0; k + nlen <= t->length; k++) {
     if (memcmp(t->start + k, needle, nlen) == 0) {
@@ -58,6 +62,10 @@ static cdd_c_error_t c_low_tok_contains(const cdd_token_t *t,
 static cdd_c_error_t c_low_strip_ws_trivia(cdd_trivia_t **head_ptr) {
   cdd_trivia_t *cur = *head_ptr;
   cdd_trivia_t *prev = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (cur) {
     cdd_trivia_t *nxt = cur->next;
     if (cur->kind == TRIVIA_WHITESPACE || cur->kind == TRIVIA_NEWLINE) {
@@ -71,6 +79,46 @@ static cdd_c_error_t c_low_strip_ws_trivia(cdd_trivia_t **head_ptr) {
     }
     cur = nxt;
   }
+  return CDD_C_SUCCESS;
+}
+
+cdd_c_error_t c_low_opt_scope_lookup(const cdd_cst_scope_t *scope,
+                                     const char *name,
+                                     enum cdd_cst_symbol_kind_t kind,
+                                     cdd_cst_symbol_t **out_sym) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_sym = NULL;
+  rc = cdd_cst_scope_lookup_in_scope(scope, name, kind, out_sym);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Locates a token's owning CST node if still attached to `root`.
+ *
+ * @param[in] root Root CST node.
+ * @param[out] tok Target token pointer.
+ * @param[out] out_idx Child index in `*out_parent`.
+ * @param[out] out_parent Owning parent node, or NULL if detached.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+static cdd_c_error_t c_low_opt_find_node(cdd_cst_node_t *root, cdd_token_t *tok,
+                                         size_t *out_idx,
+                                         cdd_cst_node_t **out_parent) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_parent = NULL;
+  rc = cdd_cst_find_node_for_token(root, tok, out_idx, out_parent);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
   return CDD_C_SUCCESS;
 }
 
@@ -90,19 +138,23 @@ cdd_c_error_t c_low_prepend_root(cdd_cst_tree_t *tree, const char *snippet) {
   rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &node);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_init(&bld, tree, node));
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_bld_snippet(&bld, pooled));
-  if (bld.error_state != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                         (int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(node));
-    return rc;
+  rc = cdd_cst_builder_init(&bld, tree, node);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_cst_free_node_only(node));
+  }
+  rc = cdd_cst_bld_snippet(&bld, pooled);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                                             cdd_cst_free_node(node)));
   }
   rc = cdd_cst_splice_children(tree, &tree->root, 0, 0, node->children,
                                node->num_children);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                       (int)cdd_cst_free_node_only(node));
-  return rc;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                                             cdd_cst_free_node(node)));
+  }
+  return cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                        cdd_cst_free_node_only(node));
 }
 
 /*
@@ -114,6 +166,10 @@ cdd_c_error_t c_low_slice_text(const cdd_token_t *toks, size_t s, size_t e_excl,
   size_t k;
   size_t prev_end_off = 0;
   int have_prev = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!buf || cap == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   buf[0] = '\0';
@@ -161,26 +217,25 @@ cdd_c_error_t c_low_replace_span(cdd_cst_tree_t *tree, size_t s, size_t e_incl,
   for (w = s + 1; w <= e_incl; w++) {
     size_t c_idx = 0;
     cdd_cst_node_t *p_node = NULL;
-    if (tree->base_tokens->tokens[w].length == 0 &&
-        cdd_cst_find_node_for_token(tree->root, &tree->base_tokens->tokens[w],
-                                    &c_idx, &p_node) != CDD_C_SUCCESS) {
+    rc = c_low_opt_find_node(tree->root, &tree->base_tokens->tokens[w], &c_idx,
+                             &p_node);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (!p_node)
       continue;
-    }
     rc = replace_token_with_text(tree, &tree->base_tokens->tokens[w],
                                  CDD_TOKEN_OTHER, "", 0);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    rc =
-        (cdd_c_error_t)((int)rc | (int)cdd_cst_find_node_for_token(
-                                      tree->root, &tree->base_tokens->tokens[w],
-                                      &c_idx, &p_node));
-    rc = (cdd_c_error_t)((int)rc | (int)c_low_strip_ws_trivia(
-                                       &p_node->children[c_idx]
-                                            .val.token->leading_trivia));
+    rc = c_low_strip_ws_trivia(
+        &p_node->children[c_idx].val.token->leading_trivia);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (w < e_incl) {
-      rc = (cdd_c_error_t)((int)rc | (int)c_low_strip_ws_trivia(
-                                         &p_node->children[c_idx]
-                                              .val.token->trailing_trivia));
+      rc = c_low_strip_ws_trivia(
+          &p_node->children[c_idx].val.token->trailing_trivia);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
   return CDD_C_SUCCESS;
@@ -203,9 +258,11 @@ cdd_c_error_t c_low_prepend_tok(cdd_cst_tree_t *tree, cdd_token_t *tok,
     memcpy(buf + plen, tok->start, tok->length);
   buf[plen + tok->length] = '\0';
   rc = cdd_pool_string_safe(tree, buf, &pooled);
-  C_CDD_FREE(buf);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
     return rc;
+  }
+  C_CDD_FREE(buf);
   return replace_token_with_text(tree, tok, tok->kind, pooled,
                                  plen + tok->length);
 }
@@ -227,9 +284,11 @@ cdd_c_error_t c_low_append_tok(cdd_cst_tree_t *tree, cdd_token_t *tok,
   memcpy(buf + tok->length, suffix, slen);
   buf[tok->length + slen] = '\0';
   rc = cdd_pool_string_safe(tree, buf, &pooled);
-  C_CDD_FREE(buf);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
     return rc;
+  }
+  C_CDD_FREE(buf);
   return replace_token_with_text(tree, tok, tok->kind, pooled,
                                  tok->length + slen);
 }
@@ -249,6 +308,11 @@ static cdd_c_error_t c_low_is_vla_bound(struct c_lowering_ctx_t *ctx,
                                         const cdd_token_t *toks, size_t s,
                                         size_t e_excl, int *out_is_vla) {
   size_t k;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_vla = 0;
   for (k = s; k < e_excl; k++) {
     const cdd_token_t *tk = &toks[k];
@@ -275,10 +339,11 @@ static cdd_c_error_t c_low_is_vla_bound(struct c_lowering_ctx_t *ctx,
       cdd_cst_symbol_t *esym = NULL;
       memcpy(nm, tk->start, tk->length);
       nm[tk->length] = '\0';
-      if (cdd_cst_scope_lookup_in_scope(ctx->sem_env->global_scope, nm,
-                                        CDD_CST_SYMBOL_ENUM_CONSTANT,
-                                        &esym) == CDD_C_SUCCESS &&
-          esym->kind == CDD_CST_SYMBOL_ENUM_CONSTANT) {
+      rc = c_low_opt_scope_lookup(ctx->sem_env->global_scope, nm,
+                                  CDD_CST_SYMBOL_ENUM_CONSTANT, &esym);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (esym && esym->kind == CDD_CST_SYMBOL_ENUM_CONSTANT) {
         continue;
       }
       *out_is_vla = 1;
@@ -331,6 +396,8 @@ static cdd_c_error_t c_lower_keywords_and_c23(struct c_lowering_ctx_t *ctx) {
     if (t->kind == CDD_TOKEN_PREPROC_INCLUDE) {
       int has_ckd = 0;
       rc = c_low_tok_contains(t, "stdckdint.h", &has_ckd);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (has_ckd) {
         ctx->used_ckd = 1;
         rc = replace_token_with_text(tree, t, t->kind,
@@ -577,10 +644,10 @@ static cdd_c_error_t c_lower_array_params(struct c_lowering_ctx_t *ctx) {
                 rb0++;
               }
               if (rb0 < pe && !has_qual && !has_star) {
-                rc = (cdd_c_error_t)((int)rc |
-                                     (int)c_low_is_vla_bound(
-                                         ctx, tree->base_tokens->tokens, lb + 1,
-                                         rb0, &is_vla));
+                rc = c_low_is_vla_bound(ctx, tree->base_tokens->tokens, lb + 1,
+                                        rb0, &is_vla);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               }
               if (rb0 < pe && (has_qual || has_star || is_vla)) {
                 cdd_token_t *id_t = &tree->base_tokens->tokens[lb - 1];
@@ -700,9 +767,11 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
                 memcpy(fn_nm, tree->base_tokens->tokens[back - 1].start,
                        tree->base_tokens->tokens[back - 1].length);
                 fn_nm[tree->base_tokens->tokens[back - 1].length] = '\0';
-                if (cdd_cst_scope_lookup_in_scope(
-                        ctx->sem_env->global_scope, fn_nm,
-                        CDD_CST_SYMBOL_FUNCTION, &fsym) == CDD_C_SUCCESS) {
+                rc = c_low_opt_scope_lookup(ctx->sem_env->global_scope, fn_nm,
+                                            CDD_CST_SYMBOL_FUNCTION, &fsym);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+                if (fsym) {
                   CDD_SNPRINTF(fn_ret, sizeof(fn_ret), "%s", fsym->type_str);
                 }
               }
@@ -807,45 +876,16 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
             }
             rc = c_low_slice_text(tree->base_tokens->tokens, sk + 1, rbk, idx_s,
                                   sizeof(idx_s));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             if (d == 0) {
-              size_t fp = 0;
-              flat_idx[0] = '\0';
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp, "("));
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp, idx_s));
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp, ")"));
+              CDD_SNPRINTF(flat_idx, sizeof(flat_idx), "(%.127s)", idx_s);
             } else {
               char prev_idx[384];
-              size_t fp = 0;
               memcpy(prev_idx, flat_idx, sizeof(flat_idx));
-              flat_idx[0] = '\0';
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp, "(("));
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_buf_cat(
-                                                 flat_idx, sizeof(flat_idx),
-                                                 &fp, prev_idx));
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_buf_cat(
-                                                 flat_idx, sizeof(flat_idx),
-                                                 &fp, ") * ("));
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp,
-                                       active_vlas[vi].dim_exprs[d & 3]));
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_buf_cat(
-                                                 flat_idx, sizeof(flat_idx),
-                                                 &fp, ") + ("));
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp, idx_s));
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)c_low_buf_cat(
-                                       flat_idx, sizeof(flat_idx), &fp, "))"));
+              CDD_SNPRINTF(flat_idx, sizeof(flat_idx),
+                           "((%.180s) * (%.95s) + (%.80s))", prev_idx,
+                           active_vlas[vi].dim_exprs[d & 3], idx_s);
             }
             end_sub = rbk;
             sk = rbk + 1;
@@ -853,22 +893,9 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
           }
           if (d == active_vlas[vi].dims) {
             char sub_repl[512];
-            size_t sp = 0;
-            sub_repl[0] = '\0';
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)c_low_buf_cat(sub_repl, sizeof(sub_repl),
-                                                    &sp, active_vlas[vi].name));
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)c_low_buf_cat(sub_repl, sizeof(sub_repl),
-                                                    &sp, "["));
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)c_low_buf_cat(sub_repl, sizeof(sub_repl),
-                                                    &sp, flat_idx));
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)c_low_buf_cat(sub_repl, sizeof(sub_repl),
-                                                    &sp, "]"));
-            rc = (cdd_c_error_t)((int)rc | (int)c_low_replace_span(
-                                               tree, i, end_sub, sub_repl));
+            CDD_SNPRINTF(sub_repl, sizeof(sub_repl), "%.95s[%.383s]",
+                         active_vlas[vi].name, flat_idx);
+            rc = c_low_replace_span(tree, i, end_sub, sub_repl);
             if (rc != CDD_C_SUCCESS)
               return rc;
             i = end_sub;
@@ -1081,31 +1108,20 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
                 dims = 0;
                 break;
               }
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_is_vla_bound(
-                                                 ctx, tree->base_tokens->tokens,
-                                                 k + 1, rb, &dim_vla));
+              rc = c_low_is_vla_bound(ctx, tree->base_tokens->tokens, k + 1, rb,
+                                      &dim_vla);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (dim_vla)
                 any_vla_dim = 1;
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_slice_text(
-                                                 tree->base_tokens->tokens,
-                                                 k + 1, rb, dim_s,
-                                                 sizeof(dim_s)));
+              rc = c_low_slice_text(tree->base_tokens->tokens, k + 1, rb, dim_s,
+                                    sizeof(dim_s));
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               memcpy(cur_dims[dims & 3], dim_s, sizeof(dim_s));
-              if (dims > 0) {
-                rc = (cdd_c_error_t)((int)rc |
-                                     (int)c_low_buf_cat(total_expr,
-                                                        sizeof(total_expr),
-                                                        &tpos, " * "));
-              }
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_buf_cat(
-                                                 total_expr, sizeof(total_expr),
-                                                 &tpos, "("));
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_buf_cat(
-                                                 total_expr, sizeof(total_expr),
-                                                 &tpos, dim_s));
-              rc = (cdd_c_error_t)((int)rc | (int)c_low_buf_cat(
-                                                 total_expr, sizeof(total_expr),
-                                                 &tpos, ")"));
+              tpos += (size_t)CDD_SNPRINTF(
+                  total_expr + tpos, sizeof(total_expr) - tpos,
+                  dims > 0 ? " * (%.127s)" : "(%.127s)", dim_s);
               dims++;
               k = rb + 1;
             }
@@ -1121,6 +1137,8 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
               vname[id_tok->length] = '\0';
               rc = c_low_slice_text(tree->base_tokens->tokens, ds, i - 1, ty_s,
                                     sizeof(ty_s));
+              if (rc != CDD_C_SUCCESS)
+                return rc;
 
               if (num_vlas < 32) {
                 CDD_SNPRINTF(active_vlas[num_vlas].name,
@@ -1163,6 +1181,8 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
                 if (rc != CDD_C_SUCCESS)
                   return rc;
                 rc = c_low_replace_span(tree, ds, k, repl);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               } else if (eff_mode == 2) {
                 CDD_SNPRINTF(
                     repl, sizeof(repl),
@@ -1173,19 +1193,23 @@ static cdd_c_error_t c_lower_vlas(struct c_lowering_ctx_t *ctx) {
                     vname, total_expr, ty_s, vname, vname, ty_s, vname, ty_s,
                     vname, vname, alloca_fn, vname);
                 rc = c_low_replace_span(tree, ds, k, repl);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               } else if (eff_mode == 1) {
                 CDD_SNPRINTF(repl, sizeof(repl),
                              "%s *%s = (%s *)malloc((%s) * sizeof(*%s));", ty_s,
                              vname, ty_s, total_expr, vname);
                 rc = c_low_replace_span(tree, ds, k, repl);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               } else {
                 CDD_SNPRINTF(repl, sizeof(repl),
                              "%s *%s = (%s *)%s((%s) * sizeof(*%s));", ty_s,
                              vname, ty_s, alloca_fn, total_expr, vname);
                 rc = c_low_replace_span(tree, ds, k, repl);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               }
-              if (rc != CDD_C_SUCCESS)
-                return rc;
               i = k;
               continue;
             }
@@ -1211,6 +1235,10 @@ static cdd_c_error_t c_low_find_complex_var(const struct c_lowering_ctx_t *ctx,
                                             const uint8_t *s, size_t len,
                                             int *out_is_flt, int *out_found) {
   size_t k;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_flt = 0;
   *out_found = 0;
   for (k = 0; k < ctx->num_complex_vars; k++) {
@@ -1248,6 +1276,8 @@ static cdd_c_error_t c_lower_complex(struct c_lowering_ctx_t *ctx) {
         (!ctx->config || !ctx->config->with_auto_win_msvc)) {
       int has_cplx = 0;
       rc = c_low_tok_contains(t, "<complex.h>", &has_cplx);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (has_cplx) {
         ctx->used_complex |= 3;
         rc = replace_token_with_text(tree, t, t->kind,
@@ -1524,6 +1554,8 @@ static cdd_c_error_t c_lower_complex(struct c_lowering_ctx_t *ctx) {
               int fnd = 0;
               rc = c_low_find_complex_var(ctx, ct->start, ct->length, &l_flt,
                                           &fnd);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (fnd)
                 l_cplx = 1;
               else if (ct->length >= 9 &&
@@ -1546,6 +1578,8 @@ static cdd_c_error_t c_lower_complex(struct c_lowering_ctx_t *ctx) {
               int fnd = 0;
               rc = c_low_find_complex_var(ctx, ct->start, ct->length, &r_flt,
                                           &fnd);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (fnd)
                 r_cplx = 1;
               else if (ct->length >= 9 &&
@@ -1567,12 +1601,14 @@ static cdd_c_error_t c_lower_complex(struct c_lowering_ctx_t *ctx) {
             int use_f = (l_cplx && r_cplx) ? (l_flt && r_flt)
                                            : (l_cplx ? l_flt : r_flt);
             char lhs_s[192], rhs_s[192], lhs_w[256], rhs_w[256], repl[640];
-            rc = (cdd_c_error_t)((int)rc | (int)c_low_slice_text(
-                                               tree->base_tokens->tokens, ls, i,
-                                               lhs_s, sizeof(lhs_s)));
-            rc = (cdd_c_error_t)((int)rc | (int)c_low_slice_text(
-                                               tree->base_tokens->tokens, i + 1,
-                                               re, rhs_s, sizeof(rhs_s)));
+            rc = c_low_slice_text(tree->base_tokens->tokens, ls, i, lhs_s,
+                                  sizeof(lhs_s));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            rc = c_low_slice_text(tree->base_tokens->tokens, i + 1, re, rhs_s,
+                                  sizeof(rhs_s));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             if (l_cplx) {
               CDD_SNPRINTF(lhs_w, sizeof(lhs_w), "%s", lhs_s);
             } else {
@@ -1618,6 +1654,10 @@ static cdd_c_error_t c_low_is_atomic_var(const struct c_lowering_ctx_t *ctx,
                                          const uint8_t *s, size_t len,
                                          int *out_is_atomic) {
   size_t k;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_atomic = 0;
   for (k = 0; k < ctx->num_atomic_vars; k++) {
     if (strlen(ctx->atomic_vars[k]) == len &&
@@ -1669,6 +1709,8 @@ static cdd_c_error_t c_lower_atomics(struct c_lowering_ctx_t *ctx) {
           char vspec[160];
           rc = c_low_slice_text(tree->base_tokens->tokens, i + 2, rp, inner_t,
                                 sizeof(inner_t));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           CDD_SNPRINTF(vspec, sizeof(vspec), "volatile %s", inner_t);
           rc = c_low_replace_span(tree, i, rp, vspec);
           if (rc != CDD_C_SUCCESS)
@@ -1750,6 +1792,8 @@ static cdd_c_error_t c_lower_atomics(struct c_lowering_ctx_t *ctx) {
         tree->base_tokens->tokens[i + 2].kind == CDD_TOKEN_IDENTIFIER) {
       cdd_token_t *vt = &tree->base_tokens->tokens[i + 2];
       rc = c_low_is_atomic_var(ctx, vt->start, vt->length, &is_at);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (is_at) {
         char repl[256];
         int is_add = (t->kind == CDD_TOKEN_PLUS);
@@ -1767,6 +1811,8 @@ static cdd_c_error_t c_lower_atomics(struct c_lowering_ctx_t *ctx) {
     if (t->kind != CDD_TOKEN_IDENTIFIER)
       continue;
     rc = c_low_is_atomic_var(ctx, t->start, t->length, &is_at);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (!is_at)
       continue;
 
@@ -1845,6 +1891,8 @@ static cdd_c_error_t c_lower_atomics(struct c_lowering_ctx_t *ctx) {
         }
         rc = c_low_slice_text(tree->base_tokens->tokens, i + 3, re, rhs_s,
                               sizeof(rhs_s));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         CDD_SNPRINTF(repl, sizeof(repl), "atomic_fetch_%s(&(%.*s), (%s))", fop,
                      (int)t->length, (const char *)t->start, rhs_s);
         rc = c_low_replace_span(tree, i, re - 1, repl);
@@ -1879,6 +1927,8 @@ static cdd_c_error_t c_lower_atomics(struct c_lowering_ctx_t *ctx) {
       }
       rc = c_low_slice_text(tree->base_tokens->tokens, i + 2, re, rhs_s,
                             sizeof(rhs_s));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       CDD_SNPRINTF(repl, sizeof(repl), "atomic_store(&(%.*s), (%s))",
                    (int)t->length, (const char *)t->start, rhs_s);
       rc = c_low_replace_span(tree, i, re - 1, repl);
@@ -1929,150 +1979,156 @@ c_lower_inject_runtime_shims(struct c_lowering_ctx_t *ctx) {
   hdr[0] = '\0';
 
   if (ctx->used_ckd) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "#ifndef CDD_STDCKDINT_SHIM_H\n"
-                             "#define CDD_STDCKDINT_SHIM_H\n"
-                             "#define __cdd_ckd_add(r, a, b) ((*(r) = (a) + "
-                             "(b)), ((a) > 0 && (b) > 0 && *(r) < (a)))\n"
-                             "#define __cdd_ckd_sub(r, a, b) ((*(r) = (a) - "
-                             "(b)), ((b) > 0 && *(r) > (a)))\n"
-                             "#define __cdd_ckd_mul(r, a, b) ((*(r) = (a) * "
-                             "(b)), ((a) != 0 && (*(r) / (a)) != (b)))\n"
-                             "#endif\n"));
+    rc = c_low_buf_cat(hdr, &len,
+                       "#ifndef CDD_STDCKDINT_SHIM_H\n"
+                       "#define CDD_STDCKDINT_SHIM_H\n"
+                       "#define __cdd_ckd_add(r, a, b) ((*(r) = (a) + "
+                       "(b)), ((a) > 0 && (b) > 0 && *(r) < (a)))\n"
+                       "#define __cdd_ckd_sub(r, a, b) ((*(r) = (a) - "
+                       "(b)), ((b) > 0 && *(r) > (a)))\n"
+                       "#define __cdd_ckd_mul(r, a, b) ((*(r) = (a) * "
+                       "(b)), ((a) != 0 && (*(r) / (a)) != (b)))\n"
+                       "#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
   if (ctx->used_atomic) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "#ifndef atomic_load\n"
-                             "#if defined(_MSC_VER) || defined(__WATCOMC__)\n"
-                             "#define AWM_ATOM_INLINE __inline\n"
-                             "#elif defined(__GNUC__) || defined(__clang__)\n"
-                             "#define AWM_ATOM_INLINE __inline__ "
-                             "__attribute__((__unused__))\n"
-                             "#else\n#define AWM_ATOM_INLINE\n#endif\n"
-                             "static AWM_ATOM_INLINE long __awm_atom_val("
-                             "long v) { return v; }\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "#define atomic_load(p) (*(p))\n"
-                             "#define atomic_store(p, v) (*(p) = (v))\n"
-                             "#define atomic_fetch_add(p, v) "
-                             "__awm_atom_val((long)((*(p) += (v)) - (v)))\n"
-                             "#define atomic_fetch_sub(p, v) "
-                             "__awm_atom_val((long)((*(p) -= (v)) + (v)))\n"
-                             "#define atomic_fetch_or(p, v) (*(p) |= (v))\n"
-                             "#define atomic_fetch_and(p, v) (*(p) &= (v))\n"
-                             "#define atomic_fetch_xor(p, v) (*(p) ^= (v))\n"
-                             "#endif\n"));
+    rc = c_low_buf_cat(hdr, &len,
+                       "#ifndef atomic_load\n"
+                       "#if defined(_MSC_VER) || defined(__WATCOMC__)\n"
+                       "#define AWM_ATOM_INLINE __inline\n"
+                       "#elif defined(__GNUC__) || defined(__clang__)\n"
+                       "#define AWM_ATOM_INLINE __inline__ "
+                       "__attribute__((__unused__))\n"
+                       "#else\n#define AWM_ATOM_INLINE\n#endif\n"
+                       "static AWM_ATOM_INLINE long __awm_atom_val("
+                       "long v) { return v; }\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "#define atomic_load(p) (*(p))\n"
+                       "#define atomic_store(p, v) (*(p) = (v))\n"
+                       "#define atomic_fetch_add(p, v) "
+                       "__awm_atom_val((long)((*(p) += (v)) - (v)))\n"
+                       "#define atomic_fetch_sub(p, v) "
+                       "__awm_atom_val((long)((*(p) -= (v)) + (v)))\n"
+                       "#define atomic_fetch_or(p, v) (*(p) |= (v))\n"
+                       "#define atomic_fetch_and(p, v) (*(p) &= (v))\n"
+                       "#define atomic_fetch_xor(p, v) (*(p) ^= (v))\n"
+                       "#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
   if (ctx->used_complex) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "#ifndef AWM_C99_COMPLEX_SHIM_H\n"
-                             "#define AWM_C99_COMPLEX_SHIM_H\n"
-                             "#if defined(_MSC_VER) || defined(__WATCOMC__)\n"
-                             "#define AWM_CPLX_INLINE __inline\n"
-                             "#elif defined(__GNUC__) || defined(__clang__)\n"
-                             "#define AWM_CPLX_INLINE __inline__ "
-                             "__attribute__((__unused__))\n"
-                             "#else\n#define AWM_CPLX_INLINE\n#endif\n"
-                             "#ifndef _C_COMPLEX_T\n#define _C_COMPLEX_T\n"
-                             "typedef struct { double _Val[2]; } _Dcomplex;\n"
-                             "typedef struct { float _Val[2]; } _Fcomplex;\n"
-                             "typedef struct { long double _Val[2]; } "
-                             "_Lcomplex;\n#endif\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "static AWM_CPLX_INLINE _Dcomplex awm_cmake("
-                             "double r, double i) { _Dcomplex c; c._Val[0] = "
-                             "r; c._Val[1] = i; return c; }\n"
-                             "static AWM_CPLX_INLINE _Dcomplex awm_cadd("
-                             "_Dcomplex a, _Dcomplex b) { return awm_cmake("
-                             "a._Val[0] + b._Val[0], a._Val[1] + b._Val[1]); }"
-                             "\n"
-                             "static AWM_CPLX_INLINE _Dcomplex awm_csub("
-                             "_Dcomplex a, _Dcomplex b) { return awm_cmake("
-                             "a._Val[0] - b._Val[0], a._Val[1] - b._Val[1]); }"
-                             "\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "static AWM_CPLX_INLINE _Dcomplex awm_cmul("
-                             "_Dcomplex a, _Dcomplex b) { return awm_cmake("
-                             "a._Val[0] * b._Val[0] - a._Val[1] * b._Val[1], "
-                             "a._Val[0] * b._Val[1] + a._Val[1] * b._Val[0]); "
-                             "}\n"
-                             "static AWM_CPLX_INLINE _Dcomplex awm_cdiv("
-                             "_Dcomplex a, _Dcomplex b) { double d = b._Val[0] "
-                             "* b._Val[0] + b._Val[1] * b._Val[1]; return "
-                             "awm_cmake((a._Val[0] * b._Val[0] + a._Val[1] * "
-                             "b._Val[1]) / d, (a._Val[1] * b._Val[0] - "
-                             "a._Val[0] * b._Val[1]) / d); }\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "static AWM_CPLX_INLINE double awm_creal("
-                             "_Dcomplex a) { return a._Val[0]; }\n"
-                             "static AWM_CPLX_INLINE double awm_cimag("
-                             "_Dcomplex a) { return a._Val[1]; }\n"
-                             "static AWM_CPLX_INLINE _Dcomplex awm_conj("
-                             "_Dcomplex a) { return awm_cmake(a._Val[0], "
-                             "-a._Val[1]); }\n"
-                             "static AWM_CPLX_INLINE int awm_ceq(_Dcomplex a, "
-                             "_Dcomplex b) { return a._Val[0] == b._Val[0] && "
-                             "a._Val[1] == b._Val[1]; }\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "static AWM_CPLX_INLINE _Fcomplex awm_cmakef("
-                             "float r, float i) { _Fcomplex c; c._Val[0] = r; "
-                             "c._Val[1] = i; return c; }\n"
-                             "static AWM_CPLX_INLINE _Fcomplex awm_caddf("
-                             "_Fcomplex a, _Fcomplex b) { return awm_cmakef("
-                             "a._Val[0] + b._Val[0], a._Val[1] + b._Val[1]); }"
-                             "\n"
-                             "static AWM_CPLX_INLINE _Fcomplex awm_csubf("
-                             "_Fcomplex a, _Fcomplex b) { return awm_cmakef("
-                             "a._Val[0] - b._Val[0], a._Val[1] - b._Val[1]); }"
-                             "\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "static AWM_CPLX_INLINE _Fcomplex awm_cmulf("
-                             "_Fcomplex a, _Fcomplex b) { return awm_cmakef("
-                             "a._Val[0] * b._Val[0] - a._Val[1] * b._Val[1], "
-                             "a._Val[0] * b._Val[1] + a._Val[1] * b._Val[0]); "
-                             "}\n"
-                             "static AWM_CPLX_INLINE _Fcomplex awm_cdivf("
-                             "_Fcomplex a, _Fcomplex b) { float d = b._Val[0] "
-                             "* b._Val[0] + b._Val[1] * b._Val[1]; return "
-                             "awm_cmakef((a._Val[0] * b._Val[0] + a._Val[1] * "
-                             "b._Val[1]) / d, (a._Val[1] * b._Val[0] - "
-                             "a._Val[0] * b._Val[1]) / d); }\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)c_low_buf_cat(
-                             hdr, cap, &len,
-                             "static AWM_CPLX_INLINE float awm_crealf("
-                             "_Fcomplex a) { return a._Val[0]; }\n"
-                             "static AWM_CPLX_INLINE float awm_cimagf("
-                             "_Fcomplex a) { return a._Val[1]; }\n"
-                             "static AWM_CPLX_INLINE _Fcomplex awm_conjf("
-                             "_Fcomplex a) { return awm_cmakef(a._Val[0], "
-                             "-a._Val[1]); }\n"
-                             "static AWM_CPLX_INLINE int awm_ceqf(_Fcomplex a, "
-                             "_Fcomplex b) { return a._Val[0] == b._Val[0] && "
-                             "a._Val[1] == b._Val[1]; }\n#endif\n"));
+    rc = c_low_buf_cat(hdr, &len,
+                       "#ifndef AWM_C99_COMPLEX_SHIM_H\n"
+                       "#define AWM_C99_COMPLEX_SHIM_H\n"
+                       "#if defined(_MSC_VER) || defined(__WATCOMC__)\n"
+                       "#define AWM_CPLX_INLINE __inline\n"
+                       "#elif defined(__GNUC__) || defined(__clang__)\n"
+                       "#define AWM_CPLX_INLINE __inline__ "
+                       "__attribute__((__unused__))\n"
+                       "#else\n#define AWM_CPLX_INLINE\n#endif\n"
+                       "#ifndef _C_COMPLEX_T\n#define _C_COMPLEX_T\n"
+                       "typedef struct { double _Val[2]; } _Dcomplex;\n"
+                       "typedef struct { float _Val[2]; } _Fcomplex;\n"
+                       "typedef struct { long double _Val[2]; } "
+                       "_Lcomplex;\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "static AWM_CPLX_INLINE _Dcomplex awm_cmake("
+                       "double r, double i) { _Dcomplex c; c._Val[0] = "
+                       "r; c._Val[1] = i; return c; }\n"
+                       "static AWM_CPLX_INLINE _Dcomplex awm_cadd("
+                       "_Dcomplex a, _Dcomplex b) { return awm_cmake("
+                       "a._Val[0] + b._Val[0], a._Val[1] + b._Val[1]); }"
+                       "\n"
+                       "static AWM_CPLX_INLINE _Dcomplex awm_csub("
+                       "_Dcomplex a, _Dcomplex b) { return awm_cmake("
+                       "a._Val[0] - b._Val[0], a._Val[1] - b._Val[1]); }"
+                       "\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "static AWM_CPLX_INLINE _Dcomplex awm_cmul("
+                       "_Dcomplex a, _Dcomplex b) { return awm_cmake("
+                       "a._Val[0] * b._Val[0] - a._Val[1] * b._Val[1], "
+                       "a._Val[0] * b._Val[1] + a._Val[1] * b._Val[0]); "
+                       "}\n"
+                       "static AWM_CPLX_INLINE _Dcomplex awm_cdiv("
+                       "_Dcomplex a, _Dcomplex b) { double d = b._Val[0] "
+                       "* b._Val[0] + b._Val[1] * b._Val[1]; return "
+                       "awm_cmake((a._Val[0] * b._Val[0] + a._Val[1] * "
+                       "b._Val[1]) / d, (a._Val[1] * b._Val[0] - "
+                       "a._Val[0] * b._Val[1]) / d); }\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "static AWM_CPLX_INLINE double awm_creal("
+                       "_Dcomplex a) { return a._Val[0]; }\n"
+                       "static AWM_CPLX_INLINE double awm_cimag("
+                       "_Dcomplex a) { return a._Val[1]; }\n"
+                       "static AWM_CPLX_INLINE _Dcomplex awm_conj("
+                       "_Dcomplex a) { return awm_cmake(a._Val[0], "
+                       "-a._Val[1]); }\n"
+                       "static AWM_CPLX_INLINE int awm_ceq(_Dcomplex a, "
+                       "_Dcomplex b) { return a._Val[0] == b._Val[0] && "
+                       "a._Val[1] == b._Val[1]; }\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "static AWM_CPLX_INLINE _Fcomplex awm_cmakef("
+                       "float r, float i) { _Fcomplex c; c._Val[0] = r; "
+                       "c._Val[1] = i; return c; }\n"
+                       "static AWM_CPLX_INLINE _Fcomplex awm_caddf("
+                       "_Fcomplex a, _Fcomplex b) { return awm_cmakef("
+                       "a._Val[0] + b._Val[0], a._Val[1] + b._Val[1]); }"
+                       "\n"
+                       "static AWM_CPLX_INLINE _Fcomplex awm_csubf("
+                       "_Fcomplex a, _Fcomplex b) { return awm_cmakef("
+                       "a._Val[0] - b._Val[0], a._Val[1] - b._Val[1]); }"
+                       "\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "static AWM_CPLX_INLINE _Fcomplex awm_cmulf("
+                       "_Fcomplex a, _Fcomplex b) { return awm_cmakef("
+                       "a._Val[0] * b._Val[0] - a._Val[1] * b._Val[1], "
+                       "a._Val[0] * b._Val[1] + a._Val[1] * b._Val[0]); "
+                       "}\n"
+                       "static AWM_CPLX_INLINE _Fcomplex awm_cdivf("
+                       "_Fcomplex a, _Fcomplex b) { float d = b._Val[0] "
+                       "* b._Val[0] + b._Val[1] * b._Val[1]; return "
+                       "awm_cmakef((a._Val[0] * b._Val[0] + a._Val[1] * "
+                       "b._Val[1]) / d, (a._Val[1] * b._Val[0] - "
+                       "a._Val[0] * b._Val[1]) / d); }\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = c_low_buf_cat(hdr, &len,
+                       "static AWM_CPLX_INLINE float awm_crealf("
+                       "_Fcomplex a) { return a._Val[0]; }\n"
+                       "static AWM_CPLX_INLINE float awm_cimagf("
+                       "_Fcomplex a) { return a._Val[1]; }\n"
+                       "static AWM_CPLX_INLINE _Fcomplex awm_conjf("
+                       "_Fcomplex a) { return awm_cmakef(a._Val[0], "
+                       "-a._Val[1]); }\n"
+                       "static AWM_CPLX_INLINE int awm_ceqf(_Fcomplex a, "
+                       "_Fcomplex b) { return a._Val[0] == b._Val[0] && "
+                       "a._Val[1] == b._Val[1]; }\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)c_low_prepend_root(ctx->tree, hdr));
+  rc = c_low_prepend_root(ctx->tree, hdr);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  C_CDD_FREE(hdr);
+  return CDD_C_SUCCESS;
+
+cleanup:
   C_CDD_FREE(hdr);
   return rc;
 }

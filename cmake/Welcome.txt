@@ -1,3 +1,0 @@
-Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (to C code).
-
-This installs c_cdd.

@@ -12,6 +12,7 @@ extern volatile int g_fail_io_after;
 
 #include "cdd_ffi_emit_python.h"
 #include "c_cdd/safe_crt.h"
+#include "cdd_ffi_emit_common.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,64 +20,110 @@ extern volatile int g_fail_io_after;
 /* clang-format on */
 
 /**
- * @brief Maps a C primitive kind to its corresponding Python `ctypes` type
- * string.
+ * @brief Writes a Python `ctypes` primitive type and `close_parens` closing
+ * parentheses to `f`.
  *
+ * @param[in,out] f Output file stream.
  * @param[in] kind FFI primitive kind enum value.
- * @param[out] out_type Output pointer receiving the resolved `ctypes` type
- * string.
+ * @param[in] close_parens Number of trailing `)` characters to emit.
  * @return `CDD_C_SUCCESS` on success.
  */
-static cdd_c_error_t get_ctypes_primitive(cdd_ffi_primitive_kind_t kind,
-                                          const char **out_type) {
+static cdd_c_error_t emit_ctypes_primitive(FILE *f,
+                                           cdd_ffi_primitive_kind_t kind,
+                                           size_t close_parens) {
+  const char *prim;
   switch (kind) {
   case CDD_FFI_KIND_VOID:
-    *out_type = "None";
+    prim = "None";
     break;
   case CDD_FFI_KIND_BOOL:
-    *out_type = "ctypes.c_bool";
+    prim = "ctypes.c_bool";
     break;
   case CDD_FFI_KIND_INT8:
-    *out_type = "ctypes.c_int8";
+    prim = "ctypes.c_int8";
     break;
   case CDD_FFI_KIND_UINT8:
-    *out_type = "ctypes.c_uint8";
+    prim = "ctypes.c_uint8";
     break;
   case CDD_FFI_KIND_INT16:
-    *out_type = "ctypes.c_int16";
+    prim = "ctypes.c_int16";
     break;
   case CDD_FFI_KIND_UINT16:
-    *out_type = "ctypes.c_uint16";
+    prim = "ctypes.c_uint16";
     break;
   case CDD_FFI_KIND_INT32:
-    *out_type = "ctypes.c_int32";
+    prim = "ctypes.c_int32";
     break;
   case CDD_FFI_KIND_UINT32:
-    *out_type = "ctypes.c_uint32";
+    prim = "ctypes.c_uint32";
     break;
   case CDD_FFI_KIND_INT64:
-    *out_type = "ctypes.c_int64";
+    prim = "ctypes.c_int64";
     break;
   case CDD_FFI_KIND_UINT64:
-    *out_type = "ctypes.c_uint64";
+    prim = "ctypes.c_uint64";
     break;
   case CDD_FFI_KIND_FLOAT32:
-    *out_type = "ctypes.c_float";
+    prim = "ctypes.c_float";
     break;
   case CDD_FFI_KIND_FLOAT64:
-    *out_type = "ctypes.c_double";
+    prim = "ctypes.c_double";
     break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    *out_type = "ctypes.c_void_p";
+    prim = "ctypes.c_void_p";
     break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    *out_type = "ctypes.c_void_p";
+    prim = "ctypes.c_void_p";
     break;
   default:
-    *out_type = "ctypes.c_void_p";
+    prim = "ctypes.c_void_p";
     break;
   }
+  fprintf(f, "%s", prim);
+  while (close_parens-- > 0) {
+    fprintf(f, ")");
+  }
   return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Tail-recursive helper writing Python `ctypes` type representation to
+ * `f`.
+ *
+ * @param[in,out] f Output file stream.
+ * @param[in] type FFI type descriptor to emit.
+ * @param[in] close_parens Number of trailing `)` characters to emit.
+ * @return `CDD_C_SUCCESS` on success.
+ */
+static cdd_c_error_t emit_type_inner(FILE *f, const cdd_ffi_type_t *type,
+                                     size_t close_parens) {
+  if (type->pointer_depth > 0) {
+    cdd_ffi_type_t sub_type;
+    if (type->kind == CDD_FFI_KIND_INT8 || type->kind == CDD_FFI_KIND_UINT8 ||
+        type->kind == CDD_FFI_KIND_VOID) {
+      if (type->pointer_depth == 1) {
+        fprintf(f, "ctypes.c_void_p");
+        while (close_parens-- > 0) {
+          fprintf(f, ")");
+        }
+        return CDD_C_SUCCESS;
+      }
+    }
+    fprintf(f, "ctypes.POINTER(");
+    sub_type = *type;
+    sub_type.pointer_depth--;
+    return emit_type_inner(f, &sub_type, close_parens + 1);
+  }
+
+  if (type->ref_name) {
+    fprintf(f, "%s", type->ref_name);
+    while (close_parens-- > 0) {
+      fprintf(f, ")");
+    }
+    return CDD_C_SUCCESS;
+  }
+
+  return emit_ctypes_primitive(f, type->kind, close_parens);
 }
 
 /**
@@ -87,39 +134,11 @@ static cdd_c_error_t get_ctypes_primitive(cdd_ffi_primitive_kind_t kind,
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
-  const char *prim = NULL;
-  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
-  if (type->pointer_depth > 0) {
-    cdd_ffi_type_t sub_type;
-    if (type->kind == CDD_FFI_KIND_INT8 || type->kind == CDD_FFI_KIND_UINT8 ||
-        type->kind == CDD_FFI_KIND_VOID) {
-      if (type->pointer_depth == 1) {
-        fprintf(f, "ctypes.c_void_p");
-        return CDD_C_SUCCESS;
-      }
-    }
-    /* Simplistic pointer representation */
-    fprintf(f, "ctypes.POINTER(");
-    sub_type = *type;
-    sub_type.pointer_depth--;
-    rc_emit = emit_type(f, &sub_type);
-    fprintf(f, ")");
-    return rc_emit;
-  }
-
-  if (type->ref_name) {
-    if (type->kind == CDD_FFI_KIND_STRUCT_REF ||
-        type->kind == CDD_FFI_KIND_ENUM_REF) {
-      fprintf(f, "%s", type->ref_name);
-    } else {
-      fprintf(f, "%s", type->ref_name);
-    }
-    return CDD_C_SUCCESS;
-  }
-
-  rc_emit = get_ctypes_primitive(type->kind, &prim);
-  fprintf(f, "%s", prim);
-  return rc_emit;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+  return emit_type_inner(f, type, 0);
 }
 
 /*
@@ -251,8 +270,11 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "    _fields_ = [\n");
         for (j = 0; j < node->fields_count; j++) {
           fprintf(f, "        (\"%s\", ", node->fields[j].name);
-          rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                    (int)emit_type(f, &node->fields[j].type));
+          rc_emit = emit_type(f, &node->fields[j].type);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, "),\n");
         }
         fprintf(f, "    ]\n");
@@ -315,16 +337,22 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
       /* args */
       fprintf(f, "    _%s.argtypes = [", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)emit_type(f, &node->fields[j].type));
+        rc_emit = emit_type(f, &node->fields[j].type);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, ", ");
       }
       fprintf(f, "ctypes.POINTER(CddFfiError)]\n");
 
       /* return type */
       fprintf(f, "    _%s.restype = ", node->name);
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)emit_type(f, &node->return_or_base_type));
+      rc_emit = emit_type(f, &node->return_or_base_type);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "\n");
 
       if (node->is_variadic) {
@@ -348,8 +376,11 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
             base_t = node->fields[j].type;
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
-            rc_emit =
-                (cdd_c_error_t)((int)rc_emit | (int)emit_type(f, &base_t));
+            rc_emit = emit_type(f, &base_t);
+            if (rc_emit != CDD_C_SUCCESS) {
+              fclose(f);
+              return rc_emit;
+            }
             fprintf(f, "()\n");
           }
         }
@@ -394,8 +425,11 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
-              rc_emit =
-                  (cdd_c_error_t)((int)rc_emit | (int)emit_type(f, &base_t));
+              rc_emit = emit_type(f, &base_t);
+              if (rc_emit != CDD_C_SUCCESS) {
+                fclose(f);
+                return rc_emit;
+              }
               fprintf(f, " * %s)()\n", node->fields[j].array_length_ref);
             } else {
               cdd_ffi_type_t base_t;
@@ -403,8 +437,11 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
-              rc_emit =
-                  (cdd_c_error_t)((int)rc_emit | (int)emit_type(f, &base_t));
+              rc_emit = emit_type(f, &base_t);
+              if (rc_emit != CDD_C_SUCCESS) {
+                fclose(f);
+                return rc_emit;
+              }
               fprintf(f, "()\n");
             }
             if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {

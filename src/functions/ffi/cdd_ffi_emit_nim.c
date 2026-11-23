@@ -120,15 +120,20 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
               node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_nim_type(&node->fields[j].type, &nt));
+        rc_emit = map_nim_type(&node->fields[j].type, &nt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    %s*: %s\n", node->fields[j].name, nt);
       }
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  %s* {.size: sizeof(cint).} = enum\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -147,19 +152,26 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_nt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "proc %s*(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_nim_type(&node->fields[j].type, &nt));
+        rc_emit = map_nim_type(&node->fields[j].type, &nt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s: %s", j > 0 ? ", " : "", node->fields[j].name, nt);
       }
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_nim_type(&node->return_or_base_type,
-                                                  &ret_nt));
+      rc_emit = map_nim_type(&node->return_or_base_type, &ret_nt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "): %s {.importc: \"%s\", cdecl.}\n\n", ret_nt, node->name);
     }
   }

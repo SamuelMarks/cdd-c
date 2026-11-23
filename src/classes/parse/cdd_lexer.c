@@ -149,6 +149,18 @@ static cdd_c_error_t classify_identifier(const uint8_t *start, size_t len,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Classifies `tok->kind` if `tok` was initially marked as an identifier.
+ *
+ * @param[in,out] tok Token whose identifier text may match a C/C++/GNU keyword.
+ * @return `CDD_C_SUCCESS`.
+ */
+static cdd_c_error_t classify_if_identifier(cdd_token_t *tok) {
+  if (tok->kind != CDD_TOKEN_IDENTIFIER)
+    return CDD_C_SUCCESS;
+  return classify_identifier(tok->start, tok->length, &tok->kind);
+}
+
 /*
  * @brief Tokenizes a C source span into a full-fidelity token list with
  * attached leading and trailing trivia.
@@ -256,34 +268,21 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       continue;
     }
 
-    if (list->size >= list->capacity) {
-      size_t new_cap = list->capacity * 2;
-      cdd_token_t *new_arr = (cdd_token_t *)C_CDD_REALLOC(
-          list->tokens, new_cap * sizeof(cdd_token_t));
-      if (!new_arr)
-        goto error;
-      memset(new_arr + list->capacity, 0,
-             (new_cap - list->capacity) * sizeof(cdd_token_t));
-      list->tokens = new_arr;
-      list->capacity = new_cap;
-    }
-
     {
-      cdd_token_t *tok = &list->tokens[list->size];
+      cdd_token_t cur_tok;
+      cdd_token_t *tok = &cur_tok;
+      memset(&cur_tok, 0, sizeof(cur_tok));
       tok->start = base + pos;
       tok->offset = pos;
       tok->line = line;
       tok->column = column;
-      tok->leading_trivia = pending_trivia_head;
-      pending_trivia_head = NULL;
-      pending_trivia_tail = NULL;
       if (CDD_IS_ID_START(c)) {
         while (pos < len && CDD_IS_ID_PART(base[pos])) {
           pos++;
           column++;
         }
         tok->length = pos - tok->offset;
-        rc = classify_identifier(tok->start, tok->length, &tok->kind);
+        tok->kind = CDD_TOKEN_IDENTIFIER;
       } else if (isdigit(c)) {
         while (pos < len &&
                (isalnum(base[pos]) || base[pos] == '.' ||
@@ -479,7 +478,23 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           break;
         }
       }
-      prev_token = tok;
+      rc = classify_if_identifier(tok);
+      if (list->size >= list->capacity) {
+        size_t new_cap = list->capacity * 2;
+        cdd_token_t *new_arr = (cdd_token_t *)C_CDD_REALLOC(
+            list->tokens, new_cap * sizeof(cdd_token_t));
+        if (!new_arr)
+          goto error;
+        memset(new_arr + list->capacity, 0,
+               (new_cap - list->capacity) * sizeof(cdd_token_t));
+        list->tokens = new_arr;
+        list->capacity = new_cap;
+      }
+      tok->leading_trivia = pending_trivia_head;
+      pending_trivia_head = NULL;
+      pending_trivia_tail = NULL;
+      list->tokens[list->size] = cur_tok;
+      prev_token = &list->tokens[list->size];
       list->size++;
     }
   }
@@ -515,9 +530,8 @@ error:
     C_CDD_FREE(pending_trivia_head);
     pending_trivia_head = n;
   }
-  rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                       (int)cdd_lexer_free_token_list(list));
-  return rc;
+  return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                        cdd_c_keep_err(rc, cdd_lexer_free_token_list(list)));
 }
 
 /*

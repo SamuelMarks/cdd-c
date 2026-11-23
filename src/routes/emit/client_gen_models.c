@@ -38,6 +38,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
                                      const char *mh_name,
                                      const struct OpenAPI_Spec *spec) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_san = CDD_C_SUCCESS;
   size_t i;
 
   /* --- Write Models Preamble --- */
@@ -134,7 +135,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       int needs_san = 0;
       if (!raw_name)
         continue;
-      rc = c2s_needs_identifier_sanitization(raw_name, &needs_san);
+      rc_san = c2s_needs_identifier_sanitization(raw_name, &needs_san);
       if (needs_san) {
         rc = sanitize_identifier(raw_name, &san_name);
         if (rc != CDD_C_SUCCESS) {
@@ -169,7 +170,7 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
       int needs_san = 0;
       if (!raw_name)
         continue;
-      rc = c2s_needs_identifier_sanitization(raw_name, &needs_san);
+      rc_san = c2s_needs_identifier_sanitization(raw_name, &needs_san);
       if (needs_san) {
         rc = sanitize_identifier(raw_name, &san_name);
         if (rc != CDD_C_SUCCESS) {
@@ -288,6 +289,5 @@ cdd_c_error_t client_gen_emit_models(FILE *mhfile, FILE *mcfile,
     }
   }
 
-cleanup:
-  return rc;
+cleanup: { return cdd_c_keep_err(rc, rc_san); }
 }

@@ -147,6 +147,9 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_include = 0;
         res = token_matches_string(&tokens->tokens[j], "include", &is_include);
+        if (res != CDD_C_SUCCESS) {
+          return res;
+        }
         if (is_include) {
           last_include_idx = j;
           found_include = 1;
@@ -225,8 +228,7 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
   strcat(str, "#endif\n\\n");
 #endif
 
-  res = patch_list_add(patches, insert_idx, insert_idx, str);
-  return res;
+  return patch_list_add(patches, insert_idx, insert_idx, str);
 }
 
 /*
@@ -250,7 +252,6 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
                                    const char *size_expr, int interactive) {
   char *str;
   size_t len;
-  cdd_c_error_t res;
 
   if (!patches || !tokens || !type_str || !var_name || !size_expr ||
       start_idx >= end_idx || end_idx > tokens->size) {
@@ -294,6 +295,5 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
                var_name, type_str, size_expr, type_str);
 #endif
 
-  res = patch_list_add(patches, start_idx, end_idx, str);
-  return res;
+  return patch_list_add(patches, start_idx, end_idx, str);
 }

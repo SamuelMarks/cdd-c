@@ -30,6 +30,10 @@ extern volatile int g_fail_io_after;
  */
 static cdd_c_error_t map_clojure_jna_type(cdd_ffi_type_t *t,
                                           const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
@@ -85,6 +89,62 @@ static cdd_c_error_t map_clojure_jna_type(cdd_ffi_type_t *t,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Emits space-separated Clojure JNA parameter types.
+ *
+ * @param[in,out] f Output file stream.
+ * @param[in] fields Function parameter array.
+ * @param[in] count Parameter count.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
+static cdd_c_error_t emit_clojure_fn_args(FILE *f, cdd_ffi_field_t *fields,
+                                          size_t count) {
+  size_t idx;
+  cdd_c_error_t rc;
+  for (idx = 0; idx < count; idx++) {
+    const char *ft = NULL;
+    rc = map_clojure_jna_type(&fields[idx].type, &ft);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
+    fprintf(f, "%s%s", (idx > 0) ? " " : "", ft);
+  }
+  fprintf(f, "]]\n");
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Emits Clojure `gen-interface` `:methods` entries.
+ *
+ * @param[in,out] f Output file stream.
+ * @param[in] ir FFI IR module.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
+static cdd_c_error_t emit_clojure_fn_methods(FILE *f, cdd_ffi_ir_t *ir) {
+  size_t idx;
+  cdd_c_error_t rc;
+  for (idx = 0; idx < ir->nodes_count; idx++) {
+    cdd_ffi_ir_node_t *node = &ir->nodes[idx];
+    if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      const char *ret_t = NULL;
+      rc = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
+      rc = map_clojure_jna_type(&node->return_or_base_type, &ret_t);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
+      fprintf(f, "    ^%s [%s [", ret_t, node->name);
+      rc = emit_clojure_fn_args(f, node->fields, node->fields_count);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Emits Clojure JNA interop bindings and `deps.edn` for the given FFI
  * IR.
@@ -101,7 +161,7 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   const char *lib_name;
   const char *module_name;
   size_t i, j;
-  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -144,25 +204,10 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   fprintf(f, "  :extends [com.sun.jna.Library]\n");
   fprintf(f, "  :methods [\n");
 
-  for (i = 0; i < ir->nodes_count; i++) {
-    cdd_ffi_ir_node_t *node = &ir->nodes[i];
-    if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      const char *ret_t = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_clojure_jna_type(
-                                    &node->return_or_base_type, &ret_t));
-      fprintf(f, "    ^%s [%s [", ret_t, node->name);
-      for (j = 0; j < node->fields_count; j++) {
-        const char *ft = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)map_clojure_jna_type(
-                                               &node->fields[j].type, &ft));
-        fprintf(f, "%s%s", j > 0 ? " " : "", ft);
-      }
-      fprintf(f, "]]\n");
-    }
+  rc = emit_clojure_fn_methods(f, ir);
+  if (rc != CDD_C_SUCCESS) {
+    fclose(f);
+    return rc;
   }
   fprintf(f, "  ])\n\n");
 
@@ -170,8 +215,11 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc;
+      }
       fprintf(f, "(gen-class\n");
       fprintf(f, "  :name %s.%s\n", module_name, node->name);
       fprintf(f, "  :extends com.sun.jna.Structure\n");
@@ -199,8 +247,11 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc;
+      }
       fprintf(f, "(defn %s [", node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "%s%s", j > 0 ? " " : "", node->fields[j].name);
@@ -238,5 +289,5 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   fprintf(f, "{:deps {net.java.dev.jna/jna {:mvn/version \"5.13.0\"}}}\n");
   fclose(f);
 
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

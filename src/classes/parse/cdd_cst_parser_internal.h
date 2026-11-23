@@ -67,7 +67,17 @@ cdd_c_error_t append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child);
  * @param[in,out] node Node to free.
  * @return CDD_C_SUCCESS.
  */
-cdd_c_error_t free_node(cdd_cst_node_t *node);
+cdd_c_error_t cst_node_free(cdd_cst_node_t *node);
+
+/**
+ * @brief Looks up the identifier token of the nearest enclosing class/struct
+ * declaration, setting `*out_tok` to `NULL` when not inside a class.
+ *
+ * @param[in] node Starting CST node to search upward from.
+ * @param[out] out_tok Pointer to receive the class identifier token or `NULL`.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t find_class_name_tok(cdd_cst_node_t *node, cdd_token_t **out_tok);
 
 /**
  * @brief Peek next token from parser state without advancing.

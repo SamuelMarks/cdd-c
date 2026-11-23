@@ -96,6 +96,31 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
 
 /* --- Realloc Strategy --- */
 
+/**
+ * @brief Checks if the first argument of a `realloc` call matches `var_name`.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] lparen_idx Index of the opening `(` token.
+ * @param[in] var_name Assigned variable name.
+ * @param[out] out_self Receives 1 if self-assigned, 0 otherwise.
+ * @return `CDD_C_SUCCESS`.
+ */
+static cdd_c_error_t check_realloc_self_assign(const struct TokenList *tokens,
+                                               size_t lparen_idx,
+                                               const char *var_name,
+                                               int *out_self) {
+  size_t start_arg = lparen_idx + 1;
+  *out_self = 0;
+  while (start_arg < tokens->size &&
+         tokens->tokens[start_arg].kind == TOKEN_WHITESPACE)
+    start_arg++;
+  if (start_arg < tokens->size &&
+      tokens->tokens[start_arg].kind == TOKEN_IDENTIFIER) {
+    return token_matches_string(&tokens->tokens[start_arg], var_name, out_self);
+  }
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Rewrites unchecked realloc calls into safe temporary-pointer
  * assignments.
@@ -117,6 +142,7 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
   size_t assign_op_idx = 0;
   size_t stmt_start = 0;
   int is_self_assign = 0;
+  cdd_c_error_t rc_self;
 
   if (!tokens || !site || !patches)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -183,23 +209,8 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
   if (lparen_idx >= tokens->size)
     return CDD_C_SUCCESS;
 
-  {
-    /* Extract first arg name crudely */
-    size_t start_arg = lparen_idx + 1;
-    while (start_arg < tokens->size &&
-           tokens->tokens[start_arg].kind == TOKEN_WHITESPACE)
-      start_arg++;
-
-    if (start_arg < tokens->size &&
-        tokens->tokens[start_arg].kind == TOKEN_IDENTIFIER) {
-      /* Compare against var_name */
-      int is_match = 0;
-      cdd_c_error_t rc_m = token_matches_string(&tokens->tokens[start_arg],
-                                                site->var_name, &is_match);
-      is_self_assign = is_match + (int)rc_m;
-    }
-  }
-
+  rc_self = check_realloc_self_assign(tokens, lparen_idx, site->var_name,
+                                      &is_self_assign);
   if (is_self_assign) {
     char *call_expr = NULL;
     char *replacement = NULL;
@@ -208,8 +219,9 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     {
       cdd_c_error_t rc_st =
           range_to_string(tokens, call_idx, semi_idx, &call_expr);
-      if (rc_st != CDD_C_SUCCESS)
-        return rc_st;
+      if (rc_st != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc_st, rc_self);
+      }
     }
 
     /* Build safe block */
@@ -368,10 +380,12 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     }
 
     /* Add patch: Insert at semi_idx + 1 (Start==End for insertion) */
-    if (patch_list_add(patches, semi_idx + 1, semi_idx + 1, injection) != 0) {
-      /* patch_list_add frees injection on failure, but we rely on its behavior.
-         Check implementation: Yes, it handles free on failure. */
-      return CDD_C_ERROR_MEMORY;
+    {
+      cdd_c_error_t rc_p =
+          patch_list_add(patches, semi_idx + 1, semi_idx + 1, injection);
+      if (rc_p != CDD_C_SUCCESS) {
+        return rc_p;
+      }
     }
   }
 

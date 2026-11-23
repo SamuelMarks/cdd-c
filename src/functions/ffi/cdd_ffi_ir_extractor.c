@@ -23,19 +23,6 @@
 #include <string.h>
 /* clang-format on */
 
-/**
- * @brief Preserves the first non-success error code across two sequential
- * calls.
- *
- * @param[in] first_rc Primary error code.
- * @param[in] second_rc Secondary/cleanup error code.
- * @return `first_rc` if non-success, otherwise `second_rc`.
- */
-static NO_DISCARD cdd_c_error_t cdd_keep_err(cdd_c_error_t first_rc,
-                                             cdd_c_error_t second_rc) {
-  return (first_rc != CDD_C_SUCCESS) ? first_rc : second_rc;
-}
-
 /** @brief Counter to simulate allocation failure in FFI IR extractor tests. */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
 
@@ -66,6 +53,10 @@ static cdd_c_error_t int64_to_str(int64_t val, char *buf, size_t buf_sz) {
   size_t j = 0;
   int neg = 0;
   uint64_t uval;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (buf == NULL || buf_sz == 0) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -181,6 +172,10 @@ static cdd_c_error_t find_class_declaration_by_name(cdd_cst_tree_t *tree,
                                                     const char *name,
                                                     cdd_cst_node_t **out_node) {
   struct find_node_ctx_t ctx;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
@@ -225,6 +220,10 @@ static cdd_c_error_t find_func_definition_by_name(cdd_cst_tree_t *tree,
                                                   const char *name,
                                                   cdd_cst_node_t **out_node) {
   struct find_node_ctx_t ctx;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_node = NULL;
   ctx.target_name = name;
   ctx.out_node = out_node;
@@ -239,6 +238,10 @@ static cdd_c_error_t find_func_definition_by_name(cdd_cst_tree_t *tree,
  */
 static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_tok = node->children[0].val.token;
   return CDD_C_SUCCESS;
 }
@@ -251,6 +254,10 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
  */
 static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
                                     cdd_token_t **out_tok) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (;;) {
     size_t last_idx = node->num_children - 1;
     if (node->children[last_idx].kind == CDD_CST_CHILD_TOKEN) {
@@ -259,6 +266,37 @@ static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
     }
     node = node->children[last_idx].val.node;
   }
+}
+
+/**
+ * @brief Queries CST class declarations with test fault injection support.
+ * @param[in] root Root CST node.
+ * @param[out] out Query result structure.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+static cdd_c_error_t query_base_class_decls(cdd_cst_node_t *root,
+                                            cdd_cst_query_result_t *out) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_ffi_extractor_fail == 1)
+    return CDD_C_ERROR_MEMORY;
+#endif
+  return cdd_cst_find_nodes_by_type(root, CDD_CST_CLASS_DECLARATION, out);
+}
+
+/**
+ * @brief Extracts a CST class identifier token with test fault injection
+ * support.
+ * @param[in] node Class CST node.
+ * @param[out] out_tok Output class name token.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+static cdd_c_error_t query_class_name(cdd_cst_node_t *node,
+                                      cdd_token_t **out_tok) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_ffi_extractor_fail == 2)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  return get_class_name(node, out_tok);
 }
 /**
  * @brief Copies a CST trivia chain to an FFI trivia chain.
@@ -430,6 +468,8 @@ parse_c_simple_type_str(const char *raw, size_t len, cdd_ffi_type_t *out_type) {
   }
 
   rc = map_c_type_to_ffi_kind(p, &out_type->kind);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   out_type->is_const = is_const;
   out_type->pointer_depth = ptr_depth;
   if (out_type->kind == CDD_FFI_KIND_STRUCT_REF) {
@@ -437,7 +477,7 @@ parse_c_simple_type_str(const char *raw, size_t len, cdd_ffi_type_t *out_type) {
     if (!out_type->ref_name)
       return CDD_C_ERROR_MEMORY;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -490,8 +530,32 @@ static NO_DISCARD cdd_c_error_t parse_c_param_item(const char *param_str,
 }
 
 /**
- * @brief Parses a C function-pointer declaration `<ret> (*<name>)(<params>)`
- * into a `CDD_FFI_KIND_FUNCTION_PTR` type with signature metadata.
+ * @brief Releases heap allocations owned by a parsed function-pointer
+ * `cdd_ffi_type_t` descriptor (`fn_return_type` and `fn_params`).
+ *
+ * @param[in,out] t Non-NULL function-pointer type descriptor to clean up.
+ * @return CDD_C_SUCCESS.
+ */
+static NO_DISCARD cdd_c_error_t parsed_func_ptr_type_free(cdd_ffi_type_t *t) {
+  size_t pi;
+  C_CDD_FREE(t->fn_return_type->ref_name);
+  C_CDD_FREE(t->fn_return_type);
+  t->fn_return_type = NULL;
+  if (t->fn_params) {
+    for (pi = 0; pi < t->fn_params_count; pi++) {
+      C_CDD_FREE(t->fn_params[pi].name);
+      C_CDD_FREE(t->fn_params[pi].type.ref_name);
+    }
+    C_CDD_FREE(t->fn_params);
+    t->fn_params = NULL;
+  }
+  t->fn_params_count = 0;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Parses a C function-pointer declaration/parameter/typedef body of the
+ * form `RetType (*Name)(Param1, Param2, ...)` into `out_name` and `out_type`.
  *
  * @param[in] decl Null-terminated declaration text (without trailing `;`).
  * @param[out] out_name Non-NULL pointer receiving duplicated identifier name
@@ -549,14 +613,17 @@ static NO_DISCARD cdd_c_error_t parse_c_func_ptr_decl(
 
   rc = parse_c_simple_type_str(decl, (size_t)(open1 - decl),
                                out_type->fn_return_type);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, parsed_func_ptr_type_free(out_type));
+  }
 
   if (id_e > id_s) {
     size_t nlen = (size_t)(id_e - id_s);
     *out_name = (char *)CDD_CALLOC(nlen + 1, 1);
-    if (!*out_name)
-      return CDD_C_ERROR_MEMORY;
+    if (!*out_name) {
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                            parsed_func_ptr_type_free(out_type));
+    }
     memcpy(*out_name, id_s, nlen);
   }
 
@@ -599,14 +666,20 @@ static NO_DISCARD cdd_c_error_t parse_c_func_ptr_decl(
         new_params = (cdd_ffi_field_t *)CDD_REALLOC(
             out_type->fn_params,
             (out_type->fn_params_count + 1) * sizeof(cdd_ffi_field_t));
-        if (!new_params)
-          return CDD_C_ERROR_MEMORY;
+        if (!new_params) {
+          C_CDD_FREE(*out_name);
+          *out_name = NULL;
+          return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                                parsed_func_ptr_type_free(out_type));
+        }
         out_type->fn_params = new_params;
         rc = parse_c_param_item(
             trim_s, seg_len, &out_type->fn_params[out_type->fn_params_count]);
         if (rc != CDD_C_SUCCESS) {
           out_type->fn_params_count++;
-          return rc;
+          C_CDD_FREE(*out_name);
+          *out_name = NULL;
+          return cdd_c_keep_err(rc, parsed_func_ptr_type_free(out_type));
         }
         out_type->fn_params_count++;
       }
@@ -750,7 +823,7 @@ extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
                   fp_rc = parse_c_func_ptr_decl(decl_buf, &cb_name, &cb_type);
                   if (fp_rc == CDD_C_ERROR_MEMORY) {
                     C_CDD_FREE(cb_name);
-                    return CDD_C_ERROR_MEMORY;
+                    return fp_rc;
                   }
                   if (fp_rc == CDD_C_SUCCESS && cb_name) {
                     size_t f_idx;
@@ -775,7 +848,9 @@ extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
                                                    sizeof(cdd_ffi_field_t));
                       if (!nf) {
                         C_CDD_FREE(cb_name);
-                        return CDD_C_ERROR_MEMORY;
+                        return cdd_c_keep_err(
+                            CDD_C_ERROR_MEMORY,
+                            parsed_func_ptr_type_free(&cb_type));
                       }
                       ir->nodes[k].fields = nf;
                       memset(&ir->nodes[k].fields[ir->nodes[k].fields_count], 0,
@@ -788,6 +863,9 @@ extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
                     }
                   } else {
                     C_CDD_FREE(cb_name);
+                    if (fp_rc == CDD_C_SUCCESS) {
+                      fp_rc = parsed_func_ptr_type_free(&cb_type);
+                    }
                   }
                 }
               }
@@ -816,7 +894,7 @@ extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
           fp_rc = parse_c_func_ptr_decl(decl_buf, &td_name, &td_type);
           if (fp_rc == CDD_C_ERROR_MEMORY) {
             C_CDD_FREE(td_name);
-            return CDD_C_ERROR_MEMORY;
+            return fp_rc;
           }
           if (fp_rc == CDD_C_SUCCESS && td_name) {
             int exists = 0;
@@ -831,25 +909,22 @@ extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
               cdd_ffi_ir_node_t *td_node = NULL;
               cdd_c_error_t add_rc =
                   ir_add_node(ir, CDD_FFI_NODE_TYPEDEF, td_name, &td_node);
+              if (add_rc != CDD_C_SUCCESS) {
+                C_CDD_FREE(td_name);
+                return cdd_c_keep_err(add_rc,
+                                      parsed_func_ptr_type_free(&td_type));
+              }
               C_CDD_FREE(td_name);
-              if (add_rc != CDD_C_SUCCESS)
-                return add_rc;
               td_node->return_or_base_type = td_type;
             } else {
               C_CDD_FREE(td_name);
-              C_CDD_FREE(td_type.fn_return_type->ref_name);
-              C_CDD_FREE(td_type.fn_return_type);
-              if (td_type.fn_params) {
-                size_t pi;
-                for (pi = 0; pi < td_type.fn_params_count; pi++) {
-                  C_CDD_FREE(td_type.fn_params[pi].name);
-                  C_CDD_FREE(td_type.fn_params[pi].type.ref_name);
-                }
-                C_CDD_FREE(td_type.fn_params);
-              }
+              fp_rc = parsed_func_ptr_type_free(&td_type);
             }
           } else {
             C_CDD_FREE(td_name);
+            if (fp_rc == CDD_C_SUCCESS) {
+              fp_rc = parsed_func_ptr_type_free(&td_type);
+            }
           }
         }
       }
@@ -933,21 +1008,26 @@ extract_func_ptr_typedefs_and_packed(cdd_ffi_ir_t *ir, const char *content) {
                     fp_rc = parse_c_func_ptr_decl(p_buf, &cb_nm, &cb_t);
                     if (fp_rc == CDD_C_ERROR_MEMORY) {
                       C_CDD_FREE(cb_nm);
-                      return CDD_C_ERROR_MEMORY;
+                      return fp_rc;
                     }
                     if (fp_rc == CDD_C_SUCCESS) {
                       fn_node->fields = (cdd_ffi_field_t *)CDD_CALLOC(
                           1, sizeof(cdd_ffi_field_t));
                       if (!fn_node->fields) {
                         C_CDD_FREE(cb_nm);
-                        return CDD_C_ERROR_MEMORY;
+                        return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                                              parsed_func_ptr_type_free(&cb_t));
                       }
                       fn_node->fields[0].name =
                           cb_nm ? cb_nm : CDD_STRDUP("cb");
+                      if (!fn_node->fields[0].name) {
+                        C_CDD_FREE(fn_node->fields);
+                        fn_node->fields = NULL;
+                        return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                                              parsed_func_ptr_type_free(&cb_t));
+                      }
                       fn_node->fields[0].type = cb_t;
                       fn_node->fields_count = 1;
-                      if (!fn_node->fields[0].name)
-                        return CDD_C_ERROR_MEMORY;
                     } else {
                       C_CDD_FREE(cb_nm);
                     }
@@ -1003,8 +1083,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
   /* Extract Types */
   rc = c_inspector_scan_file_types(filename, &types);
   if (rc != CDD_C_SUCCESS) {
-    rc = cdd_keep_err(rc, type_def_list_free(&types));
-    return rc;
+    return cdd_c_keep_err(rc, type_def_list_free(&types));
   }
 
   for (i = 0; i < types.size; i++) {
@@ -1012,7 +1091,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
     if (types.items[i].kind == KIND_ENUM) {
       rc = ir_add_node(ir, CDD_FFI_NODE_ENUM, types.items[i].name, &node);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup_types;
       if (tree_full) {
         /* CST parser currently does not structure enums as declarations we can
          * look up by name. */
@@ -1025,27 +1104,27 @@ static cdd_c_error_t extract_single_file_exports_impl(
             em->size, sizeof(cdd_ffi_enum_variant_t));
         if (!node->variants) {
           rc = CDD_C_ERROR_MEMORY;
-          break;
+          goto cleanup_types;
         }
         for (j = 0; j < em->size; j++) {
           node->variants[j].name = CDD_STRDUP(em->members[j]);
           node->variants[j].value = CDD_STRDUP(em->members[j]);
           if (!node->variants[j].name || !node->variants[j].value) {
             rc = CDD_C_ERROR_MEMORY;
-            break;
+            goto cleanup_types;
           }
         }
-        if (rc != CDD_C_SUCCESS)
-          break;
       }
     } else {
       rc = ir_add_node(ir, CDD_FFI_NODE_STRUCT, types.items[i].name, &node);
       if (rc != CDD_C_SUCCESS)
-        break;
+        goto cleanup_types;
       if (tree_full) {
         cdd_cst_node_t *cst_node = NULL;
         rc = find_class_declaration_by_name(tree_full, types.items[i].name,
                                             &cst_node);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_types;
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_cst_node)
           cst_node = NULL;
@@ -1054,18 +1133,22 @@ static cdd_c_error_t extract_single_file_exports_impl(
           cdd_token_t *first = NULL;
           cdd_token_t *last = NULL;
           rc = get_first_token(cst_node, &first);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_types;
           rc = get_last_token(cst_node, &last);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_types;
           if (first->leading_trivia) {
             rc =
                 copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
             if (rc != CDD_C_SUCCESS)
-              break;
+              goto cleanup_types;
           }
           if (last->trailing_trivia) {
             rc = copy_trivia_chain(last->trailing_trivia,
                                    &node->trailing_trivia);
             if (rc != CDD_C_SUCCESS)
-              break;
+              goto cleanup_types;
           }
         }
       }
@@ -1075,33 +1158,22 @@ static cdd_c_error_t extract_single_file_exports_impl(
         cdd_cst_query_result_t structs_base = {0};
         size_t si;
         az_span span_base;
+        cdd_c_error_t base_rc;
         span_base = az_span_create_from_str(content);
-        rc = cdd_cst_parse(span_base, &tree_base);
-        if (rc != CDD_C_SUCCESS) {
-          rc = CDD_C_SUCCESS;
-        } else {
-          rc = cdd_cst_find_nodes_by_type(
-              tree_base->root, CDD_CST_CLASS_DECLARATION, &structs_base);
-#ifdef CDD_BUILD_TESTS
-          if (g_cdd_ffi_extractor_fail == 1)
-            rc = CDD_C_ERROR_MEMORY;
-#endif
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(structs_base.nodes);
-            rc = cdd_keep_err(rc, cdd_cst_tree_free(tree_base));
-            break;
-          }
+        base_rc = cdd_cst_parse(span_base, &tree_base);
+        if (base_rc == CDD_C_ERROR_UNKNOWN) {
+          return cdd_c_keep_err(base_rc, type_def_list_free(&types));
+        }
+        if (base_rc == CDD_C_SUCCESS) {
+          rc = query_base_class_decls(tree_base->root, &structs_base);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_base_tree;
           for (si = 0; si < structs_base.size; si++) {
             cdd_cst_node_t *s_node = structs_base.nodes[si];
             cdd_token_t *name_tok = NULL;
-            rc = get_class_name(s_node, &name_tok);
-#ifdef CDD_BUILD_TESTS
-            if (g_cdd_ffi_extractor_fail == 2)
-              rc = CDD_C_ERROR_UNKNOWN;
-#endif
-            if (rc != CDD_C_SUCCESS) {
-              break;
-            }
+            rc = query_class_name(s_node, &name_tok);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_base_tree;
 #ifdef CDD_BUILD_TESTS
             if (g_cdd_ffi_fail_class_name)
               name_tok = NULL;
@@ -1128,7 +1200,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
                   if (!node->base_classes) {
                     node->base_classes_count = 0;
                     rc = CDD_C_ERROR_MEMORY;
-                    break;
+                    goto cleanup_base_tree;
                   }
                   {
                     size_t bi = 0;
@@ -1149,15 +1221,13 @@ static cdd_c_error_t extract_single_file_exports_impl(
                                                              sizeof(char));
                             if (!bname) {
                               rc = CDD_C_ERROR_MEMORY;
-                              break;
+                              goto cleanup_base_tree;
                             }
                             memcpy(bname, tok->start, tok->length);
                             bname[tok->length] = '\0';
                             node->base_classes[bi].name = bname;
                           }
                         }
-                        if (rc != CDD_C_SUCCESS)
-                          break;
                         bi++;
                       }
                     }
@@ -1165,16 +1235,18 @@ static cdd_c_error_t extract_single_file_exports_impl(
                   break;
                 }
               }
-              if (rc != CDD_C_SUCCESS)
-                break;
             }
           }
+        cleanup_base_tree:
           C_CDD_FREE(structs_base.nodes);
-          rc = cdd_keep_err(rc, cdd_cst_tree_free(tree_base));
+          if (rc != CDD_C_SUCCESS) {
+            cdd_c_error_t f1 = cdd_cst_tree_free(tree_base);
+            cdd_c_error_t f2 = type_def_list_free(&types);
+            return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+          }
+          rc = cdd_cst_tree_free(tree_base);
         }
       }
-      if (rc != CDD_C_SUCCESS)
-        break;
 
       if (types.items[i].details.struct_fields->size > 0) {
         size_t j;
@@ -1190,25 +1262,21 @@ static cdd_c_error_t extract_single_file_exports_impl(
 #endif
         if (!node->fields) {
           rc = CDD_C_ERROR_MEMORY;
-          break;
+          goto cleanup_types;
         }
         for (j = 0; j < sf->size; j++) {
           const char *target_c_type;
           node->fields[j].name = CDD_STRDUP(sf->fields[j].name);
           if (!node->fields[j].name) {
             rc = CDD_C_ERROR_MEMORY;
-            break;
+            goto cleanup_types;
           }
           target_c_type = sf->fields[j].ref[0] != '\0' ? sf->fields[j].ref
                                                        : sf->fields[j].type;
           rc =
               map_c_type_to_ffi_kind(target_c_type, &node->fields[j].type.kind);
-#ifdef CDD_BUILD_TESTS
-          if (g_cdd_ffi_extractor_fail == 6)
-            rc = CDD_C_ERROR_UNKNOWN;
-#endif
           if (rc != CDD_C_SUCCESS)
-            break;
+            goto cleanup_types;
           if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
             node->fields[j].type.ref_name = CDD_STRDUP(target_c_type);
 #ifdef CDD_BUILD_TESTS
@@ -1219,41 +1287,39 @@ static cdd_c_error_t extract_single_file_exports_impl(
 #endif
             if (!node->fields[j].type.ref_name) {
               rc = CDD_C_ERROR_MEMORY;
-              break;
+              goto cleanup_types;
             }
           } else {
             switch (node->fields[j].type.kind) {
             case CDD_FFI_KIND_TEMPLATE_STRUCT_REF:
             case CDD_FFI_KIND_STD_VECTOR:
             case CDD_FFI_KIND_STD_SHARED_PTR:
-            case CDD_FFI_KIND_STD_UNIQUE_PTR:
+            case CDD_FFI_KIND_STD_UNIQUE_PTR: {
               rc = parse_template_type(target_c_type, &node->fields[j].type);
-              break;
-            default:
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_types;
               break;
             }
-            if (rc != CDD_C_SUCCESS) {
+            default:
               break;
             }
           }
         }
-        if (rc != CDD_C_SUCCESS)
-          break;
       }
     }
   }
-  rc = cdd_keep_err(rc, type_def_list_free(&types));
-
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+cleanup_types:
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, type_def_list_free(&types));
+  }
+  rc = type_def_list_free(&types);
 
   /* Extract Functions */
   memset(&sigs, 0, sizeof(sigs));
 
   rc = c_inspector_extract_signatures(content, &sigs);
   if (rc != CDD_C_SUCCESS) {
-    rc = cdd_keep_err(rc, func_sig_list_free(&sigs));
-    return rc;
+    return cdd_c_keep_err(rc, func_sig_list_free(&sigs));
   }
 
   for (i = 0; i < sigs.size; i++) {
@@ -1262,11 +1328,13 @@ static cdd_c_error_t extract_single_file_exports_impl(
     const char *rparen;
     rc = ir_add_node(ir, CDD_FFI_NODE_FUNCTION, sigs.items[i].name, &node);
     if (rc != CDD_C_SUCCESS)
-      break;
+      goto cleanup_sigs;
     if (tree_full) {
       cdd_cst_node_t *cst_node = NULL;
       rc = find_func_definition_by_name(tree_full, sigs.items[i].name,
                                         &cst_node);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_sigs;
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_ffi_fail_cst_node)
         cst_node = NULL;
@@ -1275,7 +1343,11 @@ static cdd_c_error_t extract_single_file_exports_impl(
         cdd_token_t *first = NULL;
         cdd_token_t *last = NULL;
         rc = get_first_token(cst_node, &first);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_sigs;
         rc = get_last_token(cst_node, &last);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_sigs;
 #ifdef CDD_BUILD_TESTS
         if (g_cdd_ffi_fail_token) {
           first = NULL;
@@ -1285,12 +1357,12 @@ static cdd_c_error_t extract_single_file_exports_impl(
         if (first && first->leading_trivia) {
           rc = copy_trivia_chain(first->leading_trivia, &node->leading_trivia);
           if (rc != CDD_C_SUCCESS)
-            break;
+            goto cleanup_sigs;
         }
         if (last && last->trailing_trivia) {
           rc = copy_trivia_chain(last->trailing_trivia, &node->trailing_trivia);
           if (rc != CDD_C_SUCCESS)
-            break;
+            goto cleanup_sigs;
         }
       }
     }
@@ -1301,7 +1373,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
       node->doc = CDD_STRDUP(sigs.items[i].doc);
       if (!node->doc) {
         rc = CDD_C_ERROR_MEMORY;
-        break;
+        goto cleanup_sigs;
       }
       if (strstr(sigs.items[i].doc, "@ffi_release_gil") ||
           strstr(sigs.items[i].doc, "@blocking")) {
@@ -1360,7 +1432,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
               node->fields, new_cap * sizeof(cdd_ffi_field_t));
           if (!new_fields) {
             rc = CDD_C_ERROR_MEMORY;
-            break;
+            goto cleanup_sigs;
           }
           node->fields = new_fields;
           memset(&node->fields[node->fields_count], 0, sizeof(cdd_ffi_field_t));
@@ -1376,7 +1448,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
             if (!node->fields[node->fields_count].name) {
               node->fields_count++;
               rc = CDD_C_ERROR_MEMORY;
-              break;
+              goto cleanup_sigs;
             }
             node->fields[node->fields_count].type.kind = CDD_FFI_KIND_INT32;
             node->fields[node->fields_count].intent = CDD_FFI_INTENT_UNKNOWN;
@@ -1440,13 +1512,11 @@ static cdd_c_error_t extract_single_file_exports_impl(
       }
     }
   }
-  {
-    cdd_c_error_t rc_sigs = func_sig_list_free(&sigs);
-    if (rc == CDD_C_SUCCESS)
-      rc = rc_sigs;
+cleanup_sigs:
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, func_sig_list_free(&sigs));
   }
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  rc = func_sig_list_free(&sigs);
 
   rc = extract_func_ptr_typedefs_and_packed(ir, content);
   if (rc != CDD_C_SUCCESS)
@@ -1455,8 +1525,14 @@ static cdd_c_error_t extract_single_file_exports_impl(
   /* Extract Macros as Constants */
   {
     struct PreprocessorContext pp_ctx;
+    cdd_c_error_t pp_rc;
     rc = pp_context_init(&pp_ctx);
-    rc = pp_scan_defines(&pp_ctx, filename);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    pp_rc = pp_scan_defines(&pp_ctx, filename);
+    if (pp_rc == CDD_C_ERROR_MEMORY) {
+      return cdd_c_keep_err(pp_rc, pp_context_free(&pp_ctx));
+    }
     {
       size_t j;
       for (j = 0; j < pp_ctx.macro_count; j++) {
@@ -1465,8 +1541,7 @@ static cdd_c_error_t extract_single_file_exports_impl(
           rc =
               ir_add_node(ir, CDD_FFI_NODE_MACRO, pp_ctx.macros[j].name, &node);
           if (rc != CDD_C_SUCCESS) {
-            rc = cdd_keep_err(rc, pp_context_free(&pp_ctx));
-            return rc;
+            return cdd_c_keep_err(rc, pp_context_free(&pp_ctx));
           }
           {
             cdd_macro_eval_result_t eval_res;
@@ -1477,18 +1552,28 @@ static cdd_c_error_t extract_single_file_exports_impl(
                 1, sizeof(cdd_ffi_enum_variant_t));
             if (!node->variants) {
               node->variants_count = 0;
-              return cdd_keep_err(CDD_C_ERROR_MEMORY, pp_context_free(&pp_ctx));
+              return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                                    pp_context_free(&pp_ctx));
             }
             node->variants[0].name = CDD_STRDUP(pp_ctx.macros[j].name);
             node->variants[0].value = CDD_STRDUP(pp_ctx.macros[j].value);
             eval_rc =
                 cdd_macro_evaluate(&pp_ctx, pp_ctx.macros[j].value, &eval_res);
+            if (eval_rc == CDD_C_ERROR_MEMORY) {
+              cdd_c_error_t f1 = cdd_macro_eval_result_free(&eval_res);
+              cdd_c_error_t f2 = pp_context_free(&pp_ctx);
+              return cdd_c_keep_err(eval_rc, cdd_c_keep_err(f1, f2));
+            }
             if (eval_rc == CDD_C_SUCCESS) {
               node->inferred_type = (cdd_ffi_macro_type_t)eval_res.type;
               if (eval_res.type == MACRO_EVAL_TYPE_INT) {
                 char buf[64];
-                rc = cdd_keep_err(
-                    rc, int64_to_str(eval_res.int_val, buf, sizeof(buf)));
+                rc = int64_to_str(eval_res.int_val, buf, sizeof(buf));
+                if (rc != CDD_C_SUCCESS) {
+                  cdd_c_error_t f1 = cdd_macro_eval_result_free(&eval_res);
+                  cdd_c_error_t f2 = pp_context_free(&pp_ctx);
+                  return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+                }
                 node->evaluated_value = CDD_STRDUP(buf);
               } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
                 char buf[64];
@@ -1498,9 +1583,19 @@ static cdd_c_error_t extract_single_file_exports_impl(
                 CDD_SNPRINTF(buf, sizeof(buf), "%f", eval_res.float_val);
 #endif
                 rc = cdd_ffi_do_strdup(buf, &node->evaluated_value);
+                if (rc != CDD_C_SUCCESS) {
+                  cdd_c_error_t f1 = cdd_macro_eval_result_free(&eval_res);
+                  cdd_c_error_t f2 = pp_context_free(&pp_ctx);
+                  return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+                }
               } else {
                 rc =
                     cdd_ffi_do_strdup(eval_res.str_val, &node->evaluated_value);
+                if (rc != CDD_C_SUCCESS) {
+                  cdd_c_error_t f1 = cdd_macro_eval_result_free(&eval_res);
+                  cdd_c_error_t f2 = pp_context_free(&pp_ctx);
+                  return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+                }
               }
             } else {
               node->inferred_type = CDD_FFI_MACRO_TYPE_UNKNOWN;
@@ -1653,6 +1748,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
                             const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;
+  cdd_c_error_t parse_rc;
   cdd_cst_tree_t *tree_full = NULL;
   az_span span_full;
 
@@ -1660,18 +1756,28 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   span_full = az_span_create_from_str(content);
-  if (cdd_cst_parse(span_full, &tree_full) != 0) {
+  parse_rc = cdd_cst_parse(span_full, &tree_full);
+  if (parse_rc == CDD_C_ERROR_UNKNOWN) {
+    return parse_rc;
+  }
+  if (parse_rc != CDD_C_SUCCESS) {
     tree_full = NULL;
   }
 
   rc = extract_single_file_exports_impl(ir, filename, content, config,
                                         tree_full);
-
-  if (tree_full) {
-    rc = cdd_keep_err(rc, cdd_cst_tree_free(tree_full));
+  if (rc != CDD_C_SUCCESS) {
+    if (tree_full) {
+      return cdd_c_keep_err(rc, cdd_cst_tree_free(tree_full));
+    }
+    return rc;
   }
 
-  return rc;
+  if (tree_full) {
+    return cdd_cst_tree_free(tree_full);
+  }
+
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1773,9 +1879,9 @@ static cdd_c_error_t extract_exports_recursive(const char *filename,
     return rc;
 
   if (ctx->config && ctx->config->recursive_includes) {
-    rc = pp_scan_includes(filename, ctx->pp_ctx, include_visitor, ctx);
+    return pp_scan_includes(filename, ctx->pp_ctx, include_visitor, ctx);
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1804,14 +1910,19 @@ static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
       char *content = NULL;
       size_t sz = 0;
       cdd_c_error_t rc = read_to_file(info->resolved_path, "r", &content, &sz);
+      if (rc == CDD_C_ERROR_MEMORY) {
+        ctx->err = rc;
+        return rc;
+      }
       if (rc == CDD_C_SUCCESS) {
         cdd_c_error_t ext_rc =
             extract_exports_recursive(info->resolved_path, content, ctx);
-        C_CDD_FREE(content);
         if (ext_rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(content);
           ctx->err = ext_rc;
           return ext_rc;
         }
+        C_CDD_FREE(content);
       }
     }
   }
@@ -1852,30 +1963,44 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   memset(&ctx, 0, sizeof(ctx));
   memset(&pp_ctx, 0, sizeof(pp_ctx));
   rc = pp_context_init(&pp_ctx);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(ir);
+    *out_ir = NULL;
+    return rc;
+  }
 
   ctx.ir = ir;
   ctx.config = config;
   ctx.pp_ctx = &pp_ctx;
 
   rc = extract_exports_recursive(filename, content, &ctx);
-  if (rc == CDD_C_SUCCESS)
-    rc = instantiate_templates(ir);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_extract;
+  rc = instantiate_templates(ir);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_extract;
 
   for (k = 0; k < ctx.visited_count; k++) {
     C_CDD_FREE(ctx.visited[k]);
   }
   C_CDD_FREE(ctx.visited);
-  rc = cdd_keep_err(rc, pp_context_free(&pp_ctx));
-
-  if (rc != CDD_C_SUCCESS) {
-    rc = cdd_keep_err(rc, cdd_ffi_ir_free(ir));
-    C_CDD_FREE(ir);
-    *out_ir = NULL;
-    return rc;
-  }
-
+  rc = pp_context_free(&pp_ctx);
   *out_ir = ir;
   return CDD_C_SUCCESS;
+
+cleanup_extract: {
+  cdd_c_error_t f1;
+  cdd_c_error_t f2;
+  for (k = 0; k < ctx.visited_count; k++) {
+    C_CDD_FREE(ctx.visited[k]);
+  }
+  C_CDD_FREE(ctx.visited);
+  f1 = pp_context_free(&pp_ctx);
+  f2 = cdd_ffi_ir_free(ir);
+  C_CDD_FREE(ir);
+  *out_ir = NULL;
+  return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+}
 }
 
 #ifdef CDD_BUILD_TESTS

@@ -909,7 +909,28 @@ TEST test_c_lowering_complete_coverage(void) {
         "}\n",
         "inline _Noreturn void f_leg2(void) { const char *fn = __func__; "
         "unsigned long long u = 10ULL; const char *s = \"%zu\"; }\n",
-        "int g_c89_cmt = 1; // trailing line cmt\n"};
+        "int g_c89_cmt = 1; // trailing line cmt\n",
+        "#include <stdckdint.h>\n"
+        "enum E1 { EC1 = 4 }; typedef struct S1 { int a; int b; } s1_t;\n"
+        "static int gs_arr[3] = { 1, [2] = EC1 };\n"
+        "static s1_t gs_st = { 1, .b = 2 };\n"
+        "void f_all1(int n) {\n"
+        "  int m2[n][2]; m2[0][1] = 1;\n"
+        "  _Atomic int ax = 0; ++ax; ax += 2; ax = 3;\n"
+        "  int loc_a[2] = { n, [1] = n };\n"
+        "  s1_t loc_s = { n, .b = n };\n"
+        "}\n",
+        "typedef struct S1 { int a; int b; } s1_t;\n"
+        "void f_all2(int n) {\n"
+        "  int cl_sc = (int){ n };\n"
+        "  for (s1_t s = { 0 }; s.a < 1; s.a++) {}\n"
+        "  if (n > 0) { struct TLoc { int z; }; }\n"
+        "  s1_t mid_s = { 1, 2 }; int mid_a[2] = { 1, 2 }; int mid_v = n;\n"
+        "  _Alignas(8) int alv = (int)_Alignof(int);\n"
+        "  _Static_assert(1, \"ok\");\n"
+        "}\n",
+        "_Alignas(8) int g_iso_al = 0;\n",
+        "void f_mod_alloca(int n) { int a[n]; a[0] = 1; }\n"};
     size_t mi;
     int fi;
     char sbuf[16];
@@ -921,15 +942,19 @@ TEST test_c_lowering_complete_coverage(void) {
 
     for (mi = 0; mi < sizeof(k_low_micro) / sizeof(k_low_micro[0]); mi++) {
       memset(&cfg, 0, sizeof(cfg));
-      if (mi == 0 || mi == 11) {
+      if (mi == 0 || mi == 11 || mi == 14) {
         cfg.target_profile = CDD_TARGET_PROFILE_ISO_C89;
         cfg.target_c89 = 1;
+      } else if (mi == 15) {
+        cfg.target_profile = CDD_TARGET_PROFILE_MSVC_MODERN;
+        cfg.msvc_ver = 1930;
       } else {
         cfg.target_profile = CDD_TARGET_PROFILE_MSVC_LEGACY;
         cfg.msvc_ver = 1300;
       }
-      cfg.vla_mode =
-          (mi == 1 || mi == 2) ? CDD_VLA_MODE_MALLOC : CDD_VLA_MODE_HYBRID;
+      cfg.vla_mode = (mi == 1 || mi == 2) ? CDD_VLA_MODE_MALLOC
+                                          : (mi == 15 ? CDD_VLA_MODE_ALLOCA
+                                                      : CDD_VLA_MODE_HYBRID);
       ASSERT_EQ(CDD_C_SUCCESS,
                 cdd_cst_parse(az_span_create_from_str(k_low_micro[mi]), &tree));
       ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_c_lowering(tree, &cfg));
@@ -1001,14 +1026,66 @@ TEST test_c_lowering_complete_coverage(void) {
         ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
         tree = NULL;
       }
+      {
+        int total_steps = 0;
+        {
+          struct c_lowering_ctx_t mctx;
+          ASSERT_EQ(
+              CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(k_low_micro[mi]), &tree));
+          memset(&mctx, 0, sizeof(mctx));
+          mctx.tree = tree;
+          mctx.config = &cfg;
+          mctx.is_msvc = (cfg.target_profile != CDD_TARGET_PROFILE_ISO_C89);
+          mctx.is_legacy_c89 = (mi != 15);
+          mctx.is_iso_c89 = (cfg.target_profile == CDD_TARGET_PROFILE_ISO_C89);
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_build_semantic_info_ex(
+                                       tree, NULL, 0, &mctx.sem_env));
+          g_cdd_step_fail = 100000;
+          ASSERT_EQ(CDD_C_SUCCESS, c_lower_modern_passes(&mctx));
+          if (mctx.is_legacy_c89)
+            ASSERT_EQ(CDD_C_SUCCESS, c_lower_legacy_passes(&mctx));
+          total_steps = 100000 - g_cdd_step_fail;
+          g_cdd_step_fail = 0;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(mctx.sem_env));
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+          tree = NULL;
+        }
+        for (fi = 1; fi <= total_steps; fi++) {
+          struct c_lowering_ctx_t lctx;
+          cdd_c_error_t p_rc;
+          ASSERT_EQ(
+              CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(k_low_micro[mi]), &tree));
+          memset(&lctx, 0, sizeof(lctx));
+          lctx.tree = tree;
+          lctx.config = &cfg;
+          lctx.is_msvc = (cfg.target_profile != CDD_TARGET_PROFILE_ISO_C89);
+          lctx.is_legacy_c89 = (mi != 15);
+          lctx.is_iso_c89 = (cfg.target_profile == CDD_TARGET_PROFILE_ISO_C89);
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_build_semantic_info_ex(
+                                       tree, NULL, 0, &lctx.sem_env));
+          g_cdd_step_fail = fi;
+          p_rc = c_lower_modern_passes(&lctx);
+          if (p_rc == CDD_C_SUCCESS && lctx.is_legacy_c89)
+            p_rc = c_lower_legacy_passes(&lctx);
+          g_cdd_step_fail = 0;
+          g_cdd_last_alloc_err = p_rc;
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(lctx.sem_env));
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+          tree = NULL;
+        }
+      }
 #endif
     }
 
-    /* Empty base_tokens tree */
+    /* Empty base_tokens tree & NULL root tree */
     {
       cdd_cst_tree_t empty_tr;
       cdd_cst_node_t dummy_root;
       memset(&empty_tr, 0, sizeof(empty_tr));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_transform_c_lowering(&empty_tr, &cfg));
       memset(&dummy_root, 0, sizeof(dummy_root));
       empty_tr.root = &dummy_root;
       ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_c_lowering(&empty_tr, &cfg));
@@ -1470,13 +1547,16 @@ TEST test_c_lowering_modern_branch_completion(void) {
       size_t cut;
       for (qi = 0; qi < sizeof(trunc_frags) / sizeof(trunc_frags[0]); qi++) {
         for (cut = 0; cut <= 4; cut++) {
+          size_t orig_sz;
           ASSERT_EQ(
               CDD_C_SUCCESS,
               cdd_cst_parse(az_span_create_from_str(trunc_frags[qi]), &tree));
+          orig_sz = tree->base_tokens->size;
           if (cut > 0 && tree->base_tokens->size > cut) {
             tree->base_tokens->size -= cut;
           }
           ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_c_lowering(tree, &cfg));
+          tree->base_tokens->size = orig_sz;
           ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
           tree = NULL;
         }

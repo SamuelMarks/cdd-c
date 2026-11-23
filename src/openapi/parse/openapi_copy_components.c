@@ -35,28 +35,28 @@ cdd_c_error_t copy_parameter_fields(struct OpenAPI_Parameter *dst,
   dst->example_location = src->example_location;
   if (src->name) {
     rc = c_cdd_strdup(src->name, &dst->name);
-    if (!dst->name)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->type) {
     rc = c_cdd_strdup(src->type, &dst->type);
-    if (!dst->type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->description) {
     rc = c_cdd_strdup(src->description, &dst->description);
-    if (!dst->description)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_type) {
     rc = c_cdd_strdup(src->content_type, &dst->content_type);
-    if (!dst->content_type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_ref) {
     rc = c_cdd_strdup(src->content_ref, &dst->content_ref);
-    if (!dst->content_ref)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
     rc = copy_media_type_array(
@@ -73,13 +73,13 @@ cdd_c_error_t copy_parameter_fields(struct OpenAPI_Parameter *dst,
   }
   if (src->items_type) {
     rc = c_cdd_strdup(src->items_type, &dst->items_type);
-    if (!dst->items_type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->collection_format) {
     rc = c_cdd_strdup(src->collection_format, &dst->collection_format);
-    if (!dst->collection_format)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->example_set) {
     rc = copy_any_value(&dst->example, &src->example);
@@ -126,18 +126,18 @@ cdd_c_error_t copy_header_fields(struct OpenAPI_Header *dst,
   dst->example_location = src->example_location;
   if (src->description) {
     rc = c_cdd_strdup(src->description, &dst->description);
-    if (!dst->description)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_type) {
     rc = c_cdd_strdup(src->content_type, &dst->content_type);
-    if (!dst->content_type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_ref) {
     rc = c_cdd_strdup(src->content_ref, &dst->content_ref);
-    if (!dst->content_ref)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
     rc = copy_media_type_array(
@@ -154,18 +154,18 @@ cdd_c_error_t copy_header_fields(struct OpenAPI_Header *dst,
   }
   if (src->type) {
     rc = c_cdd_strdup(src->type, &dst->type);
-    if (!dst->type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->items_type) {
     rc = c_cdd_strdup(src->items_type, &dst->items_type);
-    if (!dst->items_type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->collection_format) {
     rc = c_cdd_strdup(src->collection_format, &dst->collection_format);
-    if (!dst->collection_format)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->example_set) {
     rc = copy_any_value(&dst->example, &src->example);
@@ -210,13 +210,13 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
   dst->allow_reserved_set = src->allow_reserved_set;
   if (src->name && !dst->name) {
     rc = c_cdd_strdup(src->name, &dst->name);
-    if (!dst->name)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_type) {
     rc = c_cdd_strdup(src->content_type, &dst->content_type);
-    if (!dst->content_type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->headers && src->n_headers > 0) {
     dst->headers = (struct OpenAPI_Header *)C_CDD_CALLOC(
@@ -229,8 +229,8 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
       const struct OpenAPI_Header *src_hdr = &src->headers[i];
       if (src_hdr->name) {
         rc = c_cdd_strdup(src_hdr->name, &dst_hdr->name);
-        if (!dst_hdr->name)
-          return CDD_C_ERROR_MEMORY;
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       rc = copy_header_fields(dst_hdr, src_hdr);
       if (rc != CDD_C_SUCCESS)
@@ -290,13 +290,13 @@ cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
     return CDD_C_SUCCESS;
   if (src->name && !dst->name) {
     rc = c_cdd_strdup(src->name, &dst->name);
-    if (!dst->name)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->ref && !dst->ref) {
     rc = c_cdd_strdup(src->ref, &dst->ref);
-    if (!dst->ref)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->schema_set || src->schema.ref_name || src->schema.inline_type ||
       src->schema.is_array || src->schema.n_multipart_fields > 0) {
@@ -395,8 +395,9 @@ cdd_c_error_t copy_media_type_array(struct OpenAPI_MediaType **dst,
     return CDD_C_ERROR_MEMORY;
   *dst_count = src_count;
   for (i = 0; i < src_count; ++i) {
-    if (copy_media_type_fields(&(*dst)[i], &src[i]) != 0)
-      return CDD_C_ERROR_MEMORY;
+    cdd_c_error_t rc = copy_media_type_fields(&(*dst)[i], &src[i]);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   return CDD_C_SUCCESS;
 }
@@ -416,23 +417,23 @@ cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
     return CDD_C_SUCCESS;
   if (src->summary) {
     rc = c_cdd_strdup(src->summary, &dst->summary);
-    if (!dst->summary)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->description) {
     rc = c_cdd_strdup(src->description, &dst->description);
-    if (!dst->description)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_type) {
     rc = c_cdd_strdup(src->content_type, &dst->content_type);
-    if (!dst->content_type)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_ref) {
     rc = c_cdd_strdup(src->content_ref, &dst->content_ref);
-    if (!dst->content_ref)
-      return CDD_C_ERROR_MEMORY;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
     rc = copy_media_type_array(
@@ -470,8 +471,8 @@ cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
       const struct OpenAPI_Header *src_hdr = &src->headers[i];
       if (src_hdr->name) {
         rc = c_cdd_strdup(src_hdr->name, &dst_hdr->name);
-        if (!dst_hdr->name)
-          return CDD_C_ERROR_MEMORY;
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       rc = copy_header_fields(dst_hdr, src_hdr);
       if (rc != CDD_C_SUCCESS)
@@ -489,13 +490,13 @@ cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
       const struct OpenAPI_Link *src_link = &src->links[i];
       if (src_link->name) {
         rc = c_cdd_strdup(src_link->name, &dst_link->name);
-        if (!dst_link->name)
-          return CDD_C_ERROR_MEMORY;
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       if (src_link->ref) {
         rc = c_cdd_strdup(src_link->ref, &dst_link->ref);
-        if (!dst_link->ref)
-          return CDD_C_ERROR_MEMORY;
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       rc = copy_link_fields(dst_link, src_link);
       if (rc != CDD_C_SUCCESS)

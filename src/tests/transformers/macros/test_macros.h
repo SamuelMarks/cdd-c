@@ -194,6 +194,28 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     rc = cdd_transform_macros(tree, &config);
     g_cdd_query_err_fail = 0;
     g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+    tree = NULL;
+    g_cdd_last_alloc_err = cdd_cst_parse(az_span_create_from_str(code), &tree);
+    config.indent_width = -1;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_macros(tree, &config));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_macros(tree, NULL));
+    config.indent_width = 2;
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+    for (k = 1; k <= 120; ++k) {
+      tree = NULL;
+      g_cdd_last_alloc_err =
+          cdd_cst_parse(az_span_create_from_str(code), &tree);
+      g_cdd_step_fail = k;
+      rc = cdd_transform_macros(tree, &config);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+      if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+      g_cdd_step_fail = 0;
+    }
   }
 #endif
   g_fail_io_after = -1;

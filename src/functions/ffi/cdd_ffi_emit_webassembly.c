@@ -32,6 +32,10 @@ extern volatile int g_fail_io_after;
  */
 static cdd_c_error_t map_idl_type(cdd_ffi_type_t *t, char *out_type,
                                   size_t out_sz) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
@@ -100,6 +104,10 @@ static cdd_c_error_t map_idl_type(cdd_ffi_type_t *t, char *out_type,
  */
 static cdd_c_error_t map_ts_type(cdd_ffi_type_t *t, char *out_type,
                                  size_t out_sz) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
@@ -266,16 +274,24 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       fprintf(idl_f, "  void %s();\n", node->name); /* Constructor */
       for (j = 0; j < (unsigned long)node->fields_count; j++) {
         rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_idl_type(&node->fields[j].type, type_str,
-                                              sizeof(type_str)));
+            map_idl_type(&node->fields[j].type, type_str, sizeof(type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(idl_f);
+          fclose(cpp_f);
+          fclose(ts_f);
+          return rc_emit;
+        }
         fprintf(idl_f, "  attribute %s %s;\n", type_str, node->fields[j].name);
       }
       fprintf(idl_f, "};\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                             idl_f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(idl_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(idl_f);
+        fclose(cpp_f);
+        fclose(ts_f);
+        return rc_emit;
+      }
       fprintf(idl_f, "enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -291,19 +307,31 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                             idl_f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_idl_type(&node->return_or_base_type,
-                                                  ret_type_str,
-                                                  sizeof(ret_type_str)));
+      rc_emit = cdd_ffi_emit_trivia(idl_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(idl_f);
+        fclose(cpp_f);
+        fclose(ts_f);
+        return rc_emit;
+      }
+      rc_emit = map_idl_type(&node->return_or_base_type, ret_type_str,
+                             sizeof(ret_type_str));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(idl_f);
+        fclose(cpp_f);
+        fclose(ts_f);
+        return rc_emit;
+      }
       fprintf(idl_f, "  %s %s(", ret_type_str, node->name);
       for (j = 0; j < (unsigned long)node->fields_count; j++) {
         rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_idl_type(&node->fields[j].type, type_str,
-                                              sizeof(type_str)));
+            map_idl_type(&node->fields[j].type, type_str, sizeof(type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(idl_f);
+          fclose(cpp_f);
+          fclose(ts_f);
+          return rc_emit;
+        }
         fprintf(idl_f, "%s %s%s", type_str, node->fields[j].name,
                 (unsigned long)(j + 1) < (unsigned long)node->fields_count
                     ? ", "
@@ -325,9 +353,12 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                             cpp_f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(cpp_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(cpp_f);
+        fclose(ts_f);
+        return rc_emit;
+      }
       fprintf(cpp_f, "EMSCRIPTEN_KEEPALIVE\n");
       /* Standard C signature */
       if (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
@@ -363,17 +394,25 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   ts_f, node->leading_trivia));
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit |
-                          (int)map_ts_type(&node->return_or_base_type,
-                                           ret_type_str, sizeof(ret_type_str)));
+      rc_emit = cdd_ffi_emit_trivia(ts_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(ts_f);
+        return rc_emit;
+      }
+      rc_emit = map_ts_type(&node->return_or_base_type, ret_type_str,
+                            sizeof(ret_type_str));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(ts_f);
+        return rc_emit;
+      }
       fprintf(ts_f, "  _%s(", node->name);
       for (j = 0; j < (unsigned long)node->fields_count; j++) {
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_ts_type(&node->fields[j].type,
-                                                   type_str, sizeof(type_str)));
+        rc_emit =
+            map_ts_type(&node->fields[j].type, type_str, sizeof(type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(ts_f);
+          return rc_emit;
+        }
         fprintf(ts_f, "%s: %s%s", node->fields[j].name, type_str,
                 (unsigned long)(j + 1) < (unsigned long)node->fields_count
                     ? ", "
@@ -394,15 +433,21 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
       fprintf(ts_f, "export declare class %s {\n", node->name);
       for (j = 0; j < (unsigned long)node->fields_count; j++) {
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_ts_type(&node->fields[j].type,
-                                                   type_str, sizeof(type_str)));
+        rc_emit =
+            map_ts_type(&node->fields[j].type, type_str, sizeof(type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(ts_f);
+          return rc_emit;
+        }
         fprintf(ts_f, "  %s: %s;\n", node->fields[j].name, type_str);
       }
       fprintf(ts_f, "}\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   ts_f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(ts_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(ts_f);
+        return rc_emit;
+      }
       fprintf(ts_f, "export enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -419,5 +464,5 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       lib_name);
   fclose(ts_f);
 
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

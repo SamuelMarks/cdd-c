@@ -66,8 +66,8 @@ TEST test_struct_fields_init_oom(void) {
   ASSERT_STR_EQ("My_Type", val);
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
-  ASSERT_EQ(0, get_type_from_ref("#/components/schemas/My-Type", &val));
-  ASSERT_STR_EQ("My-Type", val);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            get_type_from_ref("#/components/schemas/My-Type", &val));
   g_cdd_alloc_fail = 0;
 #endif
 

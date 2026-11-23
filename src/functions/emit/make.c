@@ -45,7 +45,7 @@ cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   /* Header */
   CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
                         config->min_cmake_version ? config->min_cmake_version
-                                                  : "3.10"));
+                                                  : "3.15...4.0"));
   CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.5 LANGUAGES C)\n\n",
                         config->project_name));
 
@@ -73,7 +73,6 @@ cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   CHECK_IO(FPRINTF_HOOK(fp, "elseif(WIN32)\n"));
   CHECK_IO(
       FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "elseif(ANDROID)\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "elseif(APPLE)\n"));
@@ -93,6 +92,9 @@ cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
 
   /* Link Libraries */
   CHECK_IO(FPRINTF_HOOK(fp, "if(WIN32)\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "    target_compile_definitions(%s PRIVATE USE_WINHTTP)\n",
+      config->project_name));
   CHECK_IO(FPRINTF_HOOK(
       fp, "    target_link_libraries(%s PRIVATE winhttp crypt32)\n",
       config->project_name));

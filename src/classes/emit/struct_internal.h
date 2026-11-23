@@ -98,6 +98,57 @@ extern C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_reflect_is_obj_elem_ptr(
     const struct cdd_field_info *f, const struct cdd_type_info *elem_ti,
     int *out_is_ptr);
 
+/**
+ * @brief Looks up a registered `cdd_type_info` by name, setting `*out_ti =
+ * NULL` and returning `CDD_C_SUCCESS` when `name` is NULL, empty, or not
+ * registered.
+ *
+ * @param[in] name Optional struct/union tag name.
+ * @param[out] out_ti Output pointer receiving the descriptor or NULL.
+ * @return CDD_C_SUCCESS on lookup completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_reflect_lookup_type_opt(
+    const char *name, const struct cdd_type_info **out_ti);
+
+/**
+ * @brief Looks up a registered `cdd_enum_info` by name, setting `*out_ei =
+ * NULL` and returning `CDD_C_SUCCESS` when `name` is NULL, empty, or not
+ * registered.
+ *
+ * @param[in] name Optional enum tag name.
+ * @param[out] out_ei Output pointer receiving the enum descriptor or NULL.
+ * @return CDD_C_SUCCESS on lookup completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_reflect_lookup_enum_opt(
+    const char *name, const struct cdd_enum_info **out_ei);
+
+/**
+ * @brief Looks up an enum variant by name/wire_name/alias, setting `*out_ev =
+ * NULL` and returning `CDD_C_SUCCESS` when not found.
+ *
+ * @param[in] ei Enum descriptor (may be NULL).
+ * @param[in] name Variant name to look up.
+ * @param[out] out_ev Output pointer receiving the variant descriptor or NULL.
+ * @return CDD_C_SUCCESS on lookup completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT NO_DISCARD cdd_c_error_t
+cdd_reflect_lookup_enum_variant_opt(
+    const struct cdd_enum_info *ei, const char *name,
+    const struct cdd_enum_variant_info **out_ev);
+
+/**
+ * @brief Looks up an enum variant by integer discriminant value, setting
+ * `*out_ev = NULL` and returning `CDD_C_SUCCESS` when not found.
+ *
+ * @param[in] ei Enum descriptor (may be NULL).
+ * @param[in] value Integer discriminant value.
+ * @param[out] out_ev Output pointer receiving the variant descriptor or NULL.
+ * @return CDD_C_SUCCESS on lookup completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT NO_DISCARD cdd_c_error_t
+cdd_reflect_lookup_enum_value_opt(const struct cdd_enum_info *ei, int value,
+                                  const struct cdd_enum_variant_info **out_ev);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -124,7 +124,7 @@ TEST test_operation_100_percent_coverage_part3(void) {
     ctx.sig = &sig;
     ctx.func_name = "api_user_get";
     g_cdd_strdup_fail = 5;
-    ASSERT_EQ(CDD_C_SUCCESS, c2openapi_build_operation(&ctx, &op));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c2openapi_build_operation(&ctx, &op));
     g_cdd_strdup_fail = 0;
     reset_operation_test(&op);
   }
@@ -558,6 +558,121 @@ TEST test_operation_100_percent_coverage_part3(void) {
       }
       g_cdd_strdup_fail = 0;
       reset_operation_test(&op);
+    }
+  }
+
+  /* Step-fail sweeps for operation.c and operation_response.c */
+  {
+    int k;
+    struct OpBuilderContext ctx;
+    struct C2OpenAPI_ParsedSig sig;
+    struct C2OpenAPI_ParsedArg args[2];
+    struct DocMetadata doc;
+    struct DocParam dp;
+    struct DocRequestBody rb;
+    struct DocEncoding enc;
+    struct OpenAPI_Operation op;
+    memset(&ctx, 0, sizeof(ctx));
+    memset(&sig, 0, sizeof(sig));
+    memset(args, 0, sizeof(args));
+    memset(&doc, 0, sizeof(doc));
+    memset(&dp, 0, sizeof(dp));
+    memset(&rb, 0, sizeof(rb));
+    memset(&enc, 0, sizeof(enc));
+
+    args[0].name = cdd_test_mut_str("id");
+    args[0].type = cdd_test_mut_str("struct User *");
+    args[1].name = cdd_test_mut_str("q");
+    args[1].type = cdd_test_mut_str("int");
+    sig.args = args;
+    sig.n_args = 2;
+
+    dp.name = cdd_test_mut_str("q");
+    dp.style = DOC_PARAM_STYLE_FORM;
+    dp.style_set = 1;
+    doc.params = &dp;
+    doc.n_params = 1;
+    doc.route = cdd_test_mut_str("/users/{id}");
+    rb.content_type = cdd_test_mut_str("multipart/form-data");
+    rb.example = cdd_test_mut_str("{\"a\":1}");
+    doc.request_bodies = &rb;
+    doc.n_request_bodies = 1;
+    enc.name = cdd_test_mut_str("file");
+    enc.style = DOC_PARAM_STYLE_FORM;
+    doc.encodings = &enc;
+    doc.n_encodings = 1;
+
+    ctx.sig = &sig;
+    ctx.doc = &doc;
+    ctx.func_name = "api_post_user";
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
+      memset(&op, 0, sizeof(op));
+      g_cdd_fail_str_starts_with = 1;
+      g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
+      g_cdd_fail_str_starts_with = 0;
+      reset_operation_test(&op);
+
+      doc.verb = cdd_test_mut_str("POST");
+      memset(&op, 0, sizeof(op));
+      g_cdd_fail_stricmp = 1;
+      g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
+      g_cdd_fail_stricmp = 0;
+      reset_operation_test(&op);
+      doc.verb = NULL;
+    }
+    for (k = 1; k <= 30; ++k) {
+      memset(&op, 0, sizeof(op));
+      g_cdd_step_fail = k;
+      g_cdd_last_alloc_err = c2openapi_build_operation(&ctx, &op);
+      g_cdd_step_fail = 0;
+      reset_operation_test(&op);
+    }
+
+    {
+      struct OpenAPI_Response resp;
+      memset(&resp, 0, sizeof(resp));
+      resp.schema.inline_type = cdd_test_mut_str("string");
+      g_cdd_last_alloc_err =
+          add_response_media_type(&resp, "application/json", 0);
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_step_fail = k;
+        g_cdd_last_alloc_err =
+            apply_example_to_response(&resp, "\"hi\"", "application/json");
+        g_cdd_step_fail = 0;
+      }
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_step_fail = k;
+        g_cdd_last_alloc_err = add_response_media_type(&resp, "text/plain", 0);
+        g_cdd_step_fail = 0;
+      }
+      for (k = 1; k <= 10; ++k) {
+        struct OpenAPI_Response r2;
+        memset(&r2, 0, sizeof(r2));
+        r2.content_type = cdd_test_mut_str("application/json");
+        r2.schema.inline_type = cdd_test_mut_str("string");
+        g_cdd_step_fail = k;
+        g_cdd_last_alloc_err = add_response_media_type(&r2, "text/plain", 0);
+        g_cdd_step_fail = 0;
+        if (r2.content_media_types) {
+          size_t mi;
+          for (mi = 0; mi < r2.n_content_media_types; ++mi) {
+            C_CDD_FREE(r2.content_media_types[mi].name);
+            C_CDD_FREE(r2.content_media_types[mi].schema.inline_type);
+          }
+          C_CDD_FREE(r2.content_media_types);
+        }
+      }
+      if (resp.content_media_types) {
+        size_t mi;
+        for (mi = 0; mi < resp.n_content_media_types; ++mi) {
+          C_CDD_FREE(resp.content_media_types[mi].name);
+          C_CDD_FREE(resp.content_media_types[mi].schema.inline_type);
+          g_cdd_last_alloc_err =
+              any_value_local_free(&resp.content_media_types[mi].example);
+        }
+        C_CDD_FREE(resp.content_media_types);
+      }
     }
   }
 

@@ -13,6 +13,7 @@
 
 #include "c_cdd/json_dom.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
@@ -25,48 +26,43 @@
  * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
-cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb, char **_out_val) {
+cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb,
+                                  const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (verb) {
-  case OA_VERB_GET: {
+  case OA_VERB_GET:
     *_out_val = "get";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_POST: {
+  case OA_VERB_POST:
     *_out_val = "post";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_PUT: {
+  case OA_VERB_PUT:
     *_out_val = "put";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_DELETE: {
+  case OA_VERB_DELETE:
     *_out_val = "delete";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_PATCH: {
+  case OA_VERB_PATCH:
     *_out_val = "patch";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_HEAD: {
+  case OA_VERB_HEAD:
     *_out_val = "head";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_OPTIONS: {
+  case OA_VERB_OPTIONS:
     *_out_val = "options";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_TRACE: {
+  case OA_VERB_TRACE:
     *_out_val = "trace";
     return CDD_C_SUCCESS;
-  }
-  case OA_VERB_QUERY: {
+  case OA_VERB_QUERY:
     *_out_val = "query";
     return CDD_C_SUCCESS;
-  }
-  default: {
+  default:
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-  }
   }
 }
 
@@ -78,32 +74,30 @@ cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb, char **_out_val) {
  * @return 0 on success.
  */
 cdd_c_error_t param_in_to_str_openapi(enum OpenAPI_ParamIn in,
-                                      char **_out_val) {
+                                      const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (in) {
-  case OA_PARAM_IN_PATH: {
+  case OA_PARAM_IN_PATH:
     *_out_val = "path";
     return CDD_C_SUCCESS;
-  }
-  case OA_PARAM_IN_QUERY: {
+  case OA_PARAM_IN_QUERY:
     *_out_val = "query";
     return CDD_C_SUCCESS;
-  }
-  case OA_PARAM_IN_QUERYSTRING: {
+  case OA_PARAM_IN_QUERYSTRING:
     *_out_val = "querystring";
     return CDD_C_SUCCESS;
-  }
-  case OA_PARAM_IN_HEADER: {
+  case OA_PARAM_IN_HEADER:
     *_out_val = "header";
     return CDD_C_SUCCESS;
-  }
-  case OA_PARAM_IN_COOKIE: {
+  case OA_PARAM_IN_COOKIE:
     *_out_val = "cookie";
     return CDD_C_SUCCESS;
-  }
-  default: {
+  default:
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-  }
   }
 }
 
@@ -114,44 +108,40 @@ cdd_c_error_t param_in_to_str_openapi(enum OpenAPI_ParamIn in,
  * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
-cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
+cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s,
+                                   const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (s) {
-  case OA_STYLE_FORM: {
+  case OA_STYLE_FORM:
     *_out_val = "form";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_SIMPLE: {
+  case OA_STYLE_SIMPLE:
     *_out_val = "simple";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_MATRIX: {
+  case OA_STYLE_MATRIX:
     *_out_val = "matrix";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_LABEL: {
+  case OA_STYLE_LABEL:
     *_out_val = "label";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_SPACE_DELIMITED: {
+  case OA_STYLE_SPACE_DELIMITED:
     *_out_val = "spaceDelimited";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_PIPE_DELIMITED: {
+  case OA_STYLE_PIPE_DELIMITED:
     *_out_val = "pipeDelimited";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_DEEP_OBJECT: {
+  case OA_STYLE_DEEP_OBJECT:
     *_out_val = "deepObject";
     return CDD_C_SUCCESS;
-  }
-  case OA_STYLE_COOKIE: {
+  case OA_STYLE_COOKIE:
     *_out_val = "cookie";
     return CDD_C_SUCCESS;
-  }
-  default: {
+  default:
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-  }
   }
 }
 
@@ -163,32 +153,30 @@ cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
  * @return 0 on success.
  */
 cdd_c_error_t xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
-                                           char **_out_val) {
+                                           const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (t) {
-  case OA_XML_NODE_ELEMENT: {
+  case OA_XML_NODE_ELEMENT:
     *_out_val = "element";
     return CDD_C_SUCCESS;
-  }
-  case OA_XML_NODE_ATTRIBUTE: {
+  case OA_XML_NODE_ATTRIBUTE:
     *_out_val = "attribute";
     return CDD_C_SUCCESS;
-  }
-  case OA_XML_NODE_TEXT: {
+  case OA_XML_NODE_TEXT:
     *_out_val = "text";
     return CDD_C_SUCCESS;
-  }
-  case OA_XML_NODE_CDATA: {
+  case OA_XML_NODE_CDATA:
     *_out_val = "cdata";
     return CDD_C_SUCCESS;
-  }
-  case OA_XML_NODE_NONE: {
+  case OA_XML_NODE_NONE:
     *_out_val = "none";
     return CDD_C_SUCCESS;
-  }
-  default: {
+  default:
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-  }
   }
 }
 
@@ -203,29 +191,20 @@ cdd_c_error_t header_name_is_content_type_openapi(const char *name,
                                                   int *out_is_ct) {
   int eq = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_ct)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_ct = 0;
   if (!name)
     return CDD_C_SUCCESS;
   rc = c_cdd_str_iequal(name, "Content-Type", &eq);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   *out_is_ct = (eq != 0) ? 1 : 0;
-  return rc;
-}
-
-/**
- * @brief Updates sticky `*io_rc` with `sub_rc` if `*io_rc` is still
- * `CDD_C_SUCCESS`.
- *
- * @param[in] sub_rc Newly returned error code.
- * @param[in,out] io_rc Sticky error accumulator.
- * @return Updated `*io_rc`.
- */
-static cdd_c_error_t openapi_check_rc(cdd_c_error_t sub_rc,
-                                      cdd_c_error_t *io_rc) {
-  if (*io_rc == CDD_C_SUCCESS && sub_rc != CDD_C_SUCCESS)
-    *io_rc = sub_rc;
-  return *io_rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -241,18 +220,27 @@ param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p,
   int eq_accept = 0;
   int eq_ct = 0;
   int eq_auth = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_reserved)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_reserved = 0;
   if (!p || p->in != OA_PARAM_IN_HEADER || !p->name)
     return CDD_C_SUCCESS;
-  rc = openapi_check_rc(c_cdd_str_iequal(p->name, "Accept", &eq_accept), &rc);
-  rc = openapi_check_rc(c_cdd_str_iequal(p->name, "Content-Type", &eq_ct), &rc);
-  rc = openapi_check_rc(c_cdd_str_iequal(p->name, "Authorization", &eq_auth),
-                        &rc);
+  rc = c_cdd_str_iequal(p->name, "Accept", &eq_accept);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = c_cdd_str_iequal(p->name, "Content-Type", &eq_ct);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = c_cdd_str_iequal(p->name, "Authorization", &eq_auth);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   *out_is_reserved = (eq_accept != 0 || eq_ct != 0 || eq_auth != 0) ? 1 : 0;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -262,33 +250,31 @@ param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p,
  * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
-C_CDD_EXPORT cdd_c_error_t
-oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val) {
+C_CDD_EXPORT cdd_c_error_t oauth_flow_type_to_str_openapi(
+    enum OpenAPI_OAuthFlowType t, const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (t) {
-  case OA_OAUTH_FLOW_IMPLICIT: {
+  case OA_OAUTH_FLOW_IMPLICIT:
     *_out_val = "implicit";
     return CDD_C_SUCCESS;
-  }
-  case OA_OAUTH_FLOW_PASSWORD: {
+  case OA_OAUTH_FLOW_PASSWORD:
     *_out_val = "password";
     return CDD_C_SUCCESS;
-  }
-  case OA_OAUTH_FLOW_CLIENT_CREDENTIALS: {
+  case OA_OAUTH_FLOW_CLIENT_CREDENTIALS:
     *_out_val = "clientCredentials";
     return CDD_C_SUCCESS;
-  }
-  case OA_OAUTH_FLOW_AUTHORIZATION_CODE: {
+  case OA_OAUTH_FLOW_AUTHORIZATION_CODE:
     *_out_val = "authorizationCode";
     return CDD_C_SUCCESS;
-  }
-  case OA_OAUTH_FLOW_DEVICE_AUTHORIZATION: {
+  case OA_OAUTH_FLOW_DEVICE_AUTHORIZATION:
     *_out_val = "deviceAuthorization";
     return CDD_C_SUCCESS;
-  }
-  default: {
+  default:
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-  }
   }
 }
 
@@ -301,6 +287,10 @@ oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val) {
  */
 C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type,
                                                        int *out_is_prim) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_prim)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_prim = 0;
@@ -324,6 +314,10 @@ C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type,
 C_CDD_EXPORT cdd_c_error_t
 license_fields_invalid(const struct OpenAPI_License *lic, int *out_invalid) {
   int has_any;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_invalid)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_invalid = 0;
@@ -352,6 +346,10 @@ license_fields_invalid(const struct OpenAPI_License *lic, int *out_invalid) {
  */
 C_CDD_EXPORT cdd_c_error_t server_url_has_query_or_fragment(const char *url,
                                                             int *out_has_qf) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_has_qf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_has_qf = 0;
@@ -379,42 +377,50 @@ C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
     return CDD_C_SUCCESS;
 
   rc = cdd_json_parse_string(extras_json, &extras_val);
-  if (!extras_val)
-    return CDD_C_SUCCESS;
-  rc = cdd_json_value_get_object(extras_val, &extras_obj);
-  if (!extras_obj) {
-    rc = cdd_json_value_free(extras_val);
+  if (rc != CDD_C_SUCCESS) {
+    if (rc == CDD_C_ERROR_MEMORY)
+      return rc;
     return CDD_C_SUCCESS;
   }
+  if (extras_val->type != JSONObject) {
+    return cdd_json_value_free(extras_val);
+  }
+  extras_obj = extras_val->object_val;
 
   rc = cdd_json_object_get_count(extras_obj, &count);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
+  }
   for (i = 0; i < count; ++i) {
     const char *key = NULL;
     JSON_Value *val = NULL;
     JSON_Value *copy = NULL;
     int has_val = 0;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_object_get_name(extras_obj, i, &key));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_object_has_value(target, key, &has_val));
+    rc = cdd_json_object_get_name(extras_obj, i, &key);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
+    }
+    rc = cdd_json_object_has_value(target, key, &has_val);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
+    }
     if (has_val)
       continue;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_object_get_value(extras_obj, key, &val));
-    rc = (cdd_c_error_t)((int)rc | (int)clone_json_value(val, &copy));
-    if (!copy) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(extras_val));
-      return CDD_C_ERROR_MEMORY;
+    rc = cdd_json_object_get_value_at(extras_obj, i, &val);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
     }
-    if (cdd_json_object_set_value(target, key, copy) != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(copy));
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(extras_val));
-      return CDD_C_ERROR_MEMORY;
+    rc = clone_json_value(val, &copy);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
+    }
+    rc = cdd_json_object_set_value_safe(target, key, copy);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
     }
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(extras_val));
-  return rc;
+  return cdd_json_value_free(extras_val);
 }
 
 /**
@@ -427,40 +433,54 @@ C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
 C_CDD_EXPORT cdd_c_error_t
 write_example_object(JSON_Object *ex_obj, const struct OpenAPI_Example *ex) {
   JSON_Value *val = NULL;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!ex_obj || !ex)
     return CDD_C_SUCCESS;
 
   if (ex->ref) {
     rc = cdd_json_object_set_string(ex_obj, "$ref", ex->ref);
-    if (ex->summary)
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
-                                         ex_obj, "summary", ex->summary));
-    if (ex->description)
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)cdd_json_object_set_string(
-                               ex_obj, "description", ex->description));
-    return rc;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (ex->summary) {
+      rc = cdd_json_object_set_string(ex_obj, "summary", ex->summary);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
+    if (ex->description) {
+      rc = cdd_json_object_set_string(ex_obj, "description", ex->description);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
+    return CDD_C_SUCCESS;
   }
 
   if (ex->data_value_set) {
     rc = any_to_json_value(&ex->data_value, &val);
-    if (val)
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value_safe(
-                                         ex_obj, "dataValue", val));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (val) {
+      rc = cdd_json_object_set_value_safe(ex_obj, "dataValue", val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
   } else if (ex->value_set) {
     rc = any_to_json_value(&ex->value, &val);
-    if (val)
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value_safe(
-                                         ex_obj, "value", val));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (val) {
+      rc = cdd_json_object_set_value_safe(ex_obj, "value", val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)openapi_emit_reflected_strings(
-                                     ex_obj, &OpenAPI_Example_type_info, ex));
-  if (ex->extensions_json)
-    rc = (cdd_c_error_t)((int)rc | (int)merge_schema_extras_object_openapi(
-                                       ex_obj, ex->extensions_json));
-  return rc;
+  rc = openapi_emit_reflected_strings(ex_obj, &OpenAPI_Example_type_info, ex);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (ex->extensions_json) {
+    return merge_schema_extras_object_openapi(ex_obj, ex->extensions_json);
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -483,13 +503,9 @@ C_CDD_EXPORT cdd_c_error_t write_examples_object(
   if (!parent || !key || !examples || n_examples == 0)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_value_init_object(&examples_val);
-  if (!examples_val) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(examples_val,
-                                                                &examples_obj));
+  rc = oa_emit_new_object(&examples_val, &examples_obj);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (i = 0; i < n_examples; ++i) {
     const struct OpenAPI_Example *ex = &examples[i];
@@ -498,17 +514,24 @@ C_CDD_EXPORT cdd_c_error_t write_examples_object(
     {
       JSON_Value *ex_val = NULL;
       JSON_Object *ex_obj = NULL;
-      rc = openapi_check_rc(cdd_json_value_init_object(&ex_val), &rc);
-      rc = openapi_check_rc(cdd_json_value_get_object(ex_val, &ex_obj), &rc);
-      rc = openapi_check_rc(write_example_object(ex_obj, ex), &rc);
-      rc = openapi_check_rc(
-          cdd_json_object_set_value_safe(examples_obj, ex->name, ex_val), &rc);
+      rc = oa_emit_new_object(&ex_val, &ex_obj);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cdd_json_value_free(examples_val));
+      }
+      rc = write_example_object(ex_obj, ex);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_c_error_t f1 = cdd_json_value_free(ex_val);
+        cdd_c_error_t f2 = cdd_json_value_free(examples_val);
+        return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+      }
+      rc = cdd_json_object_set_value_safe(examples_obj, ex->name, ex_val);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cdd_json_value_free(examples_val));
+      }
     }
   }
 
-  rc = openapi_check_rc(
-      cdd_json_object_set_value_safe(parent, key, examples_val), &rc);
-  return rc;
+  return cdd_json_object_set_value_safe(parent, key, examples_val);
 }
 
 /**
@@ -524,24 +547,22 @@ C_CDD_EXPORT cdd_c_error_t write_examples_object(
 C_CDD_EXPORT cdd_c_error_t write_example_fields(
     JSON_Object *parent, const struct OpenAPI_Any *example, int example_set,
     const struct OpenAPI_Example *examples, size_t n_examples) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!parent)
     return CDD_C_SUCCESS;
   if (examples && n_examples > 0) {
-    {
-      cdd_c_error_t rc_oa_tmp =
-          write_examples_object(parent, "examples", examples, n_examples);
-      if (rc_oa_tmp != CDD_C_SUCCESS)
-        return rc_oa_tmp;
-    }
-  } else if (example_set && example) {
+    return write_examples_object(parent, "examples", examples, n_examples);
+  }
+  if (example_set && example) {
     JSON_Value *val = NULL;
     rc = any_to_json_value(example, &val);
-    if (val)
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value_safe(
-                                         parent, "example", val));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (val) {
+      return cdd_json_object_set_value_safe(parent, "example", val);
+    }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -577,24 +598,19 @@ write_external_docs(JSON_Object *parent, const char *key,
   if (!parent || !docs || !docs->url)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_value_init_object(&ext_val);
+  rc = oa_emit_new_object(&ext_val, &ext_obj);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_value_get_object(ext_val, &ext_obj));
 
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)openapi_emit_reflected_strings(
-                           ext_obj, &OpenAPI_ExternalDocs_type_info, docs));
+  rc = openapi_emit_reflected_strings(ext_obj, &OpenAPI_ExternalDocs_type_info,
+                                      docs);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(ext_val));
-    return rc;
+    return cdd_c_keep_err(rc, cdd_json_value_free(ext_val));
   }
   if (docs->extensions_json) {
     rc = merge_schema_extras_object_openapi(ext_obj, docs->extensions_json);
     if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(ext_val));
-      return rc;
+      return cdd_c_keep_err(rc, cdd_json_value_free(ext_val));
     }
   }
 
@@ -624,42 +640,44 @@ C_CDD_EXPORT cdd_c_error_t write_discriminator_object(
   if (!disc->property_name && disc->n_mapping == 0 && !disc->default_mapping)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_value_init_object(&disc_val);
+  rc = oa_emit_new_object(&disc_val, &disc_obj);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_SUCCESS;
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_value_get_object(disc_val, &disc_obj));
-
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)openapi_emit_reflected_strings(
-                           disc_obj, &OpenAPI_Discriminator_type_info, disc));
-  if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(disc_val));
     return rc;
-  }
+
+  rc = openapi_emit_reflected_strings(disc_obj,
+                                      &OpenAPI_Discriminator_type_info, disc);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_disc;
 
   if (disc->mapping && disc->n_mapping > 0) {
-    rc = cdd_json_value_init_object(&mapping_val);
-    if (rc == CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
-                                         mapping_val, &mapping_obj));
-      for (i = 0; i < disc->n_mapping; ++i) {
-        const struct OpenAPI_DiscriminatorMap *m = &disc->mapping[i];
-        if (m->value && m->schema)
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
-                                             mapping_obj, m->value, m->schema));
+    rc = oa_emit_new_object(&mapping_val, &mapping_obj);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_disc;
+    for (i = 0; i < disc->n_mapping; ++i) {
+      const struct OpenAPI_DiscriminatorMap *m = &disc->mapping[i];
+      if (m->value && m->schema) {
+        rc = cdd_json_object_set_string(mapping_obj, m->value, m->schema);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_c_error_t f1 = cdd_json_value_free(mapping_val);
+          cdd_c_error_t f2 = cdd_json_value_free(disc_val);
+          return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+        }
       }
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value_safe(
-                                         disc_obj, "mapping", mapping_val));
     }
+    rc = cdd_json_object_set_value_safe(disc_obj, "mapping", mapping_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_disc;
   }
 
-  if (disc->extensions_json)
-    rc = (cdd_c_error_t)((int)rc | (int)merge_schema_extras_object_openapi(
-                                       disc_obj, disc->extensions_json));
+  if (disc->extensions_json) {
+    rc = merge_schema_extras_object_openapi(disc_obj, disc->extensions_json);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_disc;
+  }
 
-  return (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value_safe(
-                                       parent, "discriminator", disc_val));
+  return cdd_json_object_set_value_safe(parent, "discriminator", disc_val);
+
+cleanup_disc: { return cdd_c_keep_err(rc, cdd_json_value_free(disc_val)); }
 }
 
 /**
@@ -675,63 +693,73 @@ C_CDD_EXPORT cdd_c_error_t write_xml_object(JSON_Object *parent,
                                             int xml_set) {
   JSON_Value *xml_val = NULL;
   JSON_Object *xml_obj = NULL;
-  char *node_type = NULL;
+  const char *node_type = NULL;
   cdd_c_error_t rc;
 
   if (!parent || !xml || !xml_set)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_value_init_object(&xml_val);
+  rc = oa_emit_new_object(&xml_val, &xml_obj);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_SUCCESS;
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_value_get_object(xml_val, &xml_obj));
-
-  rc = (cdd_c_error_t)((int)rc | (int)xml_node_type_to_str_openapi(
-                                     xml->node_type, &node_type));
-  if (xml->node_type_set && node_type)
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
-                                       xml_obj, "nodeType", node_type));
-  rc = (cdd_c_error_t)((int)rc | (int)openapi_emit_reflected_strings(
-                                     xml_obj, &OpenAPI_Xml_type_info, xml));
-  if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(xml_val));
     return rc;
-  }
-  if (xml->attribute_set)
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_object_set_boolean(
-                             xml_obj, "attribute", xml->attribute ? 1 : 0));
-  if (xml->wrapped_set)
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_object_set_boolean(
-                             xml_obj, "wrapped", xml->wrapped ? 1 : 0));
-  if (xml->extensions_json)
-    rc = (cdd_c_error_t)((int)rc | (int)merge_schema_extras_object_openapi(
-                                       xml_obj, xml->extensions_json));
 
-  return (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_value_safe(
-                                       parent, "xml", xml_val));
+  rc = xml_node_type_to_str_openapi(xml->node_type, &node_type);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_xml;
+  if (xml->node_type_set && node_type) {
+    rc = cdd_json_object_set_string(xml_obj, "nodeType", node_type);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_xml;
+  }
+  rc = openapi_emit_reflected_strings(xml_obj, &OpenAPI_Xml_type_info, xml);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_xml;
+  if (xml->attribute_set) {
+    rc = cdd_json_object_set_boolean(xml_obj, "attribute",
+                                     xml->attribute ? 1 : 0);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_xml;
+  }
+  if (xml->wrapped_set) {
+    rc = cdd_json_object_set_boolean(xml_obj, "wrapped", xml->wrapped ? 1 : 0);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_xml;
+  }
+  if (xml->extensions_json) {
+    rc = merge_schema_extras_object_openapi(xml_obj, xml->extensions_json);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup_xml;
+  }
+
+  return cdd_json_object_set_value_safe(parent, "xml", xml_val);
+
+cleanup_xml: { return cdd_c_keep_err(rc, cdd_json_value_free(xml_val)); }
 }
 
 C_CDD_EXPORT cdd_c_error_t OpenAPI_Contact_to_jsonObject(
     const struct OpenAPI_Contact *contact, JSON_Object *contact_obj) {
   cdd_c_error_t rc = openapi_emit_reflected_strings(
       contact_obj, &OpenAPI_Contact_type_info, contact);
-  if (contact->extensions_json)
-    rc = (cdd_c_error_t)((int)rc | (int)merge_schema_extras_object_openapi(
-                                       contact_obj, contact->extensions_json));
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (contact->extensions_json) {
+    return merge_schema_extras_object_openapi(contact_obj,
+                                              contact->extensions_json);
+  }
+  return CDD_C_SUCCESS;
 }
 
 C_CDD_EXPORT cdd_c_error_t OpenAPI_License_to_jsonObject(
     const struct OpenAPI_License *license, JSON_Object *license_obj) {
   cdd_c_error_t rc = openapi_emit_reflected_strings(
       license_obj, &OpenAPI_License_type_info, license);
-  if (license->extensions_json)
-    rc = (cdd_c_error_t)((int)rc | (int)merge_schema_extras_object_openapi(
-                                       license_obj, license->extensions_json));
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (license->extensions_json) {
+    return merge_schema_extras_object_openapi(license_obj,
+                                              license->extensions_json);
+  }
+  return CDD_C_SUCCESS;
 }
 
 C_CDD_EXPORT cdd_c_error_t OpenAPI_Info_to_jsonObject(
@@ -760,16 +788,12 @@ C_CDD_EXPORT cdd_c_error_t OpenAPI_Info_to_jsonObject(
   }
 
   if (info->contact.name || info->contact.url || info->contact.email) {
-    rc = cdd_json_value_init_object(&contact_val);
+    rc = oa_emit_new_object(&contact_val, &contact_obj);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
-                                       contact_val, &contact_obj));
-    rc = (cdd_c_error_t)((int)rc | (int)OpenAPI_Contact_to_jsonObject(
-                                       &info->contact, contact_obj));
+    rc = OpenAPI_Contact_to_jsonObject(&info->contact, contact_obj);
     if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(contact_val));
-      return rc;
+      return cdd_c_keep_err(rc, cdd_json_value_free(contact_val));
     }
     rc = cdd_json_object_set_value_safe(info_obj, "contact", contact_val);
     if (rc != CDD_C_SUCCESS)
@@ -778,22 +802,18 @@ C_CDD_EXPORT cdd_c_error_t OpenAPI_Info_to_jsonObject(
 
   if (info->license.name || info->license.identifier || info->license.url ||
       info->license.extensions_json) {
-    rc = cdd_json_value_init_object(&license_val);
+    rc = oa_emit_new_object(&license_val, &license_obj);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_get_object(
-                                       license_val, &license_obj));
-    rc = (cdd_c_error_t)((int)rc | (int)OpenAPI_License_to_jsonObject(
-                                       &info->license, license_obj));
+    rc = OpenAPI_License_to_jsonObject(&info->license, license_obj);
     if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(license_val));
-      return rc;
+      return cdd_c_keep_err(rc, cdd_json_value_free(license_val));
     }
     rc = cdd_json_object_set_value_safe(info_obj, "license", license_val);
     if (rc != CDD_C_SUCCESS)
       return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -808,16 +828,12 @@ C_CDD_EXPORT cdd_c_error_t write_info(JSON_Object *root_obj,
   JSON_Value *info_val = NULL;
   JSON_Object *info_obj = NULL;
   cdd_c_error_t rc;
-  rc = cdd_json_value_init_object(&info_val);
+  rc = oa_emit_new_object(&info_val, &info_obj);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_value_get_object(info_val, &info_obj));
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)OpenAPI_Info_to_jsonObject(&spec->info, info_obj));
+  rc = OpenAPI_Info_to_jsonObject(&spec->info, info_obj);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(info_val));
-    return rc;
+    return cdd_c_keep_err(rc, cdd_json_value_free(info_val));
   }
   return cdd_json_object_set_value_safe(root_obj, "info", info_val);
 }
@@ -845,51 +861,75 @@ write_server_object(JSON_Object *srv_obj, const struct OpenAPI_Server *srv) {
     JSON_Value *vars_val = NULL;
     JSON_Object *vars_obj = NULL;
     size_t v;
-    rc = openapi_check_rc(cdd_json_value_init_object(&vars_val), &rc);
-    rc = openapi_check_rc(cdd_json_value_get_object(vars_val, &vars_obj), &rc);
+    rc = oa_emit_new_object(&vars_val, &vars_obj);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     for (v = 0; v < srv->n_variables; ++v) {
       const struct OpenAPI_ServerVariable *var = &srv->variables[v];
       JSON_Value *var_val = NULL;
       JSON_Object *var_obj = NULL;
-      rc = openapi_check_rc(cdd_json_value_init_object(&var_val), &rc);
-      rc = openapi_check_rc(cdd_json_value_get_object(var_val, &var_obj), &rc);
-      rc =
-          openapi_check_rc(openapi_emit_reflected_strings(
-                               var_obj, &OpenAPI_ServerVariable_type_info, var),
-                           &rc);
+      rc = oa_emit_new_object(&var_val, &var_obj);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cdd_json_value_free(vars_val));
+      }
+      rc = openapi_emit_reflected_strings(
+          var_obj, &OpenAPI_ServerVariable_type_info, var);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_c_error_t f1 = cdd_json_value_free(var_val);
+        cdd_c_error_t f2 = cdd_json_value_free(vars_val);
+        return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+      }
       if (var->n_enum_values > 0 && var->enum_values) {
         JSON_Value *enum_val = NULL;
         JSON_Array *enum_arr = NULL;
         size_t e;
-        rc = openapi_check_rc(cdd_json_value_init_array(&enum_val), &rc);
-        rc = openapi_check_rc(cdd_json_value_get_array(enum_val, &enum_arr),
-                              &rc);
-        for (e = 0; e < var->n_enum_values; ++e) {
-          if (var->enum_values[e])
-            rc = openapi_check_rc(
-                cdd_json_array_append_string(enum_arr, var->enum_values[e]),
-                &rc);
+        rc = oa_emit_new_array(&enum_val, &enum_arr);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_c_error_t f1 = cdd_json_value_free(var_val);
+          cdd_c_error_t f2 = cdd_json_value_free(vars_val);
+          return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
         }
-        rc = openapi_check_rc(
-            cdd_json_object_set_value_safe(var_obj, "enum", enum_val), &rc);
+        for (e = 0; e < var->n_enum_values; ++e) {
+          if (var->enum_values[e]) {
+            rc = cdd_json_array_append_string(enum_arr, var->enum_values[e]);
+            if (rc != CDD_C_SUCCESS) {
+              cdd_c_error_t f0 = cdd_json_value_free(enum_val);
+              cdd_c_error_t f1 = cdd_json_value_free(var_val);
+              cdd_c_error_t f2 = cdd_json_value_free(vars_val);
+              return cdd_c_keep_err(rc,
+                                    cdd_c_keep_err(f0, cdd_c_keep_err(f1, f2)));
+            }
+          }
+        }
+        rc = cdd_json_object_set_value_safe(var_obj, "enum", enum_val);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_c_error_t f1 = cdd_json_value_free(var_val);
+          cdd_c_error_t f2 = cdd_json_value_free(vars_val);
+          return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+        }
       }
-      if (var->extensions_json)
-        rc = openapi_check_rc(
-            merge_schema_extras_object_openapi(var_obj, var->extensions_json),
-            &rc);
-      if (var->name)
-        rc = openapi_check_rc(
-            cdd_json_object_set_value_safe(vars_obj, var->name, var_val), &rc);
-      else
-        rc = openapi_check_rc(cdd_json_value_free(var_val), &rc);
+      if (var->extensions_json) {
+        rc = merge_schema_extras_object_openapi(var_obj, var->extensions_json);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_c_error_t f1 = cdd_json_value_free(var_val);
+          cdd_c_error_t f2 = cdd_json_value_free(vars_val);
+          return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+        }
+      }
+      rc = cdd_json_object_set_value_safe(
+          vars_obj, var->name ? var->name : "var", var_val);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cdd_json_value_free(vars_val));
+      }
     }
-    rc = openapi_check_rc(
-        cdd_json_object_set_value_safe(srv_obj, "variables", vars_val), &rc);
+    rc = cdd_json_object_set_value_safe(srv_obj, "variables", vars_val);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  if (srv->extensions_json)
-    rc = openapi_check_rc(
-        merge_schema_extras_object_openapi(srv_obj, srv->extensions_json), &rc);
-  return rc;
+  if (srv->extensions_json) {
+    return merge_schema_extras_object_openapi(srv_obj, srv->extensions_json);
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -901,7 +941,7 @@ write_server_object(JSON_Object *srv_obj, const struct OpenAPI_Server *srv) {
  */
 C_CDD_EXPORT cdd_c_error_t write_servers(JSON_Object *root_obj,
                                          const struct OpenAPI_Spec *spec) {
-  if (!spec)
+  if (!spec || spec->n_servers == 0 || !spec->servers)
     return CDD_C_SUCCESS;
   return write_server_array(root_obj, "servers", spec->servers,
                             spec->n_servers);
@@ -927,34 +967,41 @@ write_server_array(JSON_Object *parent, const char *key,
   if (!parent || !key || !servers || n_servers == 0)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_value_init_array(&arr_val);
-  if (!arr_val) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
-  rc = openapi_check_rc(cdd_json_value_get_array(arr_val, &arr), &rc);
+  rc = oa_emit_new_array(&arr_val, &arr);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (i = 0; i < n_servers; ++i) {
     JSON_Value *srv_val = NULL;
     JSON_Object *srv_obj = NULL;
     int has_qf = 0;
     const struct OpenAPI_Server *srv = &servers[i];
-    rc = openapi_check_rc(server_url_has_query_or_fragment(srv->url, &has_qf),
-                          &rc);
-    if (has_qf) {
-      rc = openapi_check_rc(cdd_json_value_free(arr_val), &rc);
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+    rc = server_url_has_query_or_fragment(srv->url, &has_qf);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(arr_val));
     }
-    rc = openapi_check_rc(cdd_json_value_init_object(&srv_val), &rc);
-    rc = openapi_check_rc(cdd_json_value_get_object(srv_val, &srv_obj), &rc);
-    rc = openapi_check_rc(write_server_object(srv_obj, srv), &rc);
+    if (has_qf) {
+      return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
+                            cdd_json_value_free(arr_val));
+    }
+    rc = oa_emit_new_object(&srv_val, &srv_obj);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(arr_val));
+    }
+    rc = write_server_object(srv_obj, srv);
+    if (rc != CDD_C_SUCCESS) {
+      cdd_c_error_t f1 = cdd_json_value_free(srv_val);
+      cdd_c_error_t f2 = cdd_json_value_free(arr_val);
+      return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+    }
 
-    rc = openapi_check_rc(cdd_json_array_append_value_safe(arr, srv_val), &rc);
+    rc = cdd_json_array_append_value_safe(arr, srv_val);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(arr_val));
+    }
   }
 
-  rc = openapi_check_rc(cdd_json_object_set_value_safe(parent, key, arr_val),
-                        &rc);
-  return rc;
+  return cdd_json_object_set_value_safe(parent, key, arr_val);
 }
 
 /**
@@ -974,39 +1021,55 @@ C_CDD_EXPORT cdd_c_error_t write_tags(JSON_Object *root_obj,
   if (!spec || spec->n_tags == 0)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_value_init_array(&arr_val);
-  if (!arr_val) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
-  rc = openapi_check_rc(cdd_json_value_get_array(arr_val, &arr), &rc);
+  rc = oa_emit_new_array(&arr_val, &arr);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (i = 0; i < spec->n_tags; ++i) {
     const struct OpenAPI_Tag *tag = &spec->tags[i];
     JSON_Value *tag_val = NULL;
     JSON_Object *tag_obj = NULL;
-    rc = openapi_check_rc(cdd_json_value_init_object(&tag_val), &rc);
-    rc = openapi_check_rc(cdd_json_value_get_object(tag_val, &tag_obj), &rc);
+    rc = oa_emit_new_object(&tag_val, &tag_obj);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(arr_val));
+    }
 
-    if (tag->name)
-      rc = openapi_check_rc(
-          cdd_json_object_set_string(tag_obj, "name", tag->name), &rc);
-    rc = openapi_check_rc(
-        openapi_emit_reflected_strings(tag_obj, &OpenAPI_Tag_type_info, tag),
-        &rc);
-    if (tag->external_docs.url)
-      rc = openapi_check_rc(
-          write_external_docs(tag_obj, "externalDocs", &tag->external_docs),
-          &rc);
-    if (tag->extensions_json)
-      rc = openapi_check_rc(
-          merge_schema_extras_object_openapi(tag_obj, tag->extensions_json),
-          &rc);
+    if (tag->name) {
+      rc = cdd_json_object_set_string(tag_obj, "name", tag->name);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_c_error_t f1 = cdd_json_value_free(tag_val);
+        cdd_c_error_t f2 = cdd_json_value_free(arr_val);
+        return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+      }
+    }
+    rc = openapi_emit_reflected_strings(tag_obj, &OpenAPI_Tag_type_info, tag);
+    if (rc != CDD_C_SUCCESS) {
+      cdd_c_error_t f1 = cdd_json_value_free(tag_val);
+      cdd_c_error_t f2 = cdd_json_value_free(arr_val);
+      return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+    }
+    if (tag->external_docs.url) {
+      rc = write_external_docs(tag_obj, "externalDocs", &tag->external_docs);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_c_error_t f1 = cdd_json_value_free(tag_val);
+        cdd_c_error_t f2 = cdd_json_value_free(arr_val);
+        return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+      }
+    }
+    if (tag->extensions_json) {
+      rc = merge_schema_extras_object_openapi(tag_obj, tag->extensions_json);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_c_error_t f1 = cdd_json_value_free(tag_val);
+        cdd_c_error_t f2 = cdd_json_value_free(arr_val);
+        return cdd_c_keep_err(rc, cdd_c_keep_err(f1, f2));
+      }
+    }
 
-    rc = openapi_check_rc(cdd_json_array_append_value_safe(arr, tag_val), &rc);
+    rc = cdd_json_array_append_value_safe(arr, tag_val);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(arr_val));
+    }
   }
 
-  rc = openapi_check_rc(
-      cdd_json_object_set_value_safe(root_obj, "tags", arr_val), &rc);
-  return rc;
+  return cdd_json_object_set_value_safe(root_obj, "tags", arr_val);
 }

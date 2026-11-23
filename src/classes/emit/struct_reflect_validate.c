@@ -93,6 +93,10 @@ static cdd_c_error_t regex_match_class(const char *pat, const char **out_after,
 static cdd_c_error_t regex_match_atom(const char *pat,
                                       const char **out_next_pat, char c,
                                       int *out_matched) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_matched = 0;
   if (*pat == '[') {
     return regex_match_class(pat + 1, out_next_pat, c, out_matched);
@@ -205,6 +209,8 @@ regex_match_quantified_group(const char *group_inner, const char *rest_pat,
     CDD_SNPRINTF(anchored_group, sizeof(anchored_group), "^%s$", group_inner);
     rc = cdd_reflect_match_pattern_depth(anchored_group, prefix_buf, &grp_m,
                                          depth + 1U);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (grp_m) {
       int rem_m = 0;
       size_t next_min = (min_rep > 0) ? (min_rep - 1) : 0;
@@ -241,12 +247,14 @@ static cdd_c_error_t regex_match_quantified(const char *atom_pat,
   size_t count = 0;
   const char *s = str;
   const char *dummy_next = NULL;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   *out_matched = 0;
 
   while (count < max_rep && *s != '\0') {
     int m = 0;
     rc = regex_match_atom(atom_pat, &dummy_next, *s, &m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (!m)
       break;
     s++;
@@ -255,11 +263,13 @@ static cdd_c_error_t regex_match_quantified(const char *atom_pat,
 
   while (count >= min_rep && !*out_matched) {
     rc = regex_match_here(rest_pat, str + count, out_matched, depth + 1U);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (count == 0)
       break;
     count--;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -635,13 +645,17 @@ static cdd_c_error_t
 validate_array_unique_items(const void *obj, const struct cdd_field_info *field,
                             size_t alen) {
   size_t i, j;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   for (i = 0; i < alen; ++i) {
     const void *pi = NULL;
     rc = cdd_reflect_array_at(obj, field, i, &pi);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     for (j = i + 1; j < alen; ++j) {
       const void *pj = NULL;
       rc = cdd_reflect_array_at(obj, field, j, &pj);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (field->elem_kind == CDD_FIELD_KIND_STRING) {
         const char *si = *(const char *const *)pi;
         const char *sj = *(const char *const *)pj;
@@ -649,17 +663,22 @@ validate_array_unique_items(const void *obj, const struct cdd_field_info *field,
           return CDD_C_ERROR_INVALID_ARGUMENT;
       } else if (field->elem_kind == CDD_FIELD_KIND_OBJECT) {
         const struct cdd_type_info *elem_ti = NULL;
-        if (cdd_reflect_type_by_name(field->ref_name, &elem_ti) ==
-            CDD_C_SUCCESS) {
+        rc = cdd_reflect_lookup_type_opt(field->ref_name, &elem_ti);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (elem_ti) {
           int is_p = 0;
           const void *oi;
           const void *oj;
           int is_eq = 0;
           rc = cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_p);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           oi = is_p ? *(const void *const *)pi : pi;
           oj = is_p ? *(const void *const *)pj : pj;
-          rc = cdd_c_keep_err(rc,
-                              cdd_reflect_struct_eq(oi, oj, elem_ti, &is_eq));
+          rc = cdd_reflect_struct_eq(oi, oj, elem_ti, &is_eq);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (is_eq)
             return CDD_C_ERROR_INVALID_ARGUMENT;
         }
@@ -668,7 +687,7 @@ validate_array_unique_items(const void *obj, const struct cdd_field_info *field,
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -708,16 +727,20 @@ cdd_c_error_t cdd_reflect_validate_field(const void *obj,
     int is_unsigned = 0;
     cdd_c_error_t rc =
         cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (width == 8 && is_unsigned) {
       rc = cdd_reflect_get_uint64(obj, field, &uv);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       dv = (double)uv;
       is_u64 = 1;
     } else {
       rc = cdd_reflect_get_int64(obj, field, &v);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       dv = (double)v;
     }
-    if (rc != CDD_C_SUCCESS)
-      return rc;
     if (field->has_min) {
       if (field->exclusive_min ? (dv <= field->min_val) : (dv < field->min_val))
         return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -738,16 +761,23 @@ cdd_c_error_t cdd_reflect_validate_field(const void *obj,
     }
     if (field->kind == CDD_FIELD_KIND_ENUM) {
       const struct cdd_enum_info *ei = NULL;
-      if (cdd_reflect_enum_by_name(field->ref_name, &ei) == CDD_C_SUCCESS &&
-          ei->other_idx < 0) {
+      rc = cdd_reflect_lookup_enum_opt(field->ref_name, &ei);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (ei && ei->other_idx < 0) {
         const struct cdd_enum_variant_info *ev = NULL;
-        if (cdd_reflect_find_enum_by_value(ei, (int)v, &ev) != CDD_C_SUCCESS)
+        rc = cdd_reflect_lookup_enum_value_opt(ei, (int)v, &ev);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (!ev)
           return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
   } else if (field->kind == CDD_FIELD_KIND_NUMBER) {
     double d = 0.0;
     cdd_c_error_t rc = cdd_reflect_get_double(obj, field, &d);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (field->has_min) {
       if (field->exclusive_min ? (d <= field->min_val) : (d < field->min_val))
         return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -756,13 +786,14 @@ cdd_c_error_t cdd_reflect_validate_field(const void *obj,
       if (field->exclusive_max ? (d >= field->max_val) : (d > field->max_val))
         return CDD_C_ERROR_INVALID_ARGUMENT;
     }
-    return rc;
   } else if (field->kind == CDD_FIELD_KIND_STRING) {
     const char *s = NULL;
     size_t slen;
     cdd_c_error_t rc = cdd_reflect_get_string(obj, field, &s);
-    if (!s)
+    if (rc != CDD_C_SUCCESS)
       return rc;
+    if (!s)
+      return CDD_C_SUCCESS;
     slen = strlen(s);
     if (field->has_min_len && slen < field->min_len)
       return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -776,7 +807,10 @@ cdd_c_error_t cdd_reflect_validate_field(const void *obj,
     if (field->pattern) {
       int matched = 0;
       rc = cdd_reflect_match_pattern(field->pattern, s, &matched);
-      if (rc != CDD_C_SUCCESS || !matched)
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      }
+      if (!matched)
         return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   } else if (field->kind == CDD_FIELD_KIND_ARRAY) {
@@ -829,7 +863,10 @@ static cdd_c_error_t validate_field_visitor(const struct cdd_field_info *field,
 
   if (field->kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *child_ti = NULL;
-    if (cdd_reflect_type_by_name(field->ref_name, &child_ti) == CDD_C_SUCCESS) {
+    rc = cdd_reflect_lookup_type_opt(field->ref_name, &child_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (child_ti) {
       const void *child_obj =
           field->is_pointer ? *(const void *const *)field_ptr : field_ptr;
       if (child_obj) {
@@ -840,30 +877,36 @@ static cdd_c_error_t validate_field_visitor(const struct cdd_field_info *field,
   } else if (field->kind == CDD_FIELD_KIND_ARRAY &&
              field->elem_kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *elem_ti = NULL;
-    if (cdd_reflect_type_by_name(field->ref_name, &elem_ti) == CDD_C_SUCCESS) {
+    rc = cdd_reflect_lookup_type_opt(field->ref_name, &elem_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (elem_ti) {
       size_t alen = 0;
       size_t idx;
       rc = cdd_reflect_array_len(ctx->obj, field, &alen);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       for (idx = 0; idx < alen; ++idx) {
         const void *elem_ptr = NULL;
         int is_ptr = 0;
+        const void *elem_obj;
         rc = cdd_reflect_array_at(ctx->obj, field, idx, &elem_ptr);
-        rc = cdd_c_keep_err(
-            rc, cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_ptr));
-        {
-          const void *elem_obj =
-              is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
-          if (elem_obj) {
-            rc = validate_struct_recursive(elem_obj, elem_ti, ctx->visited,
-                                           ctx->depth + 1U);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-          }
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_ptr);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        elem_obj = is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
+        if (elem_obj) {
+          rc = validate_struct_recursive(elem_obj, elem_ti, ctx->visited,
+                                         ctx->depth + 1U);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**

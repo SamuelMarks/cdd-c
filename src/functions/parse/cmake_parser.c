@@ -61,18 +61,21 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
 cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
                                   const char *filepath,
                                   const char *target_name) {
+  cdd_c_error_t rc;
   if (!mod || !filepath)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   mod->filepath = NULL;
   mod->target_name = NULL;
-  if (my_strdup(filepath, &mod->filepath) != 0)
-    return CDD_C_ERROR_MEMORY;
+  rc = my_strdup(filepath, &mod->filepath);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (target_name) {
-    if (my_strdup(target_name, &mod->target_name) != 0) {
+    rc = my_strdup(target_name, &mod->target_name);
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(mod->filepath);
       mod->filepath = NULL;
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
   }
   mod->compile_opts = NULL;

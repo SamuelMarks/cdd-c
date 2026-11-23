@@ -68,80 +68,105 @@ static NO_DISCARD cdd_c_error_t emit_field(FILE *f,
  */
 static NO_DISCARD cdd_c_error_t emit_type(FILE *f, const cdd_ffi_type_t *type) {
   int i;
+  const char *kw = "void";
   cdd_c_error_t rc;
 
   for (i = 0; i < type->pointer_depth; i++) {
     rc = cdd_ffi_write_str(f, type->is_const ? "*const " : "*mut ");
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
   }
 
   if (type->array_size > 0) {
     rc = cdd_ffi_write_fmt(f, "[%ld]", type->array_size);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
   }
 
   switch (type->kind) {
   case CDD_FFI_KIND_VOID:
-    return cdd_ffi_write_str(f, "void");
+    kw = "void";
+    break;
   case CDD_FFI_KIND_UINT8:
-    return cdd_ffi_write_str(f, "u8");
+    kw = "u8";
+    break;
   case CDD_FFI_KIND_INT16:
-    return cdd_ffi_write_str(f, "i16");
+    kw = "i16";
+    break;
   case CDD_FFI_KIND_UINT16:
-    return cdd_ffi_write_str(f, "u16");
+    kw = "u16";
+    break;
   case CDD_FFI_KIND_INT32:
-    return cdd_ffi_write_str(f, "i32");
+    kw = "i32";
+    break;
   case CDD_FFI_KIND_UINT32:
-    return cdd_ffi_write_str(f, "u32");
+    kw = "u32";
+    break;
   case CDD_FFI_KIND_INT64:
-    return cdd_ffi_write_str(f, "i64");
+    kw = "i64";
+    break;
   case CDD_FFI_KIND_FLOAT32:
-    return cdd_ffi_write_str(f, "f32");
+    kw = "f32";
+    break;
   case CDD_FFI_KIND_FLOAT64:
-    return cdd_ffi_write_str(f, "f64");
+    kw = "f64";
+    break;
   case CDD_FFI_KIND_BOOL:
-    return cdd_ffi_write_str(f, "bool");
+    kw = "bool";
+    break;
   case CDD_FFI_KIND_UINT64:
-    return cdd_ffi_write_str(f, "size_t");
+    kw = "size_t";
+    break;
   case CDD_FFI_KIND_INT8:
-    return cdd_ffi_write_str(f, "char");
+    kw = "char";
+    break;
   case CDD_FFI_KIND_STRUCT_REF:
-  case CDD_FFI_KIND_ENUM_REF:
-    if (type->ref_name)
+  case CDD_FFI_KIND_ENUM_REF: {
+    if (type->ref_name) {
       return cdd_ffi_write_str(f, type->ref_name);
+    }
     return CDD_C_SUCCESS;
+  }
   case CDD_FFI_KIND_FUNCTION_PTR: {
     size_t k;
     rc = cdd_ffi_write_str(f, "func(");
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
     for (k = 0; k < type->fn_params_count; k++) {
       rc = emit_field(f, &type->fn_params[k]);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         return rc;
+      }
       if (k + 1 < type->fn_params_count || type->fn_is_variadic) {
         rc = cdd_ffi_write_str(f, ", ");
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
       }
     }
     if (type->fn_is_variadic) {
       rc = cdd_ffi_write_str(f, "va_list");
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         return rc;
+      }
     }
     rc = cdd_ffi_write_str(f, ") ");
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
-    if (type->fn_return_type)
+    }
+    if (type->fn_return_type) {
       return emit_type(f, type->fn_return_type);
+    }
     return cdd_ffi_write_str(f, "void");
   }
   default:
-    return cdd_ffi_write_str(f, "void");
+    kw = "void";
+    break;
   }
+  return cdd_ffi_write_str(f, kw);
 }
 
 static NO_DISCARD cdd_c_error_t emit_field(FILE *f,
@@ -149,45 +174,57 @@ static NO_DISCARD cdd_c_error_t emit_field(FILE *f,
   cdd_c_error_t rc;
 
   rc = emit_trivia(f, field->leading_trivia);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
     return rc;
+  }
 
   if (field->intent != CDD_FFI_INTENT_UNKNOWN || field->array_length_ref) {
+    const char *intent_str = NULL;
     rc = cdd_ffi_write_str(f, "[");
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
-    if (field->intent == CDD_FFI_INTENT_IN) {
-      rc = cdd_ffi_write_str(f, "in");
-    } else if (field->intent == CDD_FFI_INTENT_OUT) {
-      rc = cdd_ffi_write_str(f, "out");
-    } else if (field->intent == CDD_FFI_INTENT_INOUT) {
-      rc = cdd_ffi_write_str(f, "inout");
     }
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    if (field->intent == CDD_FFI_INTENT_IN) {
+      intent_str = "in";
+    } else if (field->intent == CDD_FFI_INTENT_OUT) {
+      intent_str = "out";
+    } else if (field->intent == CDD_FFI_INTENT_INOUT) {
+      intent_str = "inout";
+    }
+    if (intent_str) {
+      rc = cdd_ffi_write_str(f, intent_str);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
+    }
 
     if (field->array_length_ref) {
       if (field->intent != CDD_FFI_INTENT_UNKNOWN) {
         rc = cdd_ffi_write_str(f, ", ");
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
       }
       rc = cdd_ffi_write_fmt(f, "len=%s", field->array_length_ref);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         return rc;
+      }
     }
     rc = cdd_ffi_write_str(f, "] ");
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
   }
 
   rc = emit_type(f, &field->type);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
     return rc;
+  }
   if (field->name) {
     rc = cdd_ffi_write_fmt(f, " %s", field->name);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
   }
 
   return emit_trivia(f, field->trailing_trivia);
@@ -225,38 +262,45 @@ C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_ffi_emit_dsl(
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     rc = emit_trivia(f, node->leading_trivia);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       goto cleanup;
+    }
 
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       rc = cdd_ffi_write_fmt(f, "func %s(", node->name ? node->name : "anon");
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         goto cleanup;
+      }
       for (j = 0; j < node->fields_count; j++) {
         rc = emit_field(f, &node->fields[j]);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
           goto cleanup;
+        }
         if (j + 1 < node->fields_count) {
           rc = cdd_ffi_write_str(f, ", ");
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
             goto cleanup;
+          }
         }
       }
       rc = cdd_ffi_write_str(f, ") ");
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         goto cleanup;
+      }
 
       if (node->raw_body) {
         rc = cdd_ffi_write_fmt(f, "{\n  body %%{%s}%%\n}\n", node->raw_body);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
       } else {
         rc = cdd_ffi_write_str(f, ";\n");
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
       }
-      if (rc != CDD_C_SUCCESS)
-        goto cleanup;
     }
   }
 
-cleanup:
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&f));
-  return rc;
+cleanup: { return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&f)); }
 }

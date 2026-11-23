@@ -28,6 +28,10 @@
 static cdd_c_error_t racketify_name(const char *c_name, char *out_name,
                                     size_t out_sz) {
   size_t i = 0, j = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (!c_name) {
     out_name[0] = '\0';
     return CDD_C_SUCCESS;
@@ -55,6 +59,10 @@ static cdd_c_error_t racketify_name(const char *c_name, char *out_name,
  */
 static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
                                      size_t out_sz) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
@@ -106,8 +114,11 @@ static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
       char racket_name[240];
       cdd_c_error_t rc_r =
           racketify_name(t->ref_name, racket_name, sizeof(racket_name));
+      if (rc_r != CDD_C_SUCCESS) {
+        return rc_r;
+      }
       CDD_SNPRINTF(out_type, out_sz, "_%s-pointer", racket_name);
-      return rc_r;
+      return CDD_C_SUCCESS;
     } else {
       CDD_SNPRINTF(out_type, out_sz, "_pointer");
     }
@@ -118,8 +129,11 @@ static cdd_c_error_t map_racket_type(cdd_ffi_type_t *t, char *out_type,
       char racket_name[240];
       cdd_c_error_t rc_r =
           racketify_name(t->ref_name, racket_name, sizeof(racket_name));
+      if (rc_r != CDD_C_SUCCESS) {
+        return rc_r;
+      }
       CDD_SNPRINTF(out_type, out_sz, "_%s", racket_name);
-      return rc_r;
+      return CDD_C_SUCCESS;
     } else {
       CDD_SNPRINTF(out_type, out_sz, "_pointer");
     }
@@ -160,9 +174,10 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
   }
 
   lib_name = (config->library_name) ? config->library_name : "mylib";
-  rc_emit = (cdd_c_error_t)((int)rc_emit |
-                            (int)racketify_name(lib_name, racket_lib_name,
-                                                sizeof(racket_lib_name)));
+  rc_emit = racketify_name(lib_name, racket_lib_name, sizeof(racket_lib_name));
+  if (rc_emit != CDD_C_SUCCESS) {
+    return rc_emit;
+  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.rkt", config->output_dir,
@@ -199,9 +214,12 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
 
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
-    rc_emit = (cdd_c_error_t)((int)rc_emit |
-                              (int)racketify_name(node->name, racket_node_name,
-                                                  sizeof(racket_node_name)));
+    rc_emit =
+        racketify_name(node->name, racket_node_name, sizeof(racket_node_name));
+    if (rc_emit != CDD_C_SUCCESS) {
+      fclose(f);
+      return rc_emit;
+    }
 
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
       /* In Racket, define-cstruct does not easily support unions. Treating
@@ -215,29 +233,38 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
           fprintf(f, ")\n\n");
         }
         for (j = 0; j < node->fields_count; j++) {
-          rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                    (int)racketify_name(node->fields[j].name,
-                                                        field_name,
-                                                        sizeof(field_name)));
-          rc_emit =
-              (cdd_c_error_t)((int)rc_emit |
-                              (int)map_racket_type(&node->fields[j].type,
-                                                   type_str, sizeof(type_str)));
+          rc_emit = racketify_name(node->fields[j].name, field_name,
+                                   sizeof(field_name));
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
+          rc_emit = map_racket_type(&node->fields[j].type, type_str,
+                                    sizeof(type_str));
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, "[%s %s]%s", field_name, type_str,
                   j + 1 < node->fields_count ? "\n   " : "))\n\n");
         }
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "(define _%s\n", racket_node_name);
       fprintf(f, "  (_enum\n");
       fprintf(f, "   '(\n");
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)racketify_name(var->name, var_name,
-                                                      sizeof(var_name)));
+        rc_emit = racketify_name(var->name, var_name, sizeof(var_name));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         if (var->value) {
           fprintf(f, "     [%s = %s]\n", var_name, var->value);
         } else {
@@ -246,24 +273,34 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "    )))\n\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)map_racket_type(
-                                                   &node->return_or_base_type,
-                                                   type_str, sizeof(type_str)));
+      rc_emit = map_racket_type(&node->return_or_base_type, type_str,
+                                sizeof(type_str));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "(define _%s %s)\n\n", racket_node_name, type_str);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_racket_type(&node->return_or_base_type,
-                                                     ret_type_str,
-                                                     sizeof(ret_type_str)));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
+      rc_emit = map_racket_type(&node->return_or_base_type, ret_type_str,
+                                sizeof(ret_type_str));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "(define-%s %s\n", racket_lib_name, node->name);
       fprintf(f, "  (_fun ");
       for (j = 0; j < node->fields_count; j++) {
         rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_racket_type(&node->fields[j].type,
-                                                 type_str, sizeof(type_str)));
+            map_racket_type(&node->fields[j].type, type_str, sizeof(type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s ", type_str);
       }
       fprintf(f, "-> %s))\n\n", ret_type_str);
@@ -271,5 +308,5 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
   }
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

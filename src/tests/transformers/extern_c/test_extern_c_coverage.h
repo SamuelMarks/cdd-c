@@ -575,6 +575,39 @@ TEST test_extern_c_extra_coverage5(void) {
     g_cdd_query_err_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+
+    {
+      const char *code_s1 =
+          "#ifndef GUARD_H\n#define GUARD_H\nvoid f();\n#include <late.h>\n"
+          "void g();\n#endif\n";
+      const char *code_s2 =
+          "#include <stdio.h>\n#ifdef FOO\n#endif\nvoid f();\n";
+      int step;
+      for (step = 1; step <= 500; ++step) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(code_s1), &tree));
+        g_cdd_step_fail = step;
+        rc = cdd_transform_extern_c(tree, &config);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+      for (step = 1; step <= 300; ++step) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(code_s2), &tree));
+        g_cdd_step_fail = step;
+        rc = cdd_transform_extern_c(tree, &config);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+    }
   }
 
   PASS();

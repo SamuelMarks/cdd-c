@@ -214,6 +214,8 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
       char raw_kn[128];
       CDD_STRCPY(raw_kn, sizeof(raw_kn), kn);
       rc_name = cdd_escape_json_c_str(raw_kn, kn, sizeof(kn));
+      if (rc_name != CDD_C_SUCCESS)
+        return rc_name;
     }
 
     if (f->serde_skip_if_kind == CDD_SERDE_SKIP_IF_NULL) {
@@ -411,8 +413,9 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(fp, "    char *s = NULL;\n"));
       {
         const char *tn = NULL;
-        cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+        cdd_c_error_t rc_ref;
         int io_rc;
+        rc_ref = get_type_from_ref(r, &tn);
         if (rc_ref != CDD_C_SUCCESS) {
           return rc_ref;
         }
@@ -432,8 +435,9 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
     } else if (strcmp(t, "enum") == 0) {
       {
         const char *tn = NULL;
-        cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+        cdd_c_error_t rc_ref;
         int io_rc;
+        rc_ref = get_type_from_ref(r, &tn);
         if (rc_ref != CDD_C_SUCCESS) {
           return rc_ref;
         }
@@ -489,8 +493,9 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
       } else { /* Object array */
         {
           const char *tn = NULL;
-          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+          cdd_c_error_t rc_ref;
           int io_rc;
+          rc_ref = get_type_from_ref(r, &tn);
           if (rc_ref != CDD_C_SUCCESS) {
             return rc_ref;
           }
@@ -589,11 +594,13 @@ write_struct_to_jsonObject_func(FILE *fp, const char *struct_name,
     if (f->write_only || f->serde_skip || f->serde_skip_serializing)
       continue;
 
-    rc_h = (cdd_c_error_t)((int)rc_h |
-                           (int)cdd_serde_resolve_field_names(
-                               sf, i, raw_kn, sizeof(raw_kn), NULL, 0));
-    rc_h = (cdd_c_error_t)((int)rc_h |
-                           (int)cdd_escape_json_c_str(raw_kn, kn, sizeof(kn)));
+    rc_h =
+        cdd_serde_resolve_field_names(sf, i, raw_kn, sizeof(raw_kn), NULL, 0);
+    if (rc_h != CDD_C_SUCCESS)
+      return rc_h;
+    rc_h = cdd_escape_json_c_str(raw_kn, kn, sizeof(kn));
+    if (rc_h != CDD_C_SUCCESS)
+      return rc_h;
 
     if (strcmp(t, "int64") == 0 ||
         (strcmp(t, "integer") == 0 && strcmp(f->format, "int64") == 0)) {
@@ -655,7 +662,9 @@ write_struct_to_jsonObject_func(FILE *fp, const char *struct_name,
       }
     } else if (strcmp(t, "object") == 0) {
       const char *tn = NULL;
-      rc_h = (cdd_c_error_t)((int)rc_h | (int)get_type_from_ref(r, &tn));
+      rc_h = get_type_from_ref(r, &tn);
+      if (rc_h != CDD_C_SUCCESS)
+        return rc_h;
       CHECK_IO(
           FPRINTF_HOOK(fp,
                        "  if (obj->%s) {\n"
@@ -681,7 +690,9 @@ write_struct_to_jsonObject_func(FILE *fp, const char *struct_name,
           kn, kn));
     } else if (strcmp(t, "enum") == 0) {
       const char *tn = NULL;
-      rc_h = (cdd_c_error_t)((int)rc_h | (int)get_type_from_ref(r, &tn));
+      rc_h = get_type_from_ref(r, &tn);
+      if (rc_h != CDD_C_SUCCESS)
+        return rc_h;
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "  { char *_es = NULL;\n"
@@ -726,7 +737,9 @@ write_struct_to_jsonObject_func(FILE *fp, const char *struct_name,
             n, n));
       } else {
         const char *tn = NULL;
-        rc_h = (cdd_c_error_t)((int)rc_h | (int)get_type_from_ref(r, &tn));
+        rc_h = get_type_from_ref(r, &tn);
+        if (rc_h != CDD_C_SUCCESS)
+          return rc_h;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "      { JSON_Value *_ev = NULL; JSON_Object *_eo = NULL;\n"
@@ -978,19 +991,21 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       if (jf->read_only || jf->serde_skip || jf->serde_skip_deserializing)
         continue;
       if (!jf->serde_flatten) {
-        if (cdd_serde_resolve_field_names(sf, j, NULL, 0, dname,
-                                          sizeof(dname)) != CDD_C_SUCCESS)
-          return CDD_C_ERROR_INVALID_ARGUMENT;
-        rc_h = (cdd_c_error_t)((int)rc_h |
-                               (int)cdd_escape_json_c_str(dname, esc_dname,
-                                                          sizeof(esc_dname)));
+        rc_h =
+            cdd_serde_resolve_field_names(sf, j, NULL, 0, dname, sizeof(dname));
+        if (rc_h != CDD_C_SUCCESS)
+          return rc_h;
+        rc_h = cdd_escape_json_c_str(dname, esc_dname, sizeof(esc_dname));
+        if (rc_h != CDD_C_SUCCESS)
+          return rc_h;
         CHECK_IO(FPRINTF_HOOK(fp, " && strcmp(_jn, \"%s\") != 0", esc_dname));
       }
       for (a = 0; a < jf->n_serde_aliases; ++a) {
         char esc_al[256];
-        rc_h = (cdd_c_error_t)((int)rc_h | (int)cdd_escape_json_c_str(
-                                               jf->serde_aliases[a], esc_al,
-                                               sizeof(esc_al)));
+        rc_h =
+            cdd_escape_json_c_str(jf->serde_aliases[a], esc_al, sizeof(esc_al));
+        if (rc_h != CDD_C_SUCCESS)
+          return rc_h;
         CHECK_IO(FPRINTF_HOOK(fp, " && strcmp(_jn, \"%s\") != 0", esc_al));
       }
     }
@@ -1051,8 +1066,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           cdd_serde_resolve_field_names(sf, i, NULL, 0, raw_kn, sizeof(raw_kn));
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
-      rc_h = (cdd_c_error_t)((int)rc_h | (int)cdd_escape_json_c_str(
-                                             raw_kn, kn, sizeof(kn)));
+      rc_h = cdd_escape_json_c_str(raw_kn, kn, sizeof(kn));
+      if (rc_h != CDD_C_SUCCESS)
+        return rc_h;
     }
 
     if (f->serde_flatten && strcmp(t, "object") == 0) {
@@ -1460,8 +1476,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(fp, "    if (sub) {\n"));
       {
         const char *tn = NULL;
-        cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+        cdd_c_error_t rc_ref;
         int io_rc;
+        rc_ref = get_type_from_ref(r, &tn);
         if (rc_ref != CDD_C_SUCCESS) {
           return rc_ref;
         }
@@ -1489,8 +1506,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       CHECK_IO(FPRINTF_HOOK(fp, "    if (s) {\n"));
       {
         const char *tn = NULL;
-        cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+        cdd_c_error_t rc_ref;
         int io_rc;
+        rc_ref = get_type_from_ref(r, &tn);
         if (rc_ref != CDD_C_SUCCESS) {
           return rc_ref;
         }
@@ -1629,8 +1647,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         /* Object array */
         {
           const char *tn = NULL;
-          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+          cdd_c_error_t rc_ref;
           int io_rc;
+          rc_ref = get_type_from_ref(r, &tn);
           if (rc_ref != CDD_C_SUCCESS) {
             return rc_ref;
           }
@@ -1642,8 +1661,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         CHECK_IO(FPRINTF_HOOK(fp, "      for(i=0; i<ret->n_%s; ++i) {\n", n));
         {
           const char *tn = NULL;
-          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+          cdd_c_error_t rc_ref;
           int io_rc;
+          rc_ref = get_type_from_ref(r, &tn);
           if (rc_ref != CDD_C_SUCCESS) {
             return rc_ref;
           }

@@ -15,6 +15,10 @@
  * truncation.
  */
 cdd_c_error_t cdd_serde_copy_str(char *dst, size_t dst_sz, const char *src) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   strncpy_s(dst, dst_sz, src, _TRUNCATE);
 #else
@@ -28,6 +32,10 @@ cdd_c_error_t cdd_serde_copy_str(char *dst, size_t dst_sz, const char *src) {
  * @brief Case-insensitive ASCII string comparison helper.
  */
 cdd_c_error_t cdd_serde_str_ieq(const char *a, const char *b, int *out_eq) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (*a && *b) {
     if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
       *out_eq = 0;
@@ -45,6 +53,10 @@ cdd_c_error_t cdd_serde_str_ieq(const char *a, const char *b, int *out_eq) {
  */
 cdd_c_error_t cdd_serde_skip_delims(const char **p, const char *end) {
   const char *cur = *p;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (cur < end &&
          (isspace((unsigned char)*cur) || *cur == ',' || *cur == '*')) {
     cur++;
@@ -61,6 +73,10 @@ cdd_c_error_t cdd_serde_parse_value(const char **p, const char *end,
   const char *cur = *p;
   size_t pos = 0;
   int paren_wrapped = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   while (cur < end && isspace((unsigned char)*cur))
     cur++;
@@ -125,6 +141,8 @@ cdd_c_error_t cdd_serde_parse_replace_tuple(const char **p, const char *end,
     cur++;
 
   rc = cdd_serde_parse_value(&cur, end, out_from, from_sz);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   while (cur < end && (isspace((unsigned char)*cur) || *cur == ',' ||
                        *cur == '-' || *cur == '>' || *cur == ':')) {
@@ -132,12 +150,14 @@ cdd_c_error_t cdd_serde_parse_replace_tuple(const char **p, const char *end,
   }
 
   rc = cdd_serde_parse_value(&cur, end, out_to, to_sz);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   while (cur < end && (isspace((unsigned char)*cur) || *cur == ')'))
     cur++;
 
   *p = cur;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -151,6 +171,10 @@ cdd_c_error_t cdd_serde_find_directive_ex(const char *cur,
                                           const char **out_next,
                                           enum CddDirectiveScope *out_scope) {
   const char *p = cur;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (out_scope)
     *out_scope = CDD_SCOPE_GENERAL;
   while (*p != '\0') {
@@ -341,11 +365,15 @@ cdd_c_error_t cdd_serde_next_key(const char **p, const char *end, char *key_buf,
   cdd_c_error_t rc;
 
   rc = cdd_serde_skip_delims(p, end);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   cur = *p;
   while (cur < end && *cur == ')') {
     cur++;
     *p = cur;
     rc = cdd_serde_skip_delims(p, end);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     cur = *p;
   }
   if (strncmp(cur, "cdd::", 5) == 0 || strncmp(cur, "cli::", 5) == 0) {
@@ -362,7 +390,7 @@ cdd_c_error_t cdd_serde_next_key(const char **p, const char *end, char *key_buf,
   }
   key_buf[pos] = '\0';
   *p = cur;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -374,14 +402,20 @@ cdd_c_error_t cdd_serde_parse_bool_val(const char *val, int *out_bool) {
   cdd_c_error_t rc;
 
   rc = cdd_serde_str_ieq(val, "false", &eq_false);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = cdd_serde_str_ieq(val, "no", &eq_no);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = cdd_serde_str_ieq(val, "off", &eq_off);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (eq_false || eq_no || eq_off || strcmp(val, "0") == 0) {
     *out_bool = 0;
   } else {
     *out_bool = 1;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -390,7 +424,12 @@ cdd_c_error_t cdd_serde_parse_bool_val(const char *val, int *out_bool) {
  */
 cdd_c_error_t cdd_serde_parse_num_args(const char *val, int *out_min,
                                        int *out_max) {
-  const char *dots = strstr(val, "..");
+  const char *dots;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  dots = strstr(val, "..");
   if (!dots) {
     int n = atoi(val);
     *out_min = n;
@@ -428,6 +467,10 @@ static cdd_c_error_t serde_extract_tag_line(const char *start, char *out_buf,
                                             size_t out_sz) {
   const char *p = start;
   size_t pos = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (*p == ':')
     p++;
   while (*p == ' ' || *p == '\t')
@@ -466,25 +509,41 @@ cdd_c_error_t cdd_serde_extract_doxygen_fallbacks(
       if (out_brief[0] == '\0' && strncmp(p, "@brief", 6) == 0 &&
           !isalnum((unsigned char)p[6])) {
         rc = serde_extract_tag_line(p + 6, out_brief, brief_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_brief[0] == '\0' && strncmp(p, "@summary", 8) == 0) {
         rc = serde_extract_tag_line(p + 8, out_brief, brief_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_details[0] == '\0' && strncmp(p, "@details", 8) == 0) {
         rc = serde_extract_tag_line(p + 8, out_details, details_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_details[0] == '\0' &&
                  strncmp(p, "@description", 12) == 0) {
         rc = serde_extract_tag_line(p + 12, out_details, details_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_version && out_version[0] == '\0' &&
                  strncmp(p, "@version", 8) == 0) {
         rc = serde_extract_tag_line(p + 8, out_version, version_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_version && out_version[0] == '\0' &&
                  strncmp(p, "@infoVersion", 12) == 0) {
         rc = serde_extract_tag_line(p + 12, out_version, version_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_author && out_author[0] == '\0' &&
                  strncmp(p, "@author", 7) == 0) {
         rc = serde_extract_tag_line(p + 7, out_author, author_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (out_author && out_author[0] == '\0' &&
                  strncmp(p, "@contact", 8) == 0) {
         rc = serde_extract_tag_line(p + 8, out_author, author_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
     p++;
@@ -514,11 +573,13 @@ cdd_c_error_t cdd_serde_extract_doxygen_fallbacks(
           continue;
         }
         rc = serde_extract_tag_line(s, out_brief, brief_sz);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         break;
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -527,6 +588,10 @@ cdd_c_error_t cdd_serde_extract_doxygen_fallbacks(
  */
 cdd_c_error_t cdd_serde_match_scope_key(const char *key,
                                         enum CddDirectiveScope *out_scope) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (strcmp(key, "to_json") == 0 || strcmp(key, "to_form") == 0) {
     *out_scope = CDD_SCOPE_TO_JSON;
   } else if (strcmp(key, "from_json") == 0 || strcmp(key, "from_form") == 0) {

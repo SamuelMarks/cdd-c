@@ -45,6 +45,10 @@ static cdd_c_error_t to_camel_case(const char *snake, char *out,
                                    size_t out_size) {
   size_t i, j = 0;
   int up = 1;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
     if (snake[i] == '_') {
       up = 1;
@@ -83,9 +87,10 @@ emit_julia_file(cdd_ffi_ir_t *ir,
     lib_name = config->library_name;
   }
 
-  rc_emit =
-      (cdd_c_error_t)((int)rc_emit | (int)to_camel_case(lib_name, module_name,
-                                                        sizeof(module_name)));
+  rc_emit = to_camel_case(lib_name, module_name, sizeof(module_name));
+  if (rc_emit != CDD_C_SUCCESS) {
+    return rc_emit;
+  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.jl", config->output_dir,
@@ -116,8 +121,11 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "@enum %s::Cint begin\n", node->name);
@@ -137,8 +145,11 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "mutable struct %s\n", node->name);
@@ -146,9 +157,11 @@ emit_julia_file(cdd_ffi_ir_t *ir,
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *jt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_julia_type(node->fields[j].type, &jt));
+        rc_emit = get_julia_type(node->fields[j].type, &jt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    %s::%s\n", fname, jt);
       }
       fprintf(f, "    %s() = new()\n", node->name);
@@ -161,8 +174,11 @@ emit_julia_file(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_jt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "function %s(", node->name);
@@ -178,15 +194,19 @@ emit_julia_file(cdd_ffi_ir_t *ir,
       }
       fprintf(f, ")\n");
 
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_julia_type(node->return_or_base_type,
-                                                    &ret_jt));
+      rc_emit = get_julia_type(node->return_or_base_type, &ret_jt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "    ccall((:%s, lib_path), %s, (", node->name, ret_jt);
       for (j = 0; j < node->fields_count; j++) {
         const char *jt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_julia_type(node->fields[j].type, &jt));
+        rc_emit = get_julia_type(node->fields[j].type, &jt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s", jt);
         if (j < node->fields_count - 1 || node->fields_count == 1)
           fprintf(f, ", ");
@@ -214,7 +234,7 @@ emit_julia_file(cdd_ffi_ir_t *ir,
 
   fprintf(f, "end # module\n");
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }
 
 /*

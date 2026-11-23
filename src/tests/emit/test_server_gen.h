@@ -184,6 +184,24 @@ TEST test_server_gen_basic(void) {
       fclose(f);
   }
 
+  {
+    int fi;
+    for (fi = 1; fi <= 3; fi++) {
+      g_cdd_step_fail = fi;
+      rc = openapi_server_generate(&spec, &config);
+      g_cdd_step_fail = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    for (fi = 1; fi <= 350; fi++) {
+      g_cdd_fprintf_fail = fi;
+      rc = openapi_server_generate(&spec, &config);
+      g_cdd_fprintf_fail = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+  }
+
   remove("src/test_server_server.c");
   remove("test_test_server_server.c");
   C_CDD_FREE(spec.paths[0].operations[1].req_body_media_types);

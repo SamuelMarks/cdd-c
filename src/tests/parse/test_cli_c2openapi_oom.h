@@ -642,7 +642,7 @@ TEST test_c2openapi_remaining_edge_cases(void) {
     argv_fail[5] = cdd_test_mut_str("-l");
     argv_fail[6] = cdd_test_mut_str("python");
     rc = generate_bindings_cli_main(7, argv_fail);
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
   }
 
   /* c2openapi_cli_main with base spec that has self_uri and dialect, replaced

@@ -64,6 +64,21 @@ C_CDD_EXPORT cdd_c_error_t c_low_prepend_root(cdd_cst_tree_t *tree,
                                               const char *snippet);
 
 /**
+ * @brief Looks up an optional symbol in `scope` outward, setting `*out_sym` to
+ * NULL when not found while percolating fault-injection errors.
+ *
+ * @param[in] scope Starting lexical scope (may be NULL).
+ * @param[in] name Symbol identifier name.
+ * @param[in] kind Symbol namespace/kind to match.
+ * @param[out] out_sym Resolved symbol pointer or NULL.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+cdd_c_error_t c_low_opt_scope_lookup(const cdd_cst_scope_t *scope,
+                                     const char *name,
+                                     enum cdd_cst_symbol_kind_t kind,
+                                     cdd_cst_symbol_t **out_sym);
+
+/**
  * @brief Extracts space-separated token text from `toks[s..e_excl)`.
  *
  * @param[in] toks Token array.
@@ -132,7 +147,7 @@ cdd_c_error_t c_low_insert_after_lbrace(cdd_cst_tree_t *tree, cdd_token_t *tok,
  * @param[in,out] ctx Lowering context.
  * @return CDD_C_SUCCESS or error code.
  */
-cdd_c_error_t c_lower_modern_passes(struct c_lowering_ctx_t *ctx);
+C_CDD_EXPORT cdd_c_error_t c_lower_modern_passes(struct c_lowering_ctx_t *ctx);
 
 /**
  * @brief Executes Phase 3.2 Legacy MSVC / C89 lowering passes (compound
@@ -143,7 +158,7 @@ cdd_c_error_t c_lower_modern_passes(struct c_lowering_ctx_t *ctx);
  * @param[in,out] ctx Lowering context.
  * @return CDD_C_SUCCESS or error code.
  */
-cdd_c_error_t c_lower_legacy_passes(struct c_lowering_ctx_t *ctx);
+C_CDD_EXPORT cdd_c_error_t c_lower_legacy_passes(struct c_lowering_ctx_t *ctx);
 
 #ifdef __cplusplus
 }

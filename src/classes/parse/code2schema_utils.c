@@ -44,16 +44,18 @@ cdd_c_error_t c2s_read_line(FILE *fp, char *buf, size_t bufsz, int *has_line) {
  */
 cdd_c_error_t trim_trailing(char *str) {
   size_t len;
-  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = c_cdd_str_trim_trailing_whitespace(str);
   len = strlen(str);
   while (len > 0 &&
          (str[len - 1] == ';' || isspace((unsigned char)str[len - 1]))) {
     str[--len] = '\0';
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -123,33 +125,32 @@ cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
                                    JSON_Value **_out_val) {
   char *serialized = NULL;
   JSON_Value *copy = NULL;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!val)
     return CDD_C_SUCCESS;
-  if (cdd_json_serialize_to_string(val, &serialized) != CDD_C_SUCCESS)
-    serialized = NULL;
+  rc = cdd_json_serialize_to_string(val, &serialized);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_fail_json_serialize) {
     g_cdd_fail_json_serialize = 0;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_free_serialized_string(serialized));
-    serialized = NULL;
+    return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                          cdd_json_free_serialized_string(serialized));
   }
 #endif
-  if (!serialized)
-    return (cdd_c_error_t)((int)rc | (int)CDD_C_ERROR_MEMORY);
-  if (cdd_json_parse_string(serialized, &copy) != CDD_C_SUCCESS)
-    copy = NULL;
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_free_serialized_string(serialized));
-  if (!copy)
-    return (cdd_c_error_t)((int)rc | (int)CDD_C_ERROR_MEMORY);
+  rc = cdd_json_parse_string(serialized, &copy);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(
+        CDD_C_ERROR_MEMORY,
+        cdd_c_keep_err(rc, cdd_json_free_serialized_string(serialized)));
+  }
   *_out_val = copy;
-  return rc;
+  return cdd_json_free_serialized_string(serialized);
 }
 
 /*
@@ -250,7 +251,6 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   size_t i, count = 0, n = 0;
   char **types;
   const char *primary = NULL;
-  cdd_c_error_t rc_top = CDD_C_SUCCESS;
 
   if (out_union)
     *out_union = NULL;
@@ -261,12 +261,9 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   if (out_nullable)
     *out_nullable = 0;
 
-  if (!arr)
+  if (!arr || arr->count == 0)
     return CDD_C_SUCCESS;
-
-  rc_top = cdd_json_array_get_count(arr, &count);
-  if (count == 0)
-    return rc_top;
+  count = arr->count;
 
   types = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!types) {
@@ -276,13 +273,14 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
 
   for (i = 0; i < count; ++i) {
     const char *t = NULL;
-    if (cdd_json_array_get_string(arr, i, &t) != CDD_C_SUCCESS)
+    if (arr->items[i]->type != JSONString)
       continue;
+    t = arr->items[i]->string_val;
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup(t, &types[n]);
       if (rc_c2s != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc_c2s | (int)free_string_array_code2schema(
-                                                 types, count));
+        return cdd_c_keep_err(rc_c2s,
+                              free_string_array_code2schema(types, count));
       }
     }
     if (strcmp(t, "null") == 0) {
@@ -304,21 +302,92 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
 
   if (out_primary)
     *out_primary = primary;
-  if (out_union)
-    *out_union = types;
-  else {
-    rc_top = free_string_array_code2schema(types, n);
-  }
   if (out_count)
     *out_count = n;
-
-  return rc_top;
+  if (out_union) {
+    *out_union = types;
+    return CDD_C_SUCCESS;
+  }
+  return free_string_array_code2schema(types, n);
 }
 
-/**
- * @brief Collects unstructured extra properties from a JSON Object.
+/*
+ * @brief Frees a dynamically allocated string array (`*_free` destructor
+ * alias).
  *
- * Loops over the properties of `obj` and copies any that do not match
- * keys found within the provided `skip_keys` list into a newly allocated
- * JSON string representing those leftover (extra) attributes.
+ * @param[in,out] arr Array of strings to free.
+ * @param[in] n Number of elements in `arr`.
+ * @return CDD_C_SUCCESS.
  */
+cdd_c_error_t c2s_string_array_free(char **arr, size_t n) {
+  return free_string_array_code2schema(arr, n);
+}
+
+/*
+ * @brief Looks up an optional string property on a JSON_Object, setting
+ * `*out_str` to NULL when absent or non-string.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_str Output pointer receiving the string or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t c2s_json_opt_string(const JSON_Object *obj, const char *key,
+                                  const char **out_str) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_str = NULL;
+  rc = cdd_json_object_get_string(obj, key, out_str);
+  if (*out_str != NULL)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Looks up an optional object property on a JSON_Object, setting
+ * `*out_obj` to NULL when absent or non-object.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_obj Output pointer receiving the child JSON_Object or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t c2s_json_opt_object(const JSON_Object *obj, const char *key,
+                                  JSON_Object **out_obj) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_obj = NULL;
+  rc = cdd_json_object_get_object(obj, key, out_obj);
+  if (*out_obj != NULL)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Looks up an optional array property on a JSON_Object, setting
+ * `*out_arr` to NULL when absent or non-array.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_arr Output pointer receiving the child JSON_Array or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t c2s_json_opt_array(const JSON_Object *obj, const char *key,
+                                 JSON_Array **out_arr) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_arr = NULL;
+  rc = cdd_json_object_get_array(obj, key, out_arr);
+  if (*out_arr != NULL)
+    return rc;
+  return CDD_C_SUCCESS;
+}

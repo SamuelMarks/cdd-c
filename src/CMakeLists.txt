@@ -2,8 +2,6 @@
 # Library #
 ###########
 
-include(CheckIncludeFile)
-
 set(LIBRARY_NAME "c_cdd")
 
 set(Header_Files
@@ -227,22 +225,21 @@ set(C_CDD_TRANSFORM_SOURCES
 if(CDD_C_TRANSFORMER_ONLY)
     set(TRANSFORM_LIBRARY_NAME "c_cdd_transform")
     set(Transform_Source_Files ${C_CDD_TRANSFORM_SOURCES})
-    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    if(_C_CDD_ENABLE_TESTS)
         list(APPEND Transform_Source_Files "tests/mocks/g_fail_io_after.c")
     endif()
 
     add_library("${TRANSFORM_LIBRARY_NAME}" STATIC ${Transform_Source_Files})
     add_library("${LIBRARY_NAME}" ALIAS "${TRANSFORM_LIBRARY_NAME}")
-    if(DEFINED STRICT_COMPILER_FLAGS)
-        target_compile_options("${TRANSFORM_LIBRARY_NAME}" PRIVATE ${STRICT_COMPILER_FLAGS})
-    endif()
+    c_cdd_apply_target_settings("${TRANSFORM_LIBRARY_NAME}")
+
     target_compile_definitions(
         "${TRANSFORM_LIBRARY_NAME}"
         PUBLIC
-        CDD_C_TRANSFORMER_ONLY=1
-        C_CDD_STATIC_DEFINE
+            CDD_C_TRANSFORMER_ONLY=1
+            C_CDD_STATIC_DEFINE
     )
-    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    if(_C_CDD_ENABLE_TESTS)
         target_compile_definitions("${TRANSFORM_LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
     endif()
 
@@ -250,40 +247,22 @@ if(CDD_C_TRANSFORMER_ONLY)
     target_include_directories(
         "${TRANSFORM_LIBRARY_NAME}"
         PUBLIC
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>"
-        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+            "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+            "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
     )
-
-    if(NOT TARGET c89stringutils)
-        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-            find_package(c89stringutils REQUIRED)
-        else ()
-            find_package(c89stringutils CONFIG QUIET)
-        endif ()
-    endif()
-    if(NOT TARGET c_str_span)
-        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-            find_package(c_str_span REQUIRED)
-        else ()
-            find_package(c_str_span CONFIG QUIET)
-        endif ()
-    endif()
 
     target_link_libraries(
         "${TRANSFORM_LIBRARY_NAME}"
         PRIVATE
-        c89stringutils
+            c89stringutils
         PUBLIC
-        c_str_span
-        c_str_span_compiler_flags
-        "${PROJECT_NAME}_compiler_flags"
+            c_str_span
+            "${PROJECT_NAME}_compiler_flags"
     )
-    set_target_properties("${TRANSFORM_LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
     include(GenerateExportHeader)
     set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
@@ -293,38 +272,56 @@ if(CDD_C_TRANSFORMER_ONLY)
         EXPORT_FILE_NAME "${_export_file}"
     )
 
-    set(_transform_install_targets "${TRANSFORM_LIBRARY_NAME}")
-    if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
-        add_executable("cdd-c-transform" "bin_cdd.c")
-        target_link_libraries("cdd-c-transform" PRIVATE "${TRANSFORM_LIBRARY_NAME}")
-        set_target_properties("cdd-c-transform" PROPERTIES LINKER_LANGUAGE C)
+    add_executable("cdd-c-transform" "bin_cdd.c")
+    c_cdd_apply_target_settings("cdd-c-transform")
+    target_link_libraries("cdd-c-transform" PRIVATE "${TRANSFORM_LIBRARY_NAME}")
 
+    set(_transform_cli_targets "cdd-c-transform")
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
         add_executable("cdd-c" "bin_cdd.c")
+        c_cdd_apply_target_settings("cdd-c")
         target_link_libraries("cdd-c" PRIVATE "${TRANSFORM_LIBRARY_NAME}")
-        set_target_properties("cdd-c" PROPERTIES LINKER_LANGUAGE C)
-
-        list(APPEND _transform_install_targets "cdd-c-transform" "cdd-c")
-        export(
-            TARGETS "cdd-c-transform" "cdd-c"
-            FILE "${PROJECT_BINARY_DIR}/cdd-c-transformTargets.cmake"
-        )
+        list(APPEND _transform_cli_targets "cdd-c")
     endif()
 
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
-        list(APPEND _transform_install_targets "${PROJECT_NAME}_compiler_flags")
-    endif ()
+    export(
+        TARGETS ${_transform_cli_targets}
+        FILE "${PROJECT_BINARY_DIR}/cdd-c-transformTargets.cmake"
+    )
 
-    install(TARGETS ${_transform_install_targets}
+    if(C_CDD_INSTALL)
+        set(_transform_export_targets "${TRANSFORM_LIBRARY_NAME}" "${PROJECT_NAME}_compiler_flags")
+        if(C_CDD_IS_TOP_LEVEL)
+            foreach(_dep_tgt c89stringutils c89stringutils_compiler_flags c_str_span c_str_span_compiler_flags)
+                if(TARGET ${_dep_tgt})
+                    get_target_property(_is_imp ${_dep_tgt} IMPORTED)
+                    get_target_property(_is_alias ${_dep_tgt} ALIASED_TARGET)
+                    if(NOT _is_imp AND NOT _is_alias)
+                        list(APPEND _transform_export_targets ${_dep_tgt})
+                    endif()
+                endif()
+            endforeach()
+        endif()
+
+        install(TARGETS ${_transform_export_targets}
             EXPORT "${LIBRARY_NAME}Targets"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    install(EXPORT "${LIBRARY_NAME}Targets"
-            DESTINATION "${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}")
-    install(FILES "${PROJECT_SOURCE_DIR}/include/cdd_cst_transform.h"
-                  "${PROJECT_SOURCE_DIR}/include/cdd_c_error.h"
-                  "${_export_file}"
-            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        )
+        install(TARGETS ${_transform_cli_targets}
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        )
+        install(EXPORT "${LIBRARY_NAME}Targets"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}"
+        )
+        install(FILES
+            "${PROJECT_SOURCE_DIR}/include/cdd_cst_transform.h"
+            "${PROJECT_SOURCE_DIR}/include/cdd_c_error.h"
+            "${_export_file}"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        )
+    endif()
     return()
 endif()
 
@@ -602,225 +599,64 @@ set(Source_Files
         "tests/mocks/g_fail_io_after.c"
 )
 
-# Platform specific source selection to avoid duplicate symbols
-if (EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "DOS" OR CMAKE_SYSTEM_NAME STREQUAL "WASI")
+# Platform-specific crypto backend selection
+if(EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "DOS" OR CMAKE_SYSTEM_NAME STREQUAL "WASI")
     list(APPEND Source_Files "functions/parse/crypto_wasm.c")
-elseif (WIN32)
+elseif(WIN32)
     list(APPEND Source_Files "functions/parse/crypto_wincrypt.c")
-elseif (APPLE)
-    if(NOT HTTP_ONLY)
-        list(APPEND Source_Files "functions/parse/crypto_apple.c")
-    endif()
-else ()
-    if(NOT HTTP_ONLY)
-        list(APPEND Source_Files "functions/parse/crypto_openssl.c")
-    endif()
-endif ()
-
-
-
-if (C_CDD_USE_LIBCURL)
-    list(APPEND Source_Files)
-endif ()
-
-source_group("Source Files" FILES "${Source_Files}")
-
-add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
-if(DEFINED STRICT_COMPILER_FLAGS)
-    target_compile_options("${LIBRARY_NAME}" PRIVATE ${STRICT_COMPILER_FLAGS})
+elseif(APPLE)
+    list(APPEND Source_Files "functions/parse/crypto_apple.c")
+else()
+    list(APPEND Source_Files "functions/parse/crypto_openssl.c")
 endif()
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+
+source_group("Source Files" FILES ${Source_Files})
+
+add_library("${LIBRARY_NAME}" ${Header_Files} ${Source_Files})
+c_cdd_apply_target_settings("${LIBRARY_NAME}")
+
+if(_C_CDD_ENABLE_TESTS)
     target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
-    target_include_directories("${LIBRARY_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 set(cdd_c_RESOLVED ON CACHE BOOL "Prevent c-abstract-http from fetching cdd-c" FORCE)
 
-
 include(GNUInstallDirs)
 target_include_directories(
-        "${LIBRARY_NAME}"
-        PUBLIC
+    "${LIBRARY_NAME}"
+    PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>"
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-# Dependencies
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
-if (C_CDD_USE_LIBCURL)
-    if(NOT TARGET CURL::libcurl)
-        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-            find_package(CURL REQUIRED)
-        else ()
-            find_package(CURL CONFIG QUIET)
-        endif ()
-    endif()
-    if (NOT HTTP_ONLY)
-        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-            find_package(OpenSSL CONFIG QUIET)
-            if(NOT OPENSSL_FOUND)
-                find_package(OpenSSL QUIET)
-            endif()
-            if(NOT OPENSSL_FOUND)
-                find_package(PkgConfig QUIET)
-                if(PKG_CONFIG_FOUND)
-                    pkg_check_modules(PC_OPENSSL QUIET openssl)
-                    if(PC_OPENSSL_FOUND)
-                        find_path(OPENSSL_INCLUDE_DIR NAMES openssl/ssl.h HINTS ${PC_OPENSSL_INCLUDE_DIRS})
-                        find_library(OPENSSL_SSL_LIBRARY NAMES ssl libssl HINTS ${PC_OPENSSL_LIBRARY_DIRS})
-                        find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto libcrypto HINTS ${PC_OPENSSL_LIBRARY_DIRS})
-                        if(OPENSSL_INCLUDE_DIR AND OPENSSL_SSL_LIBRARY AND OPENSSL_CRYPTO_LIBRARY)
-                            set(OPENSSL_FOUND TRUE)
-                            set(OPENSSL_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
-                            set(OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-                        endif()
-                    endif()
-                endif()
-            endif()
-            if(NOT OPENSSL_FOUND)
-                find_package(OpenSSL CONFIG QUIET)
-            if(NOT OPENSSL_FOUND)
-                find_package(OpenSSL QUIET)
-            endif()
-            if(NOT OPENSSL_FOUND)
-                find_package(PkgConfig QUIET)
-                if(PKG_CONFIG_FOUND)
-                    pkg_check_modules(PC_OPENSSL QUIET openssl)
-                    if(PC_OPENSSL_FOUND)
-                        find_path(OPENSSL_INCLUDE_DIR NAMES openssl/ssl.h HINTS )
-                        find_library(OPENSSL_SSL_LIBRARY NAMES ssl libssl HINTS )
-                        find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto libcrypto HINTS )
-                        if(OPENSSL_INCLUDE_DIR AND OPENSSL_SSL_LIBRARY AND OPENSSL_CRYPTO_LIBRARY)
-                            set(OPENSSL_FOUND TRUE)
-                            set(OPENSSL_INCLUDE_DIRS )
-                            set(OPENSSL_LIBRARIES  )
-                        endif()
-                    endif()
-                endif()
-            endif()
-            if(NOT OPENSSL_FOUND)
-                find_package(OpenSSL REQUIRED)
-            endif()
-            endif()
-        else ()
-            find_package(OpenSSL CONFIG QUIET)
-        endif()
-    endif()
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE CURL::libcurl)
-    target_compile_definitions("${LIBRARY_NAME}" PUBLIC C_CDD_USE_LIBCURL)
-endif ()
-endif ()
-
-if (WIN32)
-    # WinCrypt is part of system libs usually
-    # crypto_wincrypt might need linking against Crypt32.lib
-    # http_winhttp needs Winhttp.lib
-    # you can use crypto backend from windows with curl I think, TODO
-    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    if (C_CDD_USE_LIBCURL)
-        if(TARGET OpenSSL::SSL)
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+# Platform system & crypto libraries
+set(_C_CDD_LINKED_OPENSSL FALSE PARENT_SCOPE)
+if(WIN32)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE ws2_32 crypt32 advapi32)
+elseif(NOT APPLE AND NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS" AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND AND TARGET OpenSSL::Crypto)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::Crypto)
+        set(_C_CDD_LINKED_OPENSSL TRUE PARENT_SCOPE)
     else()
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES})
+        target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_NO_OPENSSL)
     endif()
-    endif (C_CDD_USE_LIBCURL)
-    endif ()
-elseif (APPLE)
-    # Apple uses CommonCrypto, no OpenSSL needed
-else ()
-    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    if (C_CDD_USE_LIBCURL AND NOT HTTP_ONLY)
-        if(TARGET OpenSSL::SSL)
-            target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-        else()
-            target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES})
-        endif()
-    elseif (NOT HTTP_ONLY AND NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS" AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
-        if(TARGET OpenSSL::SSL)
-            target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-        else()
-            target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES} crypto ssl)
-        endif()
-    endif ()
-    endif ()
-endif ()
-
-if (MSVC)
-    find_library(PATHCCH_LIB
-            NAMES Pathcch
-            HINTS
-            ${CMAKE_SYSTEM_LIBRARY_PATH}
-            PATH_SUFFIXES
-            "um\\x64"
-            "um\\x86"
-    )
-    if(PATHCCH_LIB)
-      target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PATHCCH_LIB}")
-      add_definitions(-DPATHCCH_LIB)
-    else ()
-        find_library(API_MS_WIN_CORE_PATH_LIBRARY
-                NAMES API-MS-Win-Core-Path-l1-1-0.dll
-                PATHS ENV PATH
-                NO_DEFAULT_PATH
-        )
-
-        if(API_MS_WIN_CORE_PATH_LIBRARY)
-            message(STATUS "API-MS-Win-Core-Path-l1-1-0.dll found: ${API_MS_WIN_CORE_PATH_LIBRARY}")
-            set(PATHCCH_LIB "${API_MS_WIN_CORE_PATH_LIBRARY}")
-            target_compile_definitions("${LIBRARY_NAME}" PUBLIC "${API_MS_WIN_CORE_PATH_LIBRARY}")
-            add_definitions(-DPATHCCH_LIB)
-        else()
-            message(STATUS "API-MS-Win-Core-Path-l1-1-0.dll not found")
-        endif()
-        find_library(KERNELBASE_LIBRARY
-                NAMES KernelBase
-                HINTS ENV PATH
-                PATHS "C:/Windows/System32"
-                DOC "Path to KernelBase.dll"
-        )
-
-        if(KERNELBASE_LIBRARY)
-            message(STATUS "KernelBase.dll found at: ${KERNELBASE_LIBRARY}")
-            target_compile_definitions("${LIBRARY_NAME}" PUBLIC "${KERNELBASE_LIBRARY}")
-            add_definitions(-DPATHCCH_LIB)
-        else()
-            message(STATUS "KernelBase.dll not found.")
-            set(PATHCCH_LIB "${KERNELBASE_LIBRARY}")
-        endif()
-    endif (PATHCCH_LIB)
-endif (MSVC)
-
-if(NOT TARGET c89stringutils)
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-        find_package(c89stringutils REQUIRED)
-    else ()
-        find_package(c89stringutils CONFIG QUIET)
-    endif ()
-endif()
-target_link_libraries("${LIBRARY_NAME}" PRIVATE cfs c89stringutils)
-
-
-if(NOT TARGET c_str_span)
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-    find_package(c_str_span REQUIRED)
-else ()
-    find_package(c_str_span CONFIG QUIET)
-endif ()
 endif()
 
 target_link_libraries(
-        "${LIBRARY_NAME}"
-        PUBLIC
-        c_str_span c_str_span_compiler_flags
+    "${LIBRARY_NAME}"
+    PRIVATE
+        cfs
+        c89stringutils
+    PUBLIC
+        c_str_span
+        c_str_span_compiler_flags
+        "${PROJECT_NAME}_compiler_flags"
 )
-
-
 
 if(CDD_SQLITE STREQUAL "LINKED")
     find_package(unofficial-sqlite3 CONFIG QUIET)
@@ -829,48 +665,24 @@ if(CDD_SQLITE STREQUAL "LINKED")
         target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_SQLITE_LINKED)
     else()
         find_package(SQLite3 QUIET)
-        if(SQLite3_FOUND)
+        if(SQLite3_FOUND AND TARGET SQLite::SQLite3)
             target_link_libraries("${LIBRARY_NAME}" PRIVATE SQLite::SQLite3)
             target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_SQLITE_LINKED)
         endif()
     endif()
 elseif(CDD_SQLITE STREQUAL "DYNAMIC")
     target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_SQLITE_DYNAMIC)
-    if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
-    endif()
 endif()
 
 if(CDD_MYSQL STREQUAL "LINKED")
     target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_MYSQL_LINKED)
 elseif(CDD_MYSQL STREQUAL "DYNAMIC")
     target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_MYSQL_DYNAMIC)
-    if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
-    endif()
 endif()
-if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+
+if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
 endif()
-
-
-target_link_libraries(
-        "${LIBRARY_NAME}"
-        PUBLIC
-        "${PROJECT_NAME}_compiler_flags"
-)
-
-option(DEBUG_SCANNER "Whether to print debug messages for the scan phase" OFF)
-if (DEBUG_SCANNER)
-    message(STATUS "DEBUG_SCANNER = ${DEBUG_SCANNER}")
-    target_compile_definitions(
-            "${LIBRARY_NAME}"
-            PUBLIC
-            "-DDEBUG_SCANNER=1"
-    )
-endif (DEBUG_SCANNER)
-
-set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 #######
 # CLI #
@@ -881,33 +693,30 @@ target_link_libraries("c_cdd_transform" INTERFACE "${LIBRARY_NAME}")
 
 set(EXEC_NAME "cdd-c")
 set(TRANSFORM_EXEC_NAME "cdd-c-transform")
-
 set(Cli_Source_Files "bin_cdd.c")
-source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
-if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
-add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    target_link_libraries("${EXEC_NAME}" PRIVATE cdd_test_helpers)
-else()
-    target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
+    add_executable("${EXEC_NAME}" ${Cli_Source_Files})
+    c_cdd_apply_target_settings("${EXEC_NAME}")
+    if(_C_CDD_ENABLE_TESTS)
+        target_link_libraries("${EXEC_NAME}" PRIVATE cdd_test_helpers)
+    else()
+        target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
+    endif()
+
+    add_executable("${TRANSFORM_EXEC_NAME}" ${Cli_Source_Files})
+    c_cdd_apply_target_settings("${TRANSFORM_EXEC_NAME}")
+    target_compile_definitions("${TRANSFORM_EXEC_NAME}" PRIVATE CDD_C_TRANSFORMER_ONLY=1)
+    target_link_libraries("${TRANSFORM_EXEC_NAME}" PRIVATE "c_cdd_transform")
+    if(_C_CDD_ENABLE_TESTS)
+        target_link_libraries("${TRANSFORM_EXEC_NAME}" PRIVATE cdd_test_helpers)
+    endif()
+
+    export(
+        TARGETS "${TRANSFORM_EXEC_NAME}" "${EXEC_NAME}"
+        FILE "${PROJECT_BINARY_DIR}/cdd-c-transformTargets.cmake"
+    )
 endif()
-set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
-
-add_executable("${TRANSFORM_EXEC_NAME}" "${Cli_Source_Files}")
-target_compile_definitions("${TRANSFORM_EXEC_NAME}" PRIVATE CDD_C_TRANSFORMER_ONLY=1)
-target_link_libraries("${TRANSFORM_EXEC_NAME}" PRIVATE "c_cdd_transform")
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    target_link_libraries("${TRANSFORM_EXEC_NAME}" PRIVATE cdd_test_helpers)
-endif()
-set_target_properties("${TRANSFORM_EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
-
-export(
-    TARGETS "${TRANSFORM_EXEC_NAME}" "${EXEC_NAME}"
-    FILE "${PROJECT_BINARY_DIR}/cdd-c-transformTargets.cmake"
-)
-endif()
-
 
 include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
@@ -917,45 +726,58 @@ generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
 # Install rules #
 #################
 
-include(GNUInstallDirs)
+set_target_properties("${LIBRARY_NAME}" PROPERTIES
+    VERSION "${${PROJECT_NAME}_VERSION}"
+    SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}"
+)
 
-# setup the version numbering
-set_property(TARGET "${LIBRARY_NAME}" PROPERTY VERSION "${${PROJECT_NAME}_VERSION}")
-set_property(TARGET "${LIBRARY_NAME}" PROPERTY SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}")
+if(C_CDD_INSTALL)
+    set(_exportable_libs "${LIBRARY_NAME}" "c_cdd_transform" "${PROJECT_NAME}_compiler_flags")
+    if(C_CDD_IS_TOP_LEVEL)
+        foreach(_dep_tgt cfs c89stringutils c89stringutils_compiler_flags c_str_span c_str_span_compiler_flags)
+            if(TARGET ${_dep_tgt})
+                get_target_property(_is_imp ${_dep_tgt} IMPORTED)
+                get_target_property(_is_alias ${_dep_tgt} ALIASED_TARGET)
+                if(NOT _is_imp AND NOT _is_alias)
+                    list(APPEND _exportable_libs ${_dep_tgt})
+                endif()
+            endif()
+        endforeach()
+    endif()
 
-set(installable_libs "${LIBRARY_NAME}" "c_cdd_transform")
-if (TARGET "${EXEC_NAME}")
-    list(APPEND installable_libs "${EXEC_NAME}")
-endif ()
-if (TARGET "${TRANSFORM_EXEC_NAME}")
-    list(APPEND installable_libs "${TRANSFORM_EXEC_NAME}")
-endif ()
-if (TARGET "${DEPENDANT_LIBRARY}")
-    list(APPEND installable_libs "${DEPENDANT_LIBRARY}")
-endif ()
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
-    list(APPEND installable_libs "${PROJECT_NAME}_compiler_flags")
-endif ()
-install(TARGETS ${installable_libs}
+    install(TARGETS ${_exportable_libs}
         EXPORT "${LIBRARY_NAME}Targets"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-install(EXPORT "${LIBRARY_NAME}Targets" DESTINATION "${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}")
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    )
 
-install(FILES ${Header_Files} "${_export_file}"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-install(FILES "classes/parse/cdd_cst_node.h" "classes/parse/cdd_token.h"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/classes/parse")
+    set(_install_cli_bins "")
+    if(TARGET "${EXEC_NAME}")
+        list(APPEND _install_cli_bins "${EXEC_NAME}")
+    endif()
+    if(TARGET "${TRANSFORM_EXEC_NAME}")
+        list(APPEND _install_cli_bins "${TRANSFORM_EXEC_NAME}")
+    endif()
+    if(_install_cli_bins)
+        install(TARGETS ${_install_cli_bins}
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        )
+    endif()
 
-if (WIN32)
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE ws2_32 winhttp wininet crypt32 advapi32 secur32 bcrypt)
-endif()
+    install(EXPORT "${LIBRARY_NAME}Targets"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}"
+    )
 
-if (APPLE)
-    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
-    find_library(CFNETWORK_LIBRARY CFNetwork)
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
+    install(FILES "${_export_file}"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    )
+    install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    )
+    install(FILES
+        "classes/parse/cdd_cst_node.h"
+        "classes/parse/cdd_token.h"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/classes/parse"
+    )
 endif()

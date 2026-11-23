@@ -67,7 +67,7 @@ cdd_json_array_append_value_safe(JSON_Array *arr, JSON_Value *val);
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb,
-                                                      char **_out_val);
+                                                      const char **_out_val);
 
 /**
  * @brief Converts parameter in to string.
@@ -77,7 +77,7 @@ extern C_CDD_EXPORT cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb verb,
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
+param_in_to_str_openapi(enum OpenAPI_ParamIn in, const char **_out_val);
 
 /**
  * @brief Converts style to string.
@@ -87,7 +87,7 @@ param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s,
-                                                       char **_out_val);
+                                                       const char **_out_val);
 
 /**
  * @brief Converts xml node type to string.
@@ -97,7 +97,7 @@ extern C_CDD_EXPORT cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s,
  * @return 0 on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
+xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, const char **_out_val);
 
 /**
  * @brief Checks if header name is content type.
@@ -126,8 +126,8 @@ extern C_CDD_EXPORT cdd_c_error_t param_is_reserved_header_openapi(
  * @param[out] _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t oauth_flow_type_to_str_openapi(
+    enum OpenAPI_OAuthFlowType t, const char **_out_val);
 /**
  * @brief Checks if a schema type is primitive.
  *
@@ -196,7 +196,7 @@ schema_ref_has_data(const struct OpenAPI_SchemaRef *ref, int *out_has_data);
  * @return CDD_C_SUCCESS on success.
  */
 extern C_CDD_EXPORT cdd_c_error_t schema_ref_keyword(int is_dynamic,
-                                                     char **_out_val);
+                                                     const char **_out_val);
 
 /**
  * @brief Converts an OpenAPI_Any value to a Parson JSON_Value.
@@ -902,6 +902,26 @@ extern C_CDD_EXPORT cdd_c_error_t OpenAPI_Info_to_jsonObject(
  */
 extern C_CDD_EXPORT cdd_c_error_t openapi_emit_reflected_strings(
     JSON_Object *obj, const struct cdd_type_info *ti, const void *src);
+
+/**
+ * @brief Allocates a new `JSON_Value *` object and outputs its `JSON_Object *`.
+ *
+ * @param[out] out_val Output `JSON_Value *`.
+ * @param[out] out_obj Output `JSON_Object *`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_emit_new_object(JSON_Value **out_val,
+                                                     JSON_Object **out_obj);
+
+/**
+ * @brief Allocates a new `JSON_Value *` array and outputs its `JSON_Array *`.
+ *
+ * @param[out] out_val Output `JSON_Value *`.
+ * @param[out] out_arr Output `JSON_Array *`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_emit_new_array(JSON_Value **out_val,
+                                                    JSON_Array **out_arr);
 
 #ifdef __cplusplus
 }

@@ -33,6 +33,10 @@
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t get_trigraph_map(int c3, int *out_mapped) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (c3) {
   case '=':
     *out_mapped = '#';
@@ -84,7 +88,11 @@ static cdd_c_error_t get_trigraph_map(int c3, int *out_mapped) {
 cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
                            size_t *out_consumed, int *out_char) {
   size_t current = pos;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   while (current < len) {
     int c = base[current];
@@ -94,8 +102,9 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
     /* Check for ?? */
     if (c == '?' && current + 2 < len && base[current + 1] == '?') {
       int mapped = 0;
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)get_trigraph_map(base[current + 2], &mapped));
+      rc = get_trigraph_map(base[current + 2], &mapped);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (mapped) {
         c = mapped;
         char_len = 3;
@@ -123,12 +132,12 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
     /* If we got here, we found a real logical char */
     *out_consumed = (current - pos) + char_len;
     *out_char = c;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   *out_consumed = (current > pos) ? (current - pos) : 0;
   *out_char = -1; /* EOF */
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Token List Setup --- */
@@ -144,19 +153,17 @@ cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
  */
 cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
                              const uint8_t *start, const size_t length) {
-
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!tl)
-
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (tl->size >= tl->capacity) {
-
     const size_t new_cap = (tl->capacity == 0) ? 64 : tl->capacity * 2;
-
-    struct Token *new_arr =
-
-        (struct Token *)C_CDD_REALLOC(tl->tokens,
-                                      new_cap * sizeof(struct Token));
+    struct Token *new_arr = (struct Token *)C_CDD_REALLOC(
+        tl->tokens, new_cap * sizeof(struct Token));
 
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -167,17 +174,13 @@ cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
            (new_cap - tl->capacity) * sizeof(struct Token));
 
     tl->tokens = new_arr;
-
     tl->capacity = new_cap;
   }
 
   memset(&tl->tokens[tl->size], 0, sizeof(struct Token));
   tl->tokens[tl->size].kind = kind;
-
   tl->tokens[tl->size].start = start;
-
   tl->tokens[tl->size].length = length;
-
   tl->size++;
 
   return CDD_C_SUCCESS;
@@ -201,6 +204,10 @@ cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
                               size_t end_idx, const enum TokenKind kind,
                               size_t *_out_val) {
   size_t i, limit;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = SIZE_MAX;
@@ -262,7 +269,11 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
   size_t m_len;
   size_t i_tok = 0, i_match = 0;
   const uint8_t *t;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
@@ -271,39 +282,30 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
   }
 
   m_len = strlen(match);
-
   t = tok->start;
 
   while (i_tok < tok->length && i_match < m_len) {
-
     int c = -1;
-
     size_t adv;
 
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)peek_logical(t + i_tok, tok->length - i_tok, 0,
-                                           &adv, &c));
+    rc = peek_logical(t + i_tok, tok->length - i_tok, 0, &adv, &c);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     if (c == -1)
-
       break;
 
-    if (c != match[i_match])
-
-    {
+    if (c != match[i_match]) {
       *_out_val = 0;
-      return rc;
+      return CDD_C_SUCCESS;
     }
 
     i_tok += adv;
-
     i_match++;
   }
 
-  {
-    *_out_val = (i_tok >= tok->length && i_match == m_len);
-    return rc;
-  }
+  *_out_val = (i_tok >= tok->length && i_match == m_len);
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -315,156 +317,118 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
  */
 cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
   struct TokenList *list = NULL;
-
   const uint8_t *base;
-
   size_t len, pos = 0;
-
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!out)
-
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   base = az_span_ptr(source);
-
   len = (size_t)az_span_size(source);
 
   list = (struct TokenList *)C_CDD_CALLOC(1, sizeof(struct TokenList));
-
   if (!list) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
 
   while (pos < len) {
-
     size_t consumed;
     size_t peek_con;
     int peek_dot_c = -1;
-
     int c = -1;
-
     size_t start = pos;
 
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)peek_logical(base, len, pos, &consumed, &c));
+    rc = peek_logical(base, len, pos, &consumed, &c);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
 
     if (c == -1)
-
       break;
 
     if (c == '.') {
-      rc =
-          (cdd_c_error_t)((int)rc | (int)peek_logical(base, len, pos + consumed,
-                                                      &peek_con, &peek_dot_c));
+      rc = peek_logical(base, len, pos + consumed, &peek_con, &peek_dot_c);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
     }
 
     if (isspace(c)) {
-
       pos += consumed;
 
       while (pos < len) {
-
         int nc = -1;
 
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)peek_logical(base, len, pos, &consumed, &nc));
+        rc = peek_logical(base, len, pos, &consumed, &nc);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
 
         if (nc != -1 && isspace(nc)) {
-
           pos += consumed;
-
         } else {
-
           break;
         }
       }
 
-      rc = (cdd_c_error_t)((int)rc | (int)token_list_add(list, TOKEN_WHITESPACE,
-                                                         base + start,
-                                                         pos - start));
+      rc = token_list_add(list, TOKEN_WHITESPACE, base + start, pos - start);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
 
     } else if (c == '#') {
-
       size_t next_con;
       int next_hash_c = -1;
 
       pos += consumed;
 
-      rc =
-          (cdd_c_error_t)((int)rc | (int)peek_logical(base, len, pos, &next_con,
-                                                      &next_hash_c));
+      rc = peek_logical(base, len, pos, &next_con, &next_hash_c);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
 
       if (next_hash_c == '#') {
-
         pos += next_con;
-
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)token_list_add(list, TOKEN_HASH_HASH,
-                                                 base + start, pos - start));
-
+        rc = token_list_add(list, TOKEN_HASH_HASH, base + start, pos - start);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
       } else {
-
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)token_list_add(list, TOKEN_HASH, base + start,
-                                                 pos - start));
+        rc = token_list_add(list, TOKEN_HASH, base + start, pos - start);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
       }
 
     } else if (isalpha(c) || c == '_' || c == '\\') {
-
       /* Potential Identifier or Keyword */
-
       /* Identify if this is a UCN escape starting an ID */
-
       if (c == '\\') {
-
         size_t u_con;
-
         int u = -1;
 
-        rc = (cdd_c_error_t)((int)rc | (int)peek_logical(base, len,
-                                                         pos + consumed, &u_con,
-                                                         &u));
+        rc = peek_logical(base, len, pos + consumed, &u_con, &u);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
 
         if (u != 'u' && u != 'U') {
-
-          /* Not a UCN start (\ is not followed by u/U), token OTHER/PUNCT(none)
-
-           */
-
           pos += consumed;
-
-          rc = (cdd_c_error_t)((int)rc | (int)token_list_add(list, TOKEN_OTHER,
-                                                             base + start,
-                                                             consumed));
-
-          goto check_rc;
+          rc = token_list_add(list, TOKEN_OTHER, base + start, consumed);
+          if (rc != CDD_C_SUCCESS)
+            goto fail;
+          continue;
         }
 
         /* Verify subsequent hex digit */
-
         {
-
           size_t hex_con;
-
           int h = -1;
 
-          rc = (cdd_c_error_t)((int)rc | (int)peek_logical(
-                                             base, len, pos + consumed + u_con,
-                                             &hex_con, &h));
+          rc = peek_logical(base, len, pos + consumed + u_con, &hex_con, &h);
+          if (rc != CDD_C_SUCCESS)
+            goto fail;
 
           if (h == -1 || !isxdigit(h)) {
-
-            /* Invalid UCN start: \u not followed by hex */
-
             pos += consumed;
-
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)token_list_add(list, TOKEN_OTHER,
-                                                     base + start, consumed));
-
-            goto check_rc;
+            rc = token_list_add(list, TOKEN_OTHER, base + start, consumed);
+            if (rc != CDD_C_SUCCESS)
+              goto fail;
+            continue;
           }
         }
       }
@@ -472,99 +436,83 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
       pos += consumed;
 
       while (pos < len) {
-
         size_t nc_con;
-
         int nc = -1;
 
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)peek_logical(base, len, pos, &nc_con, &nc));
+        rc = peek_logical(base, len, pos, &nc_con, &nc);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
 
         if (nc != -1 && (isalnum(nc) || nc == '_' || nc == '\\')) {
-
           if (nc == '\\') {
-
             /* UCN logic: must be \ u|U hex... */
-
             size_t u_con, hex_con;
-
             int u = -1;
 
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)peek_logical(base, len, pos + nc_con,
-                                                   &u_con, &u));
+            rc = peek_logical(base, len, pos + nc_con, &u_con, &u);
+            if (rc != CDD_C_SUCCESS)
+              goto fail;
 
             if (u == 'u' || u == 'U') {
-
               /* Peek first hex char to ensure it is valid ID part */
-
               int h = -1;
 
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)peek_logical(base, len,
-                                                     pos + nc_con + u_con,
-                                                     &hex_con, &h));
+              rc = peek_logical(base, len, pos + nc_con + u_con, &hex_con, &h);
+              if (rc != CDD_C_SUCCESS)
+                goto fail;
 
               if (h == -1 || !isxdigit(h)) {
-
                 break; /* Not a valid UCN, break ID here */
               }
-
             } else {
-
               break;
             }
           }
 
           pos += nc_con;
-
         } else {
-
           break;
         }
       }
 
       {
-
         size_t id_len = pos - start;
-
         struct Token tmp_tok;
-
         enum TokenKind k = TOKEN_IDENTIFIER;
 
         /* Check raw text for common keywords */
-
-        rc = (cdd_c_error_t)((int)rc | (int)identify_keyword_or_id(base + start,
-                                                                   id_len, &k));
+        rc = identify_keyword_or_id(base + start, id_len, &k);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
 
         /* If still ID, check strict logic for spliced keywords if needed */
-
         if (k == TOKEN_IDENTIFIER) {
           int matched = 0;
 
           tmp_tok.start = base + start;
-
           tmp_tok.length = id_len;
 
-          /* Add checks for spliced keywords if necessary */
-
-          rc = (cdd_c_error_t)((int)rc | (int)token_matches_string(
-                                             &tmp_tok, "int", &matched));
+          rc = token_matches_string(&tmp_tok, "int", &matched);
+          if (rc != CDD_C_SUCCESS)
+            goto fail;
           if (matched) {
             k = TOKEN_KEYWORD_INT;
           } else {
-            rc = (cdd_c_error_t)((int)rc | (int)token_matches_string(
-                                               &tmp_tok, "return", &matched));
+            rc = token_matches_string(&tmp_tok, "return", &matched);
+            if (rc != CDD_C_SUCCESS)
+              goto fail;
             if (matched) {
               k = TOKEN_KEYWORD_RETURN;
             } else {
-              rc = (cdd_c_error_t)((int)rc | (int)token_matches_string(
-                                                 &tmp_tok, "switch", &matched));
+              rc = token_matches_string(&tmp_tok, "switch", &matched);
+              if (rc != CDD_C_SUCCESS)
+                goto fail;
               if (matched) {
                 k = TOKEN_KEYWORD_SWITCH;
               } else {
-                rc = (cdd_c_error_t)((int)rc | (int)token_matches_string(
-                                                   &tmp_tok, "if", &matched));
+                rc = token_matches_string(&tmp_tok, "if", &matched);
+                if (rc != CDD_C_SUCCESS)
+                  goto fail;
                 if (matched) {
                   k = TOKEN_KEYWORD_IF;
                 }
@@ -573,128 +521,119 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
           }
         }
 
-        rc = (cdd_c_error_t)((int)rc | (int)token_list_add(
-                                           list, k, base + start, id_len));
+        rc = token_list_add(list, k, base + start, id_len);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
       }
 
     } else if (isdigit(c) ||
                (c == '.' && peek_dot_c != -1 && isdigit(peek_dot_c))) {
-
       if (c == '.') {
         int dummy_c = -1;
-        rc = (cdd_c_error_t)((int)rc | (int)peek_logical(base, len, pos,
-                                                         &consumed, &dummy_c));
+        rc = peek_logical(base, len, pos, &consumed, &dummy_c);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
       }
 
       pos += consumed;
 
       while (pos < len) {
-
         int nc = -1;
 
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)peek_logical(base, len, pos, &consumed, &nc));
+        rc = peek_logical(base, len, pos, &consumed, &nc);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
 
         /* C23 Digit Separators: Allow '\'' inside number if followed by alnum
-
          */
-
         if (nc == '\'') {
-
           size_t next_peek_con;
-
           int next_peek = -1;
 
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)peek_logical(base, len, pos + consumed,
-                                                 &next_peek_con, &next_peek));
+          rc = peek_logical(base, len, pos + consumed, &next_peek_con,
+                            &next_peek);
+          if (rc != CDD_C_SUCCESS)
+            goto fail;
 
           if (next_peek != -1 && isalnum(next_peek)) {
-
             /* Valid separator `123'456` */
-
             pos += consumed; /* Consume quote */
-
             continue;
-
           } else {
-
             /* `'` not followed by digit/letter, end of number */
-
             break;
           }
         }
 
         if (nc != -1 && (isalnum(nc) || nc == '_' || nc == '.')) {
-
           pos += consumed;
-
         } else {
-
           break;
         }
       }
 
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)token_list_add(list, TOKEN_NUMBER_LITERAL,
-                                               base + start, pos - start));
+      rc =
+          token_list_add(list, TOKEN_NUMBER_LITERAL, base + start, pos - start);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
 
     } else if (c == '"' || c == '\'') {
-
       int quote = c;
 
       pos += consumed;
 
       while (pos < len) {
-
         int nc = -1;
 
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)peek_logical(base, len, pos, &consumed, &nc));
+        rc = peek_logical(base, len, pos, &consumed, &nc);
+        if (rc != CDD_C_SUCCESS)
+          goto fail;
 
         if (nc == -1)
-
           break;
 
         pos += consumed;
 
         if (nc == '\\') {
           int esc_c = -1;
-          rc = (cdd_c_error_t)((int)rc | (int)peek_logical(base, len, pos,
-                                                           &consumed, &esc_c));
-
+          rc = peek_logical(base, len, pos, &consumed, &esc_c);
+          if (rc != CDD_C_SUCCESS)
+            goto fail;
           pos += consumed;
-
         } else if (nc == quote) {
-
           break;
         }
       }
 
-      rc = (cdd_c_error_t)((int)rc | (int)token_list_add(
-                                         list,
-                                         (quote == '"' ? TOKEN_STRING_LITERAL
-                                                       : TOKEN_CHAR_LITERAL),
-                                         base + start, pos - start));
+      rc = token_list_add(
+          list, (quote == '"' ? TOKEN_STRING_LITERAL : TOKEN_CHAR_LITERAL),
+          base + start, pos - start);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
 
     } else {
-      rc = (cdd_c_error_t)((int)rc | (int)tokenize_punct(base, len, &pos, start,
-                                                         c, consumed, list));
-    }
-
-  check_rc:
-
-    if (rc != CDD_C_SUCCESS) {
-
-      rc = (cdd_c_error_t)((int)rc | (int)free_token_list(list));
-
-      *out = NULL;
-
-      return rc;
+      rc = tokenize_punct(base, len, &pos, start, c, consumed, list);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
     }
   }
 
   *out = list;
-
   return CDD_C_SUCCESS;
+
+fail: {
+  cdd_c_error_t rc_free = token_list_free(list);
+  *out = NULL;
+  return cdd_c_keep_err(rc, rc_free);
+}
+}
+
+/*
+ * @brief Frees resources associated with a `TokenList` (`*_free` alias).
+ *
+ * @param[in] tl The token list to free. Safe to pass NULL.
+ * @return `CDD_C_SUCCESS`.
+ */
+cdd_c_error_t token_list_free(struct TokenList *tl) {
+  return free_token_list(tl);
 }

@@ -105,6 +105,10 @@ static cdd_c_error_t writer_emit_indent_if_needed(cdd_code_writer_t *writer) {
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!writer || !fp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   memset(writer, 0, sizeof(*writer));
@@ -122,6 +126,10 @@ cdd_c_error_t cdd_code_writer_init_stream(cdd_code_writer_t *writer, FILE *fp) {
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t cdd_code_writer_init_buffer(cdd_code_writer_t *writer) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (!writer)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   memset(writer, 0, sizeof(*writer));
@@ -335,6 +343,12 @@ cdd_c_error_t cdd_code_writer_take_string(cdd_code_writer_t *writer,
                                           char **out_str) {
   if (!writer || !out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0) {
+    *out_str = NULL;
+    return CDD_C_ERROR_IO;
+  }
+#endif
   if (writer->error != CDD_C_SUCCESS) {
     *out_str = NULL;
     return writer->error;

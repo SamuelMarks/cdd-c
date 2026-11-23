@@ -1363,6 +1363,87 @@ TEST test_cli_struct_exhaustive(void) {
         break;
       ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
     }
+    for (k = 1; k <= 1200; ++k) {
+      cdd_c_error_t rc_st;
+      g_cdd_step_fail = k;
+      rc_st = write_struct_print_help_func(fp, "RichCli", &sf, &cfg);
+      g_cdd_step_fail = 0;
+      if (rc_st == CDD_C_SUCCESS)
+        break;
+    }
+    for (k = 1; k <= 1200; ++k) {
+      cdd_c_error_t rc_st;
+      g_cdd_step_fail = k;
+      rc_st = write_struct_print_completions_func(fp, "RichCli", &sf, &cfg);
+      g_cdd_step_fail = 0;
+      if (rc_st == CDD_C_SUCCESS)
+        break;
+    }
+    for (k = 1; k <= 1200; ++k) {
+      cdd_c_error_t rc_st;
+      g_cdd_step_fail = k;
+      rc_st = write_struct_cli_parse_into_func(fp, "RichCli", &sf, &cfg);
+      g_cdd_step_fail = 0;
+      if (rc_st == CDD_C_SUCCESS)
+        break;
+    }
+    {
+      enum CddSerdeCaseRule saved_rule = em.cli_rename_all;
+      em.cli_rename_all = CDD_SERDE_CASE_NONE;
+      for (k = 1; k <= 1200; ++k) {
+        cdd_c_error_t rc_st;
+        g_cdd_step_fail = k;
+        rc_st = write_struct_print_help_func(fp, "RichCli", &sf, &cfg);
+        g_cdd_step_fail = 0;
+        if (rc_st == CDD_C_SUCCESS)
+          break;
+      }
+      em.cli_rename_all = saved_rule;
+    }
+    /* Step-fail sweeps for cli_name fallback, kebabcase fallback,
+     * usage_override, empty completions, and subcommand serde_rename */
+    {
+      char saved_bin[64];
+      CDD_STRCPY(saved_bin, sizeof(saved_bin), sf.cli_bin_name);
+      sf.cli_bin_name[0] = '\0';
+      CDD_STRCPY(sf.cli_name, sizeof(sf.cli_name), "rich-cli");
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_step_fail = k;
+        if (write_struct_print_help_func(fp, "RichCli", &sf, &cfg) ==
+            CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_step_fail = k;
+        if (write_struct_print_completions_func(fp, "RichCli", &sf, &cfg) ==
+            CDD_C_SUCCESS)
+          break;
+      }
+      sf.cli_name[0] = '\0';
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_step_fail = k;
+        if (write_struct_print_help_func(fp, "RichCli", &sf, &cfg) ==
+            CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 10; ++k) {
+        g_cdd_step_fail = k;
+        if (write_struct_print_completions_func(fp, "RichCli", &sf, &cfg) ==
+            CDD_C_SUCCESS)
+          break;
+      }
+      CDD_STRCPY(sf.cli_usage_override, sizeof(sf.cli_usage_override),
+                 "rich-bin [CUSTOM]");
+      for (k = 1; k <= 400; ++k) {
+        g_cdd_step_fail = k;
+        if (write_struct_print_help_func(fp, "RichCli", &sf, &cfg) ==
+            CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_step_fail = 0;
+      sf.cli_usage_override[0] = '\0';
+      CDD_STRCPY(sf.cli_bin_name, sizeof(sf.cli_bin_name), saved_bin);
+    }
     for (k = 0; k < 15; ++k) {
       cdd_c_error_t rc_io;
       g_fail_io_after = k;
@@ -1422,6 +1503,21 @@ TEST test_cli_struct_exhaustive(void) {
     ASSERT_EQ(CDD_C_SUCCESS, write_struct_to_cli_argv_func(
                                  fp, "RichCliSkipVarToCli", &sf, &cfg));
     usf.fields[0].cli_skip_to_cli = 0;
+    {
+      char saved_ren0 = usf.fields[0].serde_rename[0];
+      usf.fields[0].serde_rename[0] = '\0';
+      for (k = 1; k <= 300; ++k) {
+        g_cdd_step_fail = k;
+        g_cdd_last_alloc_err =
+            write_struct_to_cli_argv_func(fp, "RichCliStepToCli", &sf, &cfg);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+      usf.fields[0].serde_rename[0] = saved_ren0;
+    }
 
     /* Test enum with cli_rename_all == NONE and NULL
      * serde_skip/cli_hidden/serde_names */

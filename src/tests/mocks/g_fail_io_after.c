@@ -55,6 +55,8 @@ C_CDD_EXPORT int g_crypto_fail_mdctx_new = 0;
 C_CDD_EXPORT int g_crypto_fail_sha256 = 0;
 /** @brief Countdown fault-injection counter for `crypto_wasm.c` steps. */
 C_CDD_EXPORT int g_crypto_wasm_fail_step = 0;
+/** @brief Countdown fault-injection counter for FFI emitter steps. */
+C_CDD_EXPORT int g_ffi_emit_fail_step = 0;
 
 /** @brief Test definition g_cdd_mock_dlopen_success. */
 C_CDD_EXPORT int g_cdd_mock_dlopen_success = 0;
@@ -184,6 +186,9 @@ C_CDD_EXPORT int g_cdd_fail_codegen_write = 0;
 C_CDD_EXPORT int g_cdd_sync_sig_no_brace = 0;
 /** @brief Test definition g_build_system_fail_io_after. */
 C_CDD_EXPORT int g_build_system_fail_io_after = -1;
+/** @brief Countdown counter for step-level error-percolation fault injection in
+ * tests. */
+C_CDD_EXPORT int g_cdd_step_fail = 0;
 /** @brief Test definition g_cdd_fail_media_type_base_len. */
 C_CDD_EXPORT int g_cdd_fail_media_type_base_len = 0;
 /** @brief Test definition g_cdd_fail_media_type_has_suffix. */
@@ -316,6 +321,8 @@ C_CDD_EXPORT int g_cdd_pp_logic_and_fail = 0;
 C_CDD_EXPORT int g_cdd_fail_identify_keyword_or_id = 0;
 /** @brief Test definition g_cdd_fail_json_set_value. */
 C_CDD_EXPORT volatile int g_cdd_fail_json_set_value = 0;
+/** @brief Test definition g_cdd_c2s_fail_step. */
+C_CDD_EXPORT int g_cdd_c2s_fail_step = 0;
 /** @brief Test definition g_cdd_fail_find_schema_by_anchor. */
 C_CDD_EXPORT int g_cdd_fail_find_schema_by_anchor = 0;
 /** @brief Test definition g_cdd_fail_find_schema_by_id. */
@@ -787,8 +794,14 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_freopen(const char *path, const char *mode,
 #else
   errno = 0;
   f = freopen(path, mode, stream);
-  if (!f)
+  if (!f) {
     err = errno;
+#if defined(__GLIBC__)
+    if (stream != stdin && stream != stdout && stream != stderr) {
+      fclose(stream);
+    }
+#endif
+  }
 #endif
   if (out_err)
     *out_err = err;
@@ -907,10 +920,17 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_dup2(int fd1, int fd2, int *out_rc) {
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_crt_close(int fd, int *out_rc) {
   int rc = -1;
-#if defined(_MSC_VER)
+#if defined(__wasi__)
+  rc = (fd < 0) ? -1 : close(fd);
+#elif defined(_MSC_VER)
   rc = (fd < 0) ? -1 : _close(fd);
 #else
-  rc = close(fd);
+  if (fd < 0) {
+    errno = EBADF;
+    rc = -1;
+  } else {
+    rc = close(fd);
+  }
 #endif
   if (out_rc)
     *out_rc = rc;

@@ -29,6 +29,10 @@
  * @return CDD_C_SUCCESS on success or error code.
  */
 cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (verb) {
   case OA_VERB_GET: {
     *_out_val = "GET";
@@ -96,8 +100,9 @@ cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
 
   if (path && path->route) {
     cdd_c_error_t rc_verb = verb_to_string(op->verb, &verb_str);
-    CHECK_IO(
-        fprintf(fp, " * @route %s %s\n", &verb_str[(int)rc_verb], path->route));
+    if (rc_verb != CDD_C_SUCCESS)
+      return rc_verb;
+    CHECK_IO(fprintf(fp, " * @route %s %s\n", verb_str, path->route));
   }
 
   if (op->description) {
@@ -224,12 +229,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   /* Determine Group Name from Tags and Namespace */
   if (effective_op.n_tags > 0 && effective_op.tags[0]) {
     rc = sanitize_tag(effective_op.tags[0], &sanitized_group);
+    if (rc != CDD_C_SUCCESS) {
+      goto cleanup;
+    }
     if (!sanitized_group) {
       rc = CDD_C_ERROR_MEMORY;
-      {
-        C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
-        goto cleanup;
-      }
+      goto cleanup;
     }
   }
 
@@ -281,17 +286,20 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   }
 
   rc = select_operation_server(path, op, &selected_server);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   server_override = selected_server;
   if (server_override && server_override->url) {
     rc = render_server_url_default(server_override, &override_url);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (override_url) {
       rc = build_base_url_literal(override_url, &base_url_expr);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (!base_url_expr) {
         rc = CDD_C_ERROR_MEMORY;
-        {
-          C_CDD_LOG_DEBUG("goto cleanup in client_gen_operations.c\n");
-          goto cleanup;
-        }
+        goto cleanup;
       }
     }
   }

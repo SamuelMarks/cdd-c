@@ -539,6 +539,18 @@ TEST test_cdd_cst_parser_oom(void) {
     }
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_class_name(NULL, NULL));
+    {
+      cdd_token_t *cls_tok = NULL;
+      g_cdd_step_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN, get_class_name(NULL, &cls_tok));
+      g_cdd_step_fail = 2;
+      ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, get_class_name(NULL, &cls_tok));
+      g_cdd_step_fail = 1;
+      tree = NULL;
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+      g_cdd_step_fail = 0;
+    }
 
     g_cdd_cst_realloc_fail = 1;
     tree = NULL;

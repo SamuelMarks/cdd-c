@@ -514,8 +514,9 @@ static NO_DISCARD cdd_c_error_t cobol_scope_make_unique(cobol_scope_t *scope,
     size_t i;
     int exists = 0;
 
-    rc = cdd_c_keep_err(rc, cdd_cobol_sanitize_word(c_ident, prefix, attempt,
-                                                    out_buf, out_cap));
+    rc = cdd_cobol_sanitize_word(c_ident, prefix, attempt, out_buf, out_cap);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     for (i = 0; i < scope->count; i++) {
       if (strcmp(scope->words[i], out_buf) == 0) {
@@ -556,6 +557,10 @@ static NO_DISCARD cdd_c_error_t cobol_is_reserved(const char *word,
   size_t i;
   size_t count;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_reserved = 0;
   count = sizeof(k_cobol_reserved_words) / sizeof(k_cobol_reserved_words[0]);
   for (i = 0; i < count; i++) {
@@ -578,6 +583,10 @@ static NO_DISCARD cdd_c_error_t cobol_is_reserved(const char *word,
 static NO_DISCARD cdd_c_error_t cobol_hash12(const char *s,
                                              unsigned int *out_hash) {
   unsigned int h = 2166136261u;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   while (*s != '\0') {
     h ^= (unsigned int)(unsigned char)(*s++);
     h *= 16777619u;
@@ -645,20 +654,25 @@ NO_DISCARD cdd_c_error_t cdd_cobol_sanitize_word(const char *c_ident,
   raw[rpos] = '\0';
 
   if (rpos == 0) {
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(raw, sizeof(raw), "%s", "UNNAMED"));
+    rc = cdd_ffi_snprintf_checked(raw, sizeof(raw), "%s", "UNNAMED");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (prefix && prefix[0] != '\0') {
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(combined, sizeof(combined),
-                                                     "%s%s", prefix, raw));
+    rc = cdd_ffi_snprintf_checked(combined, sizeof(combined), "%s%s", prefix,
+                                  raw);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
-    rc = cdd_c_keep_err(rc, cobol_is_reserved(raw, &is_res));
-    rc = cdd_c_keep_err(
-        rc,
-        cdd_ffi_snprintf_checked(
-            combined, sizeof(combined),
-            (isdigit((unsigned char)raw[0]) || is_res) ? "CDD-%s" : "%s", raw));
+    rc = cobol_is_reserved(raw, &is_res);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(
+        combined, sizeof(combined),
+        (isdigit((unsigned char)raw[0]) || is_res) ? "CDD-%s" : "%s", raw);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   {
@@ -669,16 +683,19 @@ NO_DISCARD cdd_c_error_t cdd_cobol_sanitize_word(const char *c_ident,
       size_t keep;
       unsigned int h12 = 0;
 
-      rc = cdd_c_keep_err(
-          rc, cobol_hash12((c_ident && c_ident[0] != '\0') ? c_ident : combined,
-                           &h12));
+      rc = cobol_hash12((c_ident && c_ident[0] != '\0') ? c_ident : combined,
+                        &h12);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (disambig_idx > 0) {
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(sfx, sizeof(sfx), "-%03X%lu", h12,
-                                         (unsigned long)disambig_idx));
+        rc = cdd_ffi_snprintf_checked(sfx, sizeof(sfx), "-%03X%lu", h12,
+                                      (unsigned long)disambig_idx);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else {
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(sfx, sizeof(sfx), "-%03X", h12));
+        rc = cdd_ffi_snprintf_checked(sfx, sizeof(sfx), "-%03X", h12);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       sfx_len = strlen(sfx);
       keep = (eff_max > sfx_len) ? (eff_max - sfx_len) : 1;
@@ -687,13 +704,11 @@ NO_DISCARD cdd_c_error_t cdd_cobol_sanitize_word(const char *c_ident,
       while (keep > 1 && combined[keep - 1] == '-')
         keep--;
       combined[keep] = '\0';
-      return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                    out_buf, out_cap, "%s%s", combined, sfx));
+      return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s%s", combined, sfx);
     }
   }
 
-  return cdd_c_keep_err(
-      rc, cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", combined));
+  return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", combined);
 }
 
 /**
@@ -714,6 +729,10 @@ static NO_DISCARD cdd_c_error_t cobol_sanitize_file_stem(const char *raw,
   size_t i;
   const char *src = (raw[0] != '\0') ? raw : fallback;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   for (i = 0; src[i] != '\0' && pos < COBOL_MAX_FILE_STEM; i++) {
     unsigned char ch = (unsigned char)src[i];
     if (isupper(ch)) {
@@ -726,8 +745,9 @@ static NO_DISCARD cdd_c_error_t cobol_sanitize_file_stem(const char *raw,
   }
   while (pos > 1 && out_buf[pos - 1] == '_')
     pos--;
-  if (pos == 0)
+  if (pos == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", fallback);
+  }
   out_buf[pos] = '\0';
   return CDD_C_SUCCESS;
 }
@@ -754,8 +774,9 @@ static NO_DISCARD cdd_c_error_t cobol_normalize_int_literal(const char *raw,
   int neg = 0;
   unsigned long val = 0;
 
-  if (raw[0] == '\0')
+  if (raw[0] == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+  }
 
   p = raw;
   while (memchr(" \t(", (unsigned char)*p, 3) != NULL)
@@ -773,8 +794,9 @@ static NO_DISCARD cdd_c_error_t cobol_normalize_int_literal(const char *raw,
   while (len > 0 && memchr(" \t)uUlL", (unsigned char)p[len - 1], 7) != NULL) {
     len--;
   }
-  if (len == 0)
+  if (len == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+  }
 
   if (len > 2 && p[0] == '0' && memchr("xX", (unsigned char)p[1], 2) != NULL) {
     char hex_buf[64];
@@ -782,8 +804,9 @@ static NO_DISCARD cdd_c_error_t cobol_normalize_int_literal(const char *raw,
     for (i = 2; i < len && hpos + 1 < sizeof(hex_buf); i++) {
       if (p[i] == '\'')
         continue;
-      if (!isxdigit((unsigned char)p[i]))
+      if (!isxdigit((unsigned char)p[i])) {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+      }
       hex_buf[hpos++] = (char)toupper((unsigned char)p[i]);
       val = (val << 4) |
             (unsigned long)(isdigit((unsigned char)p[i])
@@ -802,8 +825,9 @@ static NO_DISCARD cdd_c_error_t cobol_normalize_int_literal(const char *raw,
     for (i = 2; i < len; i++) {
       if (p[i] == '\'')
         continue;
-      if (p[i] != '0' && p[i] != '1')
+      if (p[i] != '0' && p[i] != '1') {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+      }
       val = (val << 1) | (unsigned long)(p[i] - '0');
     }
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s%lu", neg ? "-" : "",
@@ -814,8 +838,9 @@ static NO_DISCARD cdd_c_error_t cobol_normalize_int_literal(const char *raw,
     for (i = 1; i < len; i++) {
       if (p[i] == '\'')
         continue;
-      if (p[i] < '0' || p[i] > '7')
+      if (p[i] < '0' || p[i] > '7') {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+      }
       val = (val << 3) | (unsigned long)(p[i] - '0');
     }
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s%lu", neg ? "-" : "",
@@ -828,13 +853,15 @@ static NO_DISCARD cdd_c_error_t cobol_normalize_int_literal(const char *raw,
     for (i = 0; i < len && dpos + 1 < sizeof(dec_buf); i++) {
       if (p[i] == '\'')
         continue;
-      if (!isdigit((unsigned char)p[i]))
+      if (!isdigit((unsigned char)p[i])) {
         return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+      }
       dec_buf[dpos++] = p[i];
     }
     dec_buf[dpos] = '\0';
-    if (dpos == 0)
+    if (dpos == 0) {
       return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+    }
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s%s", neg ? "-" : "",
                                     dec_buf);
   }
@@ -854,6 +881,10 @@ cobol_find_type_node(const cdd_ffi_ir_t *ir, const char *name,
   size_t i;
 
   *out_node = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (!name)
     return CDD_C_SUCCESS;
 
@@ -897,37 +928,47 @@ cobol_map_usage_clause(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
 
   switch (type->kind) {
   case CDD_FFI_KIND_BOOL:
-  case CDD_FFI_KIND_INT8:
+  case CDD_FFI_KIND_INT8: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-CHAR SIGNED");
-  case CDD_FFI_KIND_UINT8:
+  }
+  case CDD_FFI_KIND_UINT8: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-CHAR UNSIGNED");
-  case CDD_FFI_KIND_INT16:
+  }
+  case CDD_FFI_KIND_INT16: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-SHORT SIGNED");
-  case CDD_FFI_KIND_UINT16:
+  }
+  case CDD_FFI_KIND_UINT16: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-SHORT UNSIGNED");
+  }
   case CDD_FFI_KIND_INT32:
-  case CDD_FFI_KIND_ENUM_REF:
+  case CDD_FFI_KIND_ENUM_REF: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-LONG SIGNED");
-  case CDD_FFI_KIND_UINT32:
+  }
+  case CDD_FFI_KIND_UINT32: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-LONG UNSIGNED");
-  case CDD_FFI_KIND_INT64:
+  }
+  case CDD_FFI_KIND_INT64: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-DOUBLE SIGNED");
-  case CDD_FFI_KIND_UINT64:
+  }
+  case CDD_FFI_KIND_UINT64: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE BINARY-DOUBLE UNSIGNED");
-  case CDD_FFI_KIND_FLOAT32:
+  }
+  case CDD_FFI_KIND_FLOAT32: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE COMP-1");
-  case CDD_FFI_KIND_FLOAT64:
+  }
+  case CDD_FFI_KIND_FLOAT64: {
     return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
                                     "USAGE COMP-2");
+  }
   case CDD_FFI_KIND_TYPEDEF_REF: {
     const cdd_ffi_ir_node_t *rn = NULL;
     if (type->ref_name && (strcmp(type->ref_name, "size_t") == 0 ||
@@ -936,29 +977,30 @@ cobol_map_usage_clause(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
                                       "USAGE BINARY-DOUBLE UNSIGNED");
     }
     rc = cobol_find_type_node(ir, type->ref_name, &rn);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (rn && rn->kind == CDD_FFI_NODE_TYPEDEF) {
-      return cdd_c_keep_err(
-          rc, cobol_map_usage_clause(ir, &rn->return_or_base_type, elem_bytes,
-                                     out_clause, clause_cap));
+      return cobol_map_usage_clause(ir, &rn->return_or_base_type, elem_bytes,
+                                    out_clause, clause_cap);
     }
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(out_clause, clause_cap,
-                                                       "%s", "USAGE POINTER"));
+    return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
+                                    "USAGE POINTER");
   }
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_TEMPLATE_STRUCT_REF: {
     const cdd_ffi_ir_node_t *rn = NULL;
     size_t sz = elem_bytes;
     rc = cobol_find_type_node(ir, type->ref_name, &rn);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (rn && rn->size_bytes > 0)
       sz = rn->size_bytes;
     if (sz == 0) {
-      return cdd_c_keep_err(rc,
-                            cdd_ffi_snprintf_checked(out_clause, clause_cap,
-                                                     "%s", "USAGE POINTER"));
+      return cdd_ffi_snprintf_checked(out_clause, clause_cap, "%s",
+                                      "USAGE POINTER");
     }
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(out_clause, clause_cap,
-                                                       "PIC X(%lu)",
-                                                       (unsigned long)sz));
+    return cdd_ffi_snprintf_checked(out_clause, clause_cap, "PIC X(%lu)",
+                                    (unsigned long)sz);
   }
   default:
     if (elem_bytes > 0) {
@@ -990,6 +1032,11 @@ cobol_is_byval_record(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
   if (out_node)
     *out_node = NULL;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+
   if (type->pointer_depth > 0 || type->array_size > 0)
     return CDD_C_SUCCESS;
   if (type->kind != CDD_FFI_KIND_STRUCT_REF &&
@@ -998,6 +1045,8 @@ cobol_is_byval_record(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
   }
 
   rc = cobol_find_type_node(ir, type->ref_name, &rn);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (rn &&
       (rn->kind == CDD_FFI_NODE_STRUCT || rn->kind == CDD_FFI_NODE_UNION) &&
       rn->fields_count > 0) {
@@ -1005,7 +1054,7 @@ cobol_is_byval_record(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
     if (out_node)
       *out_node = rn;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1036,6 +1085,8 @@ static NO_DISCARD cdd_c_error_t cobol_check_fn_shim(const cdd_ffi_ir_t *ir,
   *out_rec_ret = 0;
 
   rc = cobol_is_byval_record(ir, &fn->return_or_base_type, &rec_ret, NULL);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (fn->return_or_base_type.pointer_depth == 1 &&
       fn->return_or_base_type.array_size <= 0 &&
@@ -1048,19 +1099,20 @@ static NO_DISCARD cdd_c_error_t cobol_check_fn_shim(const cdd_ffi_ir_t *ir,
 
   if (fn->is_variadic || rec_ret || cstr_ret) {
     *out_needs_shim = 1;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   for (j = 0; j < fn->fields_count; j++) {
     int byval_p = 0;
-    rc = cdd_c_keep_err(
-        rc, cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, NULL));
+    rc = cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, NULL);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (byval_p) {
       *out_needs_shim = 1;
-      return rc;
+      return CDD_C_SUCCESS;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1090,14 +1142,16 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
       char tmp_w[COBOL_MAX_WORD_LEN + 1];
       rc = cobol_scope_make_unique(&cpy_scope, node_words[i], NULL, tmp_w,
                                    sizeof(tmp_w));
-      if (rc != CDD_C_SUCCESS)
-        goto cleanup;
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cobol_scope_free(&cpy_scope));
+      }
     }
   }
 
   rc = cdd_ffi_open_output_file(config->output_dir, cpy_file, &fp);
-  if (rc != CDD_C_SUCCESS)
-    goto cleanup;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cobol_scope_free(&cpy_scope));
+  }
 
   rc = cdd_ffi_write_fmt(
       fp,
@@ -1134,11 +1188,11 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
 
       if (node->inferred_type == CDD_FFI_MACRO_TYPE_INT) {
         char lit[96];
-        rc = cdd_c_keep_err(
-            rc, cobol_normalize_int_literal(raw_val, 1, lit, sizeof(lit)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fp, "       01 %s CONSTANT AS %s.\n\n",
-                                  node_words[i], lit));
+        rc = cobol_normalize_int_literal(raw_val, 1, lit, sizeof(lit));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fp, "       01 %s CONSTANT AS %s.\n\n",
+                               node_words[i], lit);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       } else if (node->inferred_type == CDD_FFI_MACRO_TYPE_FLOAT) {
@@ -1156,12 +1210,12 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
         }
         flit[fpos] = '\0';
         if (fpos == 0) {
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_snprintf_checked(flit, sizeof(flit), "%s", "0"));
+          rc = cdd_ffi_snprintf_checked(flit, sizeof(flit), "%s", "0");
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         }
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fp, "       01 %s CONSTANT AS %s.\n\n",
-                                  node_words[i], flit));
+        rc = cdd_ffi_write_fmt(fp, "       01 %s CONSTANT AS %s.\n\n",
+                               node_words[i], flit);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       } else if (node->inferred_type == CDD_FFI_MACRO_TYPE_STRING) {
@@ -1198,27 +1252,28 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
                     ? var->number_details->raw_spelling
                     : var->value;
         if (v_src) {
-          rc = cdd_c_keep_err(rc, cobol_normalize_int_literal(v_src, 1, v_const,
-                                                              sizeof(v_const)));
+          rc = cobol_normalize_int_literal(v_src, 1, v_const, sizeof(v_const));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else {
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_snprintf_checked(v_const, sizeof(v_const), "%lu",
-                                           (unsigned long)j));
+          rc = cdd_ffi_snprintf_checked(v_const, sizeof(v_const), "%lu",
+                                        (unsigned long)j);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         }
 
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fp, "       01 %s CONSTANT AS %s.\n", v_word,
-                                  v_const));
+        rc = cdd_ffi_write_fmt(fp, "       01 %s CONSTANT AS %s.\n", v_word,
+                               v_const);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
 
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(raw_item, sizeof(raw_item),
-                                                   "%s-ITEM", node_words[i]));
-      rc = cdd_c_keep_err(rc, cobol_scope_make_unique(&cpy_scope, raw_item,
-                                                      NULL, item_word,
-                                                      sizeof(item_word)));
+      rc = cdd_ffi_snprintf_checked(raw_item, sizeof(raw_item), "%s-ITEM",
+                                    node_words[i]);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cobol_scope_make_unique(&cpy_scope, raw_item, NULL, item_word,
+                                   sizeof(item_word));
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
 
@@ -1242,17 +1297,18 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
                     ? var->number_details->raw_spelling
                     : var->value;
         if (v_src) {
-          rc = cdd_c_keep_err(
-              rc, cobol_normalize_int_literal(v_src, 0, v_dec, sizeof(v_dec)));
+          rc = cobol_normalize_int_literal(v_src, 0, v_dec, sizeof(v_dec));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else {
-          rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(v_dec, sizeof(v_dec),
-                                                           "%lu",
-                                                           (unsigned long)j));
+          rc = cdd_ffi_snprintf_checked(v_dec, sizeof(v_dec), "%lu",
+                                        (unsigned long)j);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         }
 
-        rc = cdd_c_keep_err(rc,
-                            cdd_ffi_write_fmt(fp, "          88 %s VALUE %s.\n",
-                                              cond_word, v_dec));
+        rc = cdd_ffi_write_fmt(fp, "          88 %s VALUE %s.\n", cond_word,
+                               v_dec);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1263,12 +1319,12 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
       if (node->fields_count == 0) {
         char h_word[COBOL_MAX_WORD_LEN + 1];
         char raw_h[96];
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(raw_h, sizeof(raw_h),
-                                                         "%s-HANDLE",
-                                                         node_words[i]));
-        rc =
-            cdd_c_keep_err(rc, cobol_scope_make_unique(&cpy_scope, raw_h, NULL,
-                                                       h_word, sizeof(h_word)));
+        rc = cdd_ffi_snprintf_checked(raw_h, sizeof(raw_h), "%s-HANDLE",
+                                      node_words[i]);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cobol_scope_make_unique(&cpy_scope, raw_h, NULL, h_word,
+                                     sizeof(h_word));
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc = cdd_ffi_write_fmt(fp, "       01 %s USAGE POINTER.\n\n", h_word);
@@ -1279,74 +1335,81 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
         memset(&fld_scope, 0, sizeof(fld_scope));
 
         rc = cdd_ffi_write_fmt(fp, "       01 %s.\n", node_words[i]);
-        if (rc == CDD_C_SUCCESS) {
-          for (j = 0; j < node->fields_count; j++) {
-            const cdd_ffi_field_t *fld = &node->fields[j];
-            char f_word[COBOL_MAX_WORD_LEN + 1];
-            char usage_str[128];
-            char occurs_str[64];
-            size_t elem_sz;
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_fld_scope;
+        for (j = 0; j < node->fields_count; j++) {
+          const cdd_ffi_field_t *fld = &node->fields[j];
+          char f_word[COBOL_MAX_WORD_LEN + 1];
+          char usage_str[128];
+          char occurs_str[64];
+          size_t elem_sz;
 
-            if (fld->doc) {
-              rc = cdd_ffi_emit_translated_doc(fp, fld->doc, "          ",
-                                               &k_cobol_comment_style);
-              if (rc != CDD_C_SUCCESS)
-                break;
-            }
-            if (fld->pad_before_bytes > 0) {
-              rc = cdd_ffi_write_fmt(fp, "          05 FILLER PIC X(%lu).\n",
-                                     (unsigned long)fld->pad_before_bytes);
-              if (rc != CDD_C_SUCCESS)
-                break;
-            }
-            if (fld->bitfield_width > 0 && fld->size_bytes == 0) {
-              rc = cdd_ffi_write_fmt(
-                  fp,
-                  "          *> Packed bitfield %s (%d bits) shares storage\n",
-                  fld->name ? fld->name : "bf", fld->bitfield_width);
-              if (rc != CDD_C_SUCCESS)
-                break;
-              continue;
-            }
-
-            rc = cobol_scope_make_unique(&fld_scope, fld->name, NULL, f_word,
-                                         sizeof(f_word));
+          if (fld->doc) {
+            rc = cdd_ffi_emit_translated_doc(fp, fld->doc, "          ",
+                                             &k_cobol_comment_style);
             if (rc != CDD_C_SUCCESS)
-              break;
-
-            elem_sz = fld->type.array_size > 0
-                          ? (fld->size_bytes / (size_t)fld->type.array_size)
-                          : fld->size_bytes;
-            rc = cdd_c_keep_err(rc, cobol_map_usage_clause(ir, &fld->type,
-                                                           elem_sz, usage_str,
-                                                           sizeof(usage_str)));
-
-            if (fld->type.array_size > 0) {
-              rc = cdd_c_keep_err(
-                  rc, cdd_ffi_snprintf_checked(occurs_str, sizeof(occurs_str),
-                                               " OCCURS %ld TIMES",
-                                               fld->type.array_size));
-            } else {
-              occurs_str[0] = '\0';
-            }
-
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_write_fmt(fp, "          05 %s%s %s.\n", f_word,
-                                      occurs_str, usage_str));
-            if (rc != CDD_C_SUCCESS)
-              break;
+              goto cleanup_fld_scope;
           }
+          if (fld->pad_before_bytes > 0) {
+            rc = cdd_ffi_write_fmt(fp, "          05 FILLER PIC X(%lu).\n",
+                                   (unsigned long)fld->pad_before_bytes);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_fld_scope;
+          }
+          if (fld->bitfield_width > 0 && fld->size_bytes == 0) {
+            rc = cdd_ffi_write_fmt(
+                fp,
+                "          *> Packed bitfield %s (%d bits) shares storage\n",
+                fld->name ? fld->name : "bf", fld->bitfield_width);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_fld_scope;
+            continue;
+          }
+
+          rc = cobol_scope_make_unique(&fld_scope, fld->name, NULL, f_word,
+                                       sizeof(f_word));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_fld_scope;
+
+          elem_sz = fld->type.array_size > 0
+                        ? (fld->size_bytes / (size_t)fld->type.array_size)
+                        : fld->size_bytes;
+          rc = cobol_map_usage_clause(ir, &fld->type, elem_sz, usage_str,
+                                      sizeof(usage_str));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_fld_scope;
+
+          if (fld->type.array_size > 0) {
+            rc = cdd_ffi_snprintf_checked(occurs_str, sizeof(occurs_str),
+                                          " OCCURS %ld TIMES",
+                                          fld->type.array_size);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_fld_scope;
+          } else {
+            occurs_str[0] = '\0';
+          }
+
+          rc = cdd_ffi_write_fmt(fp, "          05 %s%s %s.\n", f_word,
+                                 occurs_str, usage_str);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_fld_scope;
         }
-        if (rc == CDD_C_SUCCESS && node->trailing_pad_bytes > 0) {
+        if (node->trailing_pad_bytes > 0) {
           rc = cdd_ffi_write_fmt(fp, "          05 FILLER PIC X(%lu).\n",
                                  (unsigned long)node->trailing_pad_bytes);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_fld_scope;
         }
-        if (rc == CDD_C_SUCCESS) {
-          rc = cdd_ffi_write_str(fp, "\n");
-        }
-        rc = cdd_c_keep_err(rc, cobol_scope_free(&fld_scope));
+        rc = cdd_ffi_write_str(fp, "\n");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_fld_scope;
+
+      cleanup_fld_scope: {
+        cdd_c_error_t sf = cobol_scope_free(&fld_scope);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
+        rc = sf;
+      }
       }
     } else if (node->kind == CDD_FFI_NODE_UNION) {
       size_t u_size = node->size_bytes > 0 ? node->size_bytes : 8;
@@ -1355,103 +1418,107 @@ static NO_DISCARD cdd_c_error_t emit_cobol_copybook(
       cobol_scope_t var_scope;
 
       memset(&var_scope, 0, sizeof(var_scope));
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(raw_base, sizeof(raw_base),
-                                                   "%s-RAW", node_words[i]));
-      rc = cdd_c_keep_err(rc,
-                          cobol_scope_make_unique(&var_scope, raw_base, NULL,
-                                                  raw_word, sizeof(raw_word)));
-      if (rc == CDD_C_SUCCESS) {
+      rc = cdd_ffi_snprintf_checked(raw_base, sizeof(raw_base), "%s-RAW",
+                                    node_words[i]);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_var_scope;
+      rc = cobol_scope_make_unique(&var_scope, raw_base, NULL, raw_word,
+                                   sizeof(raw_word));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_var_scope;
+      rc = cdd_ffi_write_fmt(fp,
+                             "       01 %s.\n"
+                             "          05 %s PIC X(%lu).\n",
+                             node_words[i], raw_word, (unsigned long)u_size);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_var_scope;
+      for (j = 0; j < node->fields_count; j++) {
+        const cdd_ffi_field_t *fld = &node->fields[j];
+        char v_word[COBOL_MAX_WORD_LEN + 1];
+        char val_word[COBOL_MAX_WORD_LEN + 1];
+        char val_raw[96];
+        char usage_str[128];
+        char occurs_str[64];
+        size_t elem_sz;
+        size_t rem_pad;
+
+        rc = cobol_scope_make_unique(&var_scope, fld->name, NULL, v_word,
+                                     sizeof(v_word));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_var_scope;
+        rc = cdd_ffi_snprintf_checked(val_raw, sizeof(val_raw), "%s-V", v_word);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_var_scope;
+        rc = cobol_scope_make_unique(&var_scope, val_raw, NULL, val_word,
+                                     sizeof(val_word));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_var_scope;
+
+        elem_sz = fld->type.array_size > 0
+                      ? (fld->size_bytes / (size_t)fld->type.array_size)
+                      : fld->size_bytes;
+        rc = cobol_map_usage_clause(ir, &fld->type, elem_sz, usage_str,
+                                    sizeof(usage_str));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_var_scope;
+
+        if (fld->type.array_size > 0) {
+          rc = cdd_ffi_snprintf_checked(occurs_str, sizeof(occurs_str),
+                                        " OCCURS %ld TIMES",
+                                        fld->type.array_size);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_var_scope;
+        } else {
+          occurs_str[0] = '\0';
+        }
+
         rc = cdd_ffi_write_fmt(fp,
-                               "       01 %s.\n"
-                               "          05 %s PIC X(%lu).\n",
-                               node_words[i], raw_word, (unsigned long)u_size);
-      }
-      if (rc == CDD_C_SUCCESS) {
-        for (j = 0; j < node->fields_count; j++) {
-          const cdd_ffi_field_t *fld = &node->fields[j];
-          char v_word[COBOL_MAX_WORD_LEN + 1];
-          char val_word[COBOL_MAX_WORD_LEN + 1];
-          char val_raw[96];
-          char usage_str[128];
-          char occurs_str[64];
-          size_t elem_sz;
-          size_t rem_pad;
+                               "          05 %s REDEFINES %s.\n"
+                               "             10 %s%s %s.\n",
+                               v_word, raw_word, val_word, occurs_str,
+                               usage_str);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_var_scope;
 
-          rc = cobol_scope_make_unique(&var_scope, fld->name, NULL, v_word,
-                                       sizeof(v_word));
+        rem_pad = (fld->size_bytes > 0 && u_size > fld->size_bytes)
+                      ? (u_size - fld->size_bytes)
+                      : fld->union_tail_pad_bytes;
+        if (rem_pad > 0) {
+          rc = cdd_ffi_write_fmt(fp, "             10 FILLER PIC X(%lu).\n",
+                                 (unsigned long)rem_pad);
           if (rc != CDD_C_SUCCESS)
-            break;
-          rc =
-              cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                     val_raw, sizeof(val_raw), "%s-V", v_word));
-          rc = cdd_c_keep_err(rc, cobol_scope_make_unique(&var_scope, val_raw,
-                                                          NULL, val_word,
-                                                          sizeof(val_word)));
-          if (rc != CDD_C_SUCCESS)
-            break;
-
-          elem_sz = fld->type.array_size > 0
-                        ? (fld->size_bytes / (size_t)fld->type.array_size)
-                        : fld->size_bytes;
-          rc = cdd_c_keep_err(rc, cobol_map_usage_clause(ir, &fld->type,
-                                                         elem_sz, usage_str,
-                                                         sizeof(usage_str)));
-
-          if (fld->type.array_size > 0) {
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_snprintf_checked(occurs_str, sizeof(occurs_str),
-                                             " OCCURS %ld TIMES",
-                                             fld->type.array_size));
-          } else {
-            occurs_str[0] = '\0';
-          }
-
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_write_fmt(fp,
-                                    "          05 %s REDEFINES %s.\n"
-                                    "             10 %s%s %s.\n",
-                                    v_word, raw_word, val_word, occurs_str,
-                                    usage_str));
-          if (rc != CDD_C_SUCCESS)
-            break;
-
-          rem_pad = (fld->size_bytes > 0 && u_size > fld->size_bytes)
-                        ? (u_size - fld->size_bytes)
-                        : fld->union_tail_pad_bytes;
-          if (rem_pad > 0) {
-            rc = cdd_ffi_write_fmt(fp, "             10 FILLER PIC X(%lu).\n",
-                                   (unsigned long)rem_pad);
-            if (rc != CDD_C_SUCCESS)
-              break;
-          }
+            goto cleanup_var_scope;
         }
       }
-      if (rc == CDD_C_SUCCESS) {
-        rc = cdd_ffi_write_str(fp, "\n");
-      }
-      rc = cdd_c_keep_err(rc, cobol_scope_free(&var_scope));
+      rc = cdd_ffi_write_str(fp, "\n");
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_var_scope;
+
+    cleanup_var_scope: {
+      cdd_c_error_t sf = cobol_scope_free(&var_scope);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
+      rc = sf;
+    }
     } else {
       /* CDD_FFI_NODE_TYPEDEF */
       char usage_str[128];
-      rc = cdd_c_keep_err(rc,
-                          cobol_map_usage_clause(ir, &node->return_or_base_type,
-                                                 node->size_bytes, usage_str,
-                                                 sizeof(usage_str)));
-      rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fp, "       01 %s %s.\n\n",
-                                                node_words[i], usage_str));
+      rc = cobol_map_usage_clause(ir, &node->return_or_base_type,
+                                  node->size_bytes, usage_str,
+                                  sizeof(usage_str));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(fp, "       01 %s %s.\n\n", node_words[i],
+                             usage_str);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
   }
 
-cleanup:
-  if (fp) {
-    rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
-  }
-  return cdd_c_keep_err(rc, cobol_scope_free(&cpy_scope));
+cleanup: {
+  return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp)),
+                        cobol_scope_free(&cpy_scope));
+}
 }
 
 /**
@@ -1465,6 +1532,10 @@ cleanup:
  */
 static NO_DISCARD cdd_c_error_t
 cobol_is_const_cstr_param(const cdd_ffi_field_t *fld, int *out_is_cstr) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_is_cstr =
       (fld->type.pointer_depth == 1 && fld->type.array_size <= 0 &&
        fld->type.kind == CDD_FFI_KIND_INT8 &&
@@ -1500,10 +1571,11 @@ static NO_DISCARD cdd_c_error_t cobol_classify_param(
   *out_is_cstr = 0;
 
   rc = cobol_is_const_cstr_param(fld, out_is_cstr);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (*out_is_cstr) {
     *out_by_ref = 1;
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(out_lk_clause, lk_cap,
-                                                       "%s", "PIC X(256)"));
+    return cdd_ffi_snprintf_checked(out_lk_clause, lk_cap, "%s", "PIC X(256)");
   }
 
   /* Fixed-size array parameter: passed BY REFERENCE */
@@ -1511,22 +1583,23 @@ static NO_DISCARD cdd_c_error_t cobol_classify_param(
     char elem_clause[128];
     size_t elem_sz = fld->size_bytes / (size_t)fld->type.array_size;
     *out_by_ref = 1;
-    rc = cdd_c_keep_err(rc, cobol_map_usage_clause(ir, &fld->type, elem_sz,
-                                                   elem_clause,
-                                                   sizeof(elem_clause)));
-    return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  out_lk_clause, lk_cap, "OCCURS %ld TIMES %s",
-                                  fld->type.array_size, elem_clause));
+    rc = cobol_map_usage_clause(ir, &fld->type, elem_sz, elem_clause,
+                                sizeof(elem_clause));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return cdd_ffi_snprintf_checked(out_lk_clause, lk_cap,
+                                    "OCCURS %ld TIMES %s", fld->type.array_size,
+                                    elem_clause);
   }
 
   /* Struct or union passed by value in C -> routed via C89 shim BY REFERENCE */
-  rc = cdd_c_keep_err(
-      rc, cobol_is_byval_record(ir, &fld->type, &byval_rec, &rec_node));
+  rc = cobol_is_byval_record(ir, &fld->type, &byval_rec, &rec_node);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (byval_rec) {
     *out_by_ref = 1;
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(out_lk_clause, lk_cap, "PIC X(%lu)",
-                                     (unsigned long)rec_node->size_bytes));
+    return cdd_ffi_snprintf_checked(out_lk_clause, lk_cap, "PIC X(%lu)",
+                                    (unsigned long)rec_node->size_bytes);
   }
 
   /* Single-indirection typed `[out]` / `[inout]` / `const T *` pointer ->
@@ -1543,25 +1616,24 @@ static NO_DISCARD cdd_c_error_t cobol_classify_param(
 
     if (deref.kind == CDD_FFI_KIND_STRUCT_REF ||
         deref.kind == CDD_FFI_KIND_TEMPLATE_STRUCT_REF) {
-      rc = cdd_c_keep_err(rc, cobol_find_type_node(ir, deref.ref_name, &rn));
+      rc = cobol_find_type_node(ir, deref.ref_name, &rn);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (rn && rn->size_bytes > 0) {
         *out_by_ref = 1;
-        return cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(out_lk_clause, lk_cap, "PIC X(%lu)",
-                                         (unsigned long)rn->size_bytes));
+        return cdd_ffi_snprintf_checked(out_lk_clause, lk_cap, "PIC X(%lu)",
+                                        (unsigned long)rn->size_bytes);
       }
     } else if (deref.kind != CDD_FFI_KIND_TYPEDEF_REF) {
       *out_by_ref = 1;
-      return cdd_c_keep_err(
-          rc, cobol_map_usage_clause(ir, &deref, 0, out_lk_clause, lk_cap));
+      return cobol_map_usage_clause(ir, &deref, 0, out_lk_clause, lk_cap);
     }
   }
 
   /* Pass-by-value C scalar, function pointer, or raw `void *` pointer */
   *out_by_ref = 0;
-  return cdd_c_keep_err(rc,
-                        cobol_map_usage_clause(ir, &fld->type, fld->size_bytes,
-                                               out_lk_clause, lk_cap));
+  return cobol_map_usage_clause(ir, &fld->type, fld->size_bytes, out_lk_clause,
+                                lk_cap);
 }
 
 /**
@@ -1582,6 +1654,10 @@ static NO_DISCARD cdd_c_error_t cobol_sanitize_c_ident(const char *raw,
   size_t i;
   const char *src = (raw && raw[0] != '\0') ? raw : fallback;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (isdigit((unsigned char)src[0])) {
     out_buf[pos++] = '_';
   }
@@ -1611,7 +1687,7 @@ cobol_format_c89_decl(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
   char stars[32];
   int p;
   int eff_ptrs = type->pointer_depth;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   switch (type->kind) {
   case CDD_FFI_KIND_VOID:
@@ -1661,16 +1737,20 @@ cobol_format_c89_decl(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
   case CDD_FFI_KIND_TEMPLATE_STRUCT_REF: {
     const cdd_ffi_ir_node_t *rn = NULL;
     rc = cobol_find_type_node(ir, type->ref_name, &rn);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (rn &&
         (rn->kind == CDD_FFI_NODE_STRUCT || rn->kind == CDD_FFI_NODE_UNION) &&
         rn->fields_count > 0) {
       char c_tag[128];
-      rc = cdd_c_keep_err(rc, cobol_sanitize_c_ident(rn->name, "anon_rec",
-                                                     c_tag, sizeof(c_tag)));
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(
-                  base_buf, sizeof(base_buf), "%s %s",
-                  rn->kind == CDD_FFI_NODE_UNION ? "union" : "struct", c_tag));
+      rc = cobol_sanitize_c_ident(rn->name, "anon_rec", c_tag, sizeof(c_tag));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(
+          base_buf, sizeof(base_buf), "%s %s",
+          rn->kind == CDD_FFI_NODE_UNION ? "union" : "struct", c_tag);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       base_c = base_buf;
     } else {
       base_c = "void";
@@ -1703,23 +1783,20 @@ cobol_format_c89_decl(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *type,
 
   if (var_name) {
     if (type->array_size > 0 && eff_ptrs == 0) {
-      return cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(out_decl, decl_cap, "%s%s %s[%ld]",
-                                       type->is_const ? "const " : "", base_c,
-                                       var_name, type->array_size));
+      return cdd_ffi_snprintf_checked(out_decl, decl_cap, "%s%s %s[%ld]",
+                                      type->is_const ? "const " : "", base_c,
+                                      var_name, type->array_size);
     }
-    return cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(
-                              out_decl, decl_cap, "%s%s %s%s",
-                              (type->is_const && eff_ptrs > 0) ? "const " : "",
-                              base_c, stars, var_name));
+    return cdd_ffi_snprintf_checked(out_decl, decl_cap, "%s%s %s%s",
+                                    (type->is_const && eff_ptrs > 0) ? "const "
+                                                                     : "",
+                                    base_c, stars, var_name);
   }
 
-  return cdd_c_keep_err(
-      rc,
-      cdd_ffi_snprintf_checked(out_decl, decl_cap, "%s%s%s%s",
-                               (type->is_const && eff_ptrs > 0) ? "const " : "",
-                               base_c, eff_ptrs > 0 ? " " : "", stars));
+  return cdd_ffi_snprintf_checked(out_decl, decl_cap, "%s%s%s%s",
+                                  (type->is_const && eff_ptrs > 0) ? "const "
+                                                                   : "",
+                                  base_c, eff_ptrs > 0 ? " " : "", stars);
 }
 
 /**
@@ -1787,31 +1864,35 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
                                  sizeof(prog_id));
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
-    rc = cdd_c_keep_err(
-        rc, cobol_sanitize_c_ident(fn->name, "anon_fn", c_sym, sizeof(c_sym)));
-    rc = cdd_c_keep_err(
-        rc, cobol_check_fn_shim(ir, fn, &needs_shim, &cstr_ret, &rec_ret));
+    rc = cobol_sanitize_c_ident(fn->name, "anon_fn", c_sym, sizeof(c_sym));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = cobol_check_fn_shim(ir, fn, &needs_shim, &cstr_ret, &rec_ret);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
 
     if (needs_shim) {
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(call_target,
-                                                       sizeof(call_target),
-                                                       "cdd_cobol_%s", c_sym));
+      rc = cdd_ffi_snprintf_checked(call_target, sizeof(call_target),
+                                    "cdd_cobol_%s", c_sym);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else {
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(call_target, sizeof(call_target), "%s",
-                                       fn->name ? fn->name : c_sym));
+      rc = cdd_ffi_snprintf_checked(call_target, sizeof(call_target), "%s",
+                                    fn->name ? fn->name : c_sym);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     }
 
     has_ret_slot = !(fn->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                      fn->return_or_base_type.pointer_depth == 0);
 
-    rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fp,
-                                              "IDENTIFICATION DIVISION.\n"
-                                              "PROGRAM-ID. %s.\n"
-                                              "DATA DIVISION.\n"
-                                              "WORKING-STORAGE SECTION.\n"
-                                              "COPY \"%s\".\n",
-                                              prog_id, cpy_file));
+    rc = cdd_ffi_write_fmt(fp,
+                           "IDENTIFICATION DIVISION.\n"
+                           "PROGRAM-ID. %s.\n"
+                           "DATA DIVISION.\n"
+                           "WORKING-STORAGE SECTION.\n"
+                           "COPY \"%s\".\n",
+                           prog_id, cpy_file);
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
 
@@ -1819,13 +1900,13 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
       char lk_c[128];
       int by_ref = 0;
       int is_cstr = 0;
-      rc = cdd_c_keep_err(rc, cobol_classify_param(ir, &fn->fields[j], lk_c,
-                                                   sizeof(lk_c), &by_ref,
-                                                   &is_cstr));
+      rc = cobol_classify_param(ir, &fn->fields[j], lk_c, sizeof(lk_c), &by_ref,
+                                &is_cstr);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (is_cstr) {
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fp, "01 WS-C-STR-%lu PIC X(257).\n",
-                                  (unsigned long)j));
+        rc = cdd_ffi_write_fmt(fp, "01 WS-C-STR-%lu PIC X(257).\n",
+                               (unsigned long)j);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1852,11 +1933,12 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
         char lk_c[128];
         int by_ref = 0;
         int is_cstr = 0;
-        rc = cdd_c_keep_err(rc, cobol_classify_param(ir, &fn->fields[j], lk_c,
-                                                     sizeof(lk_c), &by_ref,
-                                                     &is_cstr));
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fp, "01 LS-ARG-%lu %s.\n",
-                                                  (unsigned long)j, lk_c));
+        rc = cobol_classify_param(ir, &fn->fields[j], lk_c, sizeof(lk_c),
+                                  &by_ref, &is_cstr);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fp, "01 LS-ARG-%lu %s.\n", (unsigned long)j,
+                               lk_c);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1870,25 +1952,29 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
       if (has_ret_slot) {
         if (cstr_ret) {
           rc = cdd_ffi_write_str(fp, "01 LS-RET PIC X(256).\n");
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else if (rec_ret) {
           const cdd_ffi_ir_node_t *rn = NULL;
-          rc = cdd_c_keep_err(
-              rc, cobol_is_byval_record(ir, &fn->return_or_base_type, &rec_ret,
-                                        &rn));
-          rc = cdd_c_keep_err(rc,
-                              cdd_ffi_write_fmt(fp, "01 LS-RET PIC X(%lu).\n",
-                                                (unsigned long)rn->size_bytes));
+          rc = cobol_is_byval_record(ir, &fn->return_or_base_type, &rec_ret,
+                                     &rn);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc = cdd_ffi_write_fmt(fp, "01 LS-RET PIC X(%lu).\n",
+                                 (unsigned long)rn->size_bytes);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else {
           char ret_clause[128];
-          rc = cdd_c_keep_err(
-              rc, cobol_map_usage_clause(ir, &fn->return_or_base_type,
-                                         fn->size_bytes, ret_clause,
-                                         sizeof(ret_clause)));
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_write_fmt(fp, "01 LS-RET %s.\n", ret_clause));
+          rc = cobol_map_usage_clause(ir, &fn->return_or_base_type,
+                                      fn->size_bytes, ret_clause,
+                                      sizeof(ret_clause));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc = cdd_ffi_write_fmt(fp, "01 LS-RET %s.\n", ret_clause);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         }
-        if (rc != CDD_C_SUCCESS)
-          goto cleanup;
       }
     }
 
@@ -1925,21 +2011,20 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
       char lk_c[128];
       int by_ref = 0;
       int is_cstr = 0;
-      rc = cdd_c_keep_err(rc, cobol_classify_param(ir, &fn->fields[j], lk_c,
-                                                   sizeof(lk_c), &by_ref,
-                                                   &is_cstr));
+      rc = cobol_classify_param(ir, &fn->fields[j], lk_c, sizeof(lk_c), &by_ref,
+                                &is_cstr);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (is_cstr) {
-        rc = cdd_c_keep_err(
-            rc,
-            cdd_ffi_write_fmt(
-                fp,
-                "    MOVE LOW-VALUES TO WS-C-STR-%lu\n"
-                "    STRING FUNCTION TRIM(LS-ARG-%lu TRAILING) DELIMITED BY "
-                "SIZE\n"
-                "           X\"00\" DELIMITED BY SIZE\n"
-                "           INTO WS-C-STR-%lu\n"
-                "    END-STRING\n",
-                (unsigned long)j, (unsigned long)j, (unsigned long)j));
+        rc = cdd_ffi_write_fmt(
+            fp,
+            "    MOVE LOW-VALUES TO WS-C-STR-%lu\n"
+            "    STRING FUNCTION TRIM(LS-ARG-%lu TRAILING) DELIMITED BY "
+            "SIZE\n"
+            "           X\"00\" DELIMITED BY SIZE\n"
+            "           INTO WS-C-STR-%lu\n"
+            "    END-STRING\n",
+            (unsigned long)j, (unsigned long)j, (unsigned long)j);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1973,22 +2058,23 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
           char lk_c[128];
           int by_ref = 0;
           int is_cstr = 0;
-          rc = cdd_c_keep_err(rc, cobol_classify_param(ir, &fn->fields[k], lk_c,
-                                                       sizeof(lk_c), &by_ref,
-                                                       &is_cstr));
-          if (is_cstr) {
-            rc = cdd_c_keep_err(
-                rc,
-                cdd_ffi_write_fmt(fp, "            BY REFERENCE WS-C-STR-%lu\n",
-                                  (unsigned long)k));
-          } else {
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_write_fmt(fp, "            BY %s LS-ARG-%lu\n",
-                                      by_ref ? "REFERENCE" : "VALUE",
-                                      (unsigned long)k));
-          }
+          rc = cobol_classify_param(ir, &fn->fields[k], lk_c, sizeof(lk_c),
+                                    &by_ref, &is_cstr);
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
+          if (is_cstr) {
+            rc =
+                cdd_ffi_write_fmt(fp, "            BY REFERENCE WS-C-STR-%lu\n",
+                                  (unsigned long)k);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
+          } else {
+            rc = cdd_ffi_write_fmt(fp, "            BY %s LS-ARG-%lu\n",
+                                   by_ref ? "REFERENCE" : "VALUE",
+                                   (unsigned long)k);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
+          }
         }
         if (fn->is_variadic) {
           rc = cdd_ffi_write_str(fp, "            BY REFERENCE WS-C-VAR-STR\n");
@@ -2039,11 +2125,14 @@ static NO_DISCARD cdd_c_error_t emit_cobol_subprograms(
                            "    GOBACK.\n"
                            "END PROGRAM %s.\n",
                            stub_prog, cpy_file, stub_prog);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
-cleanup:
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
-  return cdd_c_keep_err(rc, cobol_scope_free(&prog_scope));
+cleanup: {
+  return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp)),
+                        cobol_scope_free(&prog_scope));
+}
 }
 
 /**
@@ -2066,14 +2155,16 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
   FILE *fc = NULL;
   size_t i;
   size_t j;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
-  rc =
-      cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(hdr_name, sizeof(hdr_name),
-                                                  "%s_cobol_shim.h", lib_stem));
-  rc =
-      cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(src_name, sizeof(src_name),
-                                                  "%s_cobol_shim.c", lib_stem));
+  rc = cdd_ffi_snprintf_checked(hdr_name, sizeof(hdr_name), "%s_cobol_shim.h",
+                                lib_stem);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_snprintf_checked(src_name, sizeof(src_name), "%s_cobol_shim.c",
+                                lib_stem);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   {
     size_t gi;
@@ -2082,13 +2173,13 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       up[gi] = (char)toupper((unsigned char)lib_stem[gi]);
     }
     up[gi] = '\0';
-    rc =
-        cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(guard, sizeof(guard),
-                                                    "CDD_COBOL_SHIM_%s_H", up));
+    rc = cdd_ffi_snprintf_checked(guard, sizeof(guard), "CDD_COBOL_SHIM_%s_H",
+                                  up);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
-  rc = cdd_c_keep_err(
-      rc, cdd_ffi_open_output_file(config->output_dir, hdr_name, &fh));
+  rc = cdd_ffi_open_output_file(config->output_dir, hdr_name, &fh);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_ffi_open_output_file(config->output_dir, src_name, &fc);
@@ -2107,11 +2198,11 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       "#ifdef __cplusplus\n"
       "extern \"C\" {\n"
       "#endif /* __cplusplus */\n\n"
-      "/* "
-      "clang-format off */\n"
+      "/* clang-"
+      "format off */\n"
       "#include <stddef.h>\n"
-      "/* "
-      "clang-format on */\n\n",
+      "/* clang-"
+      "format on */\n\n",
       hdr_name, guard, guard);
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
@@ -2140,25 +2231,29 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
         node->fields_count > 0 && node->name) {
       char c_tag[128];
       const char *kw = (node->kind == CDD_FFI_NODE_UNION) ? "union" : "struct";
-      rc = cdd_c_keep_err(rc, cobol_sanitize_c_ident(node->name, "anon_rec",
-                                                     c_tag, sizeof(c_tag)));
-      rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fh, "%s %s {\n", kw, c_tag));
+      rc = cobol_sanitize_c_ident(node->name, "anon_rec", c_tag, sizeof(c_tag));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(fh, "%s %s {\n", kw, c_tag);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       for (j = 0; j < node->fields_count; j++) {
         char f_c_name[128];
         char f_fb[32];
         char f_decl[256];
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(f_fb, sizeof(f_fb),
-                                                         "f_%lu",
-                                                         (unsigned long)j));
-        rc = cdd_c_keep_err(rc,
-                            cobol_sanitize_c_ident(node->fields[j].name, f_fb,
-                                                   f_c_name, sizeof(f_c_name)));
-        rc = cdd_c_keep_err(rc, cobol_format_c89_decl(ir, &node->fields[j].type,
-                                                      f_c_name, f_decl,
-                                                      sizeof(f_decl)));
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fh, "  %s;\n", f_decl));
+        rc = cdd_ffi_snprintf_checked(f_fb, sizeof(f_fb), "f_%lu",
+                                      (unsigned long)j);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cobol_sanitize_c_ident(node->fields[j].name, f_fb, f_c_name,
+                                    sizeof(f_c_name));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cobol_format_c89_decl(ir, &node->fields[j].type, f_c_name, f_decl,
+                                   sizeof(f_decl));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fh, "  %s;\n", f_decl);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -2175,12 +2270,12 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       " * @file %s\n"
       " * @brief Strict ISO C89 COBOL ABI shim implementation.\n"
       " */\n"
-      "/* "
-      "clang-format off */\n"
+      "/* clang-"
+      "format off */\n"
       "#include \"%s\"\n"
       "#include <string.h>\n"
-      "/* "
-      "clang-format on */\n\n",
+      "/* clang-"
+      "format on */\n\n",
       src_name, hdr_name);
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
@@ -2232,21 +2327,23 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
     if (fn->kind != CDD_FFI_NODE_FUNCTION)
       continue;
 
-    rc = cdd_c_keep_err(
-        rc, cobol_check_fn_shim(ir, fn, &needs_shim, &cstr_ret, &rec_ret));
+    rc = cobol_check_fn_shim(ir, fn, &needs_shim, &cstr_ret, &rec_ret);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (!needs_shim)
       continue;
 
-    rc = cdd_c_keep_err(
-        rc, cobol_sanitize_c_ident(fn->name, "anon_fn", c_sym, sizeof(c_sym)));
-    rc = cdd_c_keep_err(rc, cobol_format_c89_decl(ir, &fn->return_or_base_type,
-                                                  NULL, orig_ret_c,
-                                                  sizeof(orig_ret_c)));
+    rc = cobol_sanitize_c_ident(fn->name, "anon_fn", c_sym, sizeof(c_sym));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = cobol_format_c89_decl(ir, &fn->return_or_base_type, NULL, orig_ret_c,
+                               sizeof(orig_ret_c));
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     shim_ret_c = (rec_ret || cstr_ret) ? "void" : orig_ret_c;
 
     /* Extern prototype of underlying C symbol in shim .c */
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_write_fmt(fc, "extern %s %s(", orig_ret_c, c_sym));
+    rc = cdd_ffi_write_fmt(fc, "extern %s %s(", orig_ret_c, c_sym);
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
     if (fn->fields_count == 0 && !fn->is_variadic) {
@@ -2257,16 +2354,17 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       for (j = 0; j < fn->fields_count; j++) {
         char p_decl[256];
         char p_nm[32];
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(p_nm, sizeof(p_nm),
-                                                         "p_%lu",
-                                                         (unsigned long)j));
-        rc = cdd_c_keep_err(rc,
-                            cobol_format_c89_decl(ir, &fn->fields[j].type, p_nm,
-                                                  p_decl, sizeof(p_decl)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(
-                    fc, "%s%s", p_decl,
-                    (j + 1 < fn->fields_count || fn->is_variadic) ? ", " : ""));
+        rc = cdd_ffi_snprintf_checked(p_nm, sizeof(p_nm), "p_%lu",
+                                      (unsigned long)j);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cobol_format_c89_decl(ir, &fn->fields[j].type, p_nm, p_decl,
+                                   sizeof(p_decl));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(
+            fc, "%s%s", p_decl,
+            (j + 1 < fn->fields_count || fn->is_variadic) ? ", " : "");
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -2298,34 +2396,37 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       char p_decl[256];
       char p_nm[32];
 
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(p_nm, sizeof(p_nm),
-                                                       "arg_%lu",
-                                                       (unsigned long)j));
-      rc = cdd_c_keep_err(
-          rc, cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, &rn));
+      rc = cdd_ffi_snprintf_checked(p_nm, sizeof(p_nm), "arg_%lu",
+                                    (unsigned long)j);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, &rn);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (byval_p) {
         char c_tag[128];
-        rc = cdd_c_keep_err(rc, cobol_sanitize_c_ident(rn->name, "anon_rec",
-                                                       c_tag, sizeof(c_tag)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_snprintf_checked(
-                    p_decl, sizeof(p_decl), "const %s %s *%s",
-                    rn->kind == CDD_FFI_NODE_UNION ? "union" : "struct", c_tag,
-                    p_nm));
+        rc = cobol_sanitize_c_ident(rn->name, "anon_rec", c_tag, sizeof(c_tag));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_snprintf_checked(
+            p_decl, sizeof(p_decl), "const %s %s *%s",
+            rn->kind == CDD_FFI_NODE_UNION ? "union" : "struct", c_tag, p_nm);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
       } else {
-        rc = cdd_c_keep_err(rc,
-                            cobol_format_c89_decl(ir, &fn->fields[j].type, p_nm,
-                                                  p_decl, sizeof(p_decl)));
+        rc = cobol_format_c89_decl(ir, &fn->fields[j].type, p_nm, p_decl,
+                                   sizeof(p_decl));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
       }
 
       emitted_p++;
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_write_fmt(fh, "%s%s", p_decl,
-                                emitted_p < shim_arity ? ", " : ""));
-      if (rc == CDD_C_SUCCESS) {
-        rc = cdd_ffi_write_fmt(fc, "%s%s", p_decl,
-                               emitted_p < shim_arity ? ", " : "");
-      }
+      rc = cdd_ffi_write_fmt(fh, "%s%s", p_decl,
+                             emitted_p < shim_arity ? ", " : "");
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(fc, "%s%s", p_decl,
+                             emitted_p < shim_arity ? ", " : "");
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
@@ -2333,10 +2434,10 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       emitted_p++;
       rc = cdd_ffi_write_fmt(fh, "const char *var_tail%s",
                              emitted_p < shim_arity ? ", " : "");
-      if (rc == CDD_C_SUCCESS) {
-        rc = cdd_ffi_write_fmt(fc, "const char *var_tail%s",
-                               emitted_p < shim_arity ? ", " : "");
-      }
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(fc, "const char *var_tail%s",
+                             emitted_p < shim_arity ? ", " : "");
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
@@ -2344,23 +2445,24 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
       const cdd_ffi_ir_node_t *rn = NULL;
       char c_tag[128];
       const char *r_kw;
-      rc = cdd_c_keep_err(rc, cobol_is_byval_record(
-                                  ir, &fn->return_or_base_type, &rec_ret, &rn));
-      rc = cdd_c_keep_err(rc, cobol_sanitize_c_ident(rn->name, "anon_rec",
-                                                     c_tag, sizeof(c_tag)));
+      rc = cobol_is_byval_record(ir, &fn->return_or_base_type, &rec_ret, &rn);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cobol_sanitize_c_ident(rn->name, "anon_rec", c_tag, sizeof(c_tag));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       r_kw = (rn->kind == CDD_FFI_NODE_UNION) ? "union" : "struct";
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_write_fmt(fh, "%s %s *out_ret", r_kw, c_tag));
-      if (rc == CDD_C_SUCCESS) {
-        rc = cdd_ffi_write_fmt(fc, "%s %s *out_ret", r_kw, c_tag);
-      }
+      rc = cdd_ffi_write_fmt(fh, "%s %s *out_ret", r_kw, c_tag);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(fc, "%s %s *out_ret", r_kw, c_tag);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     } else if (cstr_ret) {
       rc = cdd_ffi_write_str(fh, "char *out_pic_x, unsigned int out_len");
-      if (rc == CDD_C_SUCCESS) {
-        rc = cdd_ffi_write_str(fc, "char *out_pic_x, unsigned int out_len");
-      }
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_str(fc, "char *out_pic_x, unsigned int out_len");
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
@@ -2386,30 +2488,31 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
     for (j = 0; j < fn->fields_count; j++) {
       int byval_p = 0;
       const cdd_ffi_ir_node_t *rn = NULL;
-      rc = cdd_c_keep_err(
-          rc, cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, &rn));
+      rc = cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, &rn);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (byval_p) {
         char c_tag[128];
-        rc = cdd_c_keep_err(rc, cobol_sanitize_c_ident(rn->name, "anon_rec",
-                                                       c_tag, sizeof(c_tag)));
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fc, "  %s %s zero_%lu;\n",
-                                                  rn->kind == CDD_FFI_NODE_UNION
-                                                      ? "union"
-                                                      : "struct",
-                                                  c_tag, (unsigned long)j));
+        rc = cobol_sanitize_c_ident(rn->name, "anon_rec", c_tag, sizeof(c_tag));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fc, "  %s %s zero_%lu;\n",
+                               rn->kind == CDD_FFI_NODE_UNION ? "union"
+                                                              : "struct",
+                               c_tag, (unsigned long)j);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
     }
     for (j = 0; j < fn->fields_count; j++) {
       int byval_p = 0;
-      rc = cdd_c_keep_err(
-          rc, cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, NULL));
+      rc = cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, NULL);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (byval_p) {
-        rc = cdd_c_keep_err(
-            rc,
+        rc =
             cdd_ffi_write_fmt(fc, "  memset(&zero_%lu, 0, sizeof(zero_%lu));\n",
-                              (unsigned long)j, (unsigned long)j));
+                              (unsigned long)j, (unsigned long)j);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -2417,32 +2520,39 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
 
     if (cstr_ret) {
       rc = cdd_ffi_write_fmt(fc, "  raw_str = %s(", c_sym);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else if (rec_ret) {
       rc = cdd_ffi_write_fmt(fc, "  tmp_ret = %s(", c_sym);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else if (fn->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                fn->return_or_base_type.pointer_depth == 0) {
       rc = cdd_ffi_write_fmt(fc, "  %s(", c_sym);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else {
       rc = cdd_ffi_write_fmt(fc, "  return %s(", c_sym);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     }
-    if (rc != CDD_C_SUCCESS)
-      goto cleanup;
 
     for (j = 0; j < fn->fields_count; j++) {
       int byval_p = 0;
-      rc = cdd_c_keep_err(
-          rc, cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, NULL));
-      if (byval_p) {
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fc, "arg_%lu ? *arg_%lu : zero_%lu",
-                                  (unsigned long)j, (unsigned long)j,
-                                  (unsigned long)j));
-      } else {
-        rc = cdd_c_keep_err(rc,
-                            cdd_ffi_write_fmt(fc, "arg_%lu", (unsigned long)j));
-      }
+      rc = cobol_is_byval_record(ir, &fn->fields[j].type, &byval_p, NULL);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
+      if (byval_p) {
+        rc = cdd_ffi_write_fmt(fc, "arg_%lu ? *arg_%lu : zero_%lu",
+                               (unsigned long)j, (unsigned long)j,
+                               (unsigned long)j);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+      } else {
+        rc = cdd_ffi_write_fmt(fc, "arg_%lu", (unsigned long)j);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+      }
       if (j + 1 < fn->fields_count || fn->is_variadic) {
         rc = cdd_ffi_write_str(fc, ", ");
         if (rc != CDD_C_SUCCESS)
@@ -2487,10 +2597,13 @@ static NO_DISCARD cdd_c_error_t emit_cobol_c89_shim(
                          "#endif /* __cplusplus */\n\n"
                          "#endif /* %s */\n",
                          guard);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
-cleanup:
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fh));
-  return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fc));
+cleanup: {
+  return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fh)),
+                        cdd_ffi_close_output_file(&fc));
+}
 }
 
 /**
@@ -2521,11 +2634,13 @@ static NO_DISCARD cdd_c_error_t emit_cobol_tests(
 
   rc = cdd_ffi_snprintf_checked(test_file, sizeof(test_file), "%s_test.cbl",
                                 mod_stem);
-  rc =
-      cdd_c_keep_err(rc, cdd_cobol_sanitize_word(mod_word, "TST-", 0, test_prog,
-                                                 sizeof(test_prog)));
-  rc = cdd_c_keep_err(
-      rc, cdd_ffi_open_output_file(config->output_dir, test_file, &fp));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cobol_sanitize_word(mod_word, "TST-", 0, test_prog,
+                               sizeof(test_prog));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_open_output_file(config->output_dir, test_file, &fp);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -2566,9 +2681,10 @@ static NO_DISCARD cdd_c_error_t emit_cobol_tests(
                          "    GOBACK.\n"
                          "END PROGRAM %s.\n",
                          test_prog);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
-cleanup:
-  return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+cleanup: { return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp)); }
 }
 
 /*
@@ -2602,31 +2718,42 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_cobol(
 
   /* Run ABI layout calculation first (falling back to relaxed refs for fuzz
    * IRs) */
-  rc = cdd_ffi_ir_compute_layout(ir, NULL);
-  if (rc == CDD_C_ERROR_NOT_FOUND) {
-    cdd_ffi_abi_profile_t relaxed_abi;
-    rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &relaxed_abi);
-    relaxed_abi.allow_unresolved_refs = 1;
-    rc = cdd_c_keep_err(rc, cdd_ffi_ir_compute_layout(ir, &relaxed_abi));
+  {
+    cdd_c_error_t lrc = cdd_ffi_ir_compute_layout(ir, NULL);
+    if (lrc != CDD_C_SUCCESS) {
+      cdd_ffi_abi_profile_t relaxed_abi;
+      if (lrc != CDD_C_ERROR_NOT_FOUND)
+        return lrc;
+      rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &relaxed_abi);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      relaxed_abi.allow_unresolved_refs = 1;
+      rc = cdd_ffi_ir_compute_layout(ir, &relaxed_abi);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
   }
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
   raw_lib = config->library_name
                 ? config->library_name
                 : (ir->module_name ? ir->module_name : "mylib");
   raw_mod = config->module_name ? config->module_name : raw_lib;
 
-  rc = cdd_c_keep_err(rc, cobol_sanitize_file_stem(raw_lib, "mylib", lib_stem,
-                                                   sizeof(lib_stem)));
-  rc = cdd_c_keep_err(rc, cobol_sanitize_file_stem(raw_mod, lib_stem, mod_stem,
-                                                   sizeof(mod_stem)));
-  rc = cdd_c_keep_err(rc, cdd_cobol_sanitize_word(raw_mod, NULL, 0, mod_word,
-                                                  sizeof(mod_word)));
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(cpy_file, sizeof(cpy_file),
-                                                   "%s.cpy", lib_stem));
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(cbl_file, sizeof(cbl_file),
-                                                   "%s.cbl", mod_stem));
+  rc = cobol_sanitize_file_stem(raw_lib, "mylib", lib_stem, sizeof(lib_stem));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cobol_sanitize_file_stem(raw_mod, lib_stem, mod_stem, sizeof(mod_stem));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cobol_sanitize_word(raw_mod, NULL, 0, mod_word, sizeof(mod_word));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_snprintf_checked(cpy_file, sizeof(cpy_file), "%s.cpy", lib_stem);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_snprintf_checked(cbl_file, sizeof(cbl_file), "%s.cbl", mod_stem);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (ir->nodes_count > 0) {
     node_words = (char **)C_CDD_CALLOC(ir->nodes_count, sizeof(char *));
@@ -2661,6 +2788,8 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_cobol(
     goto cleanup;
 
   rc = emit_cobol_tests(ir, config, mod_stem, cpy_file, mod_word, node_words);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
 cleanup:
   if (node_words) {

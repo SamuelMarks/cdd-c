@@ -87,6 +87,10 @@ cdd_c_error_t pp_join_path(const char *dir, const char *file, char **out_val) {
 cdd_c_error_t pp_file_exists(const char *path, int *out_exists) {
   FILE *f;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!path || !out_exists)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -138,6 +142,16 @@ cdd_c_error_t pp_free_macro_def(struct MacroDef *def) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief `*_free` alias for `pp_free_macro_def`.
+ *
+ * @param[in,out] def Pointer to the MacroDef structure to free.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t pp_macro_def_free(struct MacroDef *def) {
+  return pp_free_macro_def(def);
+}
+
 /*
  * @brief Copies a token's byte span into a newly allocated null-terminated
  * string.
@@ -150,6 +164,10 @@ cdd_c_error_t pp_free_macro_def(struct MacroDef *def) {
 cdd_c_error_t pp_token_to_string(const struct Token *t, char **out_val) {
   char *s;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!t || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -222,38 +240,44 @@ cdd_c_error_t pp_resolve_path(const struct PreprocessorContext *ctx,
   *out_val = NULL;
 
   if (!is_system && current_dir) {
+    int exists = 0;
     rc = pp_join_path(current_dir, include_path, &candidate);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
-
-    {
-      int exists = 0;
-      rc = pp_file_exists(candidate, &exists);
-      if (exists) {
-        *out_val = candidate;
-        return rc;
-      }
-      C_CDD_FREE(candidate);
-      candidate = NULL;
     }
+
+    rc = pp_file_exists(candidate, &exists);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(candidate);
+      return rc;
+    }
+    if (exists) {
+      *out_val = candidate;
+      return CDD_C_SUCCESS;
+    }
+    C_CDD_FREE(candidate);
+    candidate = NULL;
   }
 
   if (ctx) {
     for (i = 0; i < ctx->size; ++i) {
+      int exists = 0;
       rc = pp_join_path(ctx->search_paths[i], include_path, &candidate);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         return rc;
-
-      {
-        int exists = 0;
-        rc = pp_file_exists(candidate, &exists);
-        if (exists) {
-          *out_val = candidate;
-          return rc;
-        }
-        C_CDD_FREE(candidate);
-        candidate = NULL;
       }
+
+      rc = pp_file_exists(candidate, &exists);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(candidate);
+        return rc;
+      }
+      if (exists) {
+        *out_val = candidate;
+        return CDD_C_SUCCESS;
+      }
+      C_CDD_FREE(candidate);
+      candidate = NULL;
     }
   }
 
@@ -277,13 +301,18 @@ cdd_c_error_t pp_reconstruct_path(const struct TokenList *tokens, size_t start,
   size_t i;
   char *buf, *p;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!tokens || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   *out_val = NULL;
 
-  if (start >= end)
+  if (start >= end) {
     return c_cdd_strdup("", out_val);
+  }
 
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
@@ -313,6 +342,10 @@ cdd_c_error_t pp_reconstruct_path(const struct TokenList *tokens, size_t start,
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
 cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!ctx)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -329,7 +362,7 @@ cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx) {
  */
 cdd_c_error_t pp_context_free(struct PreprocessorContext *ctx) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (!ctx)
     return CDD_C_SUCCESS;
@@ -344,13 +377,14 @@ cdd_c_error_t pp_context_free(struct PreprocessorContext *ctx) {
 
   if (ctx->macros) {
     for (i = 0; i < ctx->macro_count; ++i) {
-      rc = (cdd_c_error_t)((int)rc | (int)free_macro_def(&ctx->macros[i]));
+      rc_free = (cdd_c_error_t)((int)rc_free |
+                                (int)pp_macro_def_free(&ctx->macros[i]));
     }
     C_CDD_FREE(ctx->macros);
   }
 
   memset(ctx, 0, sizeof(*ctx));
-  return rc;
+  return rc_free;
 }
 
 /*
@@ -372,7 +406,7 @@ cdd_c_error_t pp_add_search_path(struct PreprocessorContext *ctx,
   rc = c_cdd_strdup(path, &copy);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
   if (ctx->size >= ctx->capacity) {
@@ -410,21 +444,23 @@ cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx, const char *name,
   memset(&def, 0, sizeof(def));
 
   rc = c_cdd_strdup(name, &def.name);
-  if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
 
   if (value) {
     rc = c_cdd_strdup(value, &def.value);
     if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(def.name);
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
   }
 
   def.is_function_like = 0;
   rc = add_macro_internal(ctx, &def);
   if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)free_macro_def(&def));
+    cdd_c_error_t rc_f = pp_macro_def_free(&def);
+    return cdd_c_keep_err(rc, rc_f);
   }
 
   return CDD_C_SUCCESS;
@@ -444,15 +480,19 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
   char *content = NULL;
   size_t sz = 0;
   struct TokenList *tokens = NULL;
+  struct MacroDef def;
   cdd_c_error_t rc;
   size_t i;
 
   if (!ctx || !filename)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+  memset(&def, 0, sizeof(def));
+
   rc = read_to_file(filename, "r", &content, &sz);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
     return rc;
+  }
 
   rc = tokenize(az_span_create_from_str(content), &tokens);
   if (rc != CDD_C_SUCCESS) {
@@ -471,6 +511,9 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
       if (next < tokens->size) {
         rc = token_matches_string(&tokens->tokens[next], "define", &is_define);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
         if (is_define) {
           size_t name_idx = next + 1;
 
@@ -480,15 +523,12 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
           if (name_idx < tokens->size) {
             if (tokens->tokens[name_idx].kind == TOKEN_IDENTIFIER) {
-              struct MacroDef def;
               size_t val_start_idx = name_idx + 1;
 
               memset(&def, 0, sizeof(def));
               rc = pp_token_to_string(&tokens->tokens[name_idx], &def.name);
               if (rc != CDD_C_SUCCESS) {
-                rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
-                C_CDD_FREE(content);
-                return rc;
+                goto cleanup;
               }
 
               if (name_idx + 1 < tokens->size) {
@@ -514,29 +554,18 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
                       rc = pp_token_to_string(&tokens->tokens[curr], &arg_name);
                       if (rc != CDD_C_SUCCESS) {
-                        rc = (cdd_c_error_t)((int)rc |
-                                             (int)free_macro_def(&def));
-                        rc = (cdd_c_error_t)((int)rc |
-                                             (int)free_token_list(tokens));
-                        C_CDD_FREE(content);
-                        return rc;
+                        goto cleanup;
                       }
 
                       new_args = (char **)C_CDD_REALLOC(
                           def.args, (def.arg_count + 1) * sizeof(char *));
-                      if (new_args) {
-                        def.args = new_args;
-                        def.args[def.arg_count++] = arg_name;
-                      } else {
-                        cdd_c_error_t rc_oom;
+                      if (!new_args) {
                         C_CDD_FREE(arg_name);
-                        rc_oom = pp_free_macro_def(&def);
-                        rc_oom = (cdd_c_error_t)((int)rc_oom |
-                                                 (int)free_token_list(tokens));
-                        C_CDD_FREE(content);
-                        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                               (int)rc_oom);
+                        rc = CDD_C_ERROR_MEMORY;
+                        goto cleanup;
                       }
+                      def.args = new_args;
+                      def.args[def.arg_count++] = arg_name;
                       curr++;
 
                       if (curr < tokens->size &&
@@ -602,11 +631,9 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
               rc = add_macro_internal(ctx, &def);
               if (rc != CDD_C_SUCCESS) {
-                rc = (cdd_c_error_t)((int)rc | (int)free_macro_def(&def));
-                rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
-                C_CDD_FREE(content);
-                return rc;
+                goto cleanup;
               }
+              memset(&def, 0, sizeof(def));
               i = name_idx;
             }
           }
@@ -615,9 +642,14 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
     }
   }
 
-  rc = free_token_list(tokens);
+  rc = CDD_C_SUCCESS;
+
+cleanup: {
+  cdd_c_error_t rc_f1 = pp_macro_def_free(&def);
+  cdd_c_error_t rc_f2 = token_list_free(tokens);
   C_CDD_FREE(content);
-  return rc;
+  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_f1, rc_f2));
+}
 }
 
 /*
@@ -662,15 +694,20 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                                pp_visitor_cb cb, void *user_data) {
   char *content = NULL;
   char *dir_name = NULL;
+  char *raw_path = NULL;
+  char *resolved = NULL;
+  struct EmbedParams embed_cleanup;
   size_t sz = 0;
   struct TokenList *tokens = NULL;
   struct ConditionalStack stack;
   size_t i;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (!filename || !ctx)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+  memset(&embed_cleanup, 0, sizeof(embed_cleanup));
   stack.top = -1;
 
   rc = read_to_file(filename, "r", &content, &sz);
@@ -685,9 +722,7 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
   rc = get_dirname(filename, &dir_name);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
-    C_CDD_FREE(content);
-    return rc;
+    goto cleanup_and_exit;
   }
 
   ctx->current_file_dir = dir_name;
@@ -731,14 +766,21 @@ cdd_c_error_t pp_scan_includes(const char *filename,
           int is_ifdef = 0;
           int is_ifndef = 0;
           rc = token_matches_string(cmd, "ifdef", &is_ifdef);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
           rc = token_matches_string(cmd, "ifndef", &is_ifndef);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
 
           if (is_ifdef || is_ifndef) {
             int inverse = is_ifndef;
             int enabled = 0;
             int condition_met = 0;
+            enum CondState next_state;
 
             rc = pp_is_enabled(&stack, &enabled);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
             directive_handled = 1;
 
             {
@@ -747,35 +789,39 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                      tokens->tokens[id_idx].kind == TOKEN_WHITESPACE)
                 id_idx++;
 
-              if (id_idx < eol) {
-                if (tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER) {
-                  int defined = 0;
-                  rc = pp_is_defined_macro(ctx, &tokens->tokens[id_idx],
-                                           &defined);
-                  if (rc != CDD_C_SUCCESS)
-                    goto cleanup_and_exit;
-                  condition_met = inverse ? !defined : defined;
-                }
+              if (id_idx < eol &&
+                  tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER) {
+                int defined = 0;
+                rc =
+                    pp_is_defined_macro(ctx, &tokens->tokens[id_idx], &defined);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup_and_exit;
+                condition_met = inverse ? !defined : defined;
               }
             }
 
-            if (enabled)
-              rc = pp_stack_push(&stack,
-                                 condition_met ? COND_ACTIVE : COND_SKIPPING);
-            else
-              rc = pp_stack_push(&stack, COND_SATISFIED);
+            next_state = enabled ? (condition_met ? COND_ACTIVE : COND_SKIPPING)
+                                 : COND_SATISFIED;
+            rc = pp_stack_push(&stack, next_state);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
           }
         }
 
         if (!directive_handled) {
           int is_if = 0;
           rc = token_matches_string(cmd, "if", &is_if);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
           if (is_if) {
             int enabled = 0;
             int condition_met = 0;
             long val = 0;
+            enum CondState next_state;
 
             rc = pp_is_enabled(&stack, &enabled);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
             directive_handled = 1;
 
             if (enabled) {
@@ -784,32 +830,38 @@ cdd_c_error_t pp_scan_includes(const char *filename,
               if (rc != CDD_C_SUCCESS)
                 goto cleanup_and_exit;
               condition_met = (val != 0);
-              rc = pp_stack_push(&stack,
-                                 condition_met ? COND_ACTIVE : COND_SKIPPING);
+              next_state = condition_met ? COND_ACTIVE : COND_SKIPPING;
             } else {
-              rc = pp_stack_push(&stack, COND_SATISFIED);
+              next_state = COND_SATISFIED;
             }
+            rc = pp_stack_push(&stack, next_state);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
           }
         }
 
         if (!directive_handled) {
           int is_elif = 0;
           rc = token_matches_string(cmd, "elif", &is_elif);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
           if (is_elif) {
             enum CondState current = COND_ACTIVE;
-            int parent_enabled = 0;
 
             rc = pp_stack_peek(&stack, &current);
-            rc = pp_stack_pop(&stack);
-            rc = pp_is_enabled(&stack, &parent_enabled);
-            rc = pp_stack_push(&stack, current);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
             directive_handled = 1;
 
             if (current == COND_SATISFIED) {
               /* Keep skipping */
             } else if (current == COND_ACTIVE) {
               rc = pp_stack_pop(&stack);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
               rc = pp_stack_push(&stack, COND_SATISFIED);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
             } else {
               long val = 0;
               size_t start_expr = next + 1;
@@ -818,7 +870,11 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                 goto cleanup_and_exit;
               if (val != 0) {
                 rc = pp_stack_pop(&stack);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup_and_exit;
                 rc = pp_stack_push(&stack, COND_ACTIVE);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup_and_exit;
               }
             }
           }
@@ -827,22 +883,30 @@ cdd_c_error_t pp_scan_includes(const char *filename,
         if (!directive_handled) {
           int is_else = 0;
           rc = token_matches_string(cmd, "else", &is_else);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
           if (is_else) {
             enum CondState current = COND_ACTIVE;
-            int parent_enabled = 0;
 
             rc = pp_stack_peek(&stack, &current);
-            rc = pp_stack_pop(&stack);
-            rc = pp_is_enabled(&stack, &parent_enabled);
-            rc = pp_stack_push(&stack, current);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
             directive_handled = 1;
 
             if (current == COND_ACTIVE) {
               rc = pp_stack_pop(&stack);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
               rc = pp_stack_push(&stack, COND_SATISFIED);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
             } else if (current == COND_SKIPPING) {
               rc = pp_stack_pop(&stack);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
               rc = pp_stack_push(&stack, COND_ACTIVE);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
             }
           }
         }
@@ -850,9 +914,13 @@ cdd_c_error_t pp_scan_includes(const char *filename,
         if (!directive_handled) {
           int is_endif = 0;
           rc = token_matches_string(cmd, "endif", &is_endif);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
           if (is_endif) {
             directive_handled = 1;
             rc = pp_stack_pop(&stack);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
           }
         }
 
@@ -860,23 +928,30 @@ cdd_c_error_t pp_scan_includes(const char *filename,
         if (!directive_handled) {
           int enabled = 0;
           rc = pp_is_enabled(&stack, &enabled);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_and_exit;
           if (enabled) {
             int is_embed = 0;
             int is_include = 0;
             int is_include_next = 0;
 
             is_embed = (tokens->tokens[next].kind == TOKEN_KEYWORD_EMBED);
-            if (!is_embed)
+            if (!is_embed) {
               rc = token_matches_string(cmd, "embed", &is_embed);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_and_exit;
+            }
 
             rc = token_matches_string(cmd, "include", &is_include);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
             rc = token_matches_string(cmd, "include_next", &is_include_next);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_and_exit;
 
             if (is_embed || is_include || is_include_next) {
               size_t path_start = next + 1;
               size_t path_end = path_start;
-              char *raw_path = NULL;
-              char *resolved = NULL;
               int is_sys = 0;
 
               while (path_start < eol &&
@@ -887,8 +962,10 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                 if (tokens->tokens[path_start].kind == TOKEN_STRING_LITERAL) {
                   const struct Token *t = &tokens->tokens[path_start];
                   raw_path = (char *)C_CDD_MALLOC(t->length - 1);
-                  if (!raw_path)
+                  if (!raw_path) {
+                    rc = CDD_C_ERROR_MEMORY;
                     goto cleanup_and_exit;
+                  }
                   memcpy(raw_path, t->start + 1, t->length - 2);
                   raw_path[t->length - 2] = '\0';
                   path_end = path_start + 1;
@@ -902,6 +979,8 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                   if (end_arg < eol) {
                     rc = pp_reconstruct_path(tokens, path_start + 1, end_arg,
                                              &raw_path);
+                    if (rc != CDD_C_SUCCESS)
+                      goto cleanup_and_exit;
                     is_sys = 1;
                     path_end = end_arg + 1;
                   }
@@ -911,13 +990,11 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                   rc = pp_resolve_path(ctx, dir_name, raw_path, is_sys,
                                        &resolved);
                   if (rc != CDD_C_SUCCESS) {
-                    C_CDD_FREE(raw_path);
                     goto cleanup_and_exit;
                   }
                   if (resolved) {
                     if (cb) {
                       struct IncludeInfo info;
-                      cdd_c_error_t cb_rc;
                       memset(&info, 0, sizeof(info));
                       info.kind = is_embed ? PP_DIR_EMBED : PP_DIR_INCLUDE;
                       info.resolved_path = resolved;
@@ -926,42 +1003,32 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                       info.is_next = is_include_next;
                       info.params.limit = -1;
 
-                      if (is_embed) {
-                        if (path_end < eol) {
-                          rc = pp_parse_embed_params(tokens, path_end, eol, ctx,
-                                                     &info.params);
-                          if (rc != CDD_C_SUCCESS) {
-                            rc = (cdd_c_error_t)((int)rc |
-                                                 (int)pp_embed_params_free(
-                                                     &info.params));
-                            C_CDD_FREE(resolved);
-                            C_CDD_FREE(raw_path);
-                            goto cleanup_and_exit;
-                          }
+                      if (is_embed && path_end < eol) {
+                        rc = pp_parse_embed_params(tokens, path_end, eol, ctx,
+                                                   &info.params);
+                        if (rc != CDD_C_SUCCESS) {
+                          embed_cleanup = info.params;
+                          goto cleanup_and_exit;
                         }
                       }
 
-                      cb_rc = cb(&info, user_data);
-                      if (cb_rc != CDD_C_SUCCESS) {
-                        if (is_embed) {
-                          rc = (cdd_c_error_t)((int)rc |
-                                               (int)pp_embed_params_free(
-                                                   &info.params));
-                        }
-                        C_CDD_FREE(resolved);
-                        C_CDD_FREE(raw_path);
+                      rc = cb(&info, user_data);
+                      if (rc != CDD_C_SUCCESS) {
+                        embed_cleanup = info.params;
                         goto cleanup_and_exit;
                       }
 
                       if (is_embed) {
-                        rc =
-                            (cdd_c_error_t)((int)rc | (int)pp_embed_params_free(
-                                                          &info.params));
+                        rc_free = (cdd_c_error_t)((int)rc_free |
+                                                  (int)pp_embed_params_free(
+                                                      &info.params));
                       }
                     }
                     C_CDD_FREE(resolved);
+                    resolved = NULL;
                   }
                   C_CDD_FREE(raw_path);
+                  raw_path = NULL;
                 }
               }
             }
@@ -973,10 +1040,17 @@ cdd_c_error_t pp_scan_includes(const char *filename,
     }
   }
 
-cleanup_and_exit:
+  rc = CDD_C_SUCCESS;
+
+cleanup_and_exit: {
+  cdd_c_error_t rc_f1 = pp_embed_params_free(&embed_cleanup);
+  cdd_c_error_t rc_f2 = token_list_free(tokens);
   ctx->current_file_dir = NULL;
+  C_CDD_FREE(resolved);
+  C_CDD_FREE(raw_path);
   C_CDD_FREE(dir_name);
-  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   C_CDD_FREE(content);
-  return rc;
+  return cdd_c_keep_err(rc,
+                        cdd_c_keep_err(rc_free, cdd_c_keep_err(rc_f1, rc_f2)));
+}
 }

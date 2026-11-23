@@ -21,7 +21,11 @@ static cdd_c_error_t gnu_scan_scope_types(const cdd_cst_scope_t *sc,
                                           int *io_has_vptr, int *io_has_i128) {
   const cdd_cst_symbol_t *sym;
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (sym = sc->symbols; sym; sym = sym->next) {
     if (sym->type_str) {
       if (strstr(sym->type_str, "void *") != NULL ||
@@ -34,11 +38,11 @@ static cdd_c_error_t gnu_scan_scope_types(const cdd_cst_scope_t *sc,
     }
   }
   for (i = 0; i < sc->num_children; i++) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_scan_scope_types(sc->children[i], io_has_vptr,
-                                                   io_has_i128));
+    rc = gnu_scan_scope_types(sc->children[i], io_has_vptr, io_has_i128);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -55,6 +59,10 @@ static cdd_c_error_t expr_check_unnamed_member(const cdd_token_list_t *tokens,
                                                int *out_is_unnamed_member) {
   size_t k;
   int depth = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_unnamed_member = 0;
   for (k = lbrace_idx; k < tokens->size; k++) {
     if (tokens->tokens[k].kind == CDD_TOKEN_LBRACE)
@@ -95,29 +103,29 @@ expr_emit_msvc_4201_once(cdd_cst_tree_t *tree,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  bld.error_state = cdd_cst_builder_init(&bld, tree, pragma_node);
-  bld.error_state =
-      (cdd_c_error_t)((int)bld.error_state |
-                      (int)cdd_cst_bld_token(&bld, CDD_TOKEN_PREPROC_PRAGMA,
-                                             "#pragma warning(disable: 4201)"));
-  bld.error_state =
-      (cdd_c_error_t)((int)bld.error_state | (int)cdd_cst_bld_newline(&bld));
-  if (bld.error_state != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                         (int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(pragma_node));
-    return rc;
+  rc = cdd_cst_builder_init(&bld, tree, pragma_node);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_cst_free_node_only(pragma_node));
   }
-
+  rc = cdd_cst_bld_token(&bld, CDD_TOKEN_PREPROC_PRAGMA,
+                         "#pragma warning(disable: 4201)");
+  if (rc != CDD_C_SUCCESS)
+    goto err_pragma;
+  rc = cdd_cst_bld_newline(&bld);
+  if (rc != CDD_C_SUCCESS)
+    goto err_pragma;
   rc = cdd_cst_splice_children(tree, &tree->root, 0, 0, pragma_node->children,
                                pragma_node->num_children);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                       (int)cdd_cst_free_node_only(pragma_node));
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    goto err_pragma;
 
   gctx->emitted_msvc_4201 = 1;
-  return CDD_C_SUCCESS;
+  return cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                        cdd_cst_free_node_only(pragma_node));
+
+err_pragma:;
+  return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                                           cdd_cst_free_node(pragma_node)));
 }
 
 /**
@@ -134,6 +142,10 @@ static cdd_c_error_t expr_cond_has_side_effects(const cdd_token_t *tokens,
                                                 size_t start, size_t end,
                                                 int *out_has_side_effect) {
   size_t k;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_has_side_effect = 0;
   for (k = start; k < end; k++) {
     if (tokens[k].kind == CDD_TOKEN_IDENTIFIER && k + 1 < end &&
@@ -159,17 +171,23 @@ static cdd_c_error_t expr_cond_has_side_effects(const cdd_token_t *tokens,
 
 /**
  * @brief Locates the enclosing statement node and its index inside the nearest
- * `CDD_CST_BLOCK`.
+ * `CDD_CST_BLOCK`, setting `*out_block` to NULL if not inside a block.
  *
  * @param[in] node Starting CST node inside a statement.
- * @param[out] out_block Parent `CDD_CST_BLOCK` node.
+ * @param[out] out_block Parent `CDD_CST_BLOCK` node or NULL.
  * @param[out] out_stmt_idx Child index of the statement inside `out_block`.
- * @return CDD_C_SUCCESS if inside a block, or CDD_C_ERROR_NOT_FOUND.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
  */
 static cdd_c_error_t expr_find_enclosing_block_stmt(cdd_cst_node_t *node,
                                                     cdd_cst_node_t **out_block,
                                                     size_t *out_stmt_idx) {
   cdd_cst_node_t *cur = node;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_block = NULL;
+  *out_stmt_idx = 0;
   while (cur->parent) {
     if (cur->parent->kind == CDD_CST_BLOCK) {
       cdd_cst_node_t *blk = cur->parent;
@@ -184,7 +202,7 @@ static cdd_c_error_t expr_find_enclosing_block_stmt(cdd_cst_node_t *node,
     }
     cur = cur->parent;
   }
-  return CDD_C_ERROR_NOT_FOUND;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -210,6 +228,8 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
     ctx_p = &local_ctx;
   }
   rc = gnu_is_msvc_target(ctx_p->config, &is_msvc);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (i = 0; i < tree->base_tokens->size; i++) {
     cdd_token_t *tok = &tree->base_tokens->tokens[i];
@@ -243,9 +263,9 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
         if (i + 1 < tree->base_tokens->size &&
             tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LBRACE) {
           int is_unnamed = 0;
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)expr_check_unnamed_member(
-                                   tree->base_tokens, i + 1, &is_unnamed));
+          rc = expr_check_unnamed_member(tree->base_tokens, i + 1, &is_unnamed);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (!is_unnamed)
             continue;
           if (is_msvc) {
@@ -257,46 +277,15 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
           {
             size_t child_idx;
             cdd_cst_node_t *owning_node = NULL;
+            char tb2[128];
             rc = gnu_find_node(tree->root, tok, &child_idx, &owning_node);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            {
-              cdd_cst_node_t *temp = NULL;
-              cdd_cst_builder_t bld;
-              rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-              bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-              bld.error_state = cdd_cst_bld_ident(&bld, "union");
-              bld.error_state = cdd_cst_bld_space(&bld);
-              {
-                char tb2[128];
-                const char *pooled = NULL;
-                CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", ctx_p->anon_idx++);
-                bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                                  (int)cdd_pool_string_safe(
-                                                      tree, tb2, &pooled));
-                bld.error_state = cdd_cst_bld_ident(&bld, pooled);
-              }
-              if (bld.error_state != 0) {
-                bld.error_state =
-                    (cdd_c_error_t)((int)bld.error_state |
-                                    (int)cdd_cst_builder_free(&bld));
-                bld.error_state =
-                    (cdd_c_error_t)((int)bld.error_state |
-                                    (int)cdd_cst_free_node_only(temp));
-                return CDD_C_ERROR_MEMORY;
-              }
-              bld.error_state =
-                  cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                          temp->children, temp->num_children);
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_builder_free(&bld));
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_free_node_only(temp));
-            }
+            CDD_SNPRINTF(tb2, sizeof(tb2), "union _cdd_anon_%d",
+                         ctx_p->anon_idx++);
+            rc = gnu_splice_snippet_at(tree, &owning_node, child_idx, 1, tb2);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
         }
       }
@@ -304,9 +293,9 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
       if (i + 1 < tree->base_tokens->size &&
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LBRACE) {
         int is_unnamed = 0;
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)expr_check_unnamed_member(
-                                 tree->base_tokens, i + 1, &is_unnamed));
+        rc = expr_check_unnamed_member(tree->base_tokens, i + 1, &is_unnamed);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (!is_unnamed)
           continue;
         if (is_msvc) {
@@ -318,45 +307,15 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
         {
           size_t child_idx;
           cdd_cst_node_t *owning_node = NULL;
+          char tb2[128];
           rc = gnu_find_node(tree->root, tok, &child_idx, &owning_node);
           if (rc != CDD_C_SUCCESS)
             return rc;
-          {
-            cdd_cst_node_t *temp = NULL;
-            cdd_cst_builder_t bld;
-            rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-            bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-            bld.error_state = cdd_cst_bld_ident(&bld, "struct");
-            bld.error_state = cdd_cst_bld_space(&bld);
-            {
-              char tb2[128];
-              const char *pooled = NULL;
-              CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", ctx_p->anon_idx++);
-              bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                                (int)cdd_pool_string_safe(
-                                                    tree, tb2, &pooled));
-              bld.error_state = cdd_cst_bld_ident(&bld, pooled);
-            }
-            if (bld.error_state != 0) {
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_builder_free(&bld));
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_free_node_only(temp));
-              return CDD_C_ERROR_MEMORY;
-            }
-            bld.error_state =
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                        temp->children, temp->num_children);
-            bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                              (int)cdd_cst_builder_free(&bld));
-            bld.error_state =
-                (cdd_c_error_t)((int)bld.error_state |
-                                (int)cdd_cst_free_node_only(temp));
-          }
+          CDD_SNPRINTF(tb2, sizeof(tb2), "struct _cdd_anon_%d",
+                       ctx_p->anon_idx++);
+          rc = gnu_splice_snippet_at(tree, &owning_node, child_idx, 1, tb2);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     } else if (tok->kind == CDD_TOKEN_LPAREN) {
@@ -429,9 +388,11 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                val_len);
         buf[val_len + 1] = '\0';
         rc = cdd_pool_string_safe(tree, buf, &pooled);
-        C_CDD_FREE(buf);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(buf);
           return rc;
+        }
+        C_CDD_FREE(buf);
         rc = replace_token_with_text(
             tree, &tree->base_tokens->tokens[rparen_idx + 1],
             tree->base_tokens->tokens[rparen_idx + 1].kind, pooled,
@@ -507,31 +468,39 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
           size_t tok_cidx = 0;
           size_t stmt_idx = 0;
 
-          rc = (cdd_c_error_t)((int)rc | (int)expr_cond_has_side_effects(
-                                             tree->base_tokens->tokens,
-                                             lhs_start, i, &has_se));
-          if (has_se &&
-              gnu_find_node(tree->root, tok, &tok_cidx, &owning_node) ==
-                  CDD_C_SUCCESS &&
-              expr_find_enclosing_block_stmt(owning_node, &blk_node,
-                                             &stmt_idx) == CDD_C_SUCCESS) {
+          rc = expr_cond_has_side_effects(tree->base_tokens->tokens, lhs_start,
+                                          i, &has_se);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          if (has_se) {
+            rc = gnu_opt_find_node(tree->root, tok, &tok_cidx, &owning_node);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            if (owning_node) {
+              rc = expr_find_enclosing_block_stmt(owning_node, &blk_node,
+                                                  &stmt_idx);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+            }
+          }
+          if (has_se && blk_node) {
             char cond_type[160];
             char tmp_name[64];
             char q_repl[96];
             char *decl_snip = NULL;
             const char *pooled_tmp = NULL;
             const char *pooled_q = NULL;
-            cdd_cst_node_t *hoist_node = NULL;
-            cdd_cst_builder_t bld;
             size_t wipe;
+            int ev_ok = 0;
             int cidx = ctx_p->cond_idx++;
 
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)cdd_eval_expr_type_scoped(
-                                     ctx_p, owning_node,
-                                     &tree->base_tokens->tokens[lhs_start],
-                                     i - lhs_start, CDD_CST_TYPE_MODE_RVALUE,
-                                     cond_type, sizeof(cond_type), NULL));
+            CDD_SNPRINTF(cond_type, sizeof(cond_type), "int");
+            rc = gnu_opt_eval_type_scoped(
+                ctx_p, owning_node, &tree->base_tokens->tokens[lhs_start],
+                i - lhs_start, CDD_CST_TYPE_MODE_RVALUE, cond_type,
+                sizeof(cond_type), NULL, &ev_ok);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             CDD_SNPRINTF(tmp_name, sizeof(tmp_name), "__cdd_cond_%d", cidx);
             CDD_SNPRINTF(q_repl, sizeof(q_repl),
                          tok->trailing_trivia ? "? %s" : "? %s ", tmp_name);
@@ -545,29 +514,12 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                          "%s %s = (%.*s); ", cond_type, tmp_name, (int)len,
                          (const char *)expr_start);
 
-            rc = gnu_alloc_node(CDD_CST_UNKNOWN, &hoist_node);
+            rc = gnu_splice_snippet_at(tree, &blk_node, stmt_idx, 0, decl_snip);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(decl_snip);
               return rc;
             }
-            bld.error_state = cdd_cst_builder_init(&bld, tree, hoist_node);
-            bld.error_state =
-                (cdd_c_error_t)((int)bld.error_state |
-                                (int)cdd_cst_bld_snippet(&bld, decl_snip));
             C_CDD_FREE(decl_snip);
-            if (bld.error_state != CDD_C_SUCCESS) {
-              rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                   (int)cdd_cst_builder_free(&bld) |
-                                   (int)cdd_cst_free_node_only(hoist_node));
-              return rc;
-            }
-            rc = cdd_cst_splice_children(tree, &blk_node, stmt_idx, 0,
-                                         hoist_node->children,
-                                         hoist_node->num_children);
-            rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                                 (int)cdd_cst_free_node_only(hoist_node));
-            if (rc != CDD_C_SUCCESS)
-              return rc;
 
             rc = cdd_pool_string_safe(tree, tmp_name, &pooled_tmp);
             if (rc != CDD_C_SUCCESS)
@@ -607,9 +559,11 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
             *p++ = ' ';
             *p = '\0';
             rc = cdd_pool_string_safe(tree, buf, &pooled);
-            C_CDD_FREE(buf);
-            if (rc != CDD_C_SUCCESS)
+            if (rc != CDD_C_SUCCESS) {
+              C_CDD_FREE(buf);
               return rc;
+            }
+            C_CDD_FREE(buf);
             rc = replace_token_with_text(tree, tok, tok->kind, pooled,
                                          strlen(pooled));
             if (rc != CDD_C_SUCCESS)
@@ -651,6 +605,8 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
     if (ctx_p->sem_env) {
       rc = gnu_scan_scope_types(ctx_p->sem_env->global_scope, &has_vptr,
                                 &has_i128);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
 
     if (has_vptr || has_i128) {
@@ -680,11 +636,15 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
             cdd_token_t *vt = &tree->base_tokens->tokens[i - 1];
             char vty[128];
             int is_tn = 0;
-            if (gnu_find_node(tree->root, vt, &cidx, &owner) == CDD_C_SUCCESS) {
-              rc = (cdd_c_error_t)((int)rc | (int)cdd_eval_expr_type_scoped(
-                                                 ctx_p, owner, vt, 1,
-                                                 CDD_CST_TYPE_MODE_RVALUE, vty,
-                                                 sizeof(vty), &is_tn));
+            rc = gnu_opt_find_node(tree->root, vt, &cidx, &owner);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            if (owner) {
+              rc = cdd_eval_expr_type_scoped(ctx_p, owner, vt, 1,
+                                             CDD_CST_TYPE_MODE_RVALUE, vty,
+                                             sizeof(vty), &is_tn);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (!is_tn && (strstr(vty, "void *") != NULL ||
                              strstr(vty, "(*)") != NULL)) {
                 const char *vp =
@@ -725,11 +685,15 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
             cdd_token_t *vt = &tree->base_tokens->tokens[i + 2];
             char vty[128];
             int is_tn = 0;
-            if (gnu_find_node(tree->root, vt, &cidx, &owner) == CDD_C_SUCCESS) {
-              rc = (cdd_c_error_t)((int)rc | (int)cdd_eval_expr_type_scoped(
-                                                 ctx_p, owner, vt, 1,
-                                                 CDD_CST_TYPE_MODE_RVALUE, vty,
-                                                 sizeof(vty), &is_tn));
+            rc = gnu_opt_find_node(tree->root, vt, &cidx, &owner);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            if (owner) {
+              rc = cdd_eval_expr_type_scoped(ctx_p, owner, vt, 1,
+                                             CDD_CST_TYPE_MODE_RVALUE, vty,
+                                             sizeof(vty), &is_tn);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (!is_tn && (strstr(vty, "void *") != NULL ||
                              strstr(vty, "(*)") != NULL)) {
                 const char *vp =
@@ -855,15 +819,21 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
               }
               re++;
             }
-            if (ls < i && re > i + op_len &&
-                gnu_find_node(tree->root, tk, &cidx, &owner) == CDD_C_SUCCESS) {
+            if (ls < i && re > i + op_len) {
               char lty[128];
               int l_tn = 0;
-              if (cdd_eval_expr_type_scoped(
-                      ctx_p, owner, &tree->base_tokens->tokens[ls], i - ls,
-                      CDD_CST_TYPE_MODE_RVALUE, lty, sizeof(lty),
-                      &l_tn) == CDD_C_SUCCESS &&
-                  !l_tn) {
+              int ev_ok = 0;
+              rc = gnu_opt_find_node(tree->root, tk, &cidx, &owner);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+              if (owner) {
+                rc = gnu_opt_eval_type_scoped(
+                    ctx_p, owner, &tree->base_tokens->tokens[ls], i - ls,
+                    CDD_CST_TYPE_MODE_RVALUE, lty, sizeof(lty), &l_tn, &ev_ok);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+              }
+              if (ev_ok && !l_tn) {
                 char lhs_s[160];
                 char rhs_s[256];
                 size_t k_t;
@@ -986,31 +956,25 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
               is_unary = 1;
             }
           }
-          if (is_unary &&
-              gnu_find_node(tree->root, tk, &cidx, &owner) == CDD_C_SUCCESS) {
-            cdd_cst_node_t *cur = owner;
-            while (cur->parent) {
-              if (cur->parent->kind == CDD_CST_BLOCK) {
-                size_t si2 = 0;
-                blk_node = cur->parent;
-                while (blk_node->children[si2].kind != CDD_CST_CHILD_NODE ||
-                       blk_node->children[si2].val.node != cur) {
-                  si2++;
-                }
-                stmt_idx = si2;
-                in_exec = 1;
-                break;
-              }
-              cur = cur->parent;
+          if (is_unary) {
+            rc = gnu_opt_find_node(tree->root, tk, &cidx, &owner);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            if (owner) {
+              rc = expr_find_enclosing_block_stmt(owner, &blk_node, &stmt_idx);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+              in_exec = (blk_node != NULL);
             }
             if (in_exec) {
               cdd_token_t *ut = &tree->base_tokens->tokens[i + 1];
               char uty[128];
               int u_tn = 0;
-              rc = (cdd_c_error_t)((int)rc | (int)cdd_eval_expr_type_scoped(
-                                                 ctx_p, owner, ut, 1,
-                                                 CDD_CST_TYPE_MODE_RVALUE, uty,
-                                                 sizeof(uty), &u_tn));
+              rc = cdd_eval_expr_type_scoped(ctx_p, owner, ut, 1,
+                                             CDD_CST_TYPE_MODE_RVALUE, uty,
+                                             sizeof(uty), &u_tn);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (!u_tn && strstr(uty, "int128") != NULL) {
                 int is_u = (strstr(uty, "uint128") != NULL ||
                             strstr(uty, "unsigned") != NULL);
@@ -1018,8 +982,6 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                 char tmp_nm[64];
                 char h_snip[320];
                 const char *pooled_tmp = NULL;
-                cdd_cst_node_t *hnode = NULL;
-                cdd_cst_builder_t bld;
                 ctx_p->used_int128 = 1;
                 CDD_SNPRINTF(tmp_nm, sizeof(tmp_nm), "__cdd_i128_%d", tid);
                 CDD_SNPRINTF(h_snip, sizeof(h_snip),
@@ -1031,23 +993,8 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                              tk->kind == CDD_TOKEN_TILDE ? "not" : "neg",
                              (int)ut->length, (const char *)ut->start, tmp_nm,
                              tid);
-                rc = gnu_alloc_node(CDD_CST_UNKNOWN, &hnode);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
-                bld.error_state = cdd_cst_builder_init(&bld, tree, hnode);
-                bld.error_state =
-                    (cdd_c_error_t)((int)bld.error_state |
-                                    (int)cdd_cst_bld_snippet(&bld, h_snip));
-                if (bld.error_state != CDD_C_SUCCESS) {
-                  rc = (cdd_c_error_t)((int)cdd_cst_builder_free(&bld) |
-                                       (int)cdd_cst_free_node_only(hnode));
-                  return CDD_C_ERROR_MEMORY;
-                }
-                rc = cdd_cst_splice_children(tree, &blk_node, stmt_idx, 0,
-                                             hnode->children,
-                                             hnode->num_children);
-                rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                                     (int)cdd_cst_free_node_only(hnode));
+                rc =
+                    gnu_splice_snippet_at(tree, &blk_node, stmt_idx, 0, h_snip);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
                 rc = cdd_pool_string_safe(tree, tmp_nm, &pooled_tmp);
@@ -1216,21 +1163,32 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                 re++;
               }
 
-              if (re > i + bop_len && gnu_find_node(tree->root, tk, &cidx,
-                                                    &owner) == CDD_C_SUCCESS) {
+              if (re > i + bop_len) {
                 char lty[128];
                 char rty[128];
                 int l_tn = 0;
                 int r_tn = 0;
-                if (cdd_eval_expr_type_scoped(
-                        ctx_p, owner, &tree->base_tokens->tokens[ls], i - ls,
-                        CDD_CST_TYPE_MODE_RVALUE, lty, sizeof(lty),
-                        &l_tn) == CDD_C_SUCCESS &&
-                    cdd_eval_expr_type_scoped(
+                int ok_l = 0;
+                int ok_r = 0;
+                rc = gnu_opt_find_node(tree->root, tk, &cidx, &owner);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+                if (owner) {
+                  rc = gnu_opt_eval_type_scoped(
+                      ctx_p, owner, &tree->base_tokens->tokens[ls], i - ls,
+                      CDD_CST_TYPE_MODE_RVALUE, lty, sizeof(lty), &l_tn, &ok_l);
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
+                  if (ok_l) {
+                    rc = gnu_opt_eval_type_scoped(
                         ctx_p, owner, &tree->base_tokens->tokens[i + bop_len],
                         re - (i + bop_len), CDD_CST_TYPE_MODE_RVALUE, rty,
-                        sizeof(rty), &r_tn) == CDD_C_SUCCESS &&
-                    !l_tn && !r_tn) {
+                        sizeof(rty), &r_tn, &ok_r);
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
+                  }
+                }
+                if (ok_l && ok_r && !l_tn && !r_tn) {
                   char lhs_s[192];
                   char rhs_s[192];
                   size_t kt;
@@ -1330,22 +1288,11 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
 
                   /* 2. `__int128` binary & comparison operators */
                   if (has_i128 && (l_i128 || r_i128)) {
-                    cdd_cst_node_t *cur = owner;
-                    while (cur->parent) {
-                      if (cur->parent->kind == CDD_CST_BLOCK) {
-                        size_t si2 = 0;
-                        blk_node = cur->parent;
-                        while (blk_node->children[si2].kind !=
-                                   CDD_CST_CHILD_NODE ||
-                               blk_node->children[si2].val.node != cur) {
-                          si2++;
-                        }
-                        stmt_idx = si2;
-                        in_exec = 1;
-                        break;
-                      }
-                      cur = cur->parent;
-                    }
+                    rc = expr_find_enclosing_block_stmt(owner, &blk_node,
+                                                        &stmt_idx);
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
+                    in_exec = (blk_node != NULL);
                     if (in_exec) {
                       int is_u = (strstr(lty, "uint128") != NULL ||
                                   strstr(lty, "unsigned") != NULL ||
@@ -1356,8 +1303,6 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                       char h_snip[640];
                       char expr_repl[128];
                       const char *pooled_er = NULL;
-                      cdd_cst_node_t *hnode = NULL;
-                      cdd_cst_builder_t bld;
                       size_t w;
                       ctx_p->used_int128 = 1;
 
@@ -1392,26 +1337,8 @@ cdd_c_error_t gnu_standardize_expr_ctx(cdd_cst_tree_t *tree,
                                      "__cdd_i128_%d", tid);
                       }
 
-                      rc = gnu_alloc_node(CDD_CST_UNKNOWN, &hnode);
-                      if (rc != CDD_C_SUCCESS)
-                        return rc;
-                      bld.error_state = cdd_cst_builder_init(&bld, tree, hnode);
-                      bld.error_state =
-                          (cdd_c_error_t)((int)bld.error_state |
-                                          (int)cdd_cst_bld_snippet(&bld,
-                                                                   h_snip));
-                      if (bld.error_state != CDD_C_SUCCESS) {
-                        rc =
-                            (cdd_c_error_t)((int)cdd_cst_builder_free(&bld) |
-                                            (int)cdd_cst_free_node_only(hnode));
-                        return CDD_C_ERROR_MEMORY;
-                      }
-                      rc = cdd_cst_splice_children(tree, &blk_node, stmt_idx, 0,
-                                                   hnode->children,
-                                                   hnode->num_children);
-                      rc = (cdd_c_error_t)((int)rc |
-                                           (int)cdd_cst_builder_free(&bld) |
-                                           (int)cdd_cst_free_node_only(hnode));
+                      rc = gnu_splice_snippet_at(tree, &blk_node, stmt_idx, 0,
+                                                 h_snip);
                       if (rc != CDD_C_SUCCESS)
                         return rc;
 

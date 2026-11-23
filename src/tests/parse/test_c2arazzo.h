@@ -277,10 +277,36 @@ TEST test_doc_arazzo_all_directives(void) {
       g_cdd_strdup_fail = 0;
       g_cdd_last_alloc_err = arazzo_spec_free(&spec);
     }
+    for (f = 1; f <= 400; ++f) {
+      memset(&spec, 0, sizeof(spec));
+      if (arazzo_spec_init(&spec) == CDD_C_SUCCESS) {
+        g_cdd_step_fail = f;
+        g_cdd_last_alloc_err = c2arazzo_apply_doc_metadata(&meta, &spec);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+    }
     ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_init(&spec));
     ASSERT_EQ(CDD_C_SUCCESS, c2arazzo_apply_doc_metadata(&meta, &spec));
     ASSERT_EQ(CDD_C_SUCCESS, c2arazzo_apply_doc_metadata(&meta, &spec));
     g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+
+    /* Non-object valid JSON in workflow_inputs_json */
+    {
+      struct DocMetadata m_arr;
+      ASSERT_EQ(CDD_C_SUCCESS, doc_metadata_init(&m_arr));
+      m_arr.workflow_id = C_CDD_STRDUP("arrInWf");
+      m_arr.workflow_inputs_json = C_CDD_STRDUP("[1,2,3]");
+      ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_init(&spec));
+      ASSERT_EQ(CDD_C_SUCCESS, c2arazzo_apply_doc_metadata(&m_arr, &spec));
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+      g_cdd_last_alloc_err = doc_metadata_free(&m_arr);
+    }
   }
 
   g_cdd_last_alloc_err = doc_metadata_free(&meta);
@@ -398,6 +424,35 @@ TEST test_c2arazzo_source_and_cli(void) {
   ASSERT_EQ(CDD_C_SUCCESS, c2arazzo_parse_dir(src_path, &spec));
   ASSERT_EQ(3, spec.n_workflows);
   g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+
+  {
+    int f;
+    for (f = 1; f <= 400; ++f) {
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_step_fail = f;
+      g_cdd_last_alloc_err = c2arazzo_parse_source(
+          "/** @workflow w */\nint workflow_w(void){return 0;}\n", &spec);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+        break;
+      }
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+    }
+    for (f = 1; f <= 20; ++f) {
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_step_fail = f;
+      g_cdd_last_alloc_err = c2arazzo_parse_file(src_path, &spec);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+        break;
+      }
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = arazzo_spec_free(&spec);
+    }
+  }
 
   memset(&spec, 0, sizeof(spec));
   ASSERT_EQ(CDD_C_SUCCESS,

@@ -76,6 +76,8 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_path(expr_t *node,
       {
         int is_zero = 0;
         rc_err = expr_is_null_or_zero(node->args[k], &is_zero);
+        if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+          return rc_err;
         if (is_zero) {
           rc_err = cdd_cst_bld_int(bld, 0);
           if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
@@ -156,6 +158,8 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
     {
       const char *pooled_nm = NULL;
       rc_err = safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
+      if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+        return rc_err;
       rc_err = cdd_cst_bld_ident(bld, pooled_nm);
       if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
         return rc_err;
@@ -445,6 +449,8 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
           split = 1;
           rc_err = cdd_cst_bld_ident(
               bld, strcmp(name, "_wputenv") == 0 ? "_wputenv_s" : "_putenv_s");
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
           {
             rc_err = cdd_cst_bld_punct(bld, "(");
             if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
@@ -472,7 +478,11 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
             {
               const char *pooled_l = NULL;
               rc_err = safe_crt_pool_string_safe(bld->tree, left, &pooled_l);
+              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+                return rc_err;
               rc_err = cdd_cst_bld_token(bld, CDD_TOKEN_STRING, pooled_l);
+              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+                return rc_err;
             }
             {
               rc_err = cdd_cst_bld_punct(bld, ",");
@@ -487,7 +497,11 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
             {
               const char *pooled_r = NULL;
               rc_err = safe_crt_pool_string_safe(bld->tree, right, &pooled_r);
+              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+                return rc_err;
               rc_err = cdd_cst_bld_token(bld, CDD_TOKEN_STRING, pooled_r);
+              if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+                return rc_err;
             }
             {
               rc_err = cdd_cst_bld_punct(bld, ")");
@@ -502,6 +516,8 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_env(expr_t *node,
       {
         const char *pooled_nm = NULL;
         rc_err = safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
+        if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+          return rc_err;
         rc_err = cdd_cst_bld_ident(bld, pooled_nm);
         if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
           return rc_err;

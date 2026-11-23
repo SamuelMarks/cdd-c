@@ -197,6 +197,10 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
 cdd_c_error_t cdd_cst_get_last_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok) {
   int i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
@@ -409,6 +413,7 @@ cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
   rc = cdd_cst_replace_node(builder->tree, target_node, replacement_node);
   if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;
+    return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }

@@ -1996,6 +1996,261 @@ TEST test_cdd_serde_exhaustive(void) {
                     rf, sizeof(rf), rt, sizeof(rt), NULL, &em_oob, 99));
       g_cdd_last_alloc_err = enum_members_free(&em_oob);
     }
+
+    /* Step-fail sweeps across all serde lexer, case, container & field paths */
+    {
+      const char *cont_parts[3] = {
+          "/** @brief B\n * @details D\n * @version 1.0\n * @author Auth\n"
+          " * @cdd +(cli(rename_all = \"camelCase\")) + "
+          "replace_all = (\"_\" -> \"-\"), rename = \"R\", name = \"N\", "
+          "bin_name = \"BN\", version = \"2.0\", author = \"A2\", "
+          "about = \"Ab\", long_about = \"LA\", before_help = \"BH\", "
+          "after_help = \"AH\", usage = \"U\" */",
+          "/* @cdd cli_rename_all = \"kebab-case\", "
+          "rename_all = \"snake_case\", rename_all_env = \"UPPERCASE\", "
+          "env_prefix = \"EP_\", alias = \"al\", "
+          "arg_required_else_help = true, subcommand_required = true, "
+          "allow_external_subcommands = true, disable_help_flag = true, "
+          "disable_version_flag = true */",
+          "/* @cdd disable_help_subcommand = true, propagate_version = true, "
+          "allow_windows_slash_flags = true, allow_response_files = true, "
+          "case_insensitive = true, rename_all_serialize = \"camelCase\", "
+          "rename_all_deserialize = \"snake_case\", prefix = \"p_\", "
+          "suffix = \"_s\", tag = \"t\", content = \"c\", "
+          "snake_case, unknown_flag */"};
+      const char *fld_parts[4] = {
+          "/** @brief FB\n * @details FD\n"
+          " * @cdd +(to_json(rename = \"rj\", with = \"wj\"), "
+          "from_json(rename = \"rfj\", with = \"wfj\"), "
+          "cli(rename = \"rc\", case = \"kebab-case\", with = \"wc\", "
+          "kebab-case)) + replace = (\"_\" -> \"-\"), "
+          "required_if = (\"f\" -> \"v\"), rename = \"r\", "
+          "rename_serialize = \"rs\", rename_deserialize = \"rd\" */",
+          "/* @cdd case = \"camelCase\", alias = \"a\", short = true, "
+          "short_alias = \"x\", long = \"lng\", negatable = true, "
+          "positional = true, last = true, trailing_var_arg = true, "
+          "value_name = \"VN\", help = \"H\", long_help = \"LH\", "
+          "help_heading = \"HH\", env = true, env = \"EV\", "
+          "hide_env = true, hide_env_values = true */",
+          "/* @cdd default_missing_value = \"dm\", hide_default_value = true, "
+          "action = \"count\", value_hint = \"file\", num_args = \"1..=3\", "
+          "require_equals = true, allow_hyphen_values = true, "
+          "global = true, hidden = true, exclusive = true, subcommand = true, "
+          "flatten = true, required = true, value_parser = \"vp\", "
+          "group = \"g\" */",
+          "/* @cdd conflicts_with = \"cw\", requires = \"rq\", "
+          "required_unless = \"ru\", skip = false, cli_skip = false, "
+          "skip_to_cli = false, skip_from_cli = false, skip_if = \"null\", "
+          "skip_if = \"my_pred\", default = \"dv\", default_fn = \"dfn\", "
+          "with = \"w\", serialize_with = \"sw\", deserialize_with = \"dw\", "
+          "c_type = \"int\", nullable_ptr = true, short, long, env, "
+          "snake_case, unknown_bare */"};
+      int pi;
+
+      for (pi = 0; pi < 3; ++pi) {
+        for (k = 1; k <= 300; ++k) {
+          struct StructFields s_step;
+          cdd_c_error_t s_rc;
+          g_cdd_last_alloc_err = struct_fields_init(&s_step);
+          g_cdd_step_fail = k;
+          s_rc = cdd_serde_parse_container_comment(cont_parts[pi], &s_step);
+          g_cdd_step_fail = 0;
+          g_cdd_last_alloc_err = struct_fields_free(&s_step);
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+      }
+      for (k = 1; k <= 30; ++k) {
+        struct StructFields s_step;
+        cdd_c_error_t s_rc;
+        g_cdd_last_alloc_err = struct_fields_init(&s_step);
+        g_cdd_step_fail = k;
+        s_rc = cdd_serde_parse_container_comment("/* @cdd version */", &s_step);
+        g_cdd_step_fail = 0;
+        g_cdd_last_alloc_err = struct_fields_free(&s_step);
+        if (s_rc == CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 120; ++k) {
+        struct EnumMembers e_step;
+        cdd_c_error_t s_rc;
+        g_cdd_last_alloc_err = enum_members_init(&e_step);
+        g_cdd_step_fail = k;
+        s_rc = cdd_serde_parse_enum_comment(
+            "/* @cdd replace_all = (\"a\" -> \"b\"), tag = \"t\", "
+            "content = \"c\", untagged */",
+            &e_step);
+        g_cdd_step_fail = 0;
+        g_cdd_last_alloc_err = enum_members_free(&e_step);
+        if (s_rc == CDD_C_SUCCESS)
+          break;
+      }
+      for (pi = 0; pi < 4; ++pi) {
+        for (k = 1; k <= 350; ++k) {
+          struct StructFields s_step;
+          cdd_c_error_t s_rc;
+          g_cdd_last_alloc_err = struct_fields_init(&s_step);
+          g_cdd_last_alloc_err = struct_fields_add(&s_step, "my_field",
+                                                   "string", NULL, NULL, NULL);
+          g_cdd_step_fail = k;
+          s_rc =
+              cdd_serde_parse_field_comment(fld_parts[pi], &s_step.fields[0]);
+          g_cdd_step_fail = 0;
+          g_cdd_last_alloc_err = struct_fields_free(&s_step);
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+      }
+      for (k = 1; k <= 120; ++k) {
+        struct StructField f_step;
+        cdd_c_error_t s_rc;
+        memset(&f_step, 0, sizeof(f_step));
+        g_cdd_step_fail = k;
+        s_rc = cdd_serde_parse_field_comment(
+            "/* @cdd help = \"H\", env = true, env */", &f_step);
+        g_cdd_step_fail = 0;
+        if (s_rc == CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 120; ++k) {
+        struct StructField f_step;
+        cdd_c_error_t s_rc;
+        memset(&f_step, 0, sizeof(f_step));
+        CDD_STRCPY(f_step.name, sizeof(f_step.name), "my_flag");
+        g_cdd_step_fail = k;
+        s_rc = cdd_serde_parse_field_comment("/* @cdd long = true */", &f_step);
+        g_cdd_step_fail = 0;
+        if (s_rc == CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 120; ++k) {
+        struct StructField f_step;
+        cdd_c_error_t s_rc;
+        memset(&f_step, 0, sizeof(f_step));
+        CDD_STRCPY(f_step.name, sizeof(f_step.name), "my_flag");
+        g_cdd_step_fail = k;
+        s_rc = cdd_serde_parse_field_comment("/* @cdd long */", &f_step);
+        g_cdd_step_fail = 0;
+        if (s_rc == CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 250; ++k) {
+        struct EnumMembers e_step;
+        char ren[64], rf[64], rt[64];
+        int sk = 0, oth = 0;
+        enum CddSerdeCaseRule vcase = CDD_SERDE_CASE_NONE;
+        cdd_c_error_t s_rc;
+        g_cdd_last_alloc_err = enum_members_init(&e_step);
+        g_cdd_last_alloc_err = enum_members_add(&e_step, "V1");
+        g_cdd_step_fail = k;
+        s_rc = cdd_serde_parse_enum_variant_comment_ex(
+            "/* @cdd + other, rename = \"vr\", replace = (\"a\" -> \"b\"), "
+            "alias = \"va\", help = \"vh\" */",
+            ren, sizeof(ren), &sk, &vcase, rf, sizeof(rf), rt, sizeof(rt), &oth,
+            &e_step, 0);
+        g_cdd_step_fail = 0;
+        g_cdd_last_alloc_err = enum_members_free(&e_step);
+        if (s_rc == CDD_C_SUCCESS)
+          break;
+      }
+      /* Direct step-fail checks on cdd_serde.c resolvers & helpers */
+      {
+        const char *os = NULL;
+        struct StructFields r_sf;
+        struct EnumMembers r_em;
+        char s_out[64], d_out[64];
+
+        for (k = 1; k <= 2; ++k) {
+          g_cdd_step_fail = k;
+          g_cdd_last_alloc_err =
+              cdd_serde_case_rule_to_str(CDD_SERDE_CASE_NONE, &os);
+          g_cdd_step_fail = k;
+          g_cdd_last_alloc_err =
+              cdd_cli_action_to_str(CDD_CLI_ACTION_AUTO, &os);
+          g_cdd_step_fail = k;
+          g_cdd_last_alloc_err =
+              cdd_cli_value_hint_to_str(CDD_CLI_HINT_NONE, &os);
+          g_cdd_step_fail = k;
+          g_cdd_last_alloc_err = cdd_escape_json_c_str("a", s_out, 8);
+          g_cdd_step_fail = k;
+          g_cdd_last_alloc_err = cdd_escape_comment_str("a", s_out, 8);
+          g_cdd_step_fail = 0;
+        }
+
+        for (k = 1; k <= 20; ++k) {
+          g_cdd_step_fail = k;
+          if (cdd_serde_transform_case("a_b", CDD_SERDE_CASE_SNAKECASE, s_out,
+                                       sizeof(s_out)) == CDD_C_SUCCESS) {
+            g_cdd_step_fail = 0;
+            break;
+          }
+          g_cdd_step_fail = 0;
+        }
+        for (k = 1; k <= 20; ++k) {
+          g_cdd_step_fail = k;
+          if (cdd_serde_transform_case("___", CDD_SERDE_CASE_SNAKECASE, s_out,
+                                       sizeof(s_out)) == CDD_C_SUCCESS) {
+            g_cdd_step_fail = 0;
+            break;
+          }
+          g_cdd_step_fail = 0;
+        }
+
+        g_cdd_last_alloc_err = struct_fields_init(&r_sf);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&r_sf, "alpha_beta", "string", NULL, NULL, NULL);
+        g_cdd_last_alloc_err =
+            struct_fields_add(&r_sf, "gamma_delta", "string", NULL, NULL, NULL);
+        CDD_STRCPY(r_sf.serde_prefix, sizeof(r_sf.serde_prefix), "p_");
+        CDD_STRCPY(r_sf.serde_suffix, sizeof(r_sf.serde_suffix), "_s");
+        r_sf.serde_rename_all = CDD_SERDE_CASE_CAMELCASE;
+        CDD_STRCPY(r_sf.serde_replace_from, sizeof(r_sf.serde_replace_from),
+                   "_");
+        CDD_STRCPY(r_sf.serde_replace_to, sizeof(r_sf.serde_replace_to), "-");
+        r_sf.fields[0].serde_case = CDD_SERDE_CASE_SNAKECASE;
+        CDD_STRCPY(r_sf.fields[0].serde_replace_from,
+                   sizeof(r_sf.fields[0].serde_replace_from), "a");
+        CDD_STRCPY(r_sf.fields[0].serde_replace_to,
+                   sizeof(r_sf.fields[0].serde_replace_to), "b");
+
+        for (k = 1; k <= 40; ++k) {
+          cdd_c_error_t s_rc;
+          g_cdd_step_fail = k;
+          s_rc = cdd_serde_resolve_field_names(&r_sf, 0, s_out, sizeof(s_out),
+                                               d_out, sizeof(d_out));
+          g_cdd_step_fail = 0;
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+        for (k = 1; k <= 40; ++k) {
+          cdd_c_error_t s_rc;
+          g_cdd_step_fail = k;
+          s_rc = cdd_serde_resolve_field_names(&r_sf, 1, s_out, sizeof(s_out),
+                                               d_out, sizeof(d_out));
+          g_cdd_step_fail = 0;
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+        g_cdd_last_alloc_err = struct_fields_free(&r_sf);
+
+        g_cdd_last_alloc_err = enum_members_init(&r_em);
+        g_cdd_last_alloc_err = enum_members_add(&r_em, "MY_VAR");
+        r_em.serde_rename_all = CDD_SERDE_CASE_KEBABCASE;
+        CDD_STRCPY(r_em.serde_replace_from, sizeof(r_em.serde_replace_from),
+                   "-");
+        CDD_STRCPY(r_em.serde_replace_to, sizeof(r_em.serde_replace_to), "_");
+        for (k = 1; k <= 30; ++k) {
+          cdd_c_error_t s_rc;
+          g_cdd_step_fail = k;
+          s_rc = cdd_serde_resolve_enum_member_name(&r_em, 0, s_out,
+                                                    sizeof(s_out));
+          g_cdd_step_fail = 0;
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+        g_cdd_last_alloc_err = enum_members_free(&r_em);
+      }
+    }
   }
 #endif
 

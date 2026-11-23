@@ -632,6 +632,10 @@ test_crt_jasprintf(char **unto, const char *fmt, ...) {
   (json_set_allocation_functions)(                                             \
       ((void (*)(void))(m) == (void (*)(void))test_crt_malloc) ? NULL : (m),   \
       ((void (*)(void))(f) == (void (*)(void))c_cdd_crt_free) ? NULL : (f))
+#define cdd_json_set_allocation_functions(m, f)                                \
+  (cdd_json_set_allocation_functions)(                                         \
+      ((void (*)(void))(m) == (void (*)(void))test_crt_malloc) ? NULL : (m),   \
+      ((void (*)(void))(f) == (void (*)(void))c_cdd_crt_free) ? NULL : (f))
 #define c2openapi_set_json_allocators(m, f)                                    \
   (c2openapi_set_json_allocators)(                                             \
       ((void (*)(void))(m) == (void (*)(void))test_crt_malloc) ? NULL : (m),   \
@@ -712,6 +716,19 @@ test_crt_jasprintf(char **unto, const char *fmt, ...) {
 #define c89stringutils_vasprintf test_crt_vasprintf
 #undef c89stringutils_jasprintf
 #define c89stringutils_jasprintf test_crt_jasprintf
+#elif defined(_WIN32) && !defined(CDD_CRT_BRIDGE_NO_MACROS)
+#define json_set_allocation_functions(m, f)                                    \
+  (json_set_allocation_functions)(((m) == malloc) ? (void *(*)(size_t))0       \
+                                                  : (m),                       \
+                                  ((f) == free) ? (void (*)(void *))0 : (f))
+#define cdd_json_set_allocation_functions(m, f)                                \
+  (cdd_json_set_allocation_functions)(                                         \
+      ((m) == malloc) ? (void *(*)(size_t))0 : (m),                            \
+      ((f) == free) ? (void (*)(void *))0 : (f))
+#define c2openapi_set_json_allocators(m, f)                                    \
+  (c2openapi_set_json_allocators)(((m) == malloc) ? (void *(*)(size_t))0       \
+                                                  : (m),                       \
+                                  ((f) == free) ? (void (*)(void *))0 : (f))
 #endif /* defined(_MSC_VER) && !defined(CDD_CRT_BRIDGE_NO_MACROS) */
 
 #ifdef __cplusplus

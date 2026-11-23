@@ -267,6 +267,8 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
 
     {
       extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      memset(&spec, 0, sizeof(spec));
       g_cdd_fail_assign_ref_name = 1;
       memset(&resp, 0, sizeof(resp));
       ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -325,6 +327,8 @@ TEST test_openapi_response_inline_schemas_and_parse_responses(void) {
 
     {
       extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+      g_cdd_last_alloc_err = openapi_spec_free(&spec);
+      memset(&spec, 0, sizeof(spec));
       g_cdd_fail_assign_ref_name = 1;
       memset(&resp, 0, sizeof(resp));
       ASSERT_EQ(CDD_C_ERROR_MEMORY,

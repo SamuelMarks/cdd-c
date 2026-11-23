@@ -25,6 +25,11 @@ extern "C" {
 #include <stdio.h>
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+/** @brief Countdown fault-injection counter for FFI emitter steps. */
+extern C_CDD_EXPORT int g_ffi_emit_fail_step;
+#endif
+
 /**
  * @brief Table of target-language type names for C FFI primitives and pointers.
  */

@@ -161,14 +161,19 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   char *default_url_escaped = NULL;
   const char *default_url_literal = NULL;
 
-  if (spec && spec->servers && spec->n_servers > 0 && spec->servers[0].url) {
+  if (spec && spec->n_servers > 0) {
     cdd_c_error_t rc_r =
         render_server_url_default(&spec->servers[0], &default_url);
+    if (rc_r != CDD_C_SUCCESS)
+      return rc_r;
     if (default_url) {
       rc_r = escape_c_string_literal(default_url, &default_url_escaped);
+      if (rc_r != CDD_C_SUCCESS) {
+        C_CDD_FREE(default_url);
+        return rc_r;
+      }
     }
-    default_url_literal =
-        default_url_escaped ? default_url_escaped : &"/"[(int)rc_r * 0];
+    default_url_literal = default_url_escaped ? default_url_escaped : "/";
   } else {
     default_url_literal = "/";
   }

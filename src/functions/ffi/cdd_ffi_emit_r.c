@@ -18,21 +18,85 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_common.h"
 /* clang-format on */
 
+/** @brief R `.C()` FFI type mapping table. */
+static const cdd_ffi_type_map_table_t k_r_types = {
+    "void",    "logical", "integer",   "integer", "integer",
+    "integer", "integer", "integer",   "integer", "integer",
+    "double",  "double",  "character", "raw",     NULL,
+    "integer", 1,         0,           1};
+
 /**
- * @brief Maps an FFI IR type to its corresponding R `.C()` coercion type
- * string.
+ * @brief Emits coerced `.C()` argument expressions.
  *
- * @param[in] type FFI type descriptor to map.
- * @param[out] out_type Output pointer receiving the resolved R type string.
+ * @param[in,out] f Output file stream.
+ * @param[in] fields Function parameter array.
+ * @param[in] count Parameter count.
  * @return `CDD_C_SUCCESS` on success, or an error code on failure.
  */
-static cdd_c_error_t get_r_type(cdd_ffi_type_t type, const char **out_type) {
-  static const cdd_ffi_type_map_table_t k_r_types = {
-      "void",    "logical", "integer",   "integer", "integer",
-      "integer", "integer", "integer",   "integer", "integer",
-      "double",  "double",  "character", "raw",     NULL,
-      "integer", 1,         0,           1};
-  return cdd_ffi_map_type_from_table(&k_r_types, type, out_type);
+static cdd_c_error_t emit_r_fn_args(FILE *f, const cdd_ffi_field_t *fields,
+                                    size_t count) {
+  size_t idx;
+  cdd_c_error_t rc;
+  for (idx = 0; idx < count; idx++) {
+    const char *arg_name = fields[idx].name ? fields[idx].name : "arg";
+    const char *rt = NULL;
+    if (strcmp(arg_name, "function") == 0)
+      arg_name = "func";
+    if (strcmp(arg_name, "in") == 0)
+      arg_name = "in_arg";
+    rc = cdd_ffi_map_type_from_table(&k_r_types, fields[idx].type, &rt);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
+    fprintf(f, ", \n    as.%s(%s)", rt, arg_name);
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Emits R function wrappers and closes `f` at the end.
+ *
+ * @param[in,out] f Output file stream (closed on completion).
+ * @param[in] ir FFI IR module.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
+static cdd_c_error_t emit_r_functions_and_close(FILE *f, cdd_ffi_ir_t *ir) {
+  size_t idx, j;
+  cdd_c_error_t rc;
+  for (idx = 0; idx < ir->nodes_count; idx++) {
+    cdd_ffi_ir_node_t *node = &ir->nodes[idx];
+    if (node->kind == CDD_FFI_NODE_FUNCTION) {
+      rc = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc;
+      }
+      if (node->doc)
+        fprintf(f, "# %s\n", node->doc);
+      fprintf(f, "%s <- function(", node->name);
+      for (j = 0; j < node->fields_count; j++) {
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
+        if (strcmp(arg_name, "function") == 0)
+          arg_name = "func";
+        if (strcmp(arg_name, "in") == 0)
+          arg_name = "in_arg";
+        fprintf(f, "%s", arg_name);
+        if (j < node->fields_count - 1)
+          fprintf(f, ", ");
+      }
+      fprintf(f, ") {\n");
+      fprintf(f, "  .C(\"%s\"", node->name);
+      rc = emit_r_fn_args(f, node->fields, node->fields_count);
+      if (rc != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc;
+      }
+      fprintf(f, "\n  )\n}\n\n");
+    }
+  }
+  fclose(f);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -103,8 +167,11 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "%s <- list(\n", node->name);
@@ -124,48 +191,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   }
 
   /* Functions */
-  for (i = 0; i < ir->nodes_count; i++) {
-    cdd_ffi_ir_node_t *node = &ir->nodes[i];
-    if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      if (node->doc)
-        fprintf(f, "# %s\n", node->doc);
-      fprintf(f, "%s <- function(", node->name);
-      for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
-        /* avoid R keywords */
-        if (strcmp(arg_name, "function") == 0)
-          arg_name = "func";
-        if (strcmp(arg_name, "in") == 0)
-          arg_name = "in_arg";
-        fprintf(f, "%s", arg_name);
-        if (j < node->fields_count - 1)
-          fprintf(f, ", ");
-      }
-      fprintf(f, ") {\n");
-
-      fprintf(f, "  .C(\"%s\"", node->name);
-      for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
-        const char *rt = NULL;
-        if (strcmp(arg_name, "function") == 0)
-          arg_name = "func";
-        if (strcmp(arg_name, "in") == 0)
-          arg_name = "in_arg";
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)get_r_type(node->fields[j].type, &rt));
-        fprintf(f, ", \n    as.%s(%s)", rt, arg_name);
-      }
-      fprintf(f, "\n  )\n");
-      fprintf(f, "}\n\n");
-    }
-  }
-
-  fclose(f);
-  return rc_emit;
+  return emit_r_functions_and_close(f, ir);
 }
 
 /*

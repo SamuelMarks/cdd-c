@@ -8,6 +8,16 @@
 /* clang-format on */
 
 /**
+ * @brief Frees a shallow CST node shell (`*_free` destructor alias).
+ *
+ * @param[in,out] n CST node shell to free.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t gnu_node_only_free(cdd_cst_node_t *n) {
+  return cdd_cst_free_node_only(n);
+}
+
+/**
  * @brief Recursively collects `CDD_CST_SYMBOL_VARIABLE` names and types from
  * scope subtree `sc` into inner (`inside func`) and outer (`inside parent_func`
  * but outside `func`) arrays.
@@ -31,7 +41,11 @@ static cdd_c_error_t gnu_collect_nested_scope_vars(
     size_t *io_num_outer) {
   const cdd_cst_symbol_t *sym;
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (sc->ast_node == parent_func)
     in_p = 1;
   if (sc->ast_node == func)
@@ -51,12 +65,13 @@ static cdd_c_error_t gnu_collect_nested_scope_vars(
     }
   }
   for (i = 0; i < sc->num_children; i++) {
-    rc = (cdd_c_error_t)((int)rc | (int)gnu_collect_nested_scope_vars(
-                                       sc->children[i], parent_func, func, in_p,
+    rc = gnu_collect_nested_scope_vars(sc->children[i], parent_func, func, in_p,
                                        in_f, inner_vars, io_num_inner,
-                                       outer_names, outer_types, io_num_outer));
+                                       outer_names, outer_types, io_num_outer);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 /**
  * @brief Checks if `func` (`func->parent->kind == CDD_CST_BLOCK`) is a genuine
@@ -90,6 +105,10 @@ static cdd_c_error_t gnu_is_real_nested_fn(const cdd_cst_node_t *func,
                                          "__alignof__"};
   size_t k;
   int has_body = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_nested_fn = 0;
   if (name_tok->kind != CDD_TOKEN_IDENTIFIER || lparen_child_idx < 2) {
     return CDD_C_SUCCESS;
@@ -137,7 +156,11 @@ static cdd_c_error_t gnu_node_token_span(const cdd_cst_tree_t *tree,
   size_t i;
   const cdd_token_t *base = tree->base_tokens->tokens;
   size_t total = tree->base_tokens->size;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       const cdd_token_t *tk = node->children[i].val.token;
@@ -153,12 +176,13 @@ static cdd_c_error_t gnu_node_token_span(const cdd_cst_tree_t *tree,
         }
       }
     } else {
-      rc = (cdd_c_error_t)((int)rc | (int)gnu_node_token_span(
-                                         tree, node->children[i].val.node,
-                                         out_min, out_max, out_found));
+      rc = gnu_node_token_span(tree, node->children[i].val.node, out_min,
+                               out_max, out_found);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -194,7 +218,8 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
   int f_has_span = 0;
   size_t p_min = 0, p_max = 0;
   int p_has_span = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (name_tok->length >= sizeof(fn_name)) {
     return CDD_C_SUCCESS;
@@ -216,10 +241,12 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
   }
 
   rc = gnu_node_token_span(tree, func, &f_min, &f_max, &f_has_span);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (parent_func) {
-    rc = (cdd_c_error_t)((int)rc | (int)gnu_node_token_span(tree, parent_func,
-                                                            &p_min, &p_max,
-                                                            &p_has_span));
+    rc = gnu_node_token_span(tree, parent_func, &p_min, &p_max, &p_has_span);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   /* Identify outer local variables of `parent_func` captured inside `func` */
@@ -235,10 +262,11 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
       body_lb++;
     }
 
-    rc = (cdd_c_error_t)((int)rc | (int)gnu_collect_nested_scope_vars(
-                                       gctx->sem_env->global_scope, parent_func,
+    rc = gnu_collect_nested_scope_vars(gctx->sem_env->global_scope, parent_func,
                                        func, 0, 0, inner_vars, &num_inner,
-                                       outer_names, outer_types, &num_outer));
+                                       outer_names, outer_types, &num_outer);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     if (num_outer > 0) {
       size_t ti;
@@ -359,23 +387,29 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
     rc = gnu_alloc_node(CDD_CST_UNKNOWN, &fnode);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    bld.error_state = cdd_cst_builder_init(&bld, tree, fnode);
-    bld.error_state =
-        (cdd_c_error_t)((int)bld.error_state |
-                        (int)cdd_cst_bld_snippet(&bld, pooled_fdef));
-    if (bld.error_state != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)cdd_cst_builder_free(&bld) |
-                           (int)cdd_cst_free_node_only(fnode));
-      return CDD_C_ERROR_MEMORY;
+    rc = cdd_cst_builder_init(&bld, tree, fnode);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, gnu_node_only_free(fnode));
+    }
+    rc = cdd_cst_bld_snippet(&bld, pooled_fdef);
+    if (rc != CDD_C_SUCCESS) {
+      rc_free = cdd_cst_builder_free(&bld);
+      return cdd_c_keep_err(
+          CDD_C_ERROR_MEMORY,
+          cdd_c_keep_err(rc,
+                         cdd_c_keep_err(rc_free, gnu_node_only_free(fnode))));
     }
     rc = cdd_cst_splice_children(tree, &tree->root, top_idx, 0, fnode->children,
                                  fnode->num_children);
+    if (rc != CDD_C_SUCCESS) {
+      rc_free = cdd_cst_builder_free(&bld);
+      return cdd_c_keep_err(rc,
+                            cdd_c_keep_err(rc_free, gnu_node_only_free(fnode)));
+    }
     gctx->sem_env->global_scope->ast_node = tree->root;
     top_idx += fnode->num_children;
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(fnode));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    rc_free = cdd_cst_builder_free(&bld);
+    rc_free = gnu_node_only_free(fnode);
 
     /* Update nested function parameter list to accept `__cdd_frame` */
     for (;; rp_i++) {
@@ -507,24 +541,28 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
     }
   }
 
-  /* Detach `func` from `parent_blk` and insert into `tree->root` at `top_idx`
+  /* Insert `func` into `tree->root` at `top_idx`, then detach from `parent_blk`
    */
-  for (k = nest_idx; k + 1 < parent_blk->num_children; k++) {
-    parent_blk->children[k] = parent_blk->children[k + 1];
-  }
-  parent_blk->num_children--;
-
   {
     cdd_cst_child_t moved_child;
     moved_child.kind = CDD_CST_CHILD_NODE;
     moved_child.val.node = func;
     rc =
         cdd_cst_splice_children(tree, &tree->root, top_idx, 0, &moved_child, 1);
+    if (rc != CDD_C_SUCCESS) {
+      func->parent = parent_blk;
+      return rc;
+    }
     if (gctx && gctx->sem_env) {
       gctx->sem_env->global_scope->ast_node = tree->root;
     }
   }
-  return rc;
+
+  for (k = nest_idx; k + 1 < parent_blk->num_children; k++) {
+    parent_blk->children[k] = parent_blk->children[k + 1];
+  }
+  parent_blk->num_children--;
+  return rc_free;
 }
 
 /*
@@ -539,7 +577,8 @@ gnu_lift_nested_function(cdd_cst_tree_t *tree,
 cdd_c_error_t gnu_standardize_fn_ctx(cdd_cst_tree_t *tree,
                                      struct gnu_standardizer_ctx_t *gctx) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
   cdd_cst_query_result_t res = {0};
 
   if (!tree || !tree->root)
@@ -592,7 +631,7 @@ cdd_c_error_t gnu_standardize_fn_ctx(cdd_cst_tree_t *tree,
         C_CDD_FREE(res.nodes);
         return rc;
       }
-      rc = cdd_cst_cfg_free(cfg);
+      rc_free = cdd_cst_cfg_free(cfg);
     }
 
     /* Detect nested functions and trampolines, then lift direct-call nested
@@ -614,14 +653,17 @@ cdd_c_error_t gnu_standardize_fn_ctx(cdd_cst_tree_t *tree,
                                      cdd_tramp_visitor, &t_ctx);
       if (t_ctx.is_tramp) {
         C_CDD_FREE(res.nodes);
-        return CDD_C_ERROR_SYSTEM;
+        return cdd_c_keep_err(CDD_C_ERROR_SYSTEM, rc);
       }
 
       rc = gnu_is_real_nested_fn(func, name_tok, lparen_j, &is_real_nested);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(res.nodes);
+        return rc;
+      }
       if (is_real_nested) {
-        rc = (cdd_c_error_t)((int)rc | (int)gnu_lift_nested_function(
-                                           tree, gctx, func, parent_func,
-                                           name_tok, lparen_j));
+        rc = gnu_lift_nested_function(tree, gctx, func, parent_func, name_tok,
+                                      lparen_j);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(res.nodes);
           return rc;
@@ -630,7 +672,7 @@ cdd_c_error_t gnu_standardize_fn_ctx(cdd_cst_tree_t *tree,
     }
   }
   C_CDD_FREE(res.nodes);
-  return CDD_C_SUCCESS;
+  return rc_free;
 }
 
 /*
@@ -654,6 +696,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                                 const cdd_transform_config_t *config) {
   struct gnu_standardizer_ctx_t gctx;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -698,25 +741,32 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
     rc = gnu_alloc_node(CDD_CST_UNKNOWN, &inc_node);
     if (rc != CDD_C_SUCCESS)
       goto cleanup;
-    bld.error_state = cdd_cst_builder_init(&bld, tree, inc_node);
-    bld.error_state =
-        (cdd_c_error_t)((int)bld.error_state |
-                        (int)cdd_cst_bld_snippet(
-                            &bld, "#ifndef C_CDD_INT128_MATH_H\n#include "
-                                  "<cdd_int128.h>\n#endif\n"));
-    if (bld.error_state != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                           (int)cdd_cst_builder_free(&bld) |
-                           (int)cdd_cst_free_node_only(inc_node));
+    rc = cdd_cst_builder_init(&bld, tree, inc_node);
+    if (rc != CDD_C_SUCCESS) {
+      rc_free = gnu_node_only_free(inc_node);
+      goto cleanup;
+    }
+    rc = cdd_cst_bld_snippet(
+        &bld, "#ifndef C_CDD_INT128_MATH_H\n#include <cdd_int128.h>\n#endif\n");
+    if (rc != CDD_C_SUCCESS) {
+      rc_free = cdd_cst_builder_free(&bld);
+      rc_free = gnu_node_only_free(inc_node);
       goto cleanup;
     }
     rc = cdd_cst_splice_children(tree, &tree->root, 0, 0, inc_node->children,
                                  inc_node->num_children);
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(inc_node));
+    if (rc != CDD_C_SUCCESS) {
+      rc_free = cdd_cst_builder_free(&bld);
+      rc_free = gnu_node_only_free(inc_node);
+      goto cleanup;
+    }
+    rc_free = cdd_cst_builder_free(&bld);
+    rc_free = gnu_node_only_free(inc_node);
   }
 
-cleanup:
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_env_free(gctx.sem_env));
-  return rc;
+  return cdd_c_keep_err(rc_free, cdd_cst_scope_env_free(gctx.sem_env));
+
+cleanup:;
+  return cdd_c_keep_err(
+      rc, cdd_c_keep_err(rc_free, cdd_cst_scope_env_free(gctx.sem_env)));
 }

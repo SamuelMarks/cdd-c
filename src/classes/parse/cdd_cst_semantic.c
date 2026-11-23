@@ -7,6 +7,7 @@
 
 #include "cdd_cst_semantic.h"
 #include "cdd_cst_parser.h"
+#include "c_cdd_export.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include "c_str_span.h"
@@ -17,6 +18,11 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+/** @brief Deterministic fault-injection counter for CST semantic helpers. */
+C_CDD_EXPORT int g_cdd_sem_fail_step = 0;
+#endif
 
 /** @brief Maximum header include recursion depth during pre-scanning */
 #define CDD_SEMANTIC_MAX_INCLUDE_DEPTH 8
@@ -42,18 +48,74 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
                                       int bind_ast);
 
 /**
+ * @brief Non-fatal scope symbol lookup helper that sets `*out_sym = NULL` when
+ * absent.
+ *
+ * @param[in] env Scope environment.
+ * @param[in] name Symbol identifier.
+ * @param[in] kind Symbol namespace/kind.
+ * @param[out] out_sym Receives found symbol pointer, or NULL if absent.
+ * @return CDD_C_SUCCESS on lookup completion, or error code on fault injection.
+ */
+static cdd_c_error_t sem_try_lookup_symbol(cdd_cst_scope_env_t *env,
+                                           const char *name,
+                                           enum cdd_cst_symbol_kind_t kind,
+                                           cdd_cst_symbol_t **out_sym) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_sym = NULL;
+  rc = cdd_cst_scope_lookup_symbol(env, name, kind, out_sym);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  *out_sym = NULL;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Non-fatal header file reader that leaves `*out_src = NULL` when a
+ * candidate include path does not exist.
+ *
+ * @param[in] path Candidate filesystem path.
+ * @param[out] out_src Receives heap buffer if file exists, or NULL if absent.
+ * @param[out] out_sz Receives file byte length.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+static cdd_c_error_t sem_try_read_header(const char *path, char **out_src,
+                                         size_t *out_sz) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_src = NULL;
+  *out_sz = 0;
+  rc = read_to_file(path, "rb", out_src, out_sz);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  *out_src = NULL;
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Checks if `tok` matches any string in `table[0..count)`.
  *
  * @param[in] tok Token to inspect.
  * @param[in] table Array of null-terminated strings.
  * @param[in] count Number of entries in `table`.
  * @param[out] out_match Receives 1 if matched, 0 otherwise.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t sem_tok_in_table(const cdd_token_t *tok,
                                       const char *const *table, size_t count,
                                       int *out_match) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_match = 0;
   for (i = 0; i < count; i++) {
     size_t len = strlen(table[i]);
@@ -71,7 +133,7 @@ static cdd_c_error_t sem_tok_in_table(const cdd_token_t *tok,
  *
  * @param[in] tok Token to inspect.
  * @param[out] out_is_ctrl Receives 1 if control keyword, 0 otherwise.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t sem_is_control_kw(const cdd_token_t *tok,
                                        int *out_is_ctrl) {
@@ -79,6 +141,10 @@ static cdd_c_error_t sem_is_control_kw(const cdd_token_t *tok,
       "if",       "else",   "for",     "while", "do",
       "switch",   "case",   "default", "goto",  "break",
       "continue", "return", "__asm__", "__asm", "asm"};
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (tok->kind == CDD_TOKEN_KEYWORD_RETURN ||
       tok->kind == CDD_TOKEN_KEYWORD_GOTO ||
       tok->kind == CDD_TOKEN_KEYWORD_CASE ||
@@ -91,17 +157,21 @@ static cdd_c_error_t sem_is_control_kw(const cdd_token_t *tok,
 }
 
 /**
- * @brief Appends text to a bounded stack buffer with single-space separation.
+ * @brief Appends a space-separated token spelling into a fixed buffer.
  *
- * @param[in,out] buf Target character buffer.
- * @param[in] cap Buffer capacity.
- * @param[in,out] io_len Current string length in buffer.
- * @param[in] str Text slice to append.
+ * @param[in,out] buf Destination string buffer.
+ * @param[in] cap Buffer byte capacity.
+ * @param[in,out] io_len Current string length in `buf`.
+ * @param[in] str Token text pointer.
  * @param[in] len Length of `str`.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t sem_buf_append_tok(char *buf, size_t cap, size_t *io_len,
                                         const char *str, size_t len) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (*io_len + len + 2 < cap) {
     if (*io_len > 0 && buf[*io_len - 1] != '*' && str[0] != '[') {
       buf[(*io_len)++] = ' ';
@@ -120,7 +190,7 @@ static cdd_c_error_t sem_buf_append_tok(char *buf, size_t cap, size_t *io_len,
  * @param[in] n Number of tokens.
  * @param[in,out] io_idx Current index; advanced past attribute if matched.
  * @param[out] out_skipped Receives 1 if an attribute was skipped, else 0.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t sem_skip_attr(const cdd_token_t *const *toks, size_t n,
                                    size_t *io_idx, int *out_skipped) {
@@ -128,9 +198,12 @@ static cdd_c_error_t sem_skip_attr(const cdd_token_t *const *toks, size_t n,
                                         "__declspec"};
   size_t i = *io_idx;
   int m = 0;
-  cdd_c_error_t rc = sem_tok_in_table(toks[i], k_attrs,
-                                      sizeof(k_attrs) / sizeof(k_attrs[0]), &m);
+  cdd_c_error_t rc;
   *out_skipped = 0;
+  rc = sem_tok_in_table(toks[i], k_attrs, sizeof(k_attrs) / sizeof(k_attrs[0]),
+                        &m);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (m) {
     i++;
     if (i < n && toks[i]->kind == CDD_TOKEN_LPAREN) {
@@ -150,7 +223,7 @@ static cdd_c_error_t sem_skip_attr(const cdd_token_t *const *toks, size_t n,
     *io_idx = i;
     *out_skipped = 1;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -161,7 +234,7 @@ static cdd_c_error_t sem_skip_attr(const cdd_token_t *const *toks, size_t n,
  * @param[in] n Number of tokens in slice.
  * @param[out] out_val Evaluated integer value.
  * @param[out] out_ok Receives 1 if evaluated, 0 otherwise.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t sem_eval_enum_expr(cdd_cst_scope_env_t *env,
                                         const cdd_token_t *const *toks,
@@ -169,6 +242,11 @@ static cdd_c_error_t sem_eval_enum_expr(cdd_cst_scope_env_t *env,
   size_t i = 0;
   int neg = 0;
   const cdd_token_t *t;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_val = 0;
   *out_ok = 0;
   while (i < n && toks[i]->kind == CDD_TOKEN_LPAREN)
@@ -210,8 +288,10 @@ static cdd_c_error_t sem_eval_enum_expr(cdd_cst_scope_env_t *env,
     cdd_cst_symbol_t *sym = NULL;
     memcpy(id_buf, t->start, t->length);
     id_buf[t->length] = '\0';
-    if (cdd_cst_scope_lookup_symbol(env, id_buf, CDD_CST_SYMBOL_ENUM_CONSTANT,
-                                    &sym) == CDD_C_SUCCESS) {
+    rc = sem_try_lookup_symbol(env, id_buf, CDD_CST_SYMBOL_ENUM_CONSTANT, &sym);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (sym) {
       *out_val = neg ? -sym->enum_value : sym->enum_value;
       *out_ok = 1;
     }
@@ -272,7 +352,7 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
   static const char *const k_quals[] = {"const", "volatile", "restrict",
                                         "__restrict"};
   size_t pos = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   while (pos < n) {
     size_t seg_start = pos;
@@ -326,8 +406,9 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
 
       for (k = seg_start; k < decl_end; k++) {
         int skipped = 0;
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)sem_skip_attr(toks, decl_end, &k, &skipped));
+        rc = sem_skip_attr(toks, decl_end, &k, &skipped);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (skipped) {
           k--;
           continue;
@@ -366,11 +447,10 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
             k++;
         } else if (toks[k]->kind == CDD_TOKEN_IDENTIFIER) {
           int is_qual = 0;
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)sem_tok_in_table(toks[k], k_quals,
-                                                     sizeof(k_quals) /
-                                                         sizeof(k_quals[0]),
-                                                     &is_qual));
+          rc = sem_tok_in_table(toks[k], k_quals,
+                                sizeof(k_quals) / sizeof(k_quals[0]), &is_qual);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (!is_qual) {
             size_t nl = toks[k]->length < 127 ? toks[k]->length : 127;
             memcpy(id_name, toks[k]->start, nl);
@@ -383,30 +463,34 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
         size_t fl = 0;
         int p;
         full_type[0] = '\0';
-        rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                           full_type, sizeof(full_type), &fl,
-                                           base_type, strlen(base_type)));
+        rc = sem_buf_append_tok(full_type, sizeof(full_type), &fl, base_type,
+                                strlen(base_type));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (is_fn_ptr) {
-          rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                             full_type, sizeof(full_type), &fl,
-                                             "(*)()", 5));
+          rc =
+              sem_buf_append_tok(full_type, sizeof(full_type), &fl, "(*)()", 5);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
           for (p = 0; p < ptr_count; p++) {
-            rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                               full_type, sizeof(full_type),
-                                               &fl, "*", 1));
+            rc = sem_buf_append_tok(full_type, sizeof(full_type), &fl, "*", 1);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
           if (has_arr) {
-            rc =
-                (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                              full_type, sizeof(full_type), &fl,
-                                              arr_suffix, strlen(arr_suffix)));
+            rc = sem_buf_append_tok(full_type, sizeof(full_type), &fl,
+                                    arr_suffix, strlen(arr_suffix));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
         }
 
         if (tag_owner) {
           rc = cdd_cst_symbol_add_field(tag_owner, id_name, full_type, arr_len,
                                         colon_pos < seg_end ? 1 : 0);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
           enum cdd_cst_symbol_kind_t sk =
               is_typedef ? CDD_CST_SYMBOL_TYPEDEF
@@ -414,9 +498,9 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
                                          : CDD_CST_SYMBOL_VARIABLE);
           rc = sem_register_typed_symbol(env, id_name, sk, full_type, decl_node,
                                          NULL);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
-        if (rc != CDD_C_SUCCESS)
-          return rc;
       }
     }
 
@@ -425,7 +509,7 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
     pos = seg_end + 1;
   }
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -436,7 +520,7 @@ sem_parse_declarator_list(cdd_cst_scope_env_t *env, const char *base_type,
  * @param[in] cap Maximum capacity of `out_toks`.
  * @param[out] out_count Number of tokens collected.
  * @param[out] out_block First direct `CDD_CST_BLOCK` child if any.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t sem_collect_direct_tokens(cdd_cst_node_t *node,
                                                const cdd_token_t **out_toks,
@@ -444,6 +528,10 @@ static cdd_c_error_t sem_collect_direct_tokens(cdd_cst_node_t *node,
                                                cdd_cst_node_t **out_block) {
   size_t i;
   size_t cnt = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_block = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -475,7 +563,7 @@ static cdd_c_error_t sem_parse_enum_block(cdd_cst_scope_env_t *env,
   size_t n = 0;
   size_t i;
   long next_val = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   for (i = 0; i < enum_block->num_children; i++) {
     if (enum_block->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -488,9 +576,9 @@ static cdd_c_error_t sem_parse_enum_block(cdd_cst_scope_env_t *env,
       cdd_cst_node_t *sub = enum_block->children[i].val.node;
       cdd_cst_node_t *dummy = NULL;
       size_t sub_n = 0;
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)sem_collect_direct_tokens(
-                               sub, &toks[n], 256 - n, &sub_n, &dummy));
+      rc = sem_collect_direct_tokens(sub, &toks[n], 256 - n, &sub_n, &dummy);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       n += sub_n;
     }
   }
@@ -523,9 +611,10 @@ static cdd_c_error_t sem_parse_enum_block(cdd_cst_scope_env_t *env,
       if (eq < comma && eq + 1 < comma) {
         long eval_v = 0;
         int ok = 0;
-        rc = (cdd_c_error_t)((int)rc | (int)sem_eval_enum_expr(
-                                           env, &toks[eq + 1], comma - (eq + 1),
-                                           &eval_v, &ok));
+        rc = sem_eval_enum_expr(env, &toks[eq + 1], comma - (eq + 1), &eval_v,
+                                &ok);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (ok)
           next_val = eval_v;
       }
@@ -541,7 +630,7 @@ static cdd_c_error_t sem_parse_enum_block(cdd_cst_scope_env_t *env,
       break;
     i = comma + 1;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -555,7 +644,7 @@ static cdd_c_error_t sem_parse_enum_block(cdd_cst_scope_env_t *env,
  * @param[out] out_base_type Buffer receiving canonical base type string.
  * @param[in] base_cap Capacity of `out_base_type`.
  * @param[out] out_decl_start Index of first declarator token.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 static cdd_c_error_t
 sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
@@ -579,7 +668,7 @@ sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
   size_t i = 0;
   size_t blen = 0;
   int have_type_noun = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   *out_is_typedef = 0;
   out_base_type[0] = '\0';
@@ -590,7 +679,9 @@ sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
     int skipped = 0;
     int m = 0;
 
-    rc = (cdd_c_error_t)((int)rc | (int)sem_skip_attr(toks, n, &i, &skipped));
+    rc = sem_skip_attr(toks, n, &i, &skipped);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (skipped)
       continue;
 
@@ -599,28 +690,29 @@ sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
       i++;
       continue;
     }
-    rc = (cdd_c_error_t)((int)rc | (int)sem_tok_in_table(
-                                       t, k_storage,
-                                       sizeof(k_storage) / sizeof(k_storage[0]),
-                                       &m));
+    rc = sem_tok_in_table(t, k_storage,
+                          sizeof(k_storage) / sizeof(k_storage[0]), &m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (m) {
       i++;
       continue;
     }
 
-    rc = (cdd_c_error_t)((int)rc | (int)sem_tok_in_table(
-                                       t, k_aggr,
-                                       sizeof(k_aggr) / sizeof(k_aggr[0]), &m));
+    rc = sem_tok_in_table(t, k_aggr, sizeof(k_aggr) / sizeof(k_aggr[0]), &m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (t->kind == CDD_TOKEN_KEYWORD_STRUCT || m) {
-      rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                         out_base_type, base_cap, &blen,
-                                         (const char *)t->start, t->length));
+      rc = sem_buf_append_tok(out_base_type, base_cap, &blen,
+                              (const char *)t->start, t->length);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       i++;
       if (i < n && toks[i]->kind == CDD_TOKEN_IDENTIFIER) {
-        rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                           out_base_type, base_cap, &blen,
-                                           (const char *)toks[i]->start,
-                                           toks[i]->length));
+        rc = sem_buf_append_tok(out_base_type, base_cap, &blen,
+                                (const char *)toks[i]->start, toks[i]->length);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         i++;
       }
       have_type_noun = 1;
@@ -635,42 +727,45 @@ sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
         t->kind == CDD_TOKEN_KEYWORD___FP16 ||
         t->kind == CDD_TOKEN_KEYWORD__FLOAT16 ||
         t->kind == CDD_TOKEN_KEYWORD___BF16) {
-      rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                         out_base_type, base_cap, &blen,
-                                         (const char *)t->start, t->length));
+      rc = sem_buf_append_tok(out_base_type, base_cap, &blen,
+                              (const char *)t->start, t->length);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       have_type_noun = 1;
       i++;
       continue;
     }
 
     if (t->kind == CDD_TOKEN_IDENTIFIER) {
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)sem_tok_in_table(
-                               t, k_quals, sizeof(k_quals) / sizeof(k_quals[0]),
-                               &m));
+      rc = sem_tok_in_table(t, k_quals, sizeof(k_quals) / sizeof(k_quals[0]),
+                            &m);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (m) {
-        rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                           out_base_type, base_cap, &blen,
-                                           (const char *)t->start, t->length));
+        rc = sem_buf_append_tok(out_base_type, base_cap, &blen,
+                                (const char *)t->start, t->length);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         i++;
         continue;
       }
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)sem_tok_in_table(t, k_multi_nouns,
-                                                 sizeof(k_multi_nouns) /
-                                                     sizeof(k_multi_nouns[0]),
-                                                 &m));
+      rc = sem_tok_in_table(t, k_multi_nouns,
+                            sizeof(k_multi_nouns) / sizeof(k_multi_nouns[0]),
+                            &m);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (!m && !have_type_noun) {
-        rc = (cdd_c_error_t)((int)rc | (int)sem_tok_in_table(
-                                           t, k_single_nouns,
-                                           sizeof(k_single_nouns) /
-                                               sizeof(k_single_nouns[0]),
-                                           &m));
+        rc = sem_tok_in_table(
+            t, k_single_nouns,
+            sizeof(k_single_nouns) / sizeof(k_single_nouns[0]), &m);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       if (m) {
-        rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                           out_base_type, base_cap, &blen,
-                                           (const char *)t->start, t->length));
+        rc = sem_buf_append_tok(out_base_type, base_cap, &blen,
+                                (const char *)t->start, t->length);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         have_type_noun = 1;
         i++;
         continue;
@@ -680,12 +775,14 @@ sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
         cdd_cst_symbol_t *tsym = NULL;
         memcpy(tname, t->start, t->length);
         tname[t->length] = '\0';
-        if (cdd_cst_scope_lookup_symbol(env, tname, CDD_CST_SYMBOL_TYPEDEF,
-                                        &tsym) == CDD_C_SUCCESS &&
-            tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
-          rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                             out_base_type, base_cap, &blen,
-                                             tname, t->length));
+        rc = sem_try_lookup_symbol(env, tname, CDD_CST_SYMBOL_TYPEDEF, &tsym);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (tsym && tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
+          rc = sem_buf_append_tok(out_base_type, base_cap, &blen, tname,
+                                  t->length);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           have_type_noun = 1;
           i++;
           continue;
@@ -699,7 +796,7 @@ sem_extract_decl_specs(cdd_cst_scope_env_t *env, const cdd_token_t *const *toks,
     out_base_type[0] = '\0';
   }
   *out_decl_start = i;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -715,7 +812,7 @@ static cdd_c_error_t sem_parse_record_fields(cdd_cst_scope_env_t *env,
                                              cdd_cst_symbol_t *tag_sym,
                                              cdd_cst_node_t *body_block) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   for (i = 0; i < body_block->num_children; i++) {
     if (body_block->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_cst_node_t *mem_node = body_block->children[i].val.node;
@@ -726,11 +823,13 @@ static cdd_c_error_t sem_parse_record_fields(cdd_cst_scope_env_t *env,
       char btype[128];
       size_t dstart = 0;
 
-      rc = (cdd_c_error_t)((int)rc | (int)sem_collect_direct_tokens(
-                                         mem_node, mtoks, 64, &mn, &sub_blk));
-      rc = (cdd_c_error_t)((int)rc | (int)sem_extract_decl_specs(
-                                         env, mtoks, mn, &is_td, btype,
-                                         sizeof(btype), &dstart));
+      rc = sem_collect_direct_tokens(mem_node, mtoks, 64, &mn, &sub_blk);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = sem_extract_decl_specs(env, mtoks, mn, &is_td, btype, sizeof(btype),
+                                  &dstart);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (btype[0] != '\0' && dstart < mn) {
         rc = sem_parse_declarator_list(env, btype, 0, tag_sym, &mtoks[dstart],
                                        mn - dstart, NULL);
@@ -739,7 +838,7 @@ static cdd_c_error_t sem_parse_record_fields(cdd_cst_scope_env_t *env,
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -773,7 +872,7 @@ static cdd_c_error_t sem_analyze_aggregate(cdd_cst_scope_env_t *env,
   char full_tag_type[160];
   cdd_cst_symbol_t *tag_sym = NULL;
   cdd_cst_node_t *rec_decl = ctx->is_external ? NULL : node;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   *out_consumed_next = 0;
   tag_name[0] = '\0';
@@ -799,8 +898,9 @@ static cdd_c_error_t sem_analyze_aggregate(cdd_cst_scope_env_t *env,
 
   for (i = 0; i < n_pre; i++) {
     int skipped = 0;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)sem_skip_attr(pre_toks, n_pre, &i, &skipped));
+    rc = sem_skip_attr(pre_toks, n_pre, &i, &skipped);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (skipped) {
       i--;
       continue;
@@ -830,13 +930,14 @@ static cdd_c_error_t sem_analyze_aggregate(cdd_cst_scope_env_t *env,
   }
 
   if (!is_struct && !is_union && !is_enum)
-    return rc;
+    return CDD_C_SUCCESS;
 
   if (n_post == 0 && trailing_node && trailing_node->kind == CDD_CST_UNKNOWN) {
     cdd_cst_node_t *dummy_blk = NULL;
-    rc = (cdd_c_error_t)((int)rc | (int)sem_collect_direct_tokens(
-                                       trailing_node, post_toks, 64, &n_post,
-                                       &dummy_blk));
+    rc = sem_collect_direct_tokens(trailing_node, post_toks, 64, &n_post,
+                                   &dummy_blk);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     *out_consumed_next = 1;
   }
 
@@ -879,7 +980,7 @@ static cdd_c_error_t sem_analyze_aggregate(cdd_cst_scope_env_t *env,
       return rc;
   }
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -896,7 +997,7 @@ static cdd_c_error_t sem_parse_fn_params(cdd_cst_scope_env_t *env,
                                          size_t n) {
   size_t pos = 0;
   size_t comma = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (n == 1 && param_toks[0]->length == 4 &&
       memcmp(param_toks[0]->start, "void", 4) == 0) {
@@ -926,9 +1027,10 @@ static cdd_c_error_t sem_parse_fn_params(cdd_cst_scope_env_t *env,
     }
     comma = comma_pos;
 
-    rc = (cdd_c_error_t)((int)rc | (int)sem_extract_decl_specs(
-                                       env, &param_toks[pos], comma - pos,
-                                       &is_td, btype, sizeof(btype), &dstart));
+    rc = sem_extract_decl_specs(env, &param_toks[pos], comma - pos, &is_td,
+                                btype, sizeof(btype), &dstart);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (btype[0] != '\0' && pos + dstart < comma) {
       rc = sem_parse_declarator_list(env, btype, 0, NULL,
                                      &param_toks[pos + dstart],
@@ -937,7 +1039,7 @@ static cdd_c_error_t sem_parse_fn_params(cdd_cst_scope_env_t *env,
         return rc;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -948,7 +1050,7 @@ static cdd_c_error_t sem_parse_fn_params(cdd_cst_scope_env_t *env,
  * @param[in] inc_tok Preprocessor include token.
  * @param[in,out] ctx Semantic scan state.
  * @return CDD_C_SUCCESS on success (missing headers are ignored gracefully), or
- * CDD_C_ERROR_MEMORY on OOM.
+ * error code on failure.
  */
 static cdd_c_error_t
 sem_scan_include_token(cdd_cst_scope_env_t *env, const cdd_token_t *inc_tok,
@@ -959,6 +1061,7 @@ sem_scan_include_token(cdd_cst_scope_env_t *env, const cdd_token_t *inc_tok,
   size_t e = 0;
   char rel_hdr[256];
   size_t d;
+  cdd_c_error_t rc;
 
   if (!ctx->include_dirs || ctx->num_include_dirs == 0 ||
       ctx->depth >= CDD_SEMANTIC_MAX_INCLUDE_DEPTH ||
@@ -994,8 +1097,9 @@ sem_scan_include_token(cdd_cst_scope_env_t *env, const cdd_token_t *inc_tok,
 
     if (!ctx->include_dirs[d])
       continue;
-    if (fs_path_join(ctx->include_dirs[d], rel_hdr, &joined) != CDD_C_SUCCESS)
-      continue;
+    rc = fs_path_join(ctx->include_dirs[d], rel_hdr, &joined);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     for (v = 0; v < ctx->num_visited; v++) {
       if (strcmp(ctx->visited[v], joined) == 0) {
@@ -1008,30 +1112,39 @@ sem_scan_include_token(cdd_cst_scope_env_t *env, const cdd_token_t *inc_tok,
       return CDD_C_SUCCESS;
     }
 
-    if (read_to_file(joined, "rb", &hdr_src, &hdr_sz) == CDD_C_SUCCESS) {
+    rc = sem_try_read_header(joined, &hdr_src, &hdr_sz);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(joined);
+      return rc;
+    }
+    if (hdr_src) {
       cdd_cst_tree_t *hdr_tree = NULL;
+      int prev_ext;
+      cdd_cst_scope_t *saved_scope;
       ctx->visited[ctx->num_visited++] = joined;
-      if (cdd_cst_parse(az_span_create_from_str(hdr_src), &hdr_tree) ==
-          CDD_C_SUCCESS) {
-        int prev_ext = ctx->is_external;
-        cdd_cst_scope_t *saved_scope = env->current_scope;
-        cdd_c_error_t sub_rc;
-        ctx->depth++;
-        ctx->is_external = 1;
-        env->current_scope = env->global_scope;
-        sub_rc = analyze_node_ctx(env, hdr_tree->root, ctx, 0);
+      rc = cdd_cst_parse(az_span_create_from_str(hdr_src), &hdr_tree);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(hdr_src);
+        return rc;
+      }
+      prev_ext = ctx->is_external;
+      saved_scope = env->current_scope;
+      ctx->depth++;
+      ctx->is_external = 1;
+      env->current_scope = env->global_scope;
+      rc = analyze_node_ctx(env, hdr_tree->root, ctx, 0);
+      if (rc != CDD_C_SUCCESS) {
         env->current_scope = saved_scope;
         ctx->is_external = prev_ext;
         ctx->depth--;
-        sub_rc =
-            (cdd_c_error_t)((int)sub_rc | (int)cdd_cst_tree_free(hdr_tree));
-        if (sub_rc != CDD_C_SUCCESS) {
-          C_CDD_FREE(hdr_src);
-          return sub_rc;
-        }
+        C_CDD_FREE(hdr_src);
+        return cdd_c_keep_err(rc, cdd_cst_tree_free(hdr_tree));
       }
+      env->current_scope = saved_scope;
+      ctx->is_external = prev_ext;
+      ctx->depth--;
       C_CDD_FREE(hdr_src);
-      return CDD_C_SUCCESS;
+      return cdd_cst_tree_free(hdr_tree);
     }
     C_CDD_FREE(joined);
   }
@@ -1041,18 +1154,21 @@ sem_scan_include_token(cdd_cst_scope_env_t *env, const cdd_token_t *inc_tok,
 
 /**
  * @brief Recursively extracts the first identifier token name from a CST
- * subtree.
+ * subtree, setting `*out_name = NULL` if absent.
  *
  * @param[in] node Root CST node to search.
- * @param[out] out_name Pointer to receive the newly allocated identifier
- * string.
- * @return CDD_C_SUCCESS on success, CDD_C_ERROR_NOT_FOUND if none, or
- * CDD_C_ERROR_MEMORY on OOM.
+ * @param[out] out_name Pointer receiving newly allocated identifier string, or
+ * NULL if absent.
+ * @return CDD_C_SUCCESS on completion, or error code on OOM/fault injection.
  */
 static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
   size_t i;
   cdd_c_error_t rc;
-
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_sem_fail_step > 0 && --g_cdd_sem_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_name = NULL;
   if (node->kind == CDD_CST_IDENTIFIER) {
     for (i = 0; i < node->num_children; i++) {
       if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -1069,17 +1185,19 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node, char **out_name) {
         }
       }
     }
-    return CDD_C_ERROR_NOT_FOUND;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       rc = extract_identifier(node->children[i].val.node, out_name);
-      if (rc != CDD_C_ERROR_NOT_FOUND)
+      if (rc != CDD_C_SUCCESS)
         return rc;
+      if (*out_name)
+        return CDD_C_SUCCESS;
     }
   }
 
-  return CDD_C_ERROR_NOT_FOUND;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1096,7 +1214,7 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
                                       cdd_cst_node_t *node,
                                       struct cdd_semantic_scan_ctx_t *ctx,
                                       int bind_ast) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   size_t i;
   int entered_scope = 0;
 
@@ -1104,7 +1222,7 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
     return CDD_C_SUCCESS;
 
   switch (node->kind) {
-  case CDD_CST_BLOCK:
+  case CDD_CST_BLOCK: {
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -1112,6 +1230,7 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
       env->current_scope->ast_node = node;
     entered_scope = 1;
     break;
+  }
   case CDD_CST_FUNCTION_DEFINITION: {
     const cdd_token_t *ftoks[128] = {0};
     size_t fn = 0;
@@ -1121,14 +1240,16 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
     size_t rparen_idx = 0;
 
     if (ctx) {
-      rc = (cdd_c_error_t)((int)rc | (int)sem_collect_direct_tokens(
-                                         node, ftoks, 128, &fn, &fblk));
+      rc = sem_collect_direct_tokens(node, ftoks, 128, &fn, &fblk);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (fn >= 3) {
         int is_ctrl = 0;
         int has_eq = 0;
         size_t k;
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)sem_is_control_kw(ftoks[0], &is_ctrl));
+        rc = sem_is_control_kw(ftoks[0], &is_ctrl);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         for (k = 0; k < fn; k++) {
           if (ftoks[k]->kind == CDD_TOKEN_ASSIGN) {
             has_eq = 1;
@@ -1164,19 +1285,19 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
         char fname[128];
         size_t fnl;
 
-        rc =
-            (cdd_c_error_t)((int)rc | (int)sem_extract_decl_specs(
-                                          env, ftoks, lparen_idx - 1, &is_td,
-                                          ret_type, sizeof(ret_type), &dstart));
+        rc = sem_extract_decl_specs(env, ftoks, lparen_idx - 1, &is_td,
+                                    ret_type, sizeof(ret_type), &dstart);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (ret_type[0] == '\0') {
           CDD_SNPRINTF(ret_type, sizeof(ret_type), "int");
         }
         rlen = strlen(ret_type);
         for (k = dstart; k < lparen_idx - 1; k++) {
           if (ftoks[k]->kind == CDD_TOKEN_STAR) {
-            rc = (cdd_c_error_t)((int)rc | (int)sem_buf_append_tok(
-                                               ret_type, sizeof(ret_type),
-                                               &rlen, "*", 1));
+            rc = sem_buf_append_tok(ret_type, sizeof(ret_type), &rlen, "*", 1);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
         }
         fnl = ftoks[lparen_idx - 1]->length < 127
@@ -1199,9 +1320,10 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
           int is_td = 0;
           char btype[128];
           size_t dstart = 0;
-          rc = (cdd_c_error_t)((int)rc | (int)sem_extract_decl_specs(
-                                             env, &ftoks[2], semi - 2, &is_td,
-                                             btype, sizeof(btype), &dstart));
+          rc = sem_extract_decl_specs(env, &ftoks[2], semi - 2, &is_td, btype,
+                                      sizeof(btype), &dstart);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (btype[0] != '\0' && 2 + dstart < semi) {
             rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
             if (rc != CDD_C_SUCCESS)
@@ -1213,7 +1335,7 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
                                            &ftoks[2 + dstart],
                                            semi - (2 + dstart), NULL);
             if (rc != CDD_C_SUCCESS) {
-              return (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_leave(env));
+              return cdd_c_keep_err(rc, cdd_cst_scope_leave(env));
             }
           }
         }
@@ -1233,40 +1355,45 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
       rc = sem_parse_fn_params(env, &ftoks[lparen_idx + 1],
                                rparen_idx - lparen_idx - 1);
       if (rc != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_leave(env));
+        return cdd_c_keep_err(rc, cdd_cst_scope_leave(env));
       }
     }
     break;
   }
-  case CDD_CST_NAMESPACE_DECLARATION:
+  case CDD_CST_NAMESPACE_DECLARATION: {
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_NAMESPACE);
     if (rc != CDD_C_SUCCESS)
       return rc;
     entered_scope = 1;
     break;
+  }
   case CDD_CST_DECLARATION: {
     char *name = NULL;
     rc = extract_identifier(node, &name);
-    if (rc == CDD_C_ERROR_MEMORY)
+    if (rc != CDD_C_SUCCESS)
       return rc;
-    if (rc == CDD_C_SUCCESS) {
+    if (name) {
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
-      C_CDD_FREE(name);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(name);
         return rc;
+      }
+      C_CDD_FREE(name);
     }
     break;
   }
   case CDD_CST_TYPE_SPECIFIER: {
     char *name = NULL;
     rc = extract_identifier(node, &name);
-    if (rc == CDD_C_ERROR_MEMORY)
+    if (rc != CDD_C_SUCCESS)
       return rc;
-    if (rc == CDD_C_SUCCESS) {
+    if (name) {
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_STRUCT_TAG, node);
-      C_CDD_FREE(name);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(name);
         return rc;
+      }
+      C_CDD_FREE(name);
     }
     break;
   }
@@ -1285,18 +1412,21 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
       size_t un = 0;
       cdd_cst_node_t *ublk = NULL;
       int is_ctrl = 0;
-      rc = (cdd_c_error_t)((int)rc | (int)sem_collect_direct_tokens(
-                                         node, utoks, 128, &un, &ublk));
+      rc = sem_collect_direct_tokens(node, utoks, 128, &un, &ublk);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (un > 0) {
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)sem_is_control_kw(utoks[0], &is_ctrl));
+        rc = sem_is_control_kw(utoks[0], &is_ctrl);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (!is_ctrl) {
           int is_td = 0;
           char btype[128];
           size_t dstart = 0;
-          rc = (cdd_c_error_t)((int)rc | (int)sem_extract_decl_specs(
-                                             env, utoks, un, &is_td, btype,
-                                             sizeof(btype), &dstart));
+          rc = sem_extract_decl_specs(env, utoks, un, &is_td, btype,
+                                      sizeof(btype), &dstart);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (btype[0] != '\0' && dstart < un) {
             rc = sem_parse_declarator_list(env, btype, is_td, NULL,
                                            &utoks[dstart], un - dstart,
@@ -1323,8 +1453,13 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
         cdd_cst_node_t *cblk = NULL;
         int m_lead = 0;
         int has_assign = 0;
-        rc = (cdd_c_error_t)((int)rc | (int)sem_collect_direct_tokens(
-                                           ch, ctoks, 16, &cn, &cblk));
+        rc = sem_collect_direct_tokens(ch, ctoks, 16, &cn, &cblk);
+        if (rc != CDD_C_SUCCESS) {
+          if (entered_scope) {
+            return cdd_c_keep_err(rc, cdd_cst_scope_leave(env));
+          }
+          return rc;
+        }
         {
           size_t ti;
           int pdepth = 0;
@@ -1338,11 +1473,15 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
                 has_assign = 1;
               } else {
                 int m_cur = 0;
-                rc = (cdd_c_error_t)((int)rc | (int)sem_tok_in_table(
-                                                   ctoks[ti], k_agg_lead,
-                                                   sizeof(k_agg_lead) /
-                                                       sizeof(k_agg_lead[0]),
-                                                   &m_cur));
+                rc = sem_tok_in_table(
+                    ctoks[ti], k_agg_lead,
+                    sizeof(k_agg_lead) / sizeof(k_agg_lead[0]), &m_cur);
+                if (rc != CDD_C_SUCCESS) {
+                  if (entered_scope) {
+                    return cdd_c_keep_err(rc, cdd_cst_scope_leave(env));
+                  }
+                  return rc;
+                }
                 if (ctoks[ti]->kind == CDD_TOKEN_KEYWORD_STRUCT || m_cur) {
                   m_lead = 1;
                 }
@@ -1361,7 +1500,7 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
           rc = sem_analyze_aggregate(env, ch, next_sib, ctx, &consumed_next);
           if (rc != CDD_C_SUCCESS) {
             if (entered_scope) {
-              rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_leave(env));
+              return cdd_c_keep_err(rc, cdd_cst_scope_leave(env));
             }
             return rc;
           }
@@ -1374,7 +1513,7 @@ static cdd_c_error_t analyze_node_ctx(cdd_cst_scope_env_t *env,
       rc = analyze_node_ctx(env, ch, ctx, bind_ast);
       if (rc != CDD_C_SUCCESS) {
         if (entered_scope) {
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_leave(env));
+          return cdd_c_keep_err(rc, cdd_cst_scope_leave(env));
         }
         return rc;
       }
@@ -1426,11 +1565,14 @@ cdd_c_error_t cdd_cst_build_semantic_info_ex(cdd_cst_tree_t *tree,
   }
 
   rc = analyze_node_ctx(env, tree->root, ctx_ptr, tree->base_tokens != NULL);
+  if (rc != CDD_C_SUCCESS) {
+    for (v = 0; v < ctx.num_visited; v++) {
+      C_CDD_FREE(ctx.visited[v]);
+    }
+    return cdd_c_keep_err(rc, cdd_cst_scope_env_free(env));
+  }
   for (v = 0; v < ctx.num_visited; v++) {
     C_CDD_FREE(ctx.visited[v]);
-  }
-  if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_env_free(env));
   }
 
   env->bound_tree = tree;

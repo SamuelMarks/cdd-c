@@ -132,6 +132,9 @@ cdd_c_error_t identify_keyword_or_id(const uint8_t *start, size_t len,
   size_t i;
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_cdd_fail_identify_keyword_or_id;
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0) {
+    return CDD_C_ERROR_UNKNOWN;
+  }
   if (g_cdd_fail_identify_keyword_or_id &&
       --g_cdd_fail_identify_keyword_or_id == 0) {
     return CDD_C_ERROR_INVALID_ARGUMENT;

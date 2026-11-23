@@ -196,7 +196,11 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
       int match_gen = 0;
       int match_gen_sel = 0;
       rc = token_matches_string(tok, "_Generic", &match_gen);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = token_matches_string(tok, "generic_selection", &match_gen_sel);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if ((tok->kind == TOKEN_IDENTIFIER && match_gen) ||
           (tok->kind == TOKEN_IDENTIFIER && match_gen_sel)) {
         size_t gen_end = 0;
@@ -429,6 +433,8 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         {
           int match_gen = 0;
           rc = token_matches_string(&tokens->tokens[j], "_Generic", &match_gen);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (kind == TOKEN_IDENTIFIER && match_gen) {
             break;
           }
@@ -474,9 +480,9 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
 
   rc = parse_recursive(tokens, 0, tokens->size, out);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(out));
+    return cdd_c_keep_err(rc, cst_node_list_free(out));
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -495,6 +501,16 @@ cdd_c_error_t free_cst_node_list(struct CstNodeList *list) {
   list->size = 0;
   list->capacity = 0;
   return CDD_C_SUCCESS;
+}
+
+/*
+ * @brief Frees internal memory of a `CstNodeList` (`*_free` destructor alias).
+ *
+ * @param[in,out] list Pointer to the `CstNodeList` structure to free.
+ * @return `CDD_C_SUCCESS`.
+ */
+cdd_c_error_t cst_node_list_free(struct CstNodeList *list) {
+  return free_cst_node_list(list);
 }
 
 /*

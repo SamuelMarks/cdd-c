@@ -68,7 +68,7 @@ static cdd_c_error_t parsed_sig_init(struct ParsedSig *sig) {
  * @param[in,out] sig Pointer to the `ParsedSig` structure to free.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
+static cdd_c_error_t parsed_sig_free(struct ParsedSig *sig) {
   if (sig->attributes)
     C_CDD_FREE(sig->attributes);
   if (sig->storage)
@@ -129,6 +129,10 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
  */
 static cdd_c_error_t is_storage_specifier(const struct Token *tok,
                                           int *out_is_storage) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (tok->kind) {
   case TOKEN_KEYWORD_STATIC:
   case TOKEN_KEYWORD_EXTERN:
@@ -311,6 +315,10 @@ static cdd_c_error_t has_meaningful_tokens(const struct TokenList *tokens,
                                            size_t start, size_t end,
                                            int *out_has_tokens) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_has_tokens = 0;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind != TOKEN_WHITESPACE &&
@@ -395,8 +403,9 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
       }
       {
         int is_stor = 0;
-        rc = (cdd_c_error_t)((int)rc | (int)is_storage_specifier(
-                                           &tokens->tokens[i], &is_stor));
+        rc = is_storage_specifier(&tokens->tokens[i], &is_stor);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
         if (is_stor) {
           found_storage = 1;
           i++;
@@ -492,14 +501,10 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   /* 5. Extract Arguments */
   {
     size_t rparen = 0;
-    {
-      cdd_c_error_t rc_rw = find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN,
-                                              TOKEN_RPAREN, &rparen);
-      if (rc_rw != CDD_C_SUCCESS) {
-        rc = rc_rw;
-        goto cleanup;
-      }
-    }
+    rc = find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN, TOKEN_RPAREN,
+                           &rparen);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (rparen >= tokens->size) {
       rc = CDD_C_ERROR_INVALID_ARGUMENT;
       goto cleanup;
@@ -509,6 +514,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     /* Content between parens */
     if (lparen_idx + 1 < rparen) {
       rc = join_tokens(tokens, lparen_idx + 1, rparen, &sig.args);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else {
       sig.args = C_CDD_STRDUP("");
       if (!sig.args) {
@@ -516,21 +523,17 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
         goto cleanup;
       }
     }
-    if (rc)
-      goto cleanup;
   }
 
   /* 6. Extract K&R Declarations (if any) */
   if (rparen_idx + 1 < tokens->size) {
     int has_toks = 0;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)has_meaningful_tokens(tokens, rparen_idx + 1,
-                                                    tokens->size, &has_toks));
+    rc = has_meaningful_tokens(tokens, rparen_idx + 1, tokens->size, &has_toks);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_toks) {
-      rc = (cdd_c_error_t)((int)rc | (int)join_tokens(tokens, rparen_idx + 1,
-                                                      tokens->size,
-                                                      &sig.k_r_decls));
-      if (rc)
+      rc = join_tokens(tokens, rparen_idx + 1, tokens->size, &sig.k_r_decls);
+      if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
   }
@@ -538,8 +541,8 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   /* 7. Construct new signature */
   {
     int args_is_empty = 0;
-    char *prefix = sig.attributes ? sig.attributes : "";
-    char *k_r_suffix = sig.k_r_decls ? sig.k_r_decls : "";
+    const char *prefix = sig.attributes ? sig.attributes : "";
+    const char *k_r_suffix = sig.k_r_decls ? sig.k_r_decls : "";
 
     rc = args_represent_void(sig.args, &args_is_empty);
     if (rc != CDD_C_SUCCESS)
@@ -668,5 +671,5 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 cleanup:
   if (new_args)
     C_CDD_FREE(new_args);
-  return (cdd_c_error_t)((int)rc | (int)parsed_sig_C_CDD_FREE(&sig));
+  return cdd_c_keep_err(rc, parsed_sig_free(&sig));
 }

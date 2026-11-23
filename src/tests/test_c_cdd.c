@@ -358,6 +358,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "emit/test_arazzo_client_gen.h"
 #include "emit/test_arazzo_cli_gen.h"
 #include "emit/test_arazzo_server_gen.h"
+#include "emit/test_routes_percolation_cov.h"
 /* clang-format on */
 
 /**
@@ -514,8 +515,12 @@ call_crt_vfprintf(FILE *fp, int *out_rc, const char *fmt, ...) {
   cdd_c_error_t rc;
   va_start(args, fmt);
   rc = c_cdd_crt_vfprintf(fp, fmt, args, out_rc);
+  if (rc != CDD_C_SUCCESS) {
+    va_end(args);
+    return rc;
+  }
   va_end(args);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1202,10 +1207,7 @@ int main(int argc, char **argv) {
         '"',  'n',  'o', 'p',  '"',  ')',  ';',  ' ',  'r',  'e',  't',  'u',
         'r',  'n',  ' ', '0',  ';',  ' ',  '}',  '\n', '\0'};
     cdd_c_error_t rc = cdd_cst_parse(az_span_create_from_str(snippet), &tree);
-    printf("PARSE RC = %d, num_children = %lu, capacity = %lu\n", rc,
-           (unsigned long)tree->root->num_children,
-           (unsigned long)tree->root->capacity);
-    if (tree)
+    if (rc == CDD_C_SUCCESS && tree)
       g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
   }
 
@@ -1415,6 +1417,7 @@ int main(int argc, char **argv) {
   RUN_SUITE_RESET(safe_crt_msvc_suite);
   RUN_SUITE_RESET(crt_bridge_header_suite);
   RUN_SUITE_RESET(platform_crypto_and_cst_suite);
+  RUN_SUITE_RESET(routes_percolation_cov_suite);
   reset_mocks();
   cdd_test_tmpfile_cleanup();
 

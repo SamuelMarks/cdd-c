@@ -35,6 +35,7 @@ def get_doc_coverage():
                 doxy = doxy.replace("@PROJECT_NAME@", "c_cdd")
                 doxy = doxy.replace("@PROJECT_VERSION@", "0.0.5")
                 doxy = doxy.replace("@CMAKE_SOURCE_DIR@", repo_root)
+                doxy = doxy.replace("@PROJECT_SOURCE_DIR@", repo_root)
                 doxy = doxy.replace(
                     "OUTPUT_DIRECTORY       = docs",
                     f"OUTPUT_DIRECTORY       = {tmpdir}",

@@ -24,6 +24,10 @@ extern C_CDD_EXPORT int g_cdd_fail_is_primitive_type;
  */
 cdd_c_error_t client_body_verb_to_enum_str(enum OpenAPI_Verb v,
                                            const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (v) {
@@ -82,6 +86,10 @@ cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
                                                  const char **_out_val) {
   int eq = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!method) {
@@ -151,6 +159,10 @@ cdd_c_error_t client_body_method_str_to_enum_str(const char *method,
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t mapped_err_code(int status, const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -184,6 +196,10 @@ cdd_c_error_t find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
                               const char *name,
                               const struct OpenAPI_MediaType **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -213,6 +229,10 @@ cdd_c_error_t find_encoding(const struct OpenAPI_MediaType *mt,
                             const char *name,
                             struct OpenAPI_Encoding **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -266,6 +286,10 @@ cdd_c_error_t is_primitive_type(const char *oa_type, int *out) {
 cdd_c_error_t is_object_ref_type(const char *type, int *out_is_obj) {
   int is_prim = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_obj) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -329,6 +353,10 @@ cdd_c_error_t struct_fields_all_primitive(const struct StructFields *sf,
  */
 cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema,
                                 int *out) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = 0;
@@ -500,6 +528,10 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
   int eq = 0;
   int suf = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -527,6 +559,10 @@ cdd_c_error_t media_type_is_json(const char *media_type, int *out) {
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_form(const char *media_type, int *out) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = 0;
@@ -560,6 +596,10 @@ cdd_c_error_t media_type_is_text_plain(const char *media_type, int *out) {
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = 0;
@@ -577,6 +617,10 @@ cdd_c_error_t media_type_is_multipart(const char *media_type, int *out) {
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t media_type_is_multipart_form(const char *media_type, int *out) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = 0;
@@ -598,6 +642,10 @@ cdd_c_error_t first_content_type_entry(const char *content_type, char *buf,
                                        size_t buf_sz, const char **_out_val) {
   size_t i = 0;
   size_t j = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val || !buf || buf_sz == 0 || !content_type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   while (content_type[i] && isspace((unsigned char)content_type[i])) {
@@ -653,6 +701,10 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
                                           const char *header) {
   char hdr_sanitized[128];
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out || outsz == 0 || !field || !header)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out[0] = '\0';
@@ -669,16 +721,16 @@ cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
-  int eq = 0;
-  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = 0;
   if (!name)
     return CDD_C_SUCCESS;
-  rc = c_cdd_str_iequal(name, "Content-Type", &eq);
-  *out = eq;
-  return rc;
+  return c_cdd_str_iequal(name, "Content-Type", out);
 }
 
 /*
@@ -692,6 +744,10 @@ cdd_c_error_t header_name_is_content_type(const char *name, int *out) {
 cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
   int res = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -735,6 +791,10 @@ cdd_c_error_t media_type_is_textual(const char *media_type, int *out) {
 cdd_c_error_t media_type_is_binary(const char *media_type, int *out) {
   int res = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -795,6 +855,10 @@ cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
                                          int *out_is_textual_string) {
   int is_textual = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out_is_textual_string)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -819,6 +883,10 @@ cdd_c_error_t response_is_textual_string(const struct OpenAPI_Response *resp,
  */
 cdd_c_error_t response_is_binary(const struct OpenAPI_Response *resp,
                                  int *out_is_binary) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_binary)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_binary = 0;
@@ -840,6 +908,10 @@ cdd_c_error_t schema_has_payload(const struct OpenAPI_SchemaRef *schema,
                                  int *out_has_payload) {
   int has_inline = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out_has_payload)
     return CDD_C_ERROR_INVALID_ARGUMENT;

@@ -153,12 +153,12 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 
   if (tree) {
     const char *pooled = NULL;
-    if (cdd_cst_pool_string(tree, (const char *)ws_buf, &pooled) !=
-        CDD_C_SUCCESS) {
+    cdd_c_error_t rc = cdd_cst_pool_string(tree, (const char *)ws_buf, &pooled);
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(ws_buf);
       C_CDD_FREE(nl);
       C_CDD_FREE(ws);
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
     C_CDD_FREE(ws_buf);
     ws->start = (const uint8_t *)pooled;

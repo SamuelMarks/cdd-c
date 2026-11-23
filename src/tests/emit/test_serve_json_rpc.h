@@ -200,7 +200,7 @@ TEST test_serve_json_rpc_listen_once(void) {
   argv[4] = cdd_test_mut_str("255");
   argv_accept_fail[0] = cdd_test_mut_str("serve_json_rpc_main");
   argv_accept_fail[1] = cdd_test_mut_str("--port");
-  argv_accept_fail[2] = cdd_test_mut_str("12349");
+  argv_accept_fail[2] = cdd_test_mut_str("12352");
   argv_accept_fail[3] = cdd_test_mut_str("--listen");
   argv_accept_fail[4] = cdd_test_mut_str("1");
   rc = serve_json_rpc_main(argc, argv);
@@ -652,8 +652,10 @@ TEST test_serve_mcp_stdio_main(void) {
 #else
     freopen(mcp_err_path, "r", stdin);
 #endif
+    g_cdd_step_fail = 1;
     rc = serve_mcp_stdio_main(argc, argv);
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    g_cdd_step_fail = 0;
+    ASSERT_NEQ(CDD_C_SUCCESS, rc);
 
 #if defined(_MSC_VER)
     {
@@ -1051,11 +1053,305 @@ TEST test_json_rpc_response_to_json_oom(void) {
     }
   }
   g_cdd_alloc_fail = 0;
+  for (i = 1; i <= 6; i++) {
+    out = NULL;
+    g_cdd_step_fail = i;
+    if (CddJsonRpcResponse_to_json(&resp, &out) == CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_free_serialized_string(out));
+      break;
+    }
+  }
+  g_cdd_step_fail = 0;
+  resp.result_json = "{\"ok\":true}";
+  for (i = 1; i <= 6; i++) {
+    out = NULL;
+    g_cdd_step_fail = i;
+    if (CddJsonRpcResponse_to_json(&resp, &out) == CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_free_serialized_string(out));
+      break;
+    }
+  }
+  g_cdd_step_fail = 0;
+  resp.result_json = "not valid json";
+  ASSERT_NEQ(CDD_C_SUCCESS, CddJsonRpcResponse_to_json(&resp, &out));
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(id_v));
   PASS();
 }
+
+#ifndef __EMSCRIPTEN__
+/**
+ * @brief Mock socket callback returning CDD_C_SUCCESS with an invalid fd (-1).
+ * @param[in] domain Domain.
+ * @param[in] type Type.
+ * @param[in] protocol Protocol.
+ * @param[out] out_fd Output descriptor.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t mock_rpc_socket_ok_invalid(int domain, int type,
+                                                int protocol, int *out_fd) {
+  if (domain && type && protocol) {
+  }
+  *out_fd = -1;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Mock socket callback creating a UDP socket so bind succeeds and listen
+ * fails.
+ * @param[in] domain Domain.
+ * @param[in] type Type.
+ * @param[in] protocol Protocol.
+ * @param[out] out_fd Output descriptor.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t mock_rpc_socket_udp(int domain, int type, int protocol,
+                                         int *out_fd) {
+  if (domain && type && protocol) {
+  }
+  *out_fd = (int)socket(AF_INET, SOCK_DGRAM, 0);
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Mock accept callback returning CDD_C_SUCCESS with an invalid fd (-1).
+ * @param[in] server_fd Server descriptor.
+ * @param[out] out_client_fd Client descriptor.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t mock_rpc_accept_ok_invalid(int server_fd,
+                                                int *out_client_fd) {
+  if (server_fd) {
+  }
+  *out_client_fd = -1;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Mock send callback succeeding in-memory without an active OS socket.
+ * @param[in] fd Descriptor.
+ * @param[in] buf Buffer.
+ * @param[in] len Length.
+ * @param[out] out_sent Bytes sent.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t mock_rpc_send_ok(int fd, const void *buf, size_t len,
+                                      size_t *out_sent) {
+  if (fd && buf) {
+  }
+  *out_sent = len + 1;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Mock send callback returning CDD_C_SUCCESS with 0 bytes so `sent < 0`.
+ * @param[in] fd Descriptor.
+ * @param[in] buf Buffer.
+ * @param[in] len Length.
+ * @param[out] out_sent Bytes sent.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t mock_rpc_send_ok_zero(int fd, const void *buf, size_t len,
+                                           size_t *out_sent) {
+  if (fd && buf && len) {
+  }
+  *out_sent = 0;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Mock accept callback creating a pre-populated loopback/socketpair
+ * client socket so `try_handle_request` and `parse_content_length` step-fail
+ * branches are exercised.
+ * @param[in] server_fd Server descriptor.
+ * @param[out] out_client_fd Client descriptor.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t mock_rpc_accept_ok_prefilled(int server_fd,
+                                                  int *out_client_fd) {
+#if !defined(_WIN32)
+  int sv[2];
+  const char *req = "POST / HTTP/1.1\r\nContent-Length: 2\r\n\r\n{}";
+  if (server_fd) {
+  }
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0) {
+    send(sv[1], req, strlen(req), 0);
+    close(sv[1]);
+    *out_client_fd = sv[0];
+    return CDD_C_SUCCESS;
+  }
+#else
+  if (server_fd) {
+  }
+#endif
+  *out_client_fd = -1;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Exercises step-fail, OOM, and socket vtable error percolation across
+ * `serve_mcp_stdio.c` and `serve_json_rpc.c`.
+ * @return Test result.
+ */
+TEST test_serve_rpc_percolation_sweeps(void) {
+  static const char *const payloads[] = {
+      "invalid json",
+      "{\"jsonrpc\":\"2.0\"}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"version\"}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"resources/read\",\"params\":{"
+      "\"uri\":\"file:///openapi.json\"}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"prompts/get\",\"params\":{"
+      "\"name\":\"generate_sdk\"}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"sampling/createMessage\","
+      "\"params\":{\"systemPrompt\":\"hi\"}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{"
+      "\"name\":\"to_openapi\",\"arguments\":{\"input\":\"nonexistent_dir\","
+      "\"output\":\"out.json\"}}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{"
+      "\"name\":\"to_docs_json\",\"arguments\":{\"input\":\"nonexistent.json\","
+      "\"output\":\"d.json\",\"no_imports\":true,\"no_wrapping\":true}}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{"
+      "\"name\":\"to_arazzo\",\"arguments\":{\"input\":\"nonexistent_dir\","
+      "\"output\":\"ar.json\"}}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{"
+      "\"name\":\"from_arazzo\",\"arguments\":{\"subcommand\":\"to_sdk\","
+      "\"input\":\"nonexistent.json\",\"openapi_input\":\"oa.json\","
+      "\"output\":\"out\",\"func_prefix\":\"p_\"}}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"to_openapi\",\"params\":{"
+      "\"input\":\"nonexistent_dir\",\"output\":\"out.json\"}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"to_docs_json\",\"params\":{"
+      "\"input\":\"nonexistent.json\",\"output\":\"d.json\",\"no_imports\":"
+      "true,"
+      "\"no_wrapping\":true}}",
+      "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"from_openapi_to_sdk\","
+      "\"params\":{\"input\":\"nonexistent.json\",\"input_dir\":\"d\","
+      "\"output\":\"o\",\"no_github_actions\":true,\"no_installable_package\":"
+      "true,\"tests\":true}}"};
+  size_t p;
+  int s;
+  cdd_context_t mock_ctx;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            serve_json_rpc_dispatch_body(0, NULL));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_context_init_default(&mock_ctx));
+  mock_ctx.socket_vt.send_fn = mock_rpc_send_ok;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_context_set_global(&mock_ctx));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_set_allocation_functions(rpc_test_json_malloc, free));
+
+  /* Direct OOM + step-fail sweeps on build_mcp_resources_read & prompts_get */
+  {
+    JSON_Value *pv = NULL;
+    char *jout = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string(
+                  "{\"uri\":\"file:///openapi.json\",\"name\":\"gen\"}", &pv));
+    for (s = 1; s <= 12; ++s) {
+      jout = NULL;
+      g_cdd_step_fail = s;
+      if (build_mcp_resources_read(pv->object_val, &jout) == CDD_C_SUCCESS)
+        ASSERT_EQ(CDD_C_SUCCESS, rpc_serialized_str_free(jout));
+      g_cdd_step_fail = 0;
+      jout = NULL;
+      g_cdd_step_fail = s;
+      if (build_mcp_prompts_get(pv->object_val, &jout) == CDD_C_SUCCESS)
+        ASSERT_EQ(CDD_C_SUCCESS, rpc_serialized_str_free(jout));
+      g_cdd_step_fail = 0;
+    }
+    for (s = 1; s <= 35; ++s) {
+      jout = NULL;
+      g_cdd_alloc_fail = s;
+      if (build_mcp_resources_read(pv->object_val, &jout) == CDD_C_SUCCESS)
+        ASSERT_EQ(CDD_C_SUCCESS, rpc_serialized_str_free(jout));
+      g_cdd_alloc_fail = 0;
+      jout = NULL;
+      g_cdd_alloc_fail = s;
+      if (build_mcp_prompts_get(pv->object_val, &jout) == CDD_C_SUCCESS)
+        ASSERT_EQ(CDD_C_SUCCESS, rpc_serialized_str_free(jout));
+      g_cdd_alloc_fail = 0;
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(pv));
+  }
+
+  for (p = 0; p < sizeof(payloads) / sizeof(payloads[0]); ++p) {
+    for (s = 1; s <= 28; ++s) {
+      g_cdd_step_fail = s;
+      g_cdd_last_alloc_err = handle_stdio_request(payloads[p]);
+      g_cdd_step_fail = 0;
+      g_cdd_step_fail = s;
+      g_cdd_last_alloc_err = serve_json_rpc_dispatch_body(0, payloads[p]);
+      g_cdd_step_fail = 0;
+    }
+    for (s = 1; s <= 75; ++s) {
+      cdd_c_error_t r1, r2;
+      g_cdd_alloc_fail = s;
+      r1 = handle_stdio_request(payloads[p]);
+      g_cdd_alloc_fail = 0;
+      g_cdd_alloc_fail = s;
+      r2 = serve_json_rpc_dispatch_body(0, payloads[p]);
+      g_cdd_alloc_fail = 0;
+      if (r1 == CDD_C_SUCCESS && r2 == CDD_C_SUCCESS)
+        break;
+    }
+  }
+
+  /* send_rpc_error_id / send_rpc_result_id when send fails */
+  mock_ctx.socket_vt.send_fn = mock_rpc_send_ok_zero;
+  ASSERT_NEQ(CDD_C_SUCCESS, serve_json_rpc_dispatch_body(0, "invalid json"));
+  ASSERT_NEQ(CDD_C_SUCCESS,
+             serve_json_rpc_dispatch_body(
+                 0, "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"version\"}"));
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+
+  /* Socket vtable edge branches & step-fail in serve_json_rpc_run */
+  {
+    cdd_serve_json_rpc_config_t scfg;
+    memset(&scfg, 0, sizeof(scfg));
+    scfg.port = 12361;
+    scfg.bind_address = "127.0.0.1";
+    scfg.max_requests = 1;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_context_init_default(&mock_ctx));
+    mock_ctx.socket_vt.socket_fn = mock_rpc_socket_ok_invalid;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_context_set_global(&mock_ctx));
+    ASSERT_EQ(CDD_C_ERROR_SYSTEM, serve_json_rpc_run(&scfg));
+
+    mock_ctx.socket_vt.socket_fn = mock_rpc_socket_udp;
+    ASSERT_EQ(CDD_C_ERROR_SYSTEM, serve_json_rpc_run(&scfg));
+
+    mock_ctx.socket_vt.socket_fn = NULL;
+    mock_ctx.socket_vt.accept_fn = mock_rpc_accept_ok_invalid;
+    ASSERT_EQ(CDD_C_SUCCESS, serve_json_rpc_run(&scfg));
+
+    mock_ctx.socket_vt.accept_fn = mock_rpc_accept_ok_prefilled;
+    mock_ctx.socket_vt.send_fn = mock_rpc_send_ok;
+    for (s = 1; s <= 10; ++s) {
+      g_cdd_step_fail = s;
+      g_cdd_last_alloc_err = serve_json_rpc_run(&scfg);
+      g_cdd_step_fail = 0;
+    }
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_context_set_global(NULL));
+
+  /* CLI edge cases for serve_mcp_stdio_main */
+  {
+    char *av_help[2];
+    char *av_bad[3];
+    av_help[0] = cdd_test_mut_str("serve_mcp_stdio");
+    av_help[1] = cdd_test_mut_str("--help");
+    ASSERT_EQ(CDD_C_SUCCESS, serve_mcp_stdio_main(2, av_help));
+    av_bad[0] = cdd_test_mut_str("serve_mcp_stdio");
+    av_bad[1] = cdd_test_mut_str("--name");
+    av_bad[2] = NULL;
+    ASSERT_NEQ(CDD_C_SUCCESS, serve_mcp_stdio_main(2, av_bad));
+  }
+
+  PASS();
+}
+#endif
 
 /**
  * @brief Executes the serve_json_rpc_suite test suite.
@@ -1069,6 +1365,7 @@ SUITE(serve_json_rpc_suite) {
   RUN_TEST(test_serve_json_rpc_bind_fail);
   RUN_TEST(test_serve_json_rpc_listen_once);
   RUN_TEST(test_serve_mcp_stdio_main);
+  RUN_TEST(test_serve_rpc_percolation_sweeps);
 #endif
 }
 

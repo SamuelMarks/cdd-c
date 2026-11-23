@@ -827,7 +827,7 @@ TEST test_c2openapi_helpers_load_base_and_walker(void) {
   rc = c2openapi_load_base_spec(NULL, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = c2openapi_load_base_spec("nonexistent_base_spec_123.json", &spec);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
 
   /* walker_cb on non-source files */
   rc = c2openapi_walker_cb("test.txt", &spec);

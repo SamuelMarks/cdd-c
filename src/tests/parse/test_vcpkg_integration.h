@@ -324,6 +324,25 @@ TEST test_vcpkg_builder_oom(void) {
     int rc = vcpkg_builder_generate(&builder, &json);
     g_cdd_alloc_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+    for (i = 1; i <= 35; ++i) {
+      g_cdd_step_fail = i;
+      g_cdd_last_alloc_err =
+          vcpkg_builder_scan_source(&builder, "#include <zlib.h>");
+      g_cdd_step_fail = 0;
+    }
+
+    for (i = 1; i <= 10; ++i) {
+      cdd_c_error_t s_rc;
+      char *step_json = NULL;
+      g_cdd_step_fail = i;
+      s_rc = vcpkg_builder_generate(&builder, &step_json);
+      g_cdd_step_fail = 0;
+      C_CDD_FREE(step_json);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+
     g_cdd_last_alloc_err = vcpkg_builder_free(&builder);
 
 #endif

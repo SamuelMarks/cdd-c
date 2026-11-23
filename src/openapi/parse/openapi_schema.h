@@ -64,7 +64,11 @@ extern C_CDD_EXPORT cdd_c_error_t parse_string_enum_array(const JSON_Array *arr,
  * @param[in] n Number of elements in the array.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_string_array(char **arr, size_t n);
+extern C_CDD_EXPORT cdd_c_error_t openapi_string_array_free(char **arr,
+                                                            size_t n);
+
+/** @brief Compatibility alias for `openapi_string_array_free`. */
+#define free_string_array openapi_string_array_free
 
 /**
  * @brief Deep-copies an array of strings.

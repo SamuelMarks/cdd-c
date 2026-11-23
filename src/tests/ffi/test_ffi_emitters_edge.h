@@ -10,6 +10,8 @@
 
 /* clang-format off */
 #include "ffi/test_ffi_emitters.h"
+#include "functions/ffi/cdd_ffi_emit_common.h"
+#include "functions/parse/fs.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -614,6 +616,136 @@ TEST test_ffi_emit_swift_io_fail(void) {
 }
 
 /**
+ * @brief Sweeps `g_ffi_emit_fail_step` across all FFI emitters and comment
+ * formatting helpers to verify strict error percolation on every step.
+ *
+ * @return GREATEST test result.
+ */
+TEST test_ffi_emitters_step_failures(void) {
+  typedef cdd_c_error_t (*ffi_emit_fn_t)(
+      cdd_ffi_ir_t *, const cdd_generate_bindings_config_t *);
+  ffi_emit_fn_t k_emitters[37];
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  cdd_generate_bindings_config_t config = {0};
+  const char *test_dir = "test_ada_out";
+  size_t idx;
+  int step;
+  cdd_c_error_t rc;
+
+  k_emitters[0] = cdd_ffi_emit_ada;
+  k_emitters[1] = cdd_ffi_emit_clojure;
+  k_emitters[2] = cdd_ffi_emit_common_lisp;
+  k_emitters[3] = cdd_ffi_emit_cpp;
+  k_emitters[4] = cdd_ffi_emit_crystal;
+  k_emitters[5] = cdd_ffi_emit_csharp;
+  k_emitters[6] = cdd_ffi_emit_d;
+  k_emitters[7] = cdd_ffi_emit_dart;
+  k_emitters[8] = cdd_ffi_emit_delphi;
+  k_emitters[9] = cdd_ffi_emit_elixir;
+  k_emitters[10] = cdd_ffi_emit_erlang;
+  k_emitters[11] = cdd_ffi_emit_fsharp;
+  k_emitters[12] = cdd_ffi_emit_go;
+  k_emitters[13] = cdd_ffi_emit_groovy;
+  k_emitters[14] = cdd_ffi_emit_haskell;
+  k_emitters[15] = cdd_ffi_emit_java;
+  k_emitters[16] = cdd_ffi_emit_julia;
+  k_emitters[17] = cdd_ffi_emit_lua;
+  k_emitters[18] = cdd_ffi_emit_matlab;
+  k_emitters[19] = cdd_ffi_emit_nim;
+  k_emitters[20] = cdd_ffi_emit_objc;
+  k_emitters[21] = cdd_ffi_emit_odin;
+  k_emitters[22] = cdd_ffi_emit_perl;
+  k_emitters[23] = cdd_ffi_emit_php;
+  k_emitters[24] = cdd_ffi_emit_python;
+  k_emitters[25] = cdd_ffi_emit_r;
+  k_emitters[26] = cdd_ffi_emit_racket;
+  k_emitters[27] = cdd_ffi_emit_ruby;
+  k_emitters[28] = cdd_ffi_emit_rust;
+  k_emitters[29] = cdd_ffi_emit_scala;
+  k_emitters[30] = cdd_ffi_emit_scheme;
+  k_emitters[31] = cdd_ffi_emit_swift;
+  k_emitters[32] = cdd_ffi_emit_tcl;
+  k_emitters[33] = cdd_ffi_emit_typescript;
+  k_emitters[34] = cdd_ffi_emit_vlang;
+  k_emitters[35] = cdd_ffi_emit_webassembly;
+  k_emitters[36] = cdd_ffi_emit_zig;
+
+#ifdef _WIN32
+  _mkdir(test_dir);
+#else
+  mkdir(test_dir, 0777);
+#endif
+
+  config.output_dir = cdd_test_mut_str(test_dir);
+  config.library_name = cdd_test_mut_str("test_lib");
+  config.module_name = NULL;
+
+  for (idx = 0; idx < sizeof(k_emitters) / sizeof(k_emitters[0]); ++idx) {
+    for (step = 1; step <= 600; ++step) {
+      g_ffi_emit_fail_step = step;
+      rc = k_emitters[idx](ir, &config);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS) {
+        break;
+      }
+      ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+  }
+
+  /* Also sweep Zig with non-NULL config.input (@cImport branch) */
+  config.input = cdd_test_mut_str("my_input.h");
+  for (step = 1; step <= 200; ++step) {
+    g_ffi_emit_fail_step = step;
+    rc = cdd_ffi_emit_zig(ir, &config);
+    g_ffi_emit_fail_step = 0;
+    if (rc == CDD_C_SUCCESS) {
+      break;
+    }
+    ASSERT_NEQ(CDD_C_SUCCESS, rc);
+  }
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  /* Also sweep comment styles in cdd_ffi_emit_common.c */
+  {
+    FILE *tmp = tmpfile();
+    cdd_ffi_comment_style_t line_style = {"-- ", NULL, NULL, NULL,
+                                          NULL,  NULL, NULL, 40};
+    cdd_ffi_comment_style_t block_style = {NULL,  "/* ", " */", "/*",
+                                           "/ *", "*/",  "* /", 0};
+    ASSERT(tmp != NULL);
+    for (step = 1; step <= 20; ++step) {
+      g_ffi_emit_fail_step = step;
+      rc = cdd_ffi_emit_translated_doc(tmp, "/* line1\n * line2 */", "  ",
+                                       &line_style);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    for (step = 1; step <= 20; ++step) {
+      g_ffi_emit_fail_step = step;
+      rc = cdd_ffi_emit_translated_doc(tmp, "/* single line */", "  ",
+                                       &block_style);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    for (step = 1; step <= 20; ++step) {
+      g_ffi_emit_fail_step = step;
+      rc = cdd_ffi_emit_translated_doc(tmp, "/* multi\n * line */", "  ",
+                                       &block_style);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    fclose(tmp);
+  }
+
+  free_dummy_ir(ir);
+  PASS();
+}
+
+/**
  * @brief Executes the ffi_emitters_edge_suite test suite.
  */
 SUITE(ffi_emitters_edge_suite) {
@@ -628,6 +760,7 @@ SUITE(ffi_emitters_edge_suite) {
   RUN_TEST(test_ffi_emit_rust_fresh_dir);
   RUN_TEST(test_ffi_emit_rust_io_null);
   RUN_TEST(test_ffi_emit_swift_io_fail);
+  RUN_TEST(test_ffi_emitters_step_failures);
 }
 
 #ifdef __cplusplus

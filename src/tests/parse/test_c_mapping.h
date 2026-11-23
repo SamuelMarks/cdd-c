@@ -436,6 +436,12 @@ TEST test_mapping_coverage(void) {
   ASSERT_STR_EQ("string", m.oa_type);
   g_cdd_last_alloc_err = c_mapping_free(&m);
 
+  /* Test void array declarator to hit is_array == true on void */
+  ASSERT_EQ(CDD_C_SUCCESS, c_mapping_init(&m));
+  ASSERT_EQ(0, c_mapping_map_type("void", "x[]", &m));
+  ASSERT_EQ(OA_TYPE_ARRAY, m.kind);
+  g_cdd_last_alloc_err = c_mapping_free(&m);
+
   g_fail_io_after = -1;
 
   PASS();

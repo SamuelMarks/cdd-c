@@ -37,6 +37,10 @@ static cdd_c_error_t bw_parse_expr(const char **p, int *saw_digit,
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t bw_skip_ws(const char **p) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (**p == ' ' || **p == '\t')
     (*p)++;
   return CDD_C_SUCCESS;
@@ -56,14 +60,20 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
                                       long *out_val) {
   long v = 0;
   cdd_c_error_t rc = bw_skip_ws(p);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (**p == '(') {
     (*p)++;
     rc = bw_parse_expr(p, saw_digit, &v);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = bw_skip_ws(p);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (**p == ')')
       (*p)++;
     *out_val = v;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   if (**p == '+') {
     (*p)++;
@@ -72,14 +82,18 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
   if (**p == '-') {
     (*p)++;
     rc = bw_parse_primary(p, saw_digit, &v);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     *out_val = -v;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   if (**p == '~') {
     (*p)++;
     rc = bw_parse_primary(p, saw_digit, &v);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     *out_val = ~v;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   if (**p == '\'') {
     (*p)++;
@@ -91,7 +105,7 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
         (*p)++;
     }
     *out_val = v;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   if ((*p)[0] == '0' && ((*p)[1] == 'x' || (*p)[1] == 'X')) {
     (*p) += 2;
@@ -121,7 +135,7 @@ static cdd_c_error_t bw_parse_primary(const char **p, int *saw_digit,
   while (**p == 'u' || **p == 'U' || **p == 'l' || **p == 'L')
     (*p)++;
   *out_val = v;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -137,15 +151,21 @@ static cdd_c_error_t bw_parse_mul(const char **p, int *saw_digit,
                                   long *out_val) {
   long lhs = 0;
   cdd_c_error_t rc = bw_parse_primary(p, saw_digit, &lhs);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   for (;;) {
     long rhs = 0;
     char op;
     rc = bw_skip_ws(p);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     op = **p;
     if (op != '*' && op != '/' && op != '%')
       break;
     (*p)++;
     rc = bw_parse_primary(p, saw_digit, &rhs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (op == '*')
       lhs *= rhs;
     else if (op == '/' && rhs != 0)
@@ -154,7 +174,7 @@ static cdd_c_error_t bw_parse_mul(const char **p, int *saw_digit,
       lhs %= rhs;
   }
   *out_val = lhs;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -170,22 +190,28 @@ static cdd_c_error_t bw_parse_add(const char **p, int *saw_digit,
                                   long *out_val) {
   long lhs = 0;
   cdd_c_error_t rc = bw_parse_mul(p, saw_digit, &lhs);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   for (;;) {
     long rhs = 0;
     char op;
     rc = bw_skip_ws(p);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     op = **p;
     if (op != '+' && op != '-')
       break;
     (*p)++;
     rc = bw_parse_mul(p, saw_digit, &rhs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (op == '+')
       lhs += rhs;
     else
       lhs -= rhs;
   }
   *out_val = lhs;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -201,10 +227,14 @@ static cdd_c_error_t bw_parse_shift(const char **p, int *saw_digit,
                                     long *out_val) {
   long lhs = 0;
   cdd_c_error_t rc = bw_parse_add(p, saw_digit, &lhs);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   for (;;) {
     long rhs = 0;
     int is_shl = 0;
     rc = bw_skip_ws(p);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if ((*p)[0] == '<' && (*p)[1] == '<') {
       is_shl = 1;
       (*p) += 2;
@@ -215,13 +245,15 @@ static cdd_c_error_t bw_parse_shift(const char **p, int *saw_digit,
       break;
     }
     rc = bw_parse_add(p, saw_digit, &rhs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (is_shl)
       lhs = lhs << rhs;
     else
       lhs = lhs >> rhs;
   }
   *out_val = lhs;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -237,15 +269,21 @@ static cdd_c_error_t bw_parse_expr(const char **p, int *saw_digit,
                                    long *out_val) {
   long lhs = 0;
   cdd_c_error_t rc = bw_parse_shift(p, saw_digit, &lhs);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   for (;;) {
     long rhs = 0;
     char op;
     rc = bw_skip_ws(p);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     op = **p;
     if (op != '&' && op != '^' && op != '|')
       break;
     (*p)++;
     rc = bw_parse_shift(p, saw_digit, &rhs);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (op == '&')
       lhs &= rhs;
     else if (op == '^')
@@ -254,7 +292,7 @@ static cdd_c_error_t bw_parse_expr(const char **p, int *saw_digit,
       lhs |= rhs;
   }
   *out_val = lhs;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -278,13 +316,15 @@ cdd_c_error_t cdd_struct_eval_bitwidth_str(const char *bw_str,
     return CDD_C_SUCCESS;
 
   rc = bw_parse_expr(&p, &saw_digit, &acc);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (saw_digit) {
     *out_bw = (acc > 0) ? (unsigned int)acc : 0U;
   } else {
     *out_bw = 1U;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -318,6 +358,8 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
     const struct StructField *f = &sf->fields[i];
     unsigned int bw = 0U;
     rc = cdd_struct_eval_bitwidth_str(f->bit_width, &bw);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (bw > 0 && f->name[0] != '\0') {
       CHECK_IO(FPRINTF_HOOK(
           fp,
@@ -342,6 +384,8 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
         char esc_al[256];
         rc = cdd_escape_json_c_str(f->serde_aliases[a_idx], esc_al,
                                    sizeof(esc_al));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         CHECK_IO(
             FPRINTF_HOOK(fp, "\"%s\"%s", esc_al,
                          (a_idx + 1 < f->n_serde_aliases) ? ", " : " };\n"));
@@ -372,6 +416,8 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
     int eff_has_max_len;
     size_t eff_max_len;
     rc = cdd_struct_eval_bitwidth_str(f->bit_width, &bw);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     is_ptr = ((strcmp(f->type, "string") == 0 && f->fixed_array_len == 0 &&
                !f->is_flexible_array) ||
               (strcmp(f->type, "object") == 0 && f->c_type[0] == '\0') ||
@@ -393,14 +439,19 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
                       ? f->max_items
                       : f->max_len;
 
-    if (cdd_serde_resolve_field_names(sf, i, wire_name, sizeof(wire_name),
-                                      de_wire_name,
-                                      sizeof(de_wire_name)) != CDD_C_SUCCESS) {
-      CDD_STRCPY(wire_name, sizeof(wire_name), f->name);
-      CDD_STRCPY(de_wire_name, sizeof(de_wire_name), f->name);
+    if (f->name[0] == '\0') {
+      wire_name[0] = '\0';
+      de_wire_name[0] = '\0';
+    } else {
+      rc = cdd_serde_resolve_field_names(sf, i, wire_name, sizeof(wire_name),
+                                         de_wire_name, sizeof(de_wire_name));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     if (f->ref[0] != '\0') {
       rc = get_type_from_ref(f->ref, &ref_out);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     if (strcmp(f->type, "integer") == 0)
       kind_str = "CDD_FIELD_KIND_INTEGER";
@@ -446,9 +497,17 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
     }
 
     rc = cdd_escape_json_c_str(f->description, esc_doc, sizeof(esc_doc));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_escape_json_c_str(f->format, esc_fmt, sizeof(esc_fmt));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_escape_json_c_str(f->pattern, esc_pat, sizeof(esc_pat));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_escape_json_c_str(f->default_val, esc_def, sizeof(esc_def));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     if (bw > 0) {
       CHECK_IO(FPRINTF_HOOK(
@@ -587,7 +646,7 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -600,6 +659,10 @@ write_struct_reflect_func(FILE *fp, const char *struct_name,
  */
 static cdd_c_error_t classify_c_type_kind_str(const char *c_type,
                                               const char **out_kind_str) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (c_type[0] == '\0' || strcmp(c_type, "void") == 0) {
     *out_kind_str = "CDD_FIELD_KIND_UNKNOWN";
   } else if (strstr(c_type, "char") && strstr(c_type, "**")) {
@@ -654,12 +717,18 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
   rc = classify_c_type_kind_str(sig->return_type, &ret_kind);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc =
       cdd_escape_json_c_str(sig->doc ? sig->doc : "", esc_doc, sizeof(esc_doc));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (sig->route_method) {
     char esc_rm[96];
     rc = cdd_escape_json_c_str(sig->route_method, esc_rm, sizeof(esc_rm));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CDD_SNPRINTF(route_method_lit, sizeof(route_method_lit), "\"%s\"", esc_rm);
   } else {
     CDD_STRCPY(route_method_lit, sizeof(route_method_lit), "NULL");
@@ -668,6 +737,8 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
   if (sig->route_path) {
     char esc_rp[224];
     rc = cdd_escape_json_c_str(sig->route_path, esc_rp, sizeof(esc_rp));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CDD_SNPRINTF(route_path_lit, sizeof(route_path_lit), "\"%s\"", esc_rp);
   } else {
     CDD_STRCPY(route_path_lit, sizeof(route_path_lit), "NULL");
@@ -676,6 +747,8 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
   if (sig->summary) {
     char esc_sum[224];
     rc = cdd_escape_json_c_str(sig->summary, esc_sum, sizeof(esc_sum));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CDD_SNPRINTF(summary_lit, sizeof(summary_lit), "\"%s\"", esc_sum);
   } else {
     CDD_STRCPY(summary_lit, sizeof(summary_lit), "NULL");
@@ -748,8 +821,12 @@ write_func_reflect_func(FILE *fp, const struct FuncSignature *sig,
     int is_nullable = p->has_nullable_flag ? p->is_nullable : is_ptr;
     int req = p->has_required_flag ? p->required : 1;
     rc = classify_c_type_kind_str(p->type, &p_kind);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc =
         cdd_escape_json_c_str(p->doc ? p->doc : "", esc_pdoc, sizeof(esc_pdoc));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(
         fp, "  { \"%s\", \"%s\", %s, %d, %d, %d, %d, %d, \"%s\" },\n", p->name,
         p->type, p_kind, is_ptr, is_const, is_nullable, is_out, req, esc_pdoc));

@@ -370,6 +370,10 @@ C_CDD_EXPORT cdd_c_error_t
 find_param(const char *name, const struct OpenAPI_Parameter *params,
            size_t n_params, const struct OpenAPI_Parameter **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (i = 0; i < n_params; ++i) {
     if (params[i].name && strcmp(params[i].name, name) == 0 &&
         params[i].in == OA_PARAM_IN_PATH) {
@@ -552,14 +556,16 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
       rc = find_param(segs[i].text, params, n_params, &p);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_segs;
       if (p) {
         const char *name = p->name;
         enum OpenAPI_Style style =
             (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_SIMPLE : p->style;
         int explode = p->explode_set ? p->explode : 0;
         if (p->type && strcmp(p->type, "object") == 0 && !p->is_array) {
-          if (write_path_object_serialization(fp, p) != 0) {
-            rc = CDD_C_ERROR_IO;
+          rc = write_path_object_serialization(fp, p);
+          if (rc != CDD_C_SUCCESS) {
             goto cleanup_segs;
           }
         } else if (p->is_array) {
@@ -589,8 +595,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
             prefix = "";
             delim = ",";
           }
-          if (write_path_array_serialization(fp, p, prefix, delim) != 0) {
-            rc = CDD_C_ERROR_IO;
+          rc = write_path_array_serialization(fp, p, prefix, delim);
+          if (rc != CDD_C_SUCCESS) {
             goto cleanup_segs;
           }
         } else {
@@ -674,6 +680,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
       rc = find_param(segs[i].text, params, n_params, &p);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_segs;
       if (p) {
         CHECK_IO(fprintf(fp, ", path_%s", p->name));
       } else {
@@ -687,6 +695,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
       rc = find_param(segs[i].text, params, n_params, &p);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_segs;
       if (p) {
         CHECK_IO(fprintf(fp, "    free(path_%s);\n", p->name));
       }
@@ -698,6 +708,8 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p = NULL;
       rc = find_param(segs[i].text, params, n_params, &p);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup_segs;
       if (p) {
         CHECK_IO(fprintf(fp, "  free(path_%s);\n", p->name));
       }

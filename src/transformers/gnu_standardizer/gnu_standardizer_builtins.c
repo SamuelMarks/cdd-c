@@ -40,6 +40,10 @@ enum gnu_builtin_shim_flags_t {
 static cdd_c_error_t gnu_shim_append(char *hdr, size_t cap, size_t *io_len,
                                      const char *str) {
   size_t sl = strlen(str) & (cap - 1);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   memcpy(hdr + *io_len, str, sl);
   *io_len += sl;
   hdr[*io_len] = '\0';
@@ -67,6 +71,10 @@ static cdd_c_error_t gnu_parse_call_args(const cdd_token_t *toks, size_t n,
   size_t k;
   int depth = 0;
   size_t nc = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_rparen = 0;
   *out_num_commas = 0;
   *out_found = 0;
@@ -108,6 +116,10 @@ static cdd_c_error_t gnu_slice_text(const cdd_token_t *toks, size_t s,
                                     size_t e_excl, char *buf, size_t cap) {
   size_t pos = 0;
   size_t k;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   buf[0] = '\0';
   if (s >= e_excl)
     return CDD_C_SUCCESS;
@@ -136,6 +148,10 @@ static cdd_c_error_t gnu_slice_text(const cdd_token_t *toks, size_t s,
 static cdd_c_error_t gnu_strip_ws_trivia(cdd_trivia_t **head_ptr) {
   cdd_trivia_t *cur = *head_ptr;
   cdd_trivia_t *prev = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (cur) {
     cdd_trivia_t *nxt = cur->next;
     if (cur->kind == TRIVIA_WHITESPACE || cur->kind == TRIVIA_NEWLINE) {
@@ -182,13 +198,20 @@ static cdd_c_error_t gnu_replace_token_range(cdd_cst_tree_t *tree,
                                  tree->base_tokens->tokens[w].kind, "", 0);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (cdd_cst_find_node_for_token(tree->root, &tree->base_tokens->tokens[w],
-                                    &c_idx, &p_node) == CDD_C_SUCCESS) {
+    rc = gnu_opt_find_node(tree->root, &tree->base_tokens->tokens[w], &c_idx,
+                           &p_node);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (p_node) {
       rc = gnu_strip_ws_trivia(
           &p_node->children[c_idx].val.token->leading_trivia);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (w < end_idx) {
         rc = gnu_strip_ws_trivia(
             &p_node->children[c_idx].val.token->trailing_trivia);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   }
@@ -217,6 +240,11 @@ static cdd_c_error_t gnu_eval_const_arg(cdd_cst_tree_t *tree,
   int any = 0;
   long val = 0;
   int sign = 1;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_const = 0;
   *out_val = 0;
   if (s >= e_excl)
@@ -281,21 +309,26 @@ static cdd_c_error_t gnu_eval_const_arg(cdd_cst_tree_t *tree,
       cdd_cst_symbol_t *sym = NULL;
       size_t cidx = 0;
       cdd_cst_node_t *owner = NULL;
-      cdd_c_error_t rc_sc = CDD_C_SUCCESS;
       memcpy(nm, t->start, t->length);
       nm[t->length] = '\0';
-      if (gnu_find_node(tree->root, t, &cidx, &owner) == CDD_C_SUCCESS) {
-        rc_sc = cdd_cst_scope_find_for_node(gctx->sem_env, owner, &sc);
+      rc = gnu_opt_find_node(tree->root, t, &cidx, &owner);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (owner) {
+        rc = gnu_opt_scope_for_node(gctx->sem_env, owner, &sc);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
-      if (cdd_cst_scope_lookup_in_scope(sc, nm, CDD_CST_SYMBOL_ENUM_CONSTANT,
-                                        &sym) == CDD_C_SUCCESS &&
-          sym->has_enum_value) {
+      rc = gnu_opt_scope_lookup(sc, nm, CDD_CST_SYMBOL_ENUM_CONSTANT, &sym);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (sym && sym->has_enum_value) {
         val = sign * sym->enum_value;
-        sign = (int)rc_sc + 1;
+        sign = 1;
         continue;
       }
       *out_is_const = 0;
-      return rc_sc;
+      return CDD_C_SUCCESS;
     }
     *out_is_const = 0;
     return CDD_C_SUCCESS;
@@ -319,9 +352,6 @@ static cdd_c_error_t gnu_inject_builtin_shims(cdd_cst_tree_t *tree,
   char *hdr = NULL;
   size_t cap = 16384;
   size_t len = 0;
-  const char *pooled = NULL;
-  cdd_cst_node_t *node = NULL;
-  cdd_cst_builder_t bld;
   cdd_c_error_t rc;
 
   rc = gnu_malloc(cap, (void **)&hdr);
@@ -343,356 +373,296 @@ static cdd_c_error_t gnu_inject_builtin_shims(cdd_cst_tree_t *tree,
                        "__extension__ typedef unsigned long long "
                        "cdd_bi_u64_t;\n"
                        "#else\n");
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)gnu_shim_append(
-                           hdr, cap, &len,
-                           "#define CDD_BI_INLINE\n"
-                           "#if defined(__STDC_VERSION__) && __STDC_VERSION__ "
-                           ">= 199901L\n"
-                           "typedef long long cdd_bi_i64_t;\n"
-                           "typedef unsigned long long cdd_bi_u64_t;\n"
-                           "#else\n"
-                           "typedef long cdd_bi_i64_t;\n"
-                           "typedef unsigned long cdd_bi_u64_t;\n"
-                           "#endif\n#endif\n"));
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+  rc = gnu_shim_append(hdr, cap, &len,
+                       "#define CDD_BI_INLINE\n"
+                       "#if defined(__STDC_VERSION__) && __STDC_VERSION__ "
+                       ">= 199901L\n"
+                       "typedef long long cdd_bi_i64_t;\n"
+                       "typedef unsigned long long cdd_bi_u64_t;\n"
+                       "#else\n"
+                       "typedef long cdd_bi_i64_t;\n"
+                       "typedef unsigned long cdd_bi_u64_t;\n"
+                       "#endif\n#endif\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   if (shim_mask & GNU_SHIM_ASM_BARRIER) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "#ifdef _MSC_VER\nvoid _ReadWriteBarrier(void);\n"
-                             "#pragma intrinsic(_ReadWriteBarrier)\n#endif\n"));
+    rc = gnu_shim_append(hdr, cap, &len,
+                         "#ifdef _MSC_VER\nvoid _ReadWriteBarrier(void);\n"
+                         "#pragma intrinsic(_ReadWriteBarrier)\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_ASM_PAUSE) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(hdr, cap, &len,
-                                              "#ifdef _MSC_VER\nvoid "
-                                              "_mm_pause(void);\n#endif\n"));
+    rc = gnu_shim_append(hdr, cap, &len,
+                         "#ifdef _MSC_VER\nvoid _mm_pause(void);\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_ASM_RDTSC) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(hdr, cap, &len,
-                                              "#ifdef _MSC_VER\nunsigned "
-                                              "__int64 __rdtsc(void);\n#pragma "
-                                              "intrinsic(__rdtsc)\n#endif\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "#ifdef _MSC_VER\nunsigned __int64 __rdtsc(void);\n#pragma "
+        "intrinsic(__rdtsc)\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_ASM_CPUID) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "#ifdef _MSC_VER\nvoid __cpuid(int[4], int);\n"
-                             "#pragma intrinsic(__cpuid)\n#endif\n"));
+    rc = gnu_shim_append(hdr, cap, &len,
+                         "#ifdef _MSC_VER\nvoid __cpuid(int[4], int);\n"
+                         "#pragma intrinsic(__cpuid)\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_TRAP_MSVC) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(hdr, cap, &len,
-                                              "#ifdef _MSC_VER\nvoid __cdecl "
-                                              "__debugbreak(void);\n#endif\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "#ifdef _MSC_VER\nvoid __cdecl __debugbreak(void);\n#endif\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_CLZ) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_clzll("
-                             "cdd_bi_u64_t x) {\n"
-                             "  int n = 0;\n  if (x == 0) return 64;\n"
-                             "  while ((x & (((cdd_bi_u64_t)1) << 63)) == 0) "
-                             "{ n++; x <<= 1; }\n"
-                             "  return n;\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_clz("
-                             "unsigned int x) {\n"
-                             "  int n = 0;\n  if (x == 0) return 32;\n"
-                             "  while ((x & 0x80000000U) == 0) { n++; x <<= 1;"
-                             " }\n"
-                             "  return n;\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_clzl("
-                             "unsigned long x) {\n"
-                             "#ifdef _MSC_VER\n"
-                             "  return __cdd_builtin_clz((unsigned int)x);\n"
-                             "#else\n"
-                             "  return (sizeof(unsigned long) == 8)\n"
-                             "    ? __cdd_builtin_clzll((cdd_bi_u64_t)x)\n"
-                             "    : __cdd_builtin_clz((unsigned int)x);\n"
-                             "#endif\n"
-                             "}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_clzll(cdd_bi_u64_t x) {\n"
+        "  int n = 0;\n  if (x == 0) return 64;\n"
+        "  while ((x & (((cdd_bi_u64_t)1) << 63)) == 0) { n++; x <<= 1; }\n"
+        "  return n;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_clz(unsigned int x) {\n"
+        "  int n = 0;\n  if (x == 0) return 32;\n"
+        "  while ((x & 0x80000000U) == 0) { n++; x <<= 1; }\n"
+        "  return n;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_clzl(unsigned long x) {\n"
+        "#ifdef _MSC_VER\n"
+        "  return __cdd_builtin_clz((unsigned int)x);\n"
+        "#else\n"
+        "  return (sizeof(unsigned long) == 8)\n"
+        "    ? __cdd_builtin_clzll((cdd_bi_u64_t)x)\n"
+        "    : __cdd_builtin_clz((unsigned int)x);\n"
+        "#endif\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & (GNU_SHIM_CTZ | GNU_SHIM_FFS)) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_ctzll("
-                             "cdd_bi_u64_t x) {\n"
-                             "  int n = 0;\n  if (x == 0) return 64;\n"
-                             "  while ((x & 1U) == 0) { n++; x >>= 1; }\n"
-                             "  return n;\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_ctz("
-                             "unsigned int x) {\n"
-                             "  int n = 0;\n  if (x == 0) return 32;\n"
-                             "  while ((x & 1U) == 0) { n++; x >>= 1; }\n"
-                             "  return n;\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_ctzl("
-                             "unsigned long x) {\n"
-                             "  return __cdd_builtin_ctzll((cdd_bi_u64_t)x);\n"
-                             "}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_ctzll(cdd_bi_u64_t x) {\n"
+        "  int n = 0;\n  if (x == 0) return 64;\n"
+        "  while ((x & 1U) == 0) { n++; x >>= 1; }\n"
+        "  return n;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_ctz(unsigned int x) {\n"
+        "  int n = 0;\n  if (x == 0) return 32;\n"
+        "  while ((x & 1U) == 0) { n++; x >>= 1; }\n"
+        "  return n;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_ctzl(unsigned long x) {\n"
+        "  return __cdd_builtin_ctzll((cdd_bi_u64_t)x);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_FFS) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_ffsll("
-                             "cdd_bi_i64_t x) {\n"
-                             "  return (x == 0) ? 0 : ("
-                             "__cdd_builtin_ctzll((cdd_bi_u64_t)x) + 1);\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_ffs(int "
-                             "x) {\n"
-                             "  return (x == 0) ? 0 : (__cdd_builtin_ctz("
-                             "(unsigned int)x) + 1);\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_ffsl(long "
-                             "x) {\n"
-                             "  return __cdd_builtin_ffsll((cdd_bi_i64_t)x);\n"
-                             "}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_ffsll(cdd_bi_i64_t x) {\n"
+        "  return (x == 0) ? 0 : (__cdd_builtin_ctzll((cdd_bi_u64_t)x) + 1);"
+        "\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_ffs(int x) {\n"
+        "  return (x == 0) ? 0 : (__cdd_builtin_ctz((unsigned int)x) + 1);\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_ffsl(long x) {\n"
+        "  return __cdd_builtin_ffsll((cdd_bi_i64_t)x);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & (GNU_SHIM_POPCOUNT | GNU_SHIM_PARITY)) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_popcountll"
-                             "(cdd_bi_u64_t x) {\n"
-                             "  int c = 0;\n  while (x) { x &= (x - 1U); c++; "
-                             "}\n  return c;\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_popcount("
-                             "unsigned int x) {\n"
-                             "  return __cdd_builtin_popcountll((cdd_bi_u64_t)"
-                             "x);\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_popcountl("
-                             "unsigned long x) {\n"
-                             "  return __cdd_builtin_popcountll((cdd_bi_u64_t)"
-                             "x);\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_popcountll(cdd_bi_u64_t x) {\n"
+        "  int c = 0;\n  while (x) { x &= (x - 1U); c++; }\n  return c;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_popcount(unsigned int x) {\n"
+        "  return __cdd_builtin_popcountll((cdd_bi_u64_t)x);\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_popcountl(unsigned long x) {\n"
+        "  return __cdd_builtin_popcountll((cdd_bi_u64_t)x);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_PARITY) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int __cdd_builtin_parityll("
-                             "cdd_bi_u64_t x) {\n"
-                             "  return __cdd_builtin_popcountll(x) & 1;\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_parity("
-                             "unsigned int x) {\n"
-                             "  return __cdd_builtin_popcount(x) & 1;\n}\n"
-                             "static CDD_BI_INLINE int __cdd_builtin_parityl("
-                             "unsigned long x) {\n"
-                             "  return __cdd_builtin_popcountl(x) & 1;\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_parityll(cdd_bi_u64_t x) {\n"
+        "  return __cdd_builtin_popcountll(x) & 1;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_parity(unsigned int x) {\n"
+        "  return __cdd_builtin_popcount(x) & 1;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_parityl(unsigned long x) {\n"
+        "  return __cdd_builtin_popcountl(x) & 1;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_BSWAP16) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE unsigned short "
-                             "__cdd_builtin_bswap16(unsigned short x) {\n"
-                             "  return (unsigned short)((x << 8) | (x >> 8));\n"
-                             "}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE unsigned short __cdd_builtin_bswap16("
+        "unsigned short x) {\n"
+        "  return (unsigned short)((x << 8) | (x >> 8));\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_BSWAP32) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE unsigned int "
-                             "__cdd_builtin_bswap32(unsigned int x) {\n"
-                             "  return ((x & 0x000000FFU) << 24) | "
-                             "((x & 0x0000FF00U) << 8) |\n"
-                             "         ((x & 0x00FF0000U) >> 8) | "
-                             "((x & 0xFF000000U) >> 24);\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE unsigned int __cdd_builtin_bswap32("
+        "unsigned int x) {\n"
+        "  return ((x & 0x000000FFU) << 24) | ((x & 0x0000FF00U) << 8) |\n"
+        "         ((x & 0x00FF0000U) >> 8) | ((x & 0xFF000000U) >> 24);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_BSWAP64) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE cdd_bi_u64_t "
-                             "__cdd_builtin_bswap64(cdd_bi_u64_t x) {\n"
-                             "  return ((x & 0xFFU) << 56) | "
-                             "(((x >> 8) & 0xFFU) << 48) |\n"
-                             "         (((x >> 16) & 0xFFU) << 40) | "
-                             "(((x >> 24) & 0xFFU) << 32) |\n"
-                             "         (((x >> 32) & 0xFFU) << 24) | "
-                             "(((x >> 40) & 0xFFU) << 16) |\n"
-                             "         (((x >> 48) & 0xFFU) << 8) | "
-                             "((x >> 56) & 0xFFU);\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE cdd_bi_u64_t __cdd_builtin_bswap64("
+        "cdd_bi_u64_t x) {\n"
+        "  return ((x & 0xFFU) << 56) | (((x >> 8) & 0xFFU) << 48) |\n"
+        "         (((x >> 16) & 0xFFU) << 40) | (((x >> 24) & 0xFFU) << 32) |\n"
+        "         (((x >> 32) & 0xFFU) << 24) | (((x >> 40) & 0xFFU) << 16) |\n"
+        "         (((x >> 48) & 0xFFU) << 8) | ((x >> 56) & 0xFFU);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_OVF_ADD) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_sadd_overflow(int a, int b, int *r)"
-                             " {\n"
-                             "  unsigned int ua = (unsigned int)a, ub = "
-                             "(unsigned int)b;\n"
-                             "  unsigned int ur = ua + ub;\n  *r = (int)ur;\n"
-                             "  return (((ua ^ ur) & (ub ^ ur)) >> 31) != 0;\n"
-                             "}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_uadd_overflow(unsigned int a, "
-                             "unsigned int b, unsigned int *r) {\n"
-                             "  *r = a + b;\n  return *r < a;\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_saddl_overflow(long a, long b, "
-                             "long *r) {\n"
-                             "  unsigned long ua = (unsigned long)a, ub = "
-                             "(unsigned long)b;\n"
-                             "  unsigned long ur = ua + ub;\n  *r = (long)ur;\n"
-                             "  return (((ua ^ ur) & (ub ^ ur)) >> "
-                             "(sizeof(long) * 8 - 1)) != 0;\n}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_uaddl_overflow(unsigned long a, "
-                             "unsigned long b, unsigned long *r) {\n"
-                             "  *r = a + b;\n  return *r < a;\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_saddll_overflow(cdd_bi_i64_t a, "
-                             "cdd_bi_i64_t b, cdd_bi_i64_t *r) {\n"
-                             "  cdd_bi_u64_t ua = (cdd_bi_u64_t)a, ub = "
-                             "(cdd_bi_u64_t)b;\n"
-                             "  cdd_bi_u64_t ur = ua + ub;\n  *r = "
-                             "(cdd_bi_i64_t)ur;\n"
-                             "  return (((ua ^ ur) & (ub ^ ur)) >> 63) != 0;\n"
-                             "}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_uaddll_overflow(cdd_bi_u64_t a, "
-                             "cdd_bi_u64_t b, cdd_bi_u64_t *r) {\n"
-                             "  *r = a + b;\n  return *r < a;\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_sadd_overflow("
+        "int a, int b, int *r) {\n"
+        "  unsigned int ua = (unsigned int)a, ub = (unsigned int)b;\n"
+        "  unsigned int ur = ua + ub;\n  *r = (int)ur;\n"
+        "  return (((ua ^ ur) & (ub ^ ur)) >> 31) != 0;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_uadd_overflow("
+        "unsigned int a, unsigned int b, unsigned int *r) {\n"
+        "  *r = a + b;\n  return *r < a;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_saddl_overflow("
+        "long a, long b, long *r) {\n"
+        "  unsigned long ua = (unsigned long)a, ub = (unsigned long)b;\n"
+        "  unsigned long ur = ua + ub;\n  *r = (long)ur;\n"
+        "  return (((ua ^ ur) & (ub ^ ur)) >> (sizeof(long) * 8 - 1)) != 0;\n"
+        "}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_uaddl_overflow("
+        "unsigned long a, unsigned long b, unsigned long *r) {\n"
+        "  *r = a + b;\n  return *r < a;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_saddll_overflow("
+        "cdd_bi_i64_t a, cdd_bi_i64_t b, cdd_bi_i64_t *r) {\n"
+        "  cdd_bi_u64_t ua = (cdd_bi_u64_t)a, ub = (cdd_bi_u64_t)b;\n"
+        "  cdd_bi_u64_t ur = ua + ub;\n  *r = (cdd_bi_i64_t)ur;\n"
+        "  return (((ua ^ ur) & (ub ^ ur)) >> 63) != 0;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_uaddll_overflow("
+        "cdd_bi_u64_t a, cdd_bi_u64_t b, cdd_bi_u64_t *r) {\n"
+        "  *r = a + b;\n  return *r < a;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_OVF_SUB) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_ssub_overflow(int a, int b, int *r)"
-                             " {\n"
-                             "  unsigned int ua = (unsigned int)a, ub = "
-                             "(unsigned int)b;\n"
-                             "  unsigned int ur = ua - ub;\n  *r = (int)ur;\n"
-                             "  return (((ua ^ ub) & (ua ^ ur)) >> 31) != 0;\n"
-                             "}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_usub_overflow(unsigned int a, "
-                             "unsigned int b, unsigned int *r) {\n"
-                             "  *r = a - b;\n  return a < b;\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_ssubl_overflow(long a, long b, "
-                             "long *r) {\n"
-                             "  unsigned long ua = (unsigned long)a, ub = "
-                             "(unsigned long)b;\n"
-                             "  unsigned long ur = ua - ub;\n  *r = (long)ur;\n"
-                             "  return (((ua ^ ub) & (ua ^ ur)) >> "
-                             "(sizeof(long) * 8 - 1)) != 0;\n}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_usubl_overflow(unsigned long a, "
-                             "unsigned long b, unsigned long *r) {\n"
-                             "  *r = a - b;\n  return a < b;\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_ssubll_overflow(cdd_bi_i64_t a, "
-                             "cdd_bi_i64_t b, cdd_bi_i64_t *r) {\n"
-                             "  cdd_bi_u64_t ua = (cdd_bi_u64_t)a, ub = "
-                             "(cdd_bi_u64_t)b;\n"
-                             "  cdd_bi_u64_t ur = ua - ub;\n  *r = "
-                             "(cdd_bi_i64_t)ur;\n"
-                             "  return (((ua ^ ub) & (ua ^ ur)) >> 63) != 0;\n"
-                             "}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_usubll_overflow(cdd_bi_u64_t a, "
-                             "cdd_bi_u64_t b, cdd_bi_u64_t *r) {\n"
-                             "  *r = a - b;\n  return a < b;\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_ssub_overflow("
+        "int a, int b, int *r) {\n"
+        "  unsigned int ua = (unsigned int)a, ub = (unsigned int)b;\n"
+        "  unsigned int ur = ua - ub;\n  *r = (int)ur;\n"
+        "  return (((ua ^ ub) & (ua ^ ur)) >> 31) != 0;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_usub_overflow("
+        "unsigned int a, unsigned int b, unsigned int *r) {\n"
+        "  *r = a - b;\n  return a < b;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_ssubl_overflow("
+        "long a, long b, long *r) {\n"
+        "  unsigned long ua = (unsigned long)a, ub = (unsigned long)b;\n"
+        "  unsigned long ur = ua - ub;\n  *r = (long)ur;\n"
+        "  return (((ua ^ ub) & (ua ^ ur)) >> (sizeof(long) * 8 - 1)) != 0;\n"
+        "}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_usubl_overflow("
+        "unsigned long a, unsigned long b, unsigned long *r) {\n"
+        "  *r = a - b;\n  return a < b;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_ssubll_overflow("
+        "cdd_bi_i64_t a, cdd_bi_i64_t b, cdd_bi_i64_t *r) {\n"
+        "  cdd_bi_u64_t ua = (cdd_bi_u64_t)a, ub = (cdd_bi_u64_t)b;\n"
+        "  cdd_bi_u64_t ur = ua - ub;\n  *r = (cdd_bi_i64_t)ur;\n"
+        "  return (((ua ^ ub) & (ua ^ ur)) >> 63) != 0;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_usubll_overflow("
+        "cdd_bi_u64_t a, cdd_bi_u64_t b, cdd_bi_u64_t *r) {\n"
+        "  *r = a - b;\n  return a < b;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (shim_mask & GNU_SHIM_OVF_MUL) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_smul_overflow(int a, int b, int *r)"
-                             " {\n"
-                             "  cdd_bi_i64_t p = (cdd_bi_i64_t)a * "
-                             "(cdd_bi_i64_t)b;\n"
-                             "  *r = (int)p;\n  return p != (cdd_bi_i64_t)*r;\n"
-                             "}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_umul_overflow(unsigned int a, "
-                             "unsigned int b, unsigned int *r) {\n"
-                             "  cdd_bi_u64_t p = (cdd_bi_u64_t)a * "
-                             "(cdd_bi_u64_t)b;\n"
-                             "  *r = (unsigned int)p;\n  return (p >> 32) != 0;"
-                             "\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_smull_overflow(long a, long b, "
-                             "long *r) {\n"
-                             "  *r = (long)((unsigned long)a * (unsigned long)"
-                             "b);\n"
-                             "  return (a != 0 && *r / a != b);\n}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_umull_overflow(unsigned long a, "
-                             "unsigned long b, unsigned long *r) {\n"
-                             "  *r = a * b;\n  return (a != 0 && *r / a != b);"
-                             "\n}\n"));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_shim_append(
-                             hdr, cap, &len,
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_smulll_overflow(cdd_bi_i64_t a, "
-                             "cdd_bi_i64_t b, cdd_bi_i64_t *r) {\n"
-                             "  *r = (cdd_bi_i64_t)((cdd_bi_u64_t)a * "
-                             "(cdd_bi_u64_t)b);\n"
-                             "  return (a != 0 && *r / a != b);\n}\n"
-                             "static CDD_BI_INLINE int "
-                             "__cdd_builtin_umulll_overflow(cdd_bi_u64_t a, "
-                             "cdd_bi_u64_t b, cdd_bi_u64_t *r) {\n"
-                             "  *r = a * b;\n  return (a != 0 && *r / a != b);"
-                             "\n}\n"));
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_smul_overflow("
+        "int a, int b, int *r) {\n"
+        "  cdd_bi_i64_t p = (cdd_bi_i64_t)a * (cdd_bi_i64_t)b;\n"
+        "  *r = (int)p;\n  return p != (cdd_bi_i64_t)*r;\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_umul_overflow("
+        "unsigned int a, unsigned int b, unsigned int *r) {\n"
+        "  cdd_bi_u64_t p = (cdd_bi_u64_t)a * (cdd_bi_u64_t)b;\n"
+        "  *r = (unsigned int)p;\n  return (p >> 32) != 0;\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_smull_overflow("
+        "long a, long b, long *r) {\n"
+        "  *r = (long)((unsigned long)a * (unsigned long)b);\n"
+        "  return (a != 0 && *r / a != b);\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_umull_overflow("
+        "unsigned long a, unsigned long b, unsigned long *r) {\n"
+        "  *r = a * b;\n  return (a != 0 && *r / a != b);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    rc = gnu_shim_append(
+        hdr, cap, &len,
+        "static CDD_BI_INLINE int __cdd_builtin_smulll_overflow("
+        "cdd_bi_i64_t a, cdd_bi_i64_t b, cdd_bi_i64_t *r) {\n"
+        "  *r = (cdd_bi_i64_t)((cdd_bi_u64_t)a * (cdd_bi_u64_t)b);\n"
+        "  return (a != 0 && *r / a != b);\n}\n"
+        "static CDD_BI_INLINE int __cdd_builtin_umulll_overflow("
+        "cdd_bi_u64_t a, cdd_bi_u64_t b, cdd_bi_u64_t *r) {\n"
+        "  *r = a * b;\n  return (a != 0 && *r / a != b);\n}\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)gnu_shim_append(
-                           hdr, cap, &len,
-                           "#endif /* CDD_GNU_BUILTIN_SHIMS_DEFINED */\n"));
+  rc = gnu_shim_append(hdr, cap, &len,
+                       "#endif /* CDD_GNU_BUILTIN_SHIMS_DEFINED */\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_pool_string_safe(tree, hdr, &pooled));
+  rc = gnu_splice_snippet_at(tree, &tree->root, 0, 0, hdr);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+
+cleanup:
   C_CDD_FREE(hdr);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
-  rc = gnu_alloc_node(CDD_CST_UNKNOWN, &node);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  bld.error_state = cdd_cst_builder_init(&bld, tree, node);
-  bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                    (int)cdd_cst_bld_snippet(&bld, pooled));
-  if (bld.error_state != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(node));
-    return CDD_C_ERROR_MEMORY;
-  }
-  rc = cdd_cst_splice_children(tree, &tree->root, 0, 0, node->children,
-                               node->num_children);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node_only(node));
   return rc;
 }
 
@@ -711,10 +681,12 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
   if (!tree || !tree->base_tokens)
     return CDD_C_SUCCESS;
   if (gctx && gctx->config) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_is_msvc_target(gctx->config, &is_msvc));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_is_strict_iso_c89(gctx->config, &is_iso_c89));
+    rc = gnu_is_msvc_target(gctx->config, &is_msvc);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = gnu_is_strict_iso_c89(gctx->config, &is_iso_c89);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   for (i = 0; i < tree->base_tokens->size; i++) {
@@ -743,10 +715,11 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[lp].kind != CDD_TOKEN_LPAREN) {
         continue;
       }
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)gnu_parse_call_args(tree->base_tokens->tokens,
-                                                    tree->base_tokens->size, lp,
-                                                    &rp, commas, &nc, &found));
+      rc = gnu_parse_call_args(tree->base_tokens->tokens,
+                               tree->base_tokens->size, lp, &rp, commas, &nc,
+                               &found);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (!found || rp <= lp + 1)
         continue;
 
@@ -821,12 +794,17 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
                            CDD_TOKEN_RPAREN)
                   close_p++;
                 if (close_p > k + 1) {
-                  if (p_idx == 0)
+                  if (p_idx == 0) {
                     rc = gnu_slice_text(tree->base_tokens->tokens, k + 1,
                                         close_p, out0, sizeof(out0));
-                  else if (p_idx == 1)
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
+                  } else if (p_idx == 1) {
                     rc = gnu_slice_text(tree->base_tokens->tokens, k + 1,
                                         close_p, out1, sizeof(out1));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
+                  }
                   p_idx++;
                   k = close_p;
                 }
@@ -845,11 +823,13 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
                 "32); }",
                 out0, out1);
             rc = gnu_replace_token_range(tree, i, end_tok, repl);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           } else {
             rc = gnu_replace_token_range(tree, i, rp, "__rdtsc()");
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
-          if (rc != CDD_C_SUCCESS)
-            return rc;
           i = end_tok;
           continue;
         }
@@ -871,6 +851,8 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
                 if (cp > k + 1) {
                   rc = gnu_slice_text(tree->base_tokens->tokens, k + 1, cp,
                                       outs[oi++], sizeof(outs[0]));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   k = cp;
                 }
               }
@@ -887,6 +869,8 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
                 if (cp > k + 1) {
                   rc = gnu_slice_text(tree->base_tokens->tokens, k + 1, cp,
                                       leaf, sizeof(leaf));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   break;
                 }
               }
@@ -927,6 +911,8 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
               if (cp > k + 1) {
                 rc = gnu_slice_text(tree->base_tokens->tokens, k + 1, cp,
                                     op_var, sizeof(op_var));
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
                 break;
               }
             }
@@ -971,12 +957,14 @@ cdd_c_error_t gnu_standardize_asm_ctx(cdd_cst_tree_t *tree,
             rc = replace_token_with_text(tree,
                                          &tree->base_tokens->tokens[end_tok],
                                          CDD_TOKEN_SEMICOLON, ";\n#endif\n", 9);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           } else {
             rc = replace_token_with_text(tree, &tree->base_tokens->tokens[rp],
                                          CDD_TOKEN_RPAREN, ")\n#endif\n", 9);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
-          if (rc != CDD_C_SUCCESS)
-            return rc;
           i = end_tok;
         }
       }
@@ -1067,8 +1055,9 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
   if (!tree || !tree->base_tokens)
     return CDD_C_SUCCESS;
   if (gctx && gctx->config) {
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_is_msvc_target(gctx->config, &is_msvc));
+    rc = gnu_is_msvc_target(gctx->config, &is_msvc);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   for (i = 0; i < tree->base_tokens->size; i++) {
@@ -1119,10 +1108,11 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
       size_t nc = 0;
       int found = 0;
 
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)gnu_parse_call_args(tree->base_tokens->tokens,
-                                                    tree->base_tokens->size, lp,
-                                                    &rp, commas, &nc, &found));
+      rc = gnu_parse_call_args(tree->base_tokens->tokens,
+                               tree->base_tokens->size, lp, &rp, commas, &nc,
+                               &found);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (!found)
         continue;
 
@@ -1153,11 +1143,19 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
           cdd_cst_node_t *owner = NULL;
           char pt[128];
           int is_tn = 0;
-          if (gnu_find_node(tree->root, tok, &cidx, &owner) == CDD_C_SUCCESS &&
-              cdd_eval_expr_type_scoped(
-                  gctx, owner, &tree->base_tokens->tokens[commas[1] + 1],
-                  rp - (commas[1] + 1), CDD_CST_TYPE_MODE_RVALUE, pt,
-                  sizeof(pt), &is_tn) == CDD_C_SUCCESS) {
+          int ev_ok = 0;
+          rc = gnu_opt_find_node(tree->root, tok, &cidx, &owner);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          if (owner) {
+            rc = gnu_opt_eval_type_scoped(
+                gctx, owner, &tree->base_tokens->tokens[commas[1] + 1],
+                rp - (commas[1] + 1), CDD_CST_TYPE_MODE_RVALUE, pt, sizeof(pt),
+                &is_tn, &ev_ok);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+          }
+          if (ev_ok) {
             if (strstr(pt, "unsigned") != NULL || strstr(pt, "uint") != NULL ||
                 strstr(pt, "size_t") != NULL) {
               is_uns = 1;
@@ -1210,6 +1208,8 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
         size_t a0_end = (nc >= 1) ? commas[0] : rp;
         rc = gnu_slice_text(tree->base_tokens->tokens, lp + 1, a0_end, addr_buf,
                             sizeof(addr_buf));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         CDD_SNPRINTF(repl, sizeof(repl), "((void)(%s))",
                      addr_buf[0] != '\0' ? addr_buf : "0");
         rc = gnu_replace_token_range(tree, i, rp, repl);
@@ -1223,12 +1223,11 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
           memcmp(tok->start, "__builtin_constant_p", 20) == 0) {
         int is_c = 0;
         long cv = 0;
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)gnu_eval_const_arg(tree, gctx,
-                                                     tree->base_tokens->tokens,
-                                                     lp + 1, rp, &is_c, &cv));
-        rc = (cdd_c_error_t)((int)rc | (int)gnu_replace_token_range(
-                                           tree, i, rp, is_c ? "1" : "0"));
+        rc = gnu_eval_const_arg(tree, gctx, tree->base_tokens->tokens, lp + 1,
+                                rp, &is_c, &cv);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = gnu_replace_token_range(tree, i, rp, is_c ? "1" : "0");
         if (rc != CDD_C_SUCCESS)
           return rc;
         i = rp;
@@ -1243,28 +1242,29 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
         char e2[256];
         char cexpr[128];
         char repl[768];
-        rc =
-            (cdd_c_error_t)((int)rc | (int)gnu_eval_const_arg(
-                                          tree, gctx, tree->base_tokens->tokens,
-                                          lp + 1, commas[0], &is_c, &cv));
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)gnu_slice_text(tree->base_tokens->tokens,
-                                                 commas[0] + 1, commas[1], e1,
-                                                 sizeof(e1)));
-        rc = (cdd_c_error_t)((int)rc | (int)gnu_slice_text(
-                                           tree->base_tokens->tokens,
-                                           commas[1] + 1, rp, e2, sizeof(e2)));
+        rc = gnu_eval_const_arg(tree, gctx, tree->base_tokens->tokens, lp + 1,
+                                commas[0], &is_c, &cv);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = gnu_slice_text(tree->base_tokens->tokens, commas[0] + 1, commas[1],
+                            e1, sizeof(e1));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = gnu_slice_text(tree->base_tokens->tokens, commas[1] + 1, rp, e2,
+                            sizeof(e2));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (is_c) {
           CDD_SNPRINTF(repl, sizeof(repl), "(%s)", cv ? e1 : e2);
         } else {
-          rc = (cdd_c_error_t)((int)rc | (int)gnu_slice_text(
-                                             tree->base_tokens->tokens, lp + 1,
-                                             commas[0], cexpr, sizeof(cexpr)));
+          rc = gnu_slice_text(tree->base_tokens->tokens, lp + 1, commas[0],
+                              cexpr, sizeof(cexpr));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           CDD_SNPRINTF(repl, sizeof(repl), "((%s) ? (%s) : (%s))", cexpr, e1,
                        e2);
         }
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)gnu_replace_token_range(tree, i, rp, repl));
+        rc = gnu_replace_token_range(tree, i, rp, repl);
         if (rc != CDD_C_SUCCESS)
           return rc;
         i = rp;
@@ -1280,31 +1280,45 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
         char t2[128];
         int tn1 = 0;
         int tn2 = 0;
+        int ok1 = 0;
+        int ok2 = 0;
         int compat = 0;
         t1[0] = '\0';
         t2[0] = '\0';
-        if (gnu_find_node(tree->root, tok, &cidx, &owner) == CDD_C_SUCCESS) {
-          if (cdd_eval_expr_type_scoped(
-                  gctx, owner, &tree->base_tokens->tokens[lp + 1],
-                  commas[0] - (lp + 1), CDD_CST_TYPE_MODE_UNQUAL, t1,
-                  sizeof(t1), &tn1) == CDD_C_SUCCESS &&
-              cdd_eval_expr_type_scoped(
-                  gctx, owner, &tree->base_tokens->tokens[commas[0] + 1],
-                  rp - (commas[0] + 1), CDD_CST_TYPE_MODE_UNQUAL, t2,
-                  sizeof(t2), &tn2) == CDD_C_SUCCESS) {
+        rc = gnu_opt_find_node(tree->root, tok, &cidx, &owner);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (owner) {
+          rc = gnu_opt_eval_type_scoped(
+              gctx, owner, &tree->base_tokens->tokens[lp + 1],
+              commas[0] - (lp + 1), CDD_CST_TYPE_MODE_UNQUAL, t1, sizeof(t1),
+              &tn1, &ok1);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          if (ok1) {
+            rc = gnu_opt_eval_type_scoped(
+                gctx, owner, &tree->base_tokens->tokens[commas[0] + 1],
+                rp - (commas[0] + 1), CDD_CST_TYPE_MODE_UNQUAL, t2, sizeof(t2),
+                &tn2, &ok2);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+          }
+          if (ok1 && ok2) {
             if (gctx && gctx->sem_env) {
               cdd_cst_symbol_t *s1 = NULL;
               cdd_cst_symbol_t *s2 = NULL;
-              if (cdd_cst_scope_lookup_in_scope(gctx->sem_env->global_scope, t1,
-                                                CDD_CST_SYMBOL_TYPEDEF,
-                                                &s1) == CDD_C_SUCCESS &&
-                  s1->kind == CDD_CST_SYMBOL_TYPEDEF) {
+              rc = gnu_opt_scope_lookup(gctx->sem_env->global_scope, t1,
+                                        CDD_CST_SYMBOL_TYPEDEF, &s1);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+              if (s1 && s1->kind == CDD_CST_SYMBOL_TYPEDEF) {
                 CDD_SNPRINTF(t1, sizeof(t1), "%s", s1->type_str);
               }
-              if (cdd_cst_scope_lookup_in_scope(gctx->sem_env->global_scope, t2,
-                                                CDD_CST_SYMBOL_TYPEDEF,
-                                                &s2) == CDD_C_SUCCESS &&
-                  s2->kind == CDD_CST_SYMBOL_TYPEDEF) {
+              rc = gnu_opt_scope_lookup(gctx->sem_env->global_scope, t2,
+                                        CDD_CST_SYMBOL_TYPEDEF, &s2);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
+              if (s2 && s2->kind == CDD_CST_SYMBOL_TYPEDEF) {
                 CDD_SNPRINTF(t2, sizeof(t2), "%s", s2->type_str);
               }
             }
@@ -1324,17 +1338,17 @@ gnu_standardize_builtins_ctx(cdd_cst_tree_t *tree,
         char ty_s[128];
         char mem_s[128];
         char repl[320];
-        rc = (cdd_c_error_t)((int)rc | (int)gnu_slice_text(
-                                           tree->base_tokens->tokens, lp + 1,
-                                           commas[0], ty_s, sizeof(ty_s)));
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)gnu_slice_text(tree->base_tokens->tokens,
-                                                 commas[0] + 1, rp, mem_s,
-                                                 sizeof(mem_s)));
+        rc = gnu_slice_text(tree->base_tokens->tokens, lp + 1, commas[0], ty_s,
+                            sizeof(ty_s));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = gnu_slice_text(tree->base_tokens->tokens, commas[0] + 1, rp, mem_s,
+                            sizeof(mem_s));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         CDD_SNPRINTF(repl, sizeof(repl), "((size_t)&(((%s *)0)->%s))", ty_s,
                      mem_s);
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)gnu_replace_token_range(tree, i, rp, repl));
+        rc = gnu_replace_token_range(tree, i, rp, repl);
         if (rc != CDD_C_SUCCESS)
           return rc;
         i = rp;

@@ -134,11 +134,13 @@ static NO_DISCARD cdd_c_error_t cdd_legacy_make_guard_node(
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_cst_create_token(tree, CDD_TOKEN_PREPROC_IFDEF, guard_text, &tok);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
     return cdd_c_keep_err(rc, cdd_cst_free_node(node));
+  }
   rc = cdd_cst_append_child_token(node, tok);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
     return cdd_c_keep_err(rc, cdd_cst_free_node(node));
+  }
   *out_node = node;
   return CDD_C_SUCCESS;
 }
@@ -162,7 +164,10 @@ cdd_legacy_parse_and_clone_first(cdd_cst_tree_t *dest_tree, const char *snippet,
     return rc;
   rc = cdd_cst_clone_tree(dest_tree, frag_tree->root->children[0].val.node,
                           out_cloned);
-  return cdd_c_keep_err(rc, cdd_cst_tree_free(frag_tree));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_cst_tree_free(frag_tree));
+  }
+  return cdd_cst_tree_free(frag_tree);
 }
 
 /**
@@ -275,11 +280,14 @@ cdd_c_error_t CDD_TRANSFORM_EXTERN_C_FN(cdd_cst_tree_t *tree,
 
   if (insert_after_node) {
     rc = cdd_cst_insert_node_after(insert_after_node, top_cloned);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_cst_free_node(top_cloned));
+    }
   } else {
     rc = cdd_cst_insert_node_before(first_node, top_cloned);
-  }
-  if (rc != CDD_C_SUCCESS) {
-    return cdd_c_keep_err(rc, cdd_cst_free_node(top_cloned));
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_cst_free_node(top_cloned));
+    }
   }
 
   /* 4. Synthesize and insert closing guard */
@@ -293,6 +301,35 @@ cdd_c_error_t CDD_TRANSFORM_EXTERN_C_FN(cdd_cst_tree_t *tree,
     return cdd_c_keep_err(rc, cdd_cst_free_node(bot_cloned));
   }
 
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Classifies whether a directive token contains `<unistd.h>` (1),
+ * `<sys/time.h>` (2), or neither (0).
+ *
+ * @param[in] tok Directive token to inspect.
+ * @param[out] out_kind Output classification (0, 1, or 2).
+ * @return `CDD_C_SUCCESS` on success, or `CDD_C_ERROR_INVALID_ARGUMENT`.
+ */
+static NO_DISCARD cdd_c_error_t
+cdd_legacy_match_posix_include(const cdd_token_t *tok, int *out_kind) {
+  size_t off;
+  if (!tok)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_kind = 0;
+  for (off = 0; off + 10 <= tok->length; off++) {
+    if (memcmp(tok->start + off, "<unistd.h>", 10) == 0) {
+      *out_kind = 1;
+      return CDD_C_SUCCESS;
+    }
+  }
+  for (off = 0; off + 12 <= tok->length; off++) {
+    if (memcmp(tok->start + off, "<sys/time.h>", 12) == 0) {
+      *out_kind = 2;
+      return CDD_C_SUCCESS;
+    }
+  }
   return CDD_C_SUCCESS;
 }
 
@@ -322,18 +359,14 @@ cdd_c_error_t CDD_TRANSFORM_MSVC_FN(cdd_cst_tree_t *tree,
     cdd_cst_node_t *dir = res.nodes[i];
     if (dir->num_children > 0 && dir->children[0].kind == CDD_CST_CHILD_TOKEN) {
       cdd_token_t *tok = dir->children[0].val.token;
-      int is_unistd = 0;
-      int is_systime = 0;
-      rc = cdd_legacy_tok_contains(tok, "<unistd.h>", &is_unistd);
-      if (rc == CDD_C_SUCCESS && !is_unistd) {
-        rc = cdd_legacy_tok_contains(tok, "<sys/time.h>", &is_systime);
-      }
+      int posix_kind = 0;
+      rc = cdd_legacy_match_posix_include(tok, &posix_kind);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(res.nodes);
         return rc;
       }
       if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
-        if (is_unistd) {
+        if (posix_kind == 1) {
           rc = cdd_legacy_replace_posix_include(
               tree, dir,
               "#ifndef _MSC_VER\n#include <unistd.h>\n#else\n#include "
@@ -342,7 +375,7 @@ cdd_c_error_t CDD_TRANSFORM_MSVC_FN(cdd_cst_tree_t *tree,
             C_CDD_FREE(res.nodes);
             return rc;
           }
-        } else if (is_systime) {
+        } else if (posix_kind == 2) {
           rc = cdd_legacy_replace_posix_include(
               tree, dir,
               "#ifndef _MSC_VER\n#include <sys/time.h>\n#else\n#include "

@@ -389,6 +389,8 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
                               "$.id");
     json_object_dotset_string(json_value_get_object(p2), "value.type",
                               "jsonpath");
+    json_object_dotset_string(json_value_get_object(p2), "value.x-sel", "1");
+    json_object_set_string(json_value_get_object(p2), "x-pm", "1");
 
     json_array_append_value(p_arr, p0);
     json_array_append_value(p_arr, p1);
@@ -419,11 +421,15 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
     json_object_dotset_string(s0, "requestBody.contentType",
                               "application/json");
     json_object_dotset_string(s0, "requestBody.payload.item", "book");
+    json_object_dotset_string(s0, "requestBody.x-rb", "1");
     json_object_set_string(json_value_get_object(rep0), "target", "/item");
     json_object_dotset_string(json_value_get_object(rep0),
                               "targetSelectorType.type", "jsonpointer");
     json_object_dotset_string(json_value_get_object(rep0),
                               "targetSelectorType.version", "rfc6901");
+    json_object_dotset_string(json_value_get_object(rep0),
+                              "targetSelectorType.x-et", "1");
+    json_object_set_string(json_value_get_object(rep0), "x-rep", "1");
     json_object_set_string(json_value_get_object(rep0), "value",
                            "$inputs.bookName");
     json_array_append_value(rep_arr, rep0);
@@ -558,6 +564,10 @@ static cdd_c_error_t build_full_arazzo_json(JSON_Value **out_root) {
                               "$response.body");
     json_object_dotset_string(s0, "outputs.extracted.selector", "$.meta");
     json_object_dotset_string(s0, "outputs.extracted.type.type", "xpath");
+    json_object_dotset_string(s0, "outputs.extracted.x-out", "1");
+    json_object_set_string(json_value_get_object(sa1), "x-sa", "1");
+    json_object_set_string(json_value_get_object(fa1), "x-fa", "1");
+    json_object_set_string(wf1_obj, "x-wf", "1");
   }
 
   /* Step 1: operationPath + dependsOn */
@@ -1267,11 +1277,185 @@ TEST test_arazzo_parse_and_validate_errors(void) {
 }
 
 /**
+ * @brief Sweeps Parson OOM, `C_CDD_MALLOC` OOM, and `g_cdd_step_fail` across
+ * full-featured Arazzo v1.1.0 parse and emit paths.
+ * @return Greatest test result.
+ */
+TEST test_arazzo_percolation_sweeps(void) {
+#ifdef CDD_BUILD_TESTS
+  JSON_Value *root_val = NULL;
+  struct Arazzo_Spec full_spec;
+  struct Arazzo_Spec tmp_spec;
+  char *full_json = NULL;
+  char *out_json = NULL;
+  int k;
+
+  memset(&full_spec, 0, sizeof(full_spec));
+  ASSERT_EQ(CDD_C_SUCCESS, build_full_arazzo_json(&root_val));
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_load_from_json_value(root_val, &full_spec));
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_write_spec_to_json(&full_spec, &full_json));
+  ASSERT(full_json != NULL);
+
+  /* Non-object array element edge cases */
+  {
+    struct Arazzo_Criterion d_crit;
+    static const char *const non_obj_cases[] = {
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[123],\"workflows\":[{\"workflowId\":\"w\","
+        "\"steps\":[{\"stepId\":\"s1\",\"operationId\":\"o1\"}]}]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[123]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[{\"workflowId\":\"w\",\"steps\":[123]}]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[{\"workflowId\":\"w\",\"steps\":[{\"stepId\":\"s1\","
+        "\"operationId\":\"o1\",\"successCriteria\":[123]}]}]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[{\"workflowId\":\"w\",\"steps\":[{\"stepId\":\"s1\","
+        "\"operationId\":\"o1\",\"requestBody\":{\"replacements\":[123]}}]}]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"components\":{\"failureActions\":{\"F\":123}},\"workflows\":[{"
+        "\"workflowId\":\"w\",\"steps\":[{\"stepId\":\"s1\",\"operationId\":"
+        "\"o1\"}]}]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[],\"workflows\":[{\"workflowId\":\"w\","
+        "\"steps\":[{\"stepId\":\"s1\",\"operationId\":\"o1\"}]}]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[]}",
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[{\"workflowId\":\"w\"}]}"};
+    size_t ni;
+    memset(&d_crit, 0, sizeof(d_crit));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              Arazzo_Criterion_from_jsonObject(NULL, &d_crit));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              arazzo_load_from_json_value(NULL, &tmp_spec));
+    for (ni = 0; ni < sizeof(non_obj_cases) / sizeof(non_obj_cases[0]); ++ni) {
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                arazzo_load_from_json(non_obj_cases[ni], &tmp_spec));
+    }
+    /* Empty arrays & outputs map (`n == 0` branches) */
+    memset(&tmp_spec, 0, sizeof(tmp_spec));
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        arazzo_load_from_json(
+            "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"}"
+            ",\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+            "\"workflows\":[{\"workflowId\":\"w\",\"steps\":[{\"stepId\":\"s1\""
+            ",\"operationId\":\"o1\",\"parameters\":[],\"successCriteria\":[],"
+            "\"onSuccess\":[],\"onFailure\":[],\"outputs\":{}}]}]}",
+            &tmp_spec));
+    ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_free(&tmp_spec));
+  }
+
+  /* json_dom allocator OOM sweep on emit */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_json_set_allocation_functions(mock_arazzo_parson_malloc,
+                                              mock_arazzo_parson_free));
+  for (k = 0; k <= 3000; ++k) {
+    out_json = NULL;
+    g_arazzo_parson_oom_at = k;
+    if (arazzo_write_spec_to_json(&full_spec, &out_json) == CDD_C_SUCCESS) {
+      C_CDD_FREE(out_json);
+    }
+    if (g_arazzo_parson_oom_at >= 0) {
+      g_arazzo_parson_oom_at = -1;
+      break;
+    }
+  }
+  g_arazzo_parson_oom_at = -1;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+
+  /* C_CDD_MALLOC OOM sweep on emit and parse */
+  for (k = 1; k <= 3000; ++k) {
+    out_json = NULL;
+    g_cdd_alloc_fail = k;
+    if (arazzo_write_spec_to_json(&full_spec, &out_json) == CDD_C_SUCCESS) {
+      g_cdd_alloc_fail = 0;
+      C_CDD_FREE(out_json);
+      break;
+    }
+    g_cdd_alloc_fail = 0;
+  }
+  for (k = 1; k <= 3000; ++k) {
+    memset(&tmp_spec, 0, sizeof(tmp_spec));
+    g_cdd_alloc_fail = k;
+    if (arazzo_load_from_json(full_json, &tmp_spec) == CDD_C_SUCCESS) {
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_free(&tmp_spec));
+      break;
+    }
+    g_cdd_alloc_fail = 0;
+  }
+
+  /* Step-fail sweep on emit and parse */
+  {
+    const char *rb_str_json =
+        "{\"arazzo\":\"1.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+        "\"sourceDescriptions\":[{\"name\":\"s\",\"url\":\"u\"}],"
+        "\"workflows\":[{\"workflowId\":\"w\",\"steps\":[{\"stepId\":\"s1\","
+        "\"operationId\":\"o1\",\"requestBody\":{\"payload\":\"hello\","
+        "\"replacements\":[{\"target\":\"/a\",\"value\":\"world\"}]}}]}]}";
+    for (k = 1; k <= 25; ++k) {
+      memset(&tmp_spec, 0, sizeof(tmp_spec));
+      g_cdd_strdup_fail = k;
+      if (arazzo_load_from_json(rb_str_json, &tmp_spec) == CDD_C_SUCCESS) {
+        g_cdd_strdup_fail = 0;
+        ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_free(&tmp_spec));
+        break;
+      }
+      g_cdd_strdup_fail = 0;
+    }
+  }
+  for (k = 1; k <= 700; ++k) {
+    out_json = NULL;
+    g_cdd_step_fail = k;
+    if (arazzo_write_spec_to_json(&full_spec, &out_json) == CDD_C_SUCCESS) {
+      C_CDD_FREE(out_json);
+    }
+    if (g_cdd_step_fail > 0) {
+      g_cdd_step_fail = 0;
+      break;
+    }
+  }
+  g_cdd_step_fail = 0;
+
+  for (k = 1; k <= 1500; ++k) {
+    memset(&tmp_spec, 0, sizeof(tmp_spec));
+    g_cdd_step_fail = k;
+    if (arazzo_load_from_json(full_json, &tmp_spec) == CDD_C_SUCCESS) {
+      g_cdd_step_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_free(&tmp_spec));
+      continue;
+    }
+    if (g_cdd_step_fail > 0) {
+      g_cdd_step_fail = 0;
+      break;
+    }
+  }
+  g_cdd_step_fail = 0;
+
+  C_CDD_FREE(full_json);
+  ASSERT_EQ(CDD_C_SUCCESS, arazzo_spec_free(&full_spec));
+  g_cdd_last_alloc_err = json_value_free(root_val);
+#endif
+  PASS();
+}
+
+/**
  * @brief Executes the arazzo_parser_suite test suite.
  */
 SUITE(arazzo_parser_suite) {
   RUN_TEST(test_arazzo_parse_and_emit_roundtrip);
   RUN_TEST(test_arazzo_parse_and_validate_errors);
+  RUN_TEST(test_arazzo_percolation_sweeps);
 }
 
 #ifdef __cplusplus

@@ -43,35 +43,39 @@ cdd_c_error_t any_from_json_value(const JSON_Value *val,
     return CDD_C_SUCCESS;
 
   rc = cdd_json_value_get_type(val, &t);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   switch (t) {
-  case JSONString:
+  case JSONString: {
     rc = cdd_json_value_get_string(val, &s);
-    out->type = OA_ANY_STRING;
-    rc = c_cdd_strdup(s, &out->string);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    return CDD_C_SUCCESS;
-  case JSONNumber:
+    out->type = OA_ANY_STRING;
+    return c_cdd_strdup(s, &out->string);
+  }
+  case JSONNumber: {
     out->type = OA_ANY_NUMBER;
-    rc = cdd_json_value_get_number(val, &out->number);
-    return CDD_C_SUCCESS;
-  case JSONBoolean:
+    return cdd_json_value_get_number(val, &out->number);
+  }
+  case JSONBoolean: {
     out->type = OA_ANY_BOOL;
-    rc = cdd_json_value_get_boolean(val, &out->boolean);
-    return CDD_C_SUCCESS;
+    return cdd_json_value_get_boolean(val, &out->boolean);
+  }
   case JSONObject:
-  case JSONArray:
+  case JSONArray: {
     rc = cdd_json_serialize_to_string(val, &json_str);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     out->type = OA_ANY_JSON;
     rc = c_cdd_strdup(json_str, &out->json);
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_free_serialized_string(json_str));
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    return CDD_C_SUCCESS;
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_free_serialized_string(json_str));
+    }
+    return cdd_json_free_serialized_string(json_str);
+  }
   default:
     out->type = OA_ANY_NULL;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -94,16 +98,18 @@ cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
     return CDD_C_SUCCESS;
 
   rc = cdd_json_parse_string(example, &val);
-  if (!val) {
-    out->type = OA_ANY_STRING;
-    rc = c_cdd_strdup(example, &out->string);
-    if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    if (rc == CDD_C_ERROR_MEMORY)
       return rc;
-    return CDD_C_SUCCESS;
+    out->type = OA_ANY_STRING;
+    return c_cdd_strdup(example, &out->string);
   }
 
   rc = any_from_json_value(val, out);
-  return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(val));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(val));
+  }
+  return cdd_json_value_free(val);
 }
 
 /**
@@ -127,6 +133,16 @@ cdd_c_error_t free_any_value_local(struct OpenAPI_Any *val) {
 }
 
 /**
+ * @brief Frees members of an OpenAPI Any value structure (`*_free` alias).
+ *
+ * @param[in,out] val Pointer to OpenAPI_Any whose contents should be freed.
+ * @return CDD_C_SUCCESS.
+ */
+cdd_c_error_t any_value_local_free(struct OpenAPI_Any *val) {
+  return free_any_value_local(val);
+}
+
+/**
  * @brief Copies an OpenAPI Any value structure.
  *
  * @param[out] dst Destination OpenAPI_Any.
@@ -135,22 +151,17 @@ cdd_c_error_t free_any_value_local(struct OpenAPI_Any *val) {
  */
 cdd_c_error_t copy_any_value_local(struct OpenAPI_Any *dst,
                                    const struct OpenAPI_Any *src) {
-  cdd_c_error_t rc;
   if (!dst || !src)
     return CDD_C_SUCCESS;
   memset(dst, 0, sizeof(*dst));
   dst->type = src->type;
   switch (src->type) {
-  case OA_ANY_STRING:
-    rc = c_cdd_strdup(src->string, &dst->string);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    return CDD_C_SUCCESS;
-  case OA_ANY_JSON:
-    rc = c_cdd_strdup(src->json, &dst->json);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    return CDD_C_SUCCESS;
+  case OA_ANY_STRING: {
+    return c_cdd_strdup(src->string, &dst->string);
+  }
+  case OA_ANY_JSON: {
+    return c_cdd_strdup(src->json, &dst->json);
+  }
   case OA_ANY_NUMBER:
     dst->number = src->number;
     return CDD_C_SUCCESS;
@@ -286,6 +297,10 @@ cdd_c_error_t find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
                                  const char *name,
                                  struct OpenAPI_MediaType **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
@@ -329,6 +344,10 @@ cdd_c_error_t apply_example_to_media_type(struct OpenAPI_MediaType *mt,
  */
 cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
                                         int *out_has_data) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (out_has_data)
     *out_has_data = 0;
   if (!ref || !out_has_data)
@@ -348,7 +367,7 @@ cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref,
  * freed.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_schema_ref_fields(struct OpenAPI_SchemaRef *ref) {
+static cdd_c_error_t schema_ref_fields_free(struct OpenAPI_SchemaRef *ref) {
   if (ref->ref_name) {
     C_CDD_FREE(ref->ref_name);
     ref->ref_name = NULL;
@@ -389,39 +408,39 @@ cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
   if (src->ref_name) {
     rc = c_cdd_strdup(src->ref_name, &dst->ref_name);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)free_schema_ref_fields(dst));
+      return cdd_c_keep_err(rc, schema_ref_fields_free(dst));
     }
   }
   if (src->ref) {
     rc = c_cdd_strdup(src->ref, &dst->ref);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)free_schema_ref_fields(dst));
+      return cdd_c_keep_err(rc, schema_ref_fields_free(dst));
     }
   }
   dst->ref_is_dynamic = src->ref_is_dynamic;
   if (src->inline_type) {
     rc = c_cdd_strdup(src->inline_type, &dst->inline_type);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)free_schema_ref_fields(dst));
+      return cdd_c_keep_err(rc, schema_ref_fields_free(dst));
     }
   }
   if (src->items_ref) {
     rc = c_cdd_strdup(src->items_ref, &dst->items_ref);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)free_schema_ref_fields(dst));
+      return cdd_c_keep_err(rc, schema_ref_fields_free(dst));
     }
   }
   dst->items_ref_is_dynamic = src->items_ref_is_dynamic;
   if (src->format) {
     rc = c_cdd_strdup(src->format, &dst->format);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)free_schema_ref_fields(dst));
+      return cdd_c_keep_err(rc, schema_ref_fields_free(dst));
     }
   }
   if (src->items_format) {
     rc = c_cdd_strdup(src->items_format, &dst->items_format);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)free_schema_ref_fields(dst));
+      return cdd_c_keep_err(rc, schema_ref_fields_free(dst));
     }
   }
   return CDD_C_SUCCESS;
@@ -438,6 +457,10 @@ cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
 cdd_c_error_t request_body_has_media_type(const struct OpenAPI_Operation *op,
                                           const char *name, int *out_has) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (out_has)
     *out_has = 0;
   if (!op || !name || !out_has)
@@ -484,6 +507,11 @@ cdd_c_error_t init_media_type_from_request_body(
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = schema_ref_has_data_basic(&op->req_body, &has_data);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(mt->name);
+    mt->name = NULL;
+    return rc;
+  }
   if (has_data) {
     if (is_item_schema) {
       rc = copy_schema_ref_basic(&mt->item_schema, &op->req_body);
@@ -536,17 +564,20 @@ cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
     }
     op->n_req_body_media_types = 0;
     if (op->req_body.content_type) {
-      if (init_media_type_from_request_body(&op->req_body_media_types[0],
-                                            op->req_body.content_type, op,
-                                            is_item_schema) != 0)
-        return CDD_C_ERROR_MEMORY;
+      rc = init_media_type_from_request_body(&op->req_body_media_types[0],
+                                             op->req_body.content_type, op,
+                                             is_item_schema);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       op->n_req_body_media_types = 1;
     }
   }
 
   rc = request_body_has_media_type(op, name, &_has_mt);
-  if (_has_mt)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (_has_mt)
+    return CDD_C_SUCCESS;
 
   new_count = op->n_req_body_media_types + 1;
   new_mts = (struct OpenAPI_MediaType *)C_CDD_REALLOC(
@@ -556,10 +587,11 @@ cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
     return CDD_C_ERROR_MEMORY;
   }
   op->req_body_media_types = new_mts;
-  if (init_media_type_from_request_body(
-          &op->req_body_media_types[op->n_req_body_media_types], name, op,
-          is_item_schema) != 0)
-    return CDD_C_ERROR_MEMORY;
+  rc = init_media_type_from_request_body(
+      &op->req_body_media_types[op->n_req_body_media_types], name, op,
+      is_item_schema);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   op->n_req_body_media_types = new_count;
   return CDD_C_SUCCESS;
 }

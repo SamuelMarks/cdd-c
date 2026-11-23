@@ -63,6 +63,10 @@ static NO_DISCARD cdd_c_error_t ocaml_is_reserved(const char *word,
   size_t i;
   size_t count;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_is_kw = 0;
   count = sizeof(k_ocaml_keywords) / sizeof(k_ocaml_keywords[0]);
   for (i = 0; i < count; i++) {
@@ -94,6 +98,11 @@ NO_DISCARD cdd_c_error_t cdd_ocaml_sanitize_lid(const char *c_ident,
 
   if (!out_buf || out_cap < 4)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
 
   out_buf[0] = '\0';
   if (!c_ident || c_ident[0] == '\0') {
@@ -138,12 +147,14 @@ NO_DISCARD cdd_c_error_t cdd_ocaml_sanitize_lid(const char *c_ident,
   }
 
   rc = ocaml_is_reserved(out_buf, &is_kw);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (is_kw) {
     out_buf[pos++] = '_';
     out_buf[pos] = '\0';
   }
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -165,15 +176,22 @@ NO_DISCARD cdd_c_error_t cdd_ocaml_sanitize_uid(const char *c_ident,
   if (!out_buf || out_cap < 4)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+
   out_buf[0] = '\0';
-  if (!c_ident)
+  if (!c_ident) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "Unnamed");
+  }
 
   p = c_ident;
   while (*p != '\0' && !isalnum((unsigned char)*p))
     p++;
-  if (*p == '\0')
+  if (*p == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "Unnamed");
+  }
 
   max_len = out_cap - 1;
   if (max_len > 96)
@@ -221,8 +239,13 @@ static NO_DISCARD cdd_c_error_t ocaml_normalize_int_literal(const char *raw,
   size_t i;
   int neg;
 
-  if (raw[0] == '\0')
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+  if (raw[0] == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+  }
 
   p = raw;
   while (memchr(" \t(", (unsigned char)*p, 3) != NULL)
@@ -242,8 +265,9 @@ static NO_DISCARD cdd_c_error_t ocaml_normalize_int_literal(const char *raw,
   while (len > 0 && memchr(" \t)uUlL", (unsigned char)p[len - 1], 7) != NULL) {
     len--;
   }
-  if (len == 0)
+  if (len == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0");
+  }
 
   pos = 0;
   if (neg) {
@@ -298,8 +322,13 @@ static NO_DISCARD cdd_c_error_t ocaml_normalize_float_literal(const char *raw,
   size_t pos;
   int has_dot_or_exp;
 
-  if (raw[0] == '\0')
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
+  if (raw[0] == '\0') {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0.0");
+  }
 
   pos = 0;
   has_dot_or_exp = 0;
@@ -314,8 +343,9 @@ static NO_DISCARD cdd_c_error_t ocaml_normalize_float_literal(const char *raw,
       out_buf[pos++] = c;
     }
   }
-  if (pos == 0)
+  if (pos == 0) {
     return cdd_ffi_snprintf_checked(out_buf, out_cap, "%s", "0.0");
+  }
   if (!has_dot_or_exp) {
     out_buf[pos++] = '.';
     out_buf[pos++] = '0';
@@ -337,6 +367,10 @@ ocaml_find_ir_node(const cdd_ffi_ir_t *ir, const char *name,
                    const cdd_ffi_ir_node_t **out_node) {
   size_t i;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_node = NULL;
   if (!name)
     return CDD_C_SUCCESS;
@@ -382,141 +416,202 @@ static NO_DISCARD cdd_c_error_t ocaml_format_type_pair(
       (type->kind == CDD_FFI_KIND_INT8 || type->kind == CDD_FFI_KIND_UINT8) &&
       type->is_const) {
     rc = cdd_ffi_snprintf_checked(ctyp_buf, ctyp_cap, "%s", "string");
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(ml_buf, ml_cap, "%s", "string"));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return cdd_ffi_snprintf_checked(ml_buf, ml_cap, "%s", "string");
   }
 
   switch (type->kind) {
-  case CDD_FFI_KIND_VOID:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "void"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "unit"));
+  case CDD_FFI_KIND_VOID: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "void");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "unit");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_BOOL:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "bool"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "bool"));
+  }
+  case CDD_FFI_KIND_BOOL: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "bool");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "bool");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_INT8:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "char"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "char"));
+  }
+  case CDD_FFI_KIND_INT8: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "char");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "char");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_UINT8:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "uint8_t"));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s", "Unsigned.uint8"));
-    break;
-  case CDD_FFI_KIND_INT16:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "int16_t"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int"));
-    break;
-  case CDD_FFI_KIND_UINT16:
+  }
+  case CDD_FFI_KIND_UINT8: {
     rc =
-        cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                               base_ctyp, sizeof(base_ctyp), "%s", "uint16_t"));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s", "Unsigned.uint16"));
+        cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "uint8_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                  "Unsigned.uint8");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_INT32:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "int32_t"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int32"));
-    break;
-  case CDD_FFI_KIND_UINT32:
+  }
+  case CDD_FFI_KIND_INT16: {
     rc =
-        cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                               base_ctyp, sizeof(base_ctyp), "%s", "uint32_t"));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s", "Unsigned.uint32"));
+        cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "int16_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_INT64:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "int64_t"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int64"));
+  }
+  case CDD_FFI_KIND_UINT16: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                  "uint16_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                  "Unsigned.uint16");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_UINT64:
+  }
+  case CDD_FFI_KIND_INT32: {
     rc =
-        cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                               base_ctyp, sizeof(base_ctyp), "%s", "uint64_t"));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s", "Unsigned.uint64"));
+        cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "int32_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int32");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_FLOAT32:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "float"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "float"));
+  }
+  case CDD_FFI_KIND_UINT32: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                  "uint32_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                  "Unsigned.uint32");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
-  case CDD_FFI_KIND_FLOAT64:
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", "double"));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "float"));
+  }
+  case CDD_FFI_KIND_INT64: {
+    rc =
+        cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "int64_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int64");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
+  case CDD_FFI_KIND_UINT64: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                  "uint64_t");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                  "Unsigned.uint64");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    break;
+  }
+  case CDD_FFI_KIND_FLOAT32: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "float");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "float");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    break;
+  }
+  case CDD_FFI_KIND_FLOAT64: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", "double");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "float");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    break;
+  }
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_TEMPLATE_STRUCT_REF:
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF: {
     const cdd_ffi_ir_node_t *ref_node = NULL;
     if (type->ref_name && strcmp(type->ref_name, "cdd_ffi_error_t") == 0) {
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp),
-                                                   "%s", "cdd_ffi_error_t"));
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
-                                       "cdd_ffi_error_t structure"));
+      rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                    "cdd_ffi_error_t");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                    "cdd_ffi_error_t structure");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       break;
     }
     if (type->ref_name && (strcmp(type->ref_name, "size_t") == 0 ||
                            strcmp(type->ref_name, "uintptr_t") == 0)) {
-      rc =
-          cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                 base_ctyp, sizeof(base_ctyp), "%s", "size_t"));
-      rc =
-          cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                      "%s", "Unsigned.size_t"));
+      rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                    "size_t");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                    "Unsigned.size_t");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       break;
     }
-    rc = cdd_c_keep_err(rc, ocaml_find_ir_node(ir, type->ref_name, &ref_node));
+    rc = ocaml_find_ir_node(ir, type->ref_name, &ref_node);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (ref_node) {
       char ref_lid[128];
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_lid(ref_node->name, ref_lid, sizeof(ref_lid)));
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  base_ctyp, sizeof(base_ctyp), "%s", ref_lid));
+      rc = cdd_ocaml_sanitize_lid(ref_node->name, ref_lid, sizeof(ref_lid));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc =
+          cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", ref_lid);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (ref_node->kind == CDD_FFI_NODE_STRUCT) {
-        rc = cdd_c_keep_err(rc,
-                            cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s structure", ref_lid));
+        rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s structure",
+                                      ref_lid);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if (ref_node->kind == CDD_FFI_NODE_UNION) {
-        rc = cdd_c_keep_err(rc,
-                            cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s union", ref_lid));
+        rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s union",
+                                      ref_lid);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else {
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                    base_ml, sizeof(base_ml), "%s", ref_lid));
+        rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", ref_lid);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     } else if (type->kind == CDD_FFI_KIND_ENUM_REF) {
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp),
-                                                   "%s", "int32_t"));
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                       "%s", "int32"));
+      rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                    "int32_t");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "int32");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else {
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp),
-                                                   "%s", "(ptr void)"));
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                       "%s", "unit ptr"));
+      rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                    "(ptr void)");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "unit ptr");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (eff_ptr_depth > 0)
         eff_ptr_depth--;
     }
@@ -533,94 +628,121 @@ static NO_DISCARD cdd_c_error_t ocaml_format_type_pair(
       sig_ctyp[0] = '\0';
       sig_ml[0] = '\0';
       if (type->fn_params_count == 0) {
-        rc = cdd_c_keep_err(rc,
-                            cdd_ffi_snprintf_checked(sig_ctyp, sizeof(sig_ctyp),
-                                                     "%s", "void @-> "));
-        rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(sig_ml, sizeof(sig_ml),
-                                                         "%s", "unit -> "));
+        rc = cdd_ffi_snprintf_checked(sig_ctyp, sizeof(sig_ctyp), "%s",
+                                      "void @-> ");
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = cdd_ffi_snprintf_checked(sig_ml, sizeof(sig_ml), "%s", "unit -> ");
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else {
         for (k = 0; k < type->fn_params_count; k++) {
           char pc[128];
           char pm[128];
           char tmp_c[384];
           char tmp_m[384];
-          rc = cdd_c_keep_err(
-              rc, ocaml_format_type_pair(ir, &type->fn_params[k].type, 0, pc,
-                                         sizeof(pc), pm, sizeof(pm)));
-          rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(tmp_c, sizeof(tmp_c),
-                                                           "%s%s @-> ",
-                                                           sig_ctyp, pc));
-          rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                      sig_ctyp, sizeof(sig_ctyp), "%s", tmp_c));
-          rc = cdd_c_keep_err(rc,
-                              cdd_ffi_snprintf_checked(tmp_m, sizeof(tmp_m),
-                                                       "%s%s -> ", sig_ml, pm));
-          rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                      sig_ml, sizeof(sig_ml), "%s", tmp_m));
+          rc = ocaml_format_type_pair(ir, &type->fn_params[k].type, 0, pc,
+                                      sizeof(pc), pm, sizeof(pm));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          rc = cdd_ffi_snprintf_checked(tmp_c, sizeof(tmp_c), "%s%s @-> ",
+                                        sig_ctyp, pc);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          rc =
+              cdd_ffi_snprintf_checked(sig_ctyp, sizeof(sig_ctyp), "%s", tmp_c);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          rc = cdd_ffi_snprintf_checked(tmp_m, sizeof(tmp_m), "%s%s -> ",
+                                        sig_ml, pm);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          rc = cdd_ffi_snprintf_checked(sig_ml, sizeof(sig_ml), "%s", tmp_m);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
-      rc = cdd_c_keep_err(rc, ocaml_format_type_pair(ir, type->fn_return_type,
-                                                     0, ret_c, sizeof(ret_c),
-                                                     ret_m, sizeof(ret_m)));
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp),
-                                       "(Foreign.funptr (%sreturning %s))",
-                                       sig_ctyp, ret_c));
-      rc =
-          cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                      "(%s%s)", sig_ml, ret_m));
+      rc = ocaml_format_type_pair(ir, type->fn_return_type, 0, ret_c,
+                                  sizeof(ret_c), ret_m, sizeof(ret_m));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp),
+                                    "(Foreign.funptr (%sreturning %s))",
+                                    sig_ctyp, ret_c);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "(%s%s)", sig_ml,
+                                    ret_m);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else {
-      rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                  base_ctyp, sizeof(base_ctyp), "%s",
-                                  "(static_funptr (void @-> returning void))"));
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
-                                       "(unit -> unit) static_funptr"));
+      rc =
+          cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                   "(static_funptr (void @-> returning void))");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s",
+                                    "(unit -> unit) static_funptr");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     break;
   }
   case CDD_FFI_KIND_OPAQUE_PTR:
-  default:
-    rc = cdd_c_keep_err(rc,
-                        cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp),
-                                                 "%s", "(ptr void)"));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml),
-                                                     "%s", "unit ptr"));
+  default: {
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s",
+                                  "(ptr void)");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", "unit ptr");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     break;
+  }
   }
 
   for (p = 0; p < eff_ptr_depth; p++) {
     char next_c[512];
     char next_m[512];
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(next_c, sizeof(next_c),
-                                                     "(ptr %s)", base_ctyp));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", next_c));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(next_m, sizeof(next_m),
-                                                     "%s ptr", base_ml));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", next_m));
+    rc =
+        cdd_ffi_snprintf_checked(next_c, sizeof(next_c), "(ptr %s)", base_ctyp);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", next_c);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(next_m, sizeof(next_m), "%s ptr", base_ml);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", next_m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (type->array_size > 0) {
     char next_c[512];
     char next_m[512];
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                next_c, sizeof(next_c), "(Ctypes.array %ld %s)",
-                                type->array_size, base_ctyp));
-    rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                base_ctyp, sizeof(base_ctyp), "%s", next_c));
-    rc = cdd_c_keep_err(rc,
-                        cdd_ffi_snprintf_checked(next_m, sizeof(next_m),
-                                                 "%s Ctypes.carray", base_ml));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", next_m));
+    rc = cdd_ffi_snprintf_checked(next_c, sizeof(next_c),
+                                  "(Ctypes.array %ld %s)", type->array_size,
+                                  base_ctyp);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ctyp, sizeof(base_ctyp), "%s", next_c);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(next_m, sizeof(next_m), "%s Ctypes.carray",
+                                  base_ml);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_snprintf_checked(base_ml, sizeof(base_ml), "%s", next_m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
-  rc = cdd_c_keep_err(
-      rc, cdd_ffi_snprintf_checked(ctyp_buf, ctyp_cap, "%s", base_ctyp));
-  return cdd_c_keep_err(
-      rc, cdd_ffi_snprintf_checked(ml_buf, ml_cap, "%s", base_ml));
+  rc = cdd_ffi_snprintf_checked(ctyp_buf, ctyp_cap, "%s", base_ctyp);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return cdd_ffi_snprintf_checked(ml_buf, ml_cap, "%s", base_ml);
 }
 
 /**
@@ -636,63 +758,76 @@ static NO_DISCARD cdd_c_error_t ocaml_format_type_pair(
 static NO_DISCARD cdd_c_error_t
 ocaml_pointee_zero_expr(const cdd_ffi_ir_t *ir, const cdd_ffi_type_t *pointee,
                         char *zero_buf, size_t zero_cap) {
-  if (pointee->pointer_depth > 0 || pointee->kind == CDD_FFI_KIND_OPAQUE_PTR)
+  if (pointee->pointer_depth > 0 || pointee->kind == CDD_FFI_KIND_OPAQUE_PTR) {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "null");
+  }
 
   switch (pointee->kind) {
-  case CDD_FFI_KIND_BOOL:
+  case CDD_FFI_KIND_BOOL: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "false");
-  case CDD_FFI_KIND_INT8:
+  }
+  case CDD_FFI_KIND_INT8: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "'\\000'");
-  case CDD_FFI_KIND_UINT8:
+  }
+  case CDD_FFI_KIND_UINT8: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s",
                                     "Unsigned.UInt8.zero");
-  case CDD_FFI_KIND_INT16:
+  }
+  case CDD_FFI_KIND_INT16: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "0");
-  case CDD_FFI_KIND_UINT16:
+  }
+  case CDD_FFI_KIND_UINT16: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s",
                                     "Unsigned.UInt16.zero");
-  case CDD_FFI_KIND_INT32:
+  }
+  case CDD_FFI_KIND_INT32: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "0l");
-  case CDD_FFI_KIND_UINT32:
+  }
+  case CDD_FFI_KIND_UINT32: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s",
                                     "Unsigned.UInt32.zero");
-  case CDD_FFI_KIND_INT64:
+  }
+  case CDD_FFI_KIND_INT64: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "0L");
-  case CDD_FFI_KIND_UINT64:
+  }
+  case CDD_FFI_KIND_UINT64: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s",
                                     "Unsigned.UInt64.zero");
+  }
   case CDD_FFI_KIND_FLOAT32:
-  case CDD_FFI_KIND_FLOAT64:
+  case CDD_FFI_KIND_FLOAT64: {
     return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "0.0");
+  }
   case CDD_FFI_KIND_STRUCT_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
   default: {
     const cdd_ffi_ir_node_t *rn = NULL;
-    cdd_c_error_t rc = ocaml_find_ir_node(ir, pointee->ref_name, &rn);
+    cdd_c_error_t rc;
     if (pointee->ref_name &&
         strcmp(pointee->ref_name, "cdd_ffi_error_t") == 0) {
-      return cdd_c_keep_err(rc,
-                            cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s",
-                                                     "(make cdd_ffi_error_t)"));
+      return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s",
+                                      "(make cdd_ffi_error_t)");
     }
+    rc = ocaml_find_ir_node(ir, pointee->ref_name, &rn);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (rn &&
         (rn->kind == CDD_FFI_NODE_STRUCT || rn->kind == CDD_FFI_NODE_UNION)) {
       char rlid[128];
-      rc = cdd_c_keep_err(rc,
-                          cdd_ocaml_sanitize_lid(rn->name, rlid, sizeof(rlid)));
-      return cdd_c_keep_err(
-          rc, cdd_ffi_snprintf_checked(zero_buf, zero_cap, "(make %s)", rlid));
+      rc = cdd_ocaml_sanitize_lid(rn->name, rlid, sizeof(rlid));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "(make %s)", rlid);
     }
     if (rn && rn->kind == CDD_FFI_NODE_ENUM) {
       char ruid[128];
-      rc = cdd_c_keep_err(rc,
-                          cdd_ocaml_sanitize_uid(rn->name, ruid, sizeof(ruid)));
-      return cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                    zero_buf, zero_cap, "(%s.of_int 0)", ruid));
+      rc = cdd_ocaml_sanitize_uid(rn->name, ruid, sizeof(ruid));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "(%s.of_int 0)",
+                                      ruid);
     }
-    return cdd_c_keep_err(
-        rc, cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "0l"));
+    return cdd_ffi_snprintf_checked(zero_buf, zero_cap, "%s", "0l");
   }
   }
 }
@@ -713,6 +848,10 @@ ocaml_check_out_param(const cdd_ffi_ir_t *ir, const cdd_ffi_field_t *f,
   const cdd_ffi_ir_node_t *rn = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_is_marshaled = 0;
   memset(out_pointee, 0, sizeof(*out_pointee));
 
@@ -731,11 +870,13 @@ ocaml_check_out_param(const cdd_ffi_ir_t *ir, const cdd_ffi_field_t *f,
       return CDD_C_SUCCESS;
     if (strcmp(f->type.ref_name, "cdd_ffi_error_t") != 0) {
       rc = ocaml_find_ir_node(ir, f->type.ref_name, &rn);
-      if (!rn)
+      if (rc != CDD_C_SUCCESS)
         return rc;
+      if (!rn)
+        return CDD_C_SUCCESS;
       if ((rn->kind == CDD_FFI_NODE_STRUCT || rn->kind == CDD_FFI_NODE_UNION) &&
           rn->fields_count == 0) {
-        return rc;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -743,7 +884,7 @@ ocaml_check_out_param(const cdd_ffi_ir_t *ir, const cdd_ffi_field_t *f,
   *out_pointee = f->type;
   out_pointee->pointer_depth = f->type.pointer_depth - 1;
   *out_is_marshaled = 1;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -756,6 +897,10 @@ ocaml_check_out_param(const cdd_ffi_ir_t *ir, const cdd_ffi_field_t *f,
  */
 static NO_DISCARD cdd_c_error_t
 ocaml_is_ffi_error_type(const cdd_ffi_type_t *type, int *out_is_err) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   *out_is_err = 0;
   if (type->kind == CDD_FFI_KIND_STRUCT_REF && type->ref_name &&
       strcmp(type->ref_name, "cdd_ffi_error_t") == 0) {
@@ -788,12 +933,13 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
   int has_builtin_err_struct = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(ml_file, sizeof(ml_file),
-                                                   "%s.ml", lib_stem));
-  rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(mli_file, sizeof(mli_file),
-                                                   "%s.mli", lib_stem));
-  rc = cdd_c_keep_err(
-      rc, cdd_ffi_open_output_file(config->output_dir, ml_file, &fml));
+  rc = cdd_ffi_snprintf_checked(ml_file, sizeof(ml_file), "%s.ml", lib_stem);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_snprintf_checked(mli_file, sizeof(mli_file), "%s.mli", lib_stem);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_open_output_file(config->output_dir, ml_file, &fml);
   if (rc != CDD_C_SUCCESS)
     return rc;
   rc = cdd_ffi_open_output_file(config->output_dir, mli_file, &fmli);
@@ -898,15 +1044,16 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       if (!raw_val)
         continue;
 
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_lid(node->name, m_lid, sizeof(m_lid)));
+      rc = cdd_ocaml_sanitize_lid(node->name, m_lid, sizeof(m_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
 
       if (node->inferred_type == CDD_FFI_MACRO_TYPE_INT) {
         char norm[128];
-        rc = cdd_c_keep_err(
-            rc, ocaml_normalize_int_literal(raw_val, norm, sizeof(norm)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fml, "let %s = %s\n\n", m_lid, norm));
+        rc = ocaml_normalize_int_literal(raw_val, norm, sizeof(norm));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fml, "let %s = %s\n\n", m_lid, norm);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc = cdd_ffi_write_fmt(fmli, "val %s : int\n\n", m_lid);
@@ -914,10 +1061,10 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           goto cleanup;
       } else if (node->inferred_type == CDD_FFI_MACRO_TYPE_FLOAT) {
         char norm[128];
-        rc = cdd_c_keep_err(
-            rc, ocaml_normalize_float_literal(raw_val, norm, sizeof(norm)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fml, "let %s = %s\n\n", m_lid, norm));
+        rc = ocaml_normalize_float_literal(raw_val, norm, sizeof(norm));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fml, "let %s = %s\n\n", m_lid, norm);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc = cdd_ffi_write_fmt(fmli, "val %s : float\n\n", m_lid);
@@ -925,14 +1072,14 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           goto cleanup;
       } else if (node->inferred_type == CDD_FFI_MACRO_TYPE_STRING) {
         if (raw_val[0] == '"') {
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_write_fmt(fml, "let %s = %s\n\n", m_lid, raw_val));
+          rc = cdd_ffi_write_fmt(fml, "let %s = %s\n\n", m_lid, raw_val);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else {
-          rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fml, "let %s = \"%s\"\n\n",
-                                                    m_lid, raw_val));
+          rc = cdd_ffi_write_fmt(fml, "let %s = \"%s\"\n\n", m_lid, raw_val);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         }
-        if (rc != CDD_C_SUCCESS)
-          goto cleanup;
         rc = cdd_ffi_write_fmt(fmli, "val %s : string\n\n", m_lid);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
@@ -941,13 +1088,14 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       char e_uid[128];
       char e_lid[128];
 
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_uid(node->name, e_uid, sizeof(e_uid)));
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_lid(node->name, e_lid, sizeof(e_lid)));
+      rc = cdd_ocaml_sanitize_uid(node->name, e_uid, sizeof(e_uid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ocaml_sanitize_lid(node->name, e_lid, sizeof(e_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
 
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_write_fmt(fml, "module %s = struct\n", e_uid));
+      rc = cdd_ffi_write_fmt(fml, "module %s = struct\n", e_uid);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       rc = cdd_ffi_write_fmt(fmli, "module %s : sig\n", e_uid);
@@ -966,23 +1114,25 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
         }
-        rc = cdd_c_keep_err(
-            rc, cdd_ocaml_sanitize_lid(var->name, v_lid, sizeof(v_lid)));
+        rc = cdd_ocaml_sanitize_lid(var->name, v_lid, sizeof(v_lid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
 
         v_src = (var->number_details && var->number_details->raw_spelling)
                     ? var->number_details->raw_spelling
                     : var->value;
         if (v_src) {
-          rc = cdd_c_keep_err(
-              rc, ocaml_normalize_int_literal(v_src, v_norm, sizeof(v_norm)));
+          rc = ocaml_normalize_int_literal(v_src, v_norm, sizeof(v_norm));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         } else {
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_snprintf_checked(v_norm, sizeof(v_norm), "%lu",
-                                           (unsigned long)j));
+          rc = cdd_ffi_snprintf_checked(v_norm, sizeof(v_norm), "%lu",
+                                        (unsigned long)j);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
         }
 
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fml, "  let %s = %s\n", v_lid, v_norm));
+        rc = cdd_ffi_write_fmt(fml, "  let %s = %s\n", v_lid, v_norm);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc = cdd_ffi_write_fmt(fmli, "  val %s : int\n", v_lid);
@@ -999,10 +1149,11 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
 
       for (j = 0; j < node->variants_count; j++) {
         char v_uid[128];
-        rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_uid(node->variants[j].name,
-                                                       v_uid, sizeof(v_uid)));
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fml, "    | `%s_%lu\n", v_uid,
-                                                  (unsigned long)j));
+        rc = cdd_ocaml_sanitize_uid(node->variants[j].name, v_uid,
+                                    sizeof(v_uid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fml, "    | `%s_%lu\n", v_uid, (unsigned long)j);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc =
@@ -1027,14 +1178,17 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       for (j = 0; j < node->variants_count; j++) {
         char v_lid[128];
         char v_uid[128];
-        rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_lid(node->variants[j].name,
-                                                       v_lid, sizeof(v_lid)));
-        rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_uid(node->variants[j].name,
-                                                       v_uid, sizeof(v_uid)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fml, "    %sif v = %s then `%s_%lu\n",
-                                  j == 0 ? "" : "else ", v_lid, v_uid,
-                                  (unsigned long)j));
+        rc = cdd_ocaml_sanitize_lid(node->variants[j].name, v_lid,
+                                    sizeof(v_lid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ocaml_sanitize_uid(node->variants[j].name, v_uid,
+                                    sizeof(v_uid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fml, "    %sif v = %s then `%s_%lu\n",
+                               j == 0 ? "" : "else ", v_lid, v_uid,
+                               (unsigned long)j);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1049,13 +1203,16 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       for (j = 0; j < node->variants_count; j++) {
         char v_lid[128];
         char v_uid[128];
-        rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_lid(node->variants[j].name,
-                                                       v_lid, sizeof(v_lid)));
-        rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_uid(node->variants[j].name,
-                                                       v_uid, sizeof(v_uid)));
-        rc = cdd_c_keep_err(rc,
-                            cdd_ffi_write_fmt(fml, "    | `%s_%lu -> %s\n",
-                                              v_uid, (unsigned long)j, v_lid));
+        rc = cdd_ocaml_sanitize_lid(node->variants[j].name, v_lid,
+                                    sizeof(v_lid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ocaml_sanitize_uid(node->variants[j].name, v_uid,
+                                    sizeof(v_uid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = cdd_ffi_write_fmt(fml, "    | `%s_%lu -> %s\n", v_uid,
+                               (unsigned long)j, v_lid);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
@@ -1086,15 +1243,14 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
 
       kind_kw = (node->kind == CDD_FFI_NODE_UNION) ? "union" : "structure";
       raw_tag = node->name ? node->name : "anon";
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_lid(raw_tag, s_lid, sizeof(s_lid)));
+      rc = cdd_ocaml_sanitize_lid(raw_tag, s_lid, sizeof(s_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
 
-      rc = cdd_c_keep_err(rc,
-                          cdd_ffi_write_fmt(fml,
-                                            "type %s\n"
-                                            "let %s : %s %s typ = %s \"%s\"\n",
-                                            s_lid, s_lid, s_lid, kind_kw,
-                                            kind_kw, raw_tag));
+      rc = cdd_ffi_write_fmt(fml,
+                             "type %s\n"
+                             "let %s : %s %s typ = %s \"%s\"\n",
+                             s_lid, s_lid, s_lid, kind_kw, kind_kw, raw_tag);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       rc = cdd_ffi_write_fmt(fmli,
@@ -1121,20 +1277,22 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
         if (fld->name && fld->name[0] != '\0') {
           raw_fname = fld->name;
         } else {
-          rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                      fallback_fname, sizeof(fallback_fname),
-                                      "field_%lu", (unsigned long)j));
+          rc = cdd_ffi_snprintf_checked(fallback_fname, sizeof(fallback_fname),
+                                        "field_%lu", (unsigned long)j);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
           raw_fname = fallback_fname;
         }
-        rc = cdd_c_keep_err(
-            rc, cdd_ocaml_sanitize_lid(raw_fname, f_lid, sizeof(f_lid)));
-        rc = cdd_c_keep_err(rc, ocaml_format_type_pair(ir, &fld->type, 0,
-                                                       f_ctyp, sizeof(f_ctyp),
-                                                       f_ml, sizeof(f_ml)));
+        rc = cdd_ocaml_sanitize_lid(raw_fname, f_lid, sizeof(f_lid));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = ocaml_format_type_pair(ir, &fld->type, 0, f_ctyp, sizeof(f_ctyp),
+                                    f_ml, sizeof(f_ml));
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
 
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fml, "let %s_%s = field %s \"%s\" %s\n",
-                                  s_lid, f_lid, s_lid, raw_fname, f_ctyp));
+        rc = cdd_ffi_write_fmt(fml, "let %s_%s = field %s \"%s\" %s\n", s_lid,
+                               f_lid, s_lid, raw_fname, f_ctyp);
         if (rc != CDD_C_SUCCESS)
           goto cleanup;
         rc = cdd_ffi_write_fmt(fmli, "val %s_%s : (%s, %s %s) field\n", s_lid,
@@ -1160,17 +1318,18 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       char td_ctyp[512];
       char td_ml[512];
 
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_lid(node->name, td_lid, sizeof(td_lid)));
-      rc = cdd_c_keep_err(
-          rc, ocaml_format_type_pair(ir, &node->return_or_base_type, 0, td_ctyp,
-                                     sizeof(td_ctyp), td_ml, sizeof(td_ml)));
+      rc = cdd_ocaml_sanitize_lid(node->name, td_lid, sizeof(td_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = ocaml_format_type_pair(ir, &node->return_or_base_type, 0, td_ctyp,
+                                  sizeof(td_ctyp), td_ml, sizeof(td_ml));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
 
-      rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fml,
-                                                "type %s = %s\n"
-                                                "let %s : %s typ = %s\n\n",
-                                                td_lid, td_ml, td_lid, td_lid,
-                                                td_ctyp));
+      rc = cdd_ffi_write_fmt(fml,
+                             "type %s = %s\n"
+                             "let %s : %s typ = %s\n\n",
+                             td_lid, td_ml, td_lid, td_lid, td_ctyp);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       rc = cdd_ffi_write_fmt(fmli,
@@ -1192,22 +1351,27 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       int needs_wrapper = 0;
 
       c_sym = node->name ? node->name : "anon_fn";
-      rc = cdd_c_keep_err(
-          rc, cdd_ocaml_sanitize_lid(c_sym, fn_lid, sizeof(fn_lid)));
-      rc = cdd_c_keep_err(rc, ocaml_format_type_pair(
-                                  ir, &node->return_or_base_type, 0, ret_ctyp,
-                                  sizeof(ret_ctyp), ret_ml, sizeof(ret_ml)));
-      rc = cdd_c_keep_err(rc, ocaml_is_ffi_error_type(
-                                  &node->return_or_base_type, &ret_err_kind));
+      rc = cdd_ocaml_sanitize_lid(c_sym, fn_lid, sizeof(fn_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = ocaml_format_type_pair(ir, &node->return_or_base_type, 0, ret_ctyp,
+                                  sizeof(ret_ctyp), ret_ml, sizeof(ret_ml));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = ocaml_is_ffi_error_type(&node->return_or_base_type, &ret_err_kind);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
 
       for (j = 0; j < node->fields_count; j++) {
         int is_m = 0;
         int p_err = 0;
         cdd_ffi_type_t pt;
-        rc = cdd_c_keep_err(
-            rc, ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt));
-        rc = cdd_c_keep_err(
-            rc, ocaml_is_ffi_error_type(&node->fields[j].type, &p_err));
+        rc = ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = ocaml_is_ffi_error_type(&node->fields[j].type, &p_err);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
         if (p_err == 2 && node->fields[j].intent != CDD_FFI_INTENT_IN) {
           err_param_idx = (int)j;
           needs_wrapper = 1;
@@ -1222,10 +1386,9 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
       lock_flag =
           node->requires_gil_release ? "~release_runtime_lock:true " : "";
 
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_write_fmt(fml, "let %s%s = foreign ~from:_lib %s\"%s\" (",
-                                needs_wrapper ? "_raw_" : "", fn_lid, lock_flag,
-                                c_sym));
+      rc = cdd_ffi_write_fmt(fml, "let %s%s = foreign ~from:_lib %s\"%s\" (",
+                             needs_wrapper ? "_raw_" : "", fn_lid, lock_flag,
+                             c_sym);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
 
@@ -1242,11 +1405,12 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
                          (int)j == err_param_idx)
                             ? 1
                             : 0;
-          rc = cdd_c_keep_err(
-              rc,
+          rc =
               ocaml_format_type_pair(ir, &node->fields[j].type, for_out, p_ctyp,
-                                     sizeof(p_ctyp), p_ml, sizeof(p_ml)));
-          rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fml, "%s @-> ", p_ctyp));
+                                     sizeof(p_ctyp), p_ml, sizeof(p_ml));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc = cdd_ffi_write_fmt(fml, "%s @-> ", p_ctyp);
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
         }
@@ -1277,10 +1441,11 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           for (j = 0; j < node->fields_count; j++) {
             char p_ctyp[512];
             char p_ml[512];
-            rc = cdd_c_keep_err(
-                rc, ocaml_format_type_pair(ir, &node->fields[j].type, 0, p_ctyp,
-                                           sizeof(p_ctyp), p_ml, sizeof(p_ml)));
-            rc = cdd_c_keep_err(rc, cdd_ffi_write_fmt(fmli, "%s -> ", p_ml));
+            rc = ocaml_format_type_pair(ir, &node->fields[j].type, 0, p_ctyp,
+                                        sizeof(p_ctyp), p_ml, sizeof(p_ml));
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
+            rc = cdd_ffi_write_fmt(fmli, "%s -> ", p_ml);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
           }
@@ -1314,18 +1479,19 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           char pt_ml[512];
           if ((int)j == err_param_idx)
             continue;
-          rc = cdd_c_keep_err(
-              rc, ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt));
+          rc = ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
           if (is_m && node->fields[j].intent == CDD_FFI_INTENT_OUT)
             continue;
 
           exposed_inputs++;
-          rc = cdd_c_keep_err(
-              rc, ocaml_format_type_pair(ir, is_m ? &pt : &node->fields[j].type,
-                                         0, pt_ctyp, sizeof(pt_ctyp), pt_ml,
-                                         sizeof(pt_ml)));
-          rc = cdd_c_keep_err(
-              rc, cdd_ffi_write_fmt(fml, " _arg_%lu", (unsigned long)j));
+          rc = ocaml_format_type_pair(ir, is_m ? &pt : &node->fields[j].type, 0,
+                                      pt_ctyp, sizeof(pt_ctyp), pt_ml,
+                                      sizeof(pt_ml));
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+          rc = cdd_ffi_write_fmt(fml, " _arg_%lu", (unsigned long)j);
           if (rc != CDD_C_SUCCESS)
             goto cleanup;
           rc = cdd_ffi_write_fmt(fmli, "%s -> ", pt_ml);
@@ -1367,32 +1533,34 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
               goto cleanup;
             continue;
           }
-          rc = cdd_c_keep_err(
-              rc, ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt));
+          rc = ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
           if (is_m) {
             char pt_ctyp[512];
             char pt_ml[512];
-            rc = cdd_c_keep_err(
-                rc, ocaml_format_type_pair(ir, &pt, 0, pt_ctyp, sizeof(pt_ctyp),
-                                           pt_ml, sizeof(pt_ml)));
-            if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-              rc = cdd_c_keep_err(
-                  rc,
-                  cdd_ffi_write_fmt(
-                      fml, "  let _out_%lu = Ctypes.allocate %s _arg_%lu in\n",
-                      (unsigned long)j, pt_ctyp, (unsigned long)j));
-            } else {
-              char zero_expr[128];
-              rc = cdd_c_keep_err(rc,
-                                  ocaml_pointee_zero_expr(ir, &pt, zero_expr,
-                                                          sizeof(zero_expr)));
-              rc = cdd_c_keep_err(
-                  rc, cdd_ffi_write_fmt(
-                          fml, "  let _out_%lu = Ctypes.allocate %s %s in\n",
-                          (unsigned long)j, pt_ctyp, zero_expr));
-            }
+            rc = ocaml_format_type_pair(ir, &pt, 0, pt_ctyp, sizeof(pt_ctyp),
+                                        pt_ml, sizeof(pt_ml));
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
+            if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
+              rc = cdd_ffi_write_fmt(
+                  fml, "  let _out_%lu = Ctypes.allocate %s _arg_%lu in\n",
+                  (unsigned long)j, pt_ctyp, (unsigned long)j);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+            } else {
+              char zero_expr[128];
+              rc = ocaml_pointee_zero_expr(ir, &pt, zero_expr,
+                                           sizeof(zero_expr));
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_write_fmt(
+                  fml, "  let _out_%lu = Ctypes.allocate %s %s in\n",
+                  (unsigned long)j, pt_ctyp, zero_expr);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+            }
           }
         }
 
@@ -1414,11 +1582,11 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
                 goto cleanup;
               continue;
             }
-            rc = cdd_c_keep_err(
-                rc, ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt));
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_write_fmt(fml, is_m ? " _out_%lu" : " _arg_%lu",
-                                      (unsigned long)j));
+            rc = ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
+            rc = cdd_ffi_write_fmt(fml, is_m ? " _out_%lu" : " _arg_%lu",
+                                   (unsigned long)j);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
           }
@@ -1442,33 +1610,41 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
           val_ml[0] = '\0';
 
           if (n_elems == 0) {
-            rc =
-                cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                       val_expr, sizeof(val_expr), "%s", "()"));
-            rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                        val_ml, sizeof(val_ml), "%s", "unit"));
+            rc = cdd_ffi_snprintf_checked(val_expr, sizeof(val_expr), "%s",
+                                          "()");
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
+            rc = cdd_ffi_snprintf_checked(val_ml, sizeof(val_ml), "%s", "unit");
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
           } else {
             size_t emitted_e = 0;
             if (n_elems > 1) {
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(val_expr,
-                                                               sizeof(val_expr),
-                                                               "%s", "("));
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                          val_ml, sizeof(val_ml), "%s", "("));
+              rc = cdd_ffi_snprintf_checked(val_expr, sizeof(val_expr), "%s",
+                                            "(");
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(val_ml, sizeof(val_ml), "%s", "(");
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
             }
             if (!ret_is_void) {
               char te[1024];
               char tm[1024];
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                          te, sizeof(te), "%s_ret", val_expr));
-              rc =
-                  cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                         val_expr, sizeof(val_expr), "%s", te));
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(tm, sizeof(tm),
-                                                               "%s%s", val_ml,
-                                                               ret_ml));
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                          val_ml, sizeof(val_ml), "%s", tm));
+              rc = cdd_ffi_snprintf_checked(te, sizeof(te), "%s_ret", val_expr);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(val_expr, sizeof(val_expr), "%s",
+                                            te);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(tm, sizeof(tm), "%s%s", val_ml,
+                                            ret_ml);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(val_ml, sizeof(val_ml), "%s", tm);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
               emitted_e++;
             }
             for (j = 0; j < node->fields_count; j++) {
@@ -1476,87 +1652,93 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
               cdd_ffi_type_t pt;
               if ((int)j == err_param_idx)
                 continue;
-              rc = cdd_c_keep_err(
-                  rc, ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt));
+              rc = ocaml_check_out_param(ir, &node->fields[j], &is_m, &pt);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
               if (is_m) {
                 char pt_ctyp[512];
                 char pt_ml[512];
                 char te[1024];
                 char tm[1024];
-                rc = cdd_c_keep_err(
-                    rc,
-                    ocaml_format_type_pair(ir, &pt, 0, pt_ctyp, sizeof(pt_ctyp),
-                                           pt_ml, sizeof(pt_ml)));
-                rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                            te, sizeof(te), "%s%s(!@ _out_%lu)",
-                                            val_expr, emitted_e > 0 ? ", " : "",
-                                            (unsigned long)j));
-                rc = cdd_c_keep_err(
-                    rc, cdd_ffi_snprintf_checked(val_expr, sizeof(val_expr),
-                                                 "%s", te));
-                rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                            tm, sizeof(tm), "%s%s%s", val_ml,
-                                            emitted_e > 0 ? " * " : "", pt_ml));
-                rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                            val_ml, sizeof(val_ml), "%s", tm));
+                rc = ocaml_format_type_pair(
+                    ir, &pt, 0, pt_ctyp, sizeof(pt_ctyp), pt_ml, sizeof(pt_ml));
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = cdd_ffi_snprintf_checked(
+                    te, sizeof(te), "%s%s(!@ _out_%lu)", val_expr,
+                    emitted_e > 0 ? ", " : "", (unsigned long)j);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = cdd_ffi_snprintf_checked(val_expr, sizeof(val_expr), "%s",
+                                              te);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc =
+                    cdd_ffi_snprintf_checked(tm, sizeof(tm), "%s%s%s", val_ml,
+                                             emitted_e > 0 ? " * " : "", pt_ml);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = cdd_ffi_snprintf_checked(val_ml, sizeof(val_ml), "%s", tm);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
                 emitted_e++;
               }
             }
             if (n_elems > 1) {
               char te[1024];
               char tm[1024];
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                          te, sizeof(te), "%s)", val_expr));
-              rc =
-                  cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                         val_expr, sizeof(val_expr), "%s", te));
-              rc = cdd_c_keep_err(
-                  rc, cdd_ffi_snprintf_checked(tm, sizeof(tm), "%s)", val_ml));
-              rc = cdd_c_keep_err(rc, cdd_ffi_snprintf_checked(
-                                          val_ml, sizeof(val_ml), "%s", tm));
+              rc = cdd_ffi_snprintf_checked(te, sizeof(te), "%s)", val_expr);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(val_expr, sizeof(val_expr), "%s",
+                                            te);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(tm, sizeof(tm), "%s)", val_ml);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = cdd_ffi_snprintf_checked(val_ml, sizeof(val_ml), "%s", tm);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
             }
           }
 
           if (ret_err_kind == 1) {
-            rc = cdd_c_keep_err(
-                rc,
-                cdd_ffi_write_fmt(
-                    fml,
-                    "  let _code = getf _ret cdd_ffi_error_t_code in\n"
-                    "  if _code <> 0 then\n"
-                    "    let _msg = match getf _ret cdd_ffi_error_t_message "
-                    "with Some s -> s | None -> \"FFI error\" in\n"
-                    "    Error _msg\n"
-                    "  else\n"
-                    "    Ok %s\n\n",
-                    val_expr));
+            rc = cdd_ffi_write_fmt(
+                fml,
+                "  let _code = getf _ret cdd_ffi_error_t_code in\n"
+                "  if _code <> 0 then\n"
+                "    let _msg = match getf _ret cdd_ffi_error_t_message "
+                "with Some s -> s | None -> \"FFI error\" in\n"
+                "    Error _msg\n"
+                "  else\n"
+                "    Ok %s\n\n",
+                val_expr);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
             rc = cdd_ffi_write_fmt(fmli, "(%s, string) result\n\n", val_ml);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
           } else if (err_param_idx >= 0) {
-            rc = cdd_c_keep_err(
-                rc, cdd_ffi_write_fmt(
-                        fml,
-                        "  let _err_val = !@ _err_%d in\n"
-                        "  let _code = getf _err_val cdd_ffi_error_t_code in\n"
-                        "  if _code <> 0 then\n"
-                        "    let _msg = match getf _err_val "
-                        "cdd_ffi_error_t_message with Some s -> s | None -> "
-                        "\"FFI error\" in\n"
-                        "    Error _msg\n"
-                        "  else\n"
-                        "    Ok %s\n\n",
-                        err_param_idx, val_expr));
+            rc = cdd_ffi_write_fmt(
+                fml,
+                "  let _err_val = !@ _err_%d in\n"
+                "  let _code = getf _err_val cdd_ffi_error_t_code in\n"
+                "  if _code <> 0 then\n"
+                "    let _msg = match getf _err_val "
+                "cdd_ffi_error_t_message with Some s -> s | None -> "
+                "\"FFI error\" in\n"
+                "    Error _msg\n"
+                "  else\n"
+                "    Ok %s\n\n",
+                err_param_idx, val_expr);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
             rc = cdd_ffi_write_fmt(fmli, "(%s, string) result\n\n", val_ml);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
           } else {
-            rc = cdd_c_keep_err(rc,
-                                cdd_ffi_write_fmt(fml, "  %s\n\n", val_expr));
+            rc = cdd_ffi_write_fmt(fml, "  %s\n\n", val_expr);
             if (rc != CDD_C_SUCCESS)
               goto cleanup;
             rc = cdd_ffi_write_fmt(fmli, "%s\n\n", val_ml);
@@ -1584,14 +1766,13 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
   for (i = 0; i < ir->nodes_count; i++) {
     if (ir->nodes[i].kind == CDD_FFI_NODE_FUNCTION && ir->nodes[i].name) {
       char fn_lid[128];
-      rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_lid(ir->nodes[i].name, fn_lid,
-                                                     sizeof(fn_lid)));
-      rc = cdd_c_keep_err(
-          rc,
-          cdd_ffi_write_fmt(
-              fml,
-              "  external stub_ping_%s : unit -> int = \"cdd_ocaml_stub_%s\"\n",
-              fn_lid, fn_lid));
+      rc = cdd_ocaml_sanitize_lid(ir->nodes[i].name, fn_lid, sizeof(fn_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(
+          fml,
+          "  external stub_ping_%s : unit -> int = \"cdd_ocaml_stub_%s\"\n",
+          fn_lid, fn_lid);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
       rc =
@@ -1605,11 +1786,13 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_ml_and_mli(
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
   rc = cdd_ffi_write_str(fmli, "end\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
-cleanup:
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fml));
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fmli));
-  return rc;
+cleanup: {
+  return cdd_c_keep_err(cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fml)),
+                        cdd_ffi_close_output_file(&fmli));
+}
 }
 
 /**
@@ -1630,16 +1813,17 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_c_stubs(
 
   rc = cdd_ffi_snprintf_checked(stub_file, sizeof(stub_file), "%s_stubs.c",
                                 lib_stem);
-  rc = cdd_c_keep_err(
-      rc, cdd_ffi_open_output_file(config->output_dir, stub_file, &fp));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_ffi_open_output_file(config->output_dir, stub_file, &fp);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = cdd_ffi_write_fmt(
       fp,
       "/* Auto-generated strict ISO C89 OCaml C stubs for %s */\n"
-      "/* "
-      "clang-format off */\n"
+      "/* clang-"
+      "format off */\n"
       "#if !defined(CDD_OCAML_STUB_STANDALONE)\n"
       "#include <caml/mlvalues.h>\n"
       "#include <caml/memory.h>\n"
@@ -1660,8 +1844,8 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_c_stubs(
           "#define caml_release_runtime_system() do {} while (0)\n"
           "#define caml_acquire_runtime_system() do {} while (0)\n"
           "#endif\n"
-          "/* "
-          "clang-format on */\n\n");
+          "/* clang-"
+          "format on */\n\n");
   if (rc != CDD_C_SUCCESS)
     goto cleanup;
 
@@ -1680,15 +1864,15 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_c_stubs(
   for (i = 0; i < ir->nodes_count; i++) {
     if (ir->nodes[i].kind == CDD_FFI_NODE_FUNCTION && ir->nodes[i].name) {
       char fn_lid[128];
-      rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_lid(ir->nodes[i].name, fn_lid,
-                                                     sizeof(fn_lid)));
-      rc = cdd_c_keep_err(
-          rc, cdd_ffi_write_fmt(fp,
-                                "value cdd_ocaml_stub_%s(value unit);\n"
-                                "value cdd_ocaml_stub_%s(value unit) {\n"
-                                "  CAMLparam1(unit);\n"
-                                "  CAMLlocal1(res);\n",
-                                fn_lid, fn_lid));
+      rc = cdd_ocaml_sanitize_lid(ir->nodes[i].name, fn_lid, sizeof(fn_lid));
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
+      rc = cdd_ffi_write_fmt(fp,
+                             "value cdd_ocaml_stub_%s(value unit);\n"
+                             "value cdd_ocaml_stub_%s(value unit) {\n"
+                             "  CAMLparam1(unit);\n"
+                             "  CAMLlocal1(res);\n",
+                             fn_lid, fn_lid);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
 
@@ -1707,8 +1891,13 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_c_stubs(
     }
   }
 
-cleanup:
-  return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+cleanup: {
+  cdd_c_error_t close_rc = cdd_ffi_close_output_file(&fp);
+  if (close_rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, close_rc);
+  }
+  return rc;
+}
 }
 
 /**
@@ -1733,7 +1922,10 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_dune_and_tests(
                          "(lang dune 3.0)\n"
                          "(name %s)\n",
                          lib_stem);
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  }
+  rc = cdd_ffi_close_output_file(&fp);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -1749,15 +1941,21 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_dune_and_tests(
                          "  (language c)\n"
                          "  (names %s_stubs)))\n",
                          lib_stem, lib_stem, lib_stem);
-  if (rc == CDD_C_SUCCESS && config->generate_tests) {
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  }
+  if (config->generate_tests) {
     rc = cdd_ffi_write_fmt(fp,
                            "\n(test\n"
                            " (name %s_test)\n"
                            " (modules %s_test)\n"
                            " (libraries %s ctypes ctypes.foreign))\n",
                            lib_stem, lib_stem, lib_stem);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+    }
   }
-  rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  rc = cdd_ffi_close_output_file(&fp);
   if (rc != CDD_C_SUCCESS)
     return rc;
 
@@ -1768,10 +1966,12 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_dune_and_tests(
 
     rc = cdd_ffi_snprintf_checked(test_file, sizeof(test_file), "%s_test.ml",
                                   lib_stem);
-    rc = cdd_c_keep_err(
-        rc, cdd_ocaml_sanitize_uid(lib_stem, mod_uid, sizeof(mod_uid)));
-    rc = cdd_c_keep_err(
-        rc, cdd_ffi_open_output_file(config->output_dir, test_file, &fp));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ocaml_sanitize_uid(lib_stem, mod_uid, sizeof(mod_uid));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_ffi_open_output_file(config->output_dir, test_file, &fp);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
@@ -1790,39 +1990,45 @@ static NO_DISCARD cdd_c_error_t emit_ocaml_dune_and_tests(
            node->kind == CDD_FFI_NODE_UNION) &&
           node->fields_count > 0 && node->name) {
         char s_lid[128];
-        rc = cdd_c_keep_err(
-            rc, cdd_ocaml_sanitize_lid(node->name, s_lid, sizeof(s_lid)));
-        rc = cdd_c_keep_err(
-            rc, cdd_ffi_write_fmt(fp, "  assert (sizeof %s.%s > 0);\n", mod_uid,
-                                  s_lid));
+        rc = cdd_ocaml_sanitize_lid(node->name, s_lid, sizeof(s_lid));
+        if (rc != CDD_C_SUCCESS)
+          goto test_cleanup;
+        rc = cdd_ffi_write_fmt(fp, "  assert (sizeof %s.%s > 0);\n", mod_uid,
+                               s_lid);
         if (rc != CDD_C_SUCCESS)
           goto test_cleanup;
       } else if (node->kind == CDD_FFI_NODE_ENUM && node->variants_count > 0 &&
                  node->name) {
         char e_uid[128];
         char v_lid[128];
-        rc = cdd_c_keep_err(
-            rc, cdd_ocaml_sanitize_uid(node->name, e_uid, sizeof(e_uid)));
-        rc = cdd_c_keep_err(rc, cdd_ocaml_sanitize_lid(node->variants[0].name,
-                                                       v_lid, sizeof(v_lid)));
-        rc = cdd_c_keep_err(
-            rc,
-            cdd_ffi_write_fmt(
-                fp,
-                "  assert (%s.%s.to_int (%s.%s.of_int %s.%s.%s) = %s.%s.%s);\n",
-                mod_uid, e_uid, mod_uid, e_uid, mod_uid, e_uid, v_lid, mod_uid,
-                e_uid, v_lid));
+        rc = cdd_ocaml_sanitize_uid(node->name, e_uid, sizeof(e_uid));
+        if (rc != CDD_C_SUCCESS)
+          goto test_cleanup;
+        rc = cdd_ocaml_sanitize_lid(node->variants[0].name, v_lid,
+                                    sizeof(v_lid));
+        if (rc != CDD_C_SUCCESS)
+          goto test_cleanup;
+        rc = cdd_ffi_write_fmt(
+            fp, "  assert (%s.%s.to_int (%s.%s.of_int %s.%s.%s) = %s.%s.%s);\n",
+            mod_uid, e_uid, mod_uid, e_uid, mod_uid, e_uid, v_lid, mod_uid,
+            e_uid, v_lid);
         if (rc != CDD_C_SUCCESS)
           goto test_cleanup;
       }
     }
 
     rc = cdd_ffi_write_str(fp, "  ()\n");
+    if (rc != CDD_C_SUCCESS)
+      goto test_cleanup;
 
-  test_cleanup:
-    rc = cdd_c_keep_err(rc, cdd_ffi_close_output_file(&fp));
+  test_cleanup: {
+    cdd_c_error_t close_rc = cdd_ffi_close_output_file(&fp);
+    if (close_rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, close_rc);
+    }
     if (rc != CDD_C_SUCCESS)
       return rc;
+  }
   }
 
   return CDD_C_SUCCESS;
@@ -1850,7 +2056,9 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_ocaml(
                 ? config->library_name
                 : (ir->module_name ? ir->module_name : "mylib");
   rc = cdd_ocaml_sanitize_lid(raw_lib, lib_stem, sizeof(lib_stem));
-  rc = cdd_c_keep_err(rc, emit_ocaml_ml_and_mli(ir, config, lib_stem));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = emit_ocaml_ml_and_mli(ir, config, lib_stem);
   if (rc != CDD_C_SUCCESS)
     return rc;
 

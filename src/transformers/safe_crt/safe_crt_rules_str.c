@@ -238,6 +238,8 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_search_tok(
     {
       const char *pooled_nm = NULL;
       rc_err = safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
+      if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+        return rc_err;
       rc_err = cdd_cst_bld_ident(bld, pooled_nm);
       if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
         return rc_err;
@@ -297,6 +299,8 @@ C_CDD_EXPORT cdd_c_error_t emit_safe_crt_search_tok(
     {
       const char *pooled_nm = NULL;
       rc_err = safe_crt_pool_string_safe(bld->tree, name, &pooled_nm);
+      if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+        return rc_err;
       rc_err = cdd_cst_bld_ident(bld, pooled_nm);
       if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
         return rc_err;

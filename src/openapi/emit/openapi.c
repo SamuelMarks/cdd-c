@@ -54,6 +54,40 @@ cdd_c_error_t cdd_json_array_append_value_safe(JSON_Array *arr,
 }
 
 /**
+ * @brief Allocates a new `JSON_Value *` object and outputs its `JSON_Object *`.
+ *
+ * @param[out] out_val Output `JSON_Value *`.
+ * @param[out] out_obj Output `JSON_Object *`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+cdd_c_error_t oa_emit_new_object(JSON_Value **out_val, JSON_Object **out_obj) {
+  JSON_Value *v = NULL;
+  cdd_c_error_t rc = cdd_json_value_init_object(&v);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  *out_val = v;
+  *out_obj = v->object_val;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Allocates a new `JSON_Value *` array and outputs its `JSON_Array *`.
+ *
+ * @param[out] out_val Output `JSON_Value *`.
+ * @param[out] out_arr Output `JSON_Array *`.
+ * @return `CDD_C_SUCCESS` on success, or error code on OOM.
+ */
+cdd_c_error_t oa_emit_new_array(JSON_Value **out_val, JSON_Array **out_arr) {
+  JSON_Value *v = NULL;
+  cdd_c_error_t rc = cdd_json_value_init_array(&v);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  *out_val = v;
+  *out_arr = v->array_val;
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Serialize an OpenAPI Spec structure to a JSON string.
  *
  * Converts the full specification tree (Paths, Operations, Parameters,
@@ -81,23 +115,22 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   if (spec->is_schema_document) {
     if (!spec->schema_root_json)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    rc = c_cdd_strdup(spec->schema_root_json, json_out);
-    return (rc == CDD_C_SUCCESS) ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+    return c_cdd_strdup(spec->schema_root_json, json_out);
   }
   {
     int lic_invalid = 0;
     rc = license_fields_invalid(&spec->info.license, &lic_invalid);
-    if (lic_invalid)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+    if (lic_invalid) {
+      return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    }
   }
 
   rc = cdd_json_value_init_object(&root_val);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_value_get_object(root_val, &root_obj));
+  root_obj = root_val->object_val;
 
   if (spec->swagger_version) {
     rc = cdd_json_object_set_string(root_obj, "swagger", spec->swagger_version);
@@ -217,7 +250,8 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
 
   *json_out = NULL;
   rc = cdd_json_serialize_to_string_pretty(root_val, json_out);
-  rc_free = cdd_json_value_free(root_val);
-
-  return (cdd_c_error_t)((int)rc | (int)rc_free);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
+  }
+  return cdd_json_value_free(root_val);
 }

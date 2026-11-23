@@ -32,6 +32,10 @@
 cdd_c_error_t find_doc_param(const struct DocMetadata *doc, const char *name,
                              struct DocParam **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
@@ -58,6 +62,10 @@ cdd_c_error_t find_doc_param(const struct DocMetadata *doc, const char *name,
 cdd_c_error_t is_path_param(const char *route, const char *name,
                             int *out_is_path) {
   char tmpl[128];
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (out_is_path)
     *out_is_path = 0;
   if (!route || !name || !out_is_path)
@@ -201,6 +209,28 @@ cdd_c_error_t free_param_fields(struct OpenAPI_Parameter *p) {
 }
 
 /**
+ * @brief Frees dynamically allocated fields of an OpenAPI Parameter (`*_free`
+ * alias).
+ *
+ * @param[in,out] p Pointer to OpenAPI Parameter structure.
+ * @return CDD_C_SUCCESS.
+ */
+cdd_c_error_t param_fields_free(struct OpenAPI_Parameter *p) {
+  return free_param_fields(p);
+}
+
+/**
+ * @brief Frees dynamically allocated fields of an OpenAPI Encoding (`*_free`
+ * alias).
+ *
+ * @param[in,out] enc Pointer to OpenAPI Encoding structure.
+ * @return CDD_C_SUCCESS.
+ */
+cdd_c_error_t encoding_fields_free(struct OpenAPI_Encoding *enc) {
+  return free_encoding_fields(enc);
+}
+
+/**
  * @brief Sets querystring schema on a parameter from a type mapping.
  *
  * @param[in,out] param Pointer to OpenAPI Parameter to configure.
@@ -234,11 +264,9 @@ cdd_c_error_t set_querystring_schema_from_type_map(
     return CDD_C_SUCCESS;
   }
   if (type_map->oa_type) {
-    rc = c_cdd_strdup(type_map->oa_type, &param->type);
-  } else {
-    rc = c_cdd_strdup("string", &param->type);
+    return c_cdd_strdup(type_map->oa_type, &param->type);
   }
-  return rc;
+  return c_cdd_strdup("string", &param->type);
 }
 
 /**
@@ -344,6 +372,10 @@ cdd_c_error_t apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
 cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
                                 int *out_is_struct_ptr) {
   const char *p;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (out_is_struct_ptr)
     *out_is_struct_ptr = 0;
   if (!type)
@@ -372,6 +404,10 @@ cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
  */
 cdd_c_error_t doc_style_to_openapi(enum DocParamStyle style,
                                    enum OpenAPI_Style *_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (style) {

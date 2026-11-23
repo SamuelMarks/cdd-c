@@ -210,21 +210,36 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
       " * @brief Global CLI options parsed before dispatching subcommands.\n"
       " */\n"
       "struct CliGlobalOptions {\n"
+      "  /** @brief Target server URL. */\n"
       "  const char *server_url;\n"
+      "  /** @brief Bearer authentication token. */\n"
       "  const char *bearer_token;\n"
+      "  /** @brief API key credential. */\n"
       "  const char *api_key;\n"
-      "  const char *basic_user;\n"
-      "  const char *basic_pass;\n"
-      "  const char *out_format;\n"
-      "  int verbose;\n"
-      "  const char *db_path;\n"
-      "  const char *cert_path;\n"
-      "  const char *key_path;\n"
-      "  int port;\n"
-      "  int threads;\n"
-      "  int cmd_idx;\n"
-      "  int want_version;\n"
-      "};\n\n");
+      "  /** @brief HTTP Basic auth username. */\n"
+      "  const char *basic_user;\n");
+  fprintf(fp, "  /** @brief HTTP Basic auth password. */\n"
+              "  const char *basic_pass;\n"
+              "  /** @brief Output format selector. */\n"
+              "  const char *out_format;\n"
+              "  /** @brief Verbose logging flag. */\n"
+              "  int verbose;\n"
+              "  /** @brief Local OAuth token database path. */\n"
+              "  const char *db_path;\n"
+              "  /** @brief TLS certificate path. */\n"
+              "  const char *cert_path;\n");
+  fprintf(fp,
+          "  /** @brief TLS private key path. */\n"
+          "  const char *key_path;\n"
+          "  /** @brief Listening port number. */\n"
+          "  int port;\n"
+          "  /** @brief Worker thread count. */\n"
+          "  int threads;\n"
+          "  /** @brief Index of first subcommand argument. */\n"
+          "  int cmd_idx;\n"
+          "  /** @brief Non-zero when `--version` or `-V` was requested. */\n"
+          "  int want_version;\n"
+          "};\n\n");
   fprintf(
       fp,
       "/**\n"
@@ -300,9 +315,13 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
               " * @brief Operation-level CLI options parsed for a subcommand.\n"
               " */\n"
               "struct CliOpOptions {\n"
+              "  /** @brief Non-zero when `--help` or `-h` was requested. */\n"
               "  int want_help;\n"
+              "  /** @brief Inline request body payload string. */\n"
               "  const char *req_data;\n"
+              "  /** @brief File path containing request body payload. */\n"
               "  const char *req_data_file;\n"
+              "  /** @brief Positional/flag parameter values. */\n"
               "  const char *params[64];\n"
               "};\n\n");
   fprintf(
@@ -570,6 +589,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
         kebab_op[0] = '\0';
         rc_out = cdd_serde_transform_case(opId, CDD_SERDE_CASE_KEBABCASE,
                                           kebab_op, sizeof(kebab_op));
+        if (rc_out != CDD_C_SUCCESS) {
+          fclose(fp);
+          return rc_out;
+        }
         fprintf(fp, "  /* \n");
         fprintf(fp, "   * @brief %s CLI handler\n",
                 op->summary ? op->summary : opId);
@@ -594,6 +617,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
           kp_name[0] = '\0';
           rc_out = cdd_serde_transform_case(pname, CDD_SERDE_CASE_KEBABCASE,
                                             kp_name, sizeof(kp_name));
+          if (rc_out != CDD_C_SUCCESS) {
+            fclose(fp);
+            return rc_out;
+          }
           fprintf(fp, "\"--%s\", ", kp_name);
         }
         fprintf(fp, "NULL};\n");
@@ -619,6 +646,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
           kp_name[0] = '\0';
           rc_out = cdd_serde_transform_case(pname, CDD_SERDE_CASE_KEBABCASE,
                                             kp_name, sizeof(kp_name));
+          if (rc_out != CDD_C_SUCCESS) {
+            fclose(fp);
+            return rc_out;
+          }
           fprintf(fp, "      printf(\"  --%s <VAL>  %s\\n\");\n", kp_name,
                   op->parameters[k].description ? op->parameters[k].description
                                                 : "");

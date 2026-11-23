@@ -66,6 +66,10 @@ static cdd_c_error_t to_camel_case(const char *snake, char *out,
                                    size_t out_size) {
   size_t i, j = 0;
   int up = 1;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
     if (snake[i] == '_') {
       up = 1;
@@ -100,9 +104,10 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char module_name[256];
   cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
-  rc_emit =
-      (cdd_c_error_t)((int)rc_emit | (int)to_camel_case(lib_name, module_name,
-                                                        sizeof(module_name)));
+  rc_emit = to_camel_case(lib_name, module_name, sizeof(module_name));
+  if (rc_emit != CDD_C_SUCCESS) {
+    return rc_emit;
+  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.rb", config->output_dir,
@@ -155,9 +160,11 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_ruby_type(node->fields[j].type, &ftype));
+        rc_emit = get_ruby_type(node->fields[j].type, &ftype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    \"%s %s\"", ftype, fname);
         if (j < node->fields_count - 1)
           fprintf(f, ",");
@@ -195,16 +202,20 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       const char *ret_rt = NULL;
       if (node->doc)
         fprintf(f, "  # %s\n", node->doc);
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_ruby_type(node->return_or_base_type,
-                                                   &ret_rt));
+      rc_emit = get_ruby_type(node->return_or_base_type, &ret_rt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  extern '%s %s(", ret_rt, node->name);
 
       for (j = 0; j < node->fields_count; j++) {
         const char *rt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_ruby_type(node->fields[j].type, &rt));
+        rc_emit = get_ruby_type(node->fields[j].type, &rt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s", rt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");

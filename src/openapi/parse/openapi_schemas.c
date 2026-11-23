@@ -9,6 +9,26 @@
 /* clang-format on */
 
 /**
+ * @brief Frees an `OpenAPI_Any` item.
+ *
+ * @param[in,out] val Any value to release.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t oa_schema_any_free(struct OpenAPI_Any *val) {
+  return free_any_value(val);
+}
+
+/**
+ * @brief Frees an `OpenAPI_SchemaRef` content item.
+ *
+ * @param[in,out] sr SchemaRef item to release.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t oa_schema_ref_item_free(struct OpenAPI_SchemaRef *sr) {
+  return free_schema_ref_content(sr);
+}
+
+/*
  * @brief Parses a schema `type` field (string or union array) and detects
  * `null`.
  *
@@ -32,22 +52,38 @@ cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
     return CDD_C_SUCCESS;
   }
 
-  rc = cdd_json_object_get_string(schema, "type", &type);
+  rc = oa_json_opt_string(schema, "type", &type);
+  if (rc != CDD_C_SUCCESS) {
+    *_out_val = NULL;
+    return rc;
+  }
   if (type) {
     *_out_val = type;
     return CDD_C_SUCCESS;
   }
 
-  rc = cdd_json_object_get_array(schema, "type", &types);
+  rc = oa_json_opt_array(schema, "type", &types);
+  if (rc != CDD_C_SUCCESS) {
+    *_out_val = NULL;
+    return rc;
+  }
   if (!types) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
 
   rc = cdd_json_array_get_count(types, &count);
+  if (rc != CDD_C_SUCCESS) {
+    *_out_val = NULL;
+    return rc;
+  }
   for (i = 0; i < count; ++i) {
     const char *t = NULL;
-    rc = cdd_json_array_get_string(types, i, &t);
+    rc = oa_json_array_opt_string(types, i, &t);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     if (!t)
       continue;
     if (strcmp(t, "null") == 0) {
@@ -64,13 +100,11 @@ cdd_c_error_t parse_schema_type(const JSON_Object *schema, int *out_nullable,
     return CDD_C_SUCCESS;
   }
 
-  {
-    *_out_val = chosen;
-    return rc;
-  }
+  *_out_val = chosen;
+  return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses numeric, string, and array validation constraints from a schema
  * object into a target structure.
  *
@@ -83,7 +117,7 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
   int has_val = 0;
   int b_val = 0;
   double num_val = 0.0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!schema || !target)
     return CDD_C_SUCCESS;
 
@@ -95,29 +129,25 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
   }
 
   if (target->has_min && target->min_val) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "minimum", JSONNumber,
-                                           &has_val);
+    rc = oa_json_opt_number(schema, "minimum", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_min = 1;
-      rc = cdd_json_object_get_number(schema, "minimum", target->min_val);
+      *target->min_val = num_val;
     }
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "exclusiveMinimum",
-                                           JSONNumber, &has_val);
+    rc = oa_json_opt_number(schema, "exclusiveMinimum", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_min = 1;
-      rc = cdd_json_object_get_number(schema, "exclusiveMinimum",
-                                      target->min_val);
+      *target->min_val = num_val;
       if (target->exclusive_min)
         *target->exclusive_min = 1;
     } else {
-      has_val = 0;
-      b_val = 0;
-      rc = cdd_json_object_has_value_of_type(schema, "exclusiveMinimum",
-                                             JSONBoolean, &has_val);
-      if (has_val)
-        rc = cdd_json_object_get_boolean(schema, "exclusiveMinimum", &b_val);
+      rc = oa_json_opt_bool(schema, "exclusiveMinimum", &has_val, &b_val);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (has_val && b_val == 1) {
         if (target->exclusive_min)
           *target->exclusive_min = 1;
@@ -126,29 +156,25 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
   }
 
   if (target->has_max && target->max_val) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "maximum", JSONNumber,
-                                           &has_val);
+    rc = oa_json_opt_number(schema, "maximum", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_max = 1;
-      rc = cdd_json_object_get_number(schema, "maximum", target->max_val);
+      *target->max_val = num_val;
     }
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "exclusiveMaximum",
-                                           JSONNumber, &has_val);
+    rc = oa_json_opt_number(schema, "exclusiveMaximum", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_max = 1;
-      rc = cdd_json_object_get_number(schema, "exclusiveMaximum",
-                                      target->max_val);
+      *target->max_val = num_val;
       if (target->exclusive_max)
         *target->exclusive_max = 1;
     } else {
-      has_val = 0;
-      b_val = 0;
-      rc = cdd_json_object_has_value_of_type(schema, "exclusiveMaximum",
-                                             JSONBoolean, &has_val);
-      if (has_val)
-        rc = cdd_json_object_get_boolean(schema, "exclusiveMaximum", &b_val);
+      rc = oa_json_opt_bool(schema, "exclusiveMaximum", &has_val, &b_val);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (has_val && b_val == 1) {
         if (target->exclusive_max)
           *target->exclusive_max = 1;
@@ -157,85 +183,78 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
   }
 
   if (target->has_min_len && target->min_len) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "minLength", JSONNumber,
-                                           &has_val);
+    rc = oa_json_opt_number(schema, "minLength", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_min_len = 1;
-      num_val = 0.0;
-      rc = cdd_json_object_get_number(schema, "minLength", &num_val);
       *target->min_len = (size_t)num_val;
     }
   }
 
   if (target->has_max_len && target->max_len) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "maxLength", JSONNumber,
-                                           &has_val);
+    rc = oa_json_opt_number(schema, "maxLength", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_max_len = 1;
-      num_val = 0.0;
-      rc = cdd_json_object_get_number(schema, "maxLength", &num_val);
       *target->max_len = (size_t)num_val;
     }
   }
 
   if (target->pattern) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "pattern", JSONString,
-                                           &has_val);
-    if (has_val) {
-      const char *pattern = NULL;
-      rc = cdd_json_object_get_string(schema, "pattern", &pattern);
+    const char *pattern = NULL;
+    rc = oa_json_opt_string(schema, "pattern", &pattern);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+    if (pattern) {
       rc = c_cdd_strdup(pattern, target->pattern);
-      if (!*target->pattern) {
-        cdd_c_error_t rc_free = CDD_C_SUCCESS;
-        if (target->example) {
-          rc_free = free_any_value(target->example);
-        }
-        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY | (int)rc_free);
-      }
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     }
   }
 
   if (target->has_min_items && target->min_items) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "minItems", JSONNumber,
-                                           &has_val);
+    rc = oa_json_opt_number(schema, "minItems", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_min_items = 1;
-      num_val = 0.0;
-      rc = cdd_json_object_get_number(schema, "minItems", &num_val);
       *target->min_items = (size_t)num_val;
     }
   }
 
   if (target->has_max_items && target->max_items) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "maxItems", JSONNumber,
-                                           &has_val);
+    rc = oa_json_opt_number(schema, "maxItems", &has_val, &num_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
       *target->has_max_items = 1;
-      num_val = 0.0;
-      rc = cdd_json_object_get_number(schema, "maxItems", &num_val);
       *target->max_items = (size_t)num_val;
     }
   }
 
   if (target->unique_items) {
-    has_val = 0;
-    rc = cdd_json_object_has_value_of_type(schema, "uniqueItems", JSONBoolean,
-                                           &has_val);
+    rc = oa_json_opt_bool(schema, "uniqueItems", &has_val, &b_val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     if (has_val) {
-      rc = cdd_json_object_get_boolean(schema, "uniqueItems",
-                                       target->unique_items);
+      *target->unique_items = b_val;
     }
   }
 
+  return CDD_C_SUCCESS;
+
+cleanup:
+  if (target->example) {
+    cdd_c_error_t rc_f = oa_schema_any_free(target->example);
+    *target->example_set = 0;
+    return (cdd_c_error_t)((int)rc | (int)rc_f);
+  }
   return rc;
 }
 
-/**
+/*
  * @brief Parses a JSON array of strings (e.g. `enum` or `type` array).
  *
  * @param[in] arr JSON array of strings.
@@ -256,12 +275,16 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
     return CDD_C_SUCCESS;
 
   rc = cdd_json_array_get_count(arr, &count);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (count == 0)
     return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
     const char *s = NULL;
-    rc = cdd_json_array_get_string(arr, i, &s);
+    rc = oa_json_array_opt_string(arr, i, &s);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (!s)
       return CDD_C_SUCCESS;
   }
@@ -274,22 +297,27 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
   for (i = 0; i < count; ++i) {
     const char *val = NULL;
     rc = cdd_json_array_get_string(arr, i, &val);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     rc = c_cdd_strdup(val, &(*out)[i]);
-    if (!(*out)[i]) {
-      size_t j;
-      for (j = 0; j < i; ++j)
-        C_CDD_FREE((*out)[j]);
-      C_CDD_FREE(*out);
-      *out = NULL;
-      *out_count = 0;
-      return CDD_C_ERROR_MEMORY;
-    }
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
+  return CDD_C_SUCCESS;
+
+cleanup: {
+  size_t j;
+  for (j = 0; j < i; ++j)
+    C_CDD_FREE((*out)[j]);
+  C_CDD_FREE(*out);
+  *out = NULL;
+  *out_count = 0;
+}
   return rc;
 }
 
-/**
+/*
  * @brief Deep-copies an array of strings.
  *
  * @param[out] dst Output allocated string array.
@@ -301,7 +329,7 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
 cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
                                 size_t src_count) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!dst || !dst_count)
     return CDD_C_SUCCESS;
   *dst = NULL;
@@ -316,20 +344,20 @@ cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
     if (!src[i])
       continue;
     rc = c_cdd_strdup(src[i], &(*dst)[i]);
-    if (!(*dst)[i]) {
+    if (rc != CDD_C_SUCCESS) {
       size_t j;
       for (j = 0; j < i; ++j)
         C_CDD_FREE((*dst)[j]);
       C_CDD_FREE(*dst);
       *dst = NULL;
       *dst_count = 0;
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a JSON schema object represents a pure string `enum`.
  *
  * @param[in] schema_obj JSON object representing the schema.
@@ -350,30 +378,38 @@ cdd_c_error_t schema_is_string_enum_only(const JSON_Object *schema_obj,
   if (!schema_obj)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
+  rc = oa_json_opt_array(schema_obj, "enum", &enum_arr);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!enum_arr)
     return CDD_C_SUCCESS;
 
   rc = cdd_json_array_get_count(enum_arr, &count);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  rc = cdd_json_object_get_string(schema_obj, "type", &type);
+  rc = oa_json_opt_string(schema_obj, "type", &type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (type && strcmp(type, "string") != 0)
     return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
     const char *s = NULL;
-    rc = cdd_json_array_get_string(enum_arr, i, &s);
+    rc = oa_json_array_opt_string(enum_arr, i, &s);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (!s)
       return CDD_C_SUCCESS;
   }
 
   *out_is_enum = 1;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a JSON schema value/object is compatible with C struct
  * generation.
  *
@@ -388,7 +424,7 @@ cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
   const char *type = NULL;
   JSON_Value_Type val_type = JSONError;
   JSON_Object *props_obj = NULL;
-  JSON_Array *all_of = NULL, *any_of = NULL, *one_of = NULL;
+  int has_comp = 0;
   int is_enum = 0;
   cdd_c_error_t rc;
 
@@ -399,36 +435,41 @@ cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
   if (!schema_val || !schema_obj)
     return CDD_C_SUCCESS;
   rc = cdd_json_value_get_type(schema_val, &val_type);
-  if (val_type == JSONBoolean)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (val_type == JSONBoolean)
+    return CDD_C_SUCCESS;
   rc = schema_is_string_enum_only(schema_obj, &is_enum);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (is_enum) {
     *out_compat = 1;
-    return rc;
+    return CDD_C_SUCCESS;
   }
-  if (cdd_json_object_get_string(schema_obj, "type", &type) == CDD_C_SUCCESS) {
+  rc = oa_json_opt_string(schema_obj, "type", &type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (type) {
     *out_compat = (strcmp(type, "object") == 0) ? 1 : 0;
     return CDD_C_SUCCESS;
   }
-  if (cdd_json_object_get_object(schema_obj, "properties", &props_obj) ==
-      CDD_C_SUCCESS) {
+  rc = oa_json_opt_object(schema_obj, "properties", &props_obj);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (props_obj) {
     *out_compat = 1;
     return CDD_C_SUCCESS;
   }
-  if (cdd_json_object_get_array(schema_obj, "allOf", &all_of) != CDD_C_SUCCESS)
-    all_of = NULL;
-  if (cdd_json_object_get_array(schema_obj, "anyOf", &any_of) != CDD_C_SUCCESS)
-    any_of = NULL;
-  if (cdd_json_object_get_array(schema_obj, "oneOf", &one_of) != CDD_C_SUCCESS)
-    one_of = NULL;
-  if (all_of || any_of || one_of) {
+  rc = schema_has_composition(schema_obj, &has_comp);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (has_comp) {
     *out_compat = 1;
-    return CDD_C_SUCCESS;
   }
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Checks if a JSON schema object uses `allOf`, `anyOf`, or `oneOf`
  * composition.
  *
@@ -439,22 +480,26 @@ cdd_c_error_t schema_is_struct_compatible(const JSON_Value *schema_val,
 cdd_c_error_t schema_has_composition(const JSON_Object *schema_obj,
                                      int *out_has_comp) {
   JSON_Array *all_of = NULL, *any_of = NULL, *one_of = NULL;
+  cdd_c_error_t rc;
   if (!out_has_comp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_has_comp = 0;
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  if (cdd_json_object_get_array(schema_obj, "allOf", &all_of) != CDD_C_SUCCESS)
-    all_of = NULL;
-  if (cdd_json_object_get_array(schema_obj, "anyOf", &any_of) != CDD_C_SUCCESS)
-    any_of = NULL;
-  if (cdd_json_object_get_array(schema_obj, "oneOf", &one_of) != CDD_C_SUCCESS)
-    one_of = NULL;
+  rc = oa_json_opt_array(schema_obj, "allOf", &all_of);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = oa_json_opt_array(schema_obj, "anyOf", &any_of);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = oa_json_opt_array(schema_obj, "oneOf", &one_of);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   *out_has_comp = (all_of || any_of || one_of) ? 1 : 0;
   return CDD_C_SUCCESS;
 }
 
-/**
+/*
  * @brief Parses a JSON array of schemas into an array of OpenAPI_SchemaRef.
  *
  * @param[in] arr JSON array of schema objects.
@@ -475,6 +520,8 @@ cdd_c_error_t parse_schema_array_ref(const JSON_Array *arr,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = cdd_json_array_get_count(arr, &count);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (count == 0) {
     *out = NULL;
     *out_count = 0;
@@ -486,24 +533,28 @@ cdd_c_error_t parse_schema_array_ref(const JSON_Array *arr,
     return CDD_C_ERROR_MEMORY;
   for (i = 0; i < count; ++i) {
     JSON_Object *elem_obj = NULL;
-    rc = cdd_json_array_get_object(arr, i, &elem_obj);
+    rc = oa_json_array_opt_object(arr, i, &elem_obj);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     rc = parse_schema_ref(elem_obj, &schemas[i], spec);
-    if (rc != CDD_C_SUCCESS) {
-      size_t j;
-      for (j = 0; j < i; ++j) {
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)free_schema_ref_content(&schemas[j]));
-      }
-      C_CDD_FREE(schemas);
-      return rc;
-    }
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   *out = schemas;
   *out_count = count;
   return CDD_C_SUCCESS;
+
+cleanup: {
+  size_t j;
+  for (j = 0; j < i; ++j) {
+    rc = (cdd_c_error_t)((int)rc | (int)oa_schema_ref_item_free(&schemas[j]));
+  }
+  C_CDD_FREE(schemas);
+}
+  return rc;
 }
 
-/**
+/*
  * @brief Allocates and parses a single heap-allocated OpenAPI_SchemaRef.
  *
  * @param[in] obj JSON object representing the schema.

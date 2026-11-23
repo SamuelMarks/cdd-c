@@ -19,7 +19,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#include "../win_compat_sym.h"
+#include "win_compat_sym.h"
 
 #include "c_cdd/json_dom.h"
 
@@ -36,6 +36,7 @@ extern "C" {
 #include "classes/emit/cli_struct.h"
 #include "classes/emit/struct.h"
 #include "classes/parse/cdd_serde.h"
+#include "classes/parse/cdd_serde_internal.h"
 #include "classes/parse/code2schema.h"
 #include "classes/parse/mapping.h"
 #include "classes/parse/numeric.h"
@@ -60,29 +61,10 @@ extern C_CDD_EXPORT cdd_c_error_t c2s_parse_union_tokens_and_write(
     const struct TokenList *tl, size_t *idx, JSON_Object *schemas_obj,
     const char *union_name);
 
-/**
- * @brief Copies up to 63 characters from a token into a 64-byte buffer.
- *
- * @param[out] dst Target 64-byte buffer.
- * @param[in] tok Source token.
- * @return CDD_C_SUCCESS on success.
- */
-cdd_c_error_t c2s_copy_token_ident(char *dst, const struct Token *tok);
-
-/**
- * @brief Retrieves token kind at index or TOKEN_UNKNOWN if out of bounds.
- *
- * @param[in] tl Token list.
- * @param[in] idx Token index.
- * @param[out] out_kind Output token kind.
- * @return CDD_C_SUCCESS on success.
- */
-cdd_c_error_t c2s_tok_kind(const struct TokenList *tl, size_t idx,
-                           enum TokenKind *out_kind);
-
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
 extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
+extern C_CDD_EXPORT int g_cdd_c2s_fail_step;
 #endif
 
 /** @brief MAX_LINE_LENGTH definition */
@@ -122,6 +104,52 @@ extern C_CDD_EXPORT cdd_c_error_t apply_union_to_struct_fields_ex_mut(
 extern C_CDD_EXPORT cdd_c_error_t c2s_json_object_to_struct_fields_internal_mut(
     const JSON_Object *o, struct StructFields *f, const JSON_Object *root,
     JSON_Object *root_mut, const char *schema_name, int allow_inline_union);
+
+/**
+ * @brief Frees a dynamically allocated string array (`*_free` destructor
+ * alias).
+ *
+ * @param[in,out] arr Array of strings to free.
+ * @param[in] n Number of elements in `arr`.
+ * @return CDD_C_SUCCESS.
+ */
+cdd_c_error_t c2s_string_array_free(char **arr, size_t n);
+
+/**
+ * @brief Looks up an optional string property on a JSON_Object, setting
+ * `*out_str` to NULL when absent or non-string.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_str Output pointer receiving the string or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t c2s_json_opt_string(const JSON_Object *obj, const char *key,
+                                  const char **out_str);
+
+/**
+ * @brief Looks up an optional object property on a JSON_Object, setting
+ * `*out_obj` to NULL when absent or non-object.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_obj Output pointer receiving the child JSON_Object or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t c2s_json_opt_object(const JSON_Object *obj, const char *key,
+                                  JSON_Object **out_obj);
+
+/**
+ * @brief Looks up an optional array property on a JSON_Object, setting
+ * `*out_arr` to NULL when absent or non-array.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_arr Output pointer receiving the child JSON_Array or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+cdd_c_error_t c2s_json_opt_array(const JSON_Object *obj, const char *key,
+                                 JSON_Array **out_arr);
 
 #ifdef __cplusplus
 }

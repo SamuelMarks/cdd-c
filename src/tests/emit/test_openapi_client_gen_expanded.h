@@ -593,6 +593,8 @@ TEST test_client_gen_sdk_cmake_ctest_integration(void) {
     unsetenv("GIT_DIR");
     unsetenv("GIT_WORK_TREE");
     unsetenv("GIT_INDEX_FILE");
+    unsetenv("GIT_CONFIG_COUNT");
+    unsetenv("GIT_ASKPASS");
     sys_rc = system("cmake -S build/test_sdk_integration -B "
                     "build/test_sdk_integration/build "
                     "&& cmake --build build/test_sdk_integration/build "

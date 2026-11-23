@@ -113,6 +113,11 @@ NO_DISCARD cdd_c_error_t cdd_ffi_vsnprintf_checked(char *out_buf,
   if (!out_buf || out_cap == 0 || !fmt)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
+
 #if defined(_MSC_VER)
   written = _vsnprintf_s(out_buf, out_cap, _TRUNCATE, fmt, ap);
   if (written < 0)
@@ -147,8 +152,12 @@ NO_DISCARD cdd_c_error_t cdd_ffi_snprintf_checked(char *out_buf, size_t out_cap,
 
   va_start(ap, fmt);
   rc = cdd_ffi_vsnprintf_checked(out_buf, out_cap, fmt, ap);
+  if (rc != CDD_C_SUCCESS) {
+    va_end(ap);
+    return rc;
+  }
   va_end(ap);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -170,9 +179,11 @@ NO_DISCARD cdd_c_error_t cdd_ffi_write_fmt(FILE *fp, const char *fmt, ...) {
 
   va_start(ap, fmt);
   rc = cdd_ffi_vsnprintf_checked(buf, sizeof(buf), fmt, ap);
-  va_end(ap);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    va_end(ap);
     return rc;
+  }
+  va_end(ap);
 
   return cdd_ffi_write_str(fp, buf);
 }
@@ -190,6 +201,10 @@ NO_DISCARD cdd_c_error_t cdd_ffi_emit_trivia(FILE *f,
                                              const cdd_ffi_trivia_t *trivia) {
   if (!f)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   while (trivia) {
     if (trivia->text) {
       if (fputs(trivia->text, f) < 0)
@@ -284,6 +299,10 @@ static NO_DISCARD cdd_c_error_t clean_comment_line(const char *raw_line,
   size_t start;
   size_t end;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   start = 0;
   end = raw_len;
 
@@ -426,6 +445,10 @@ strip_c_comment_delimiters(const char *raw, const char **out_body,
   size_t end;
   int is_block;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   len = strlen(raw);
   start = 0;
   end = len;
@@ -485,6 +508,9 @@ emit_comment_body(FILE *fp, const char *raw, int force_block_star,
   cdd_c_error_t rc;
 
   rc = strip_c_comment_delimiters(raw, &body, &body_len, &is_block);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
   strip_star = (is_block || force_block_star) ? 1 : 0;
 
   while (body_len > 0 && memchr("\r\n", (unsigned char)body[0], 2) != NULL) {
@@ -501,9 +527,8 @@ emit_comment_body(FILE *fp, const char *raw, int force_block_star,
   if (style->line_prefix) {
     size_t pos;
     if (body_len == 0) {
-      return cdd_c_keep_err(
-          rc, emit_wrapped_line_comment(fp, indent, style->line_prefix, "", 0,
-                                        style->max_columns));
+      return emit_wrapped_line_comment(fp, indent, style->line_prefix, "", 0,
+                                       style->max_columns);
     }
     pos = 0;
     for (;;) {
@@ -514,57 +539,68 @@ emit_comment_body(FILE *fp, const char *raw, int force_block_star,
 
       line_end = (const char *)memchr(body + pos, '\n', body_len - pos);
       slice_len = line_end ? (size_t)(line_end - (body + pos)) : body_len - pos;
-      rc = cdd_c_keep_err(rc,
-                          clean_comment_line(body + pos, slice_len, strip_star,
-                                             &clean_ptr, &clean_len));
-      rc = cdd_c_keep_err(rc, emit_wrapped_line_comment(
-                                  fp, indent, style->line_prefix, clean_ptr,
-                                  clean_len, style->max_columns));
-      if (rc != CDD_C_SUCCESS)
+      rc = clean_comment_line(body + pos, slice_len, strip_star, &clean_ptr,
+                              &clean_len);
+      if (rc != CDD_C_SUCCESS) {
         return rc;
+      }
+      rc = emit_wrapped_line_comment(fp, indent, style->line_prefix, clean_ptr,
+                                     clean_len, style->max_columns);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
 
       if (!line_end)
         break;
       pos += slice_len + 1;
     }
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (!nl) {
     const char *clean_ptr;
     size_t clean_len;
 
-    rc = cdd_c_keep_err(rc, clean_comment_line(body, body_len, strip_star,
-                                               &clean_ptr, &clean_len));
-    if (indent[0] != '\0') {
-      rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, indent));
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+    rc = clean_comment_line(body, body_len, strip_star, &clean_ptr, &clean_len);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
     }
-    rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, style->block_open));
-    if (rc != CDD_C_SUCCESS)
+    if (indent[0] != '\0') {
+      rc = cdd_ffi_write_str(fp, indent);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
+    }
+    rc = cdd_ffi_write_str(fp, style->block_open);
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
     rc = emit_escaped_segment(fp, clean_ptr, clean_len, style);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
     rc = cdd_ffi_write_str(fp, style->block_close);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
     return cdd_ffi_write_str(fp, "\n");
   } else {
     size_t pos;
 
     if (indent[0] != '\0') {
-      rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, indent));
-      if (rc != CDD_C_SUCCESS)
+      rc = cdd_ffi_write_str(fp, indent);
+      if (rc != CDD_C_SUCCESS) {
         return rc;
+      }
     }
-    rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, style->block_open));
-    if (rc != CDD_C_SUCCESS)
+    rc = cdd_ffi_write_str(fp, style->block_open);
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
     rc = cdd_ffi_write_str(fp, "\n");
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
       return rc;
+    }
 
     pos = 0;
     for (;;) {
@@ -575,29 +611,36 @@ emit_comment_body(FILE *fp, const char *raw, int force_block_star,
 
       line_end = (const char *)memchr(body + pos, '\n', body_len - pos);
       slice_len = line_end ? (size_t)(line_end - (body + pos)) : body_len - pos;
-      rc = cdd_c_keep_err(rc,
-                          clean_comment_line(body + pos, slice_len, strip_star,
-                                             &clean_ptr, &clean_len));
+      rc = clean_comment_line(body + pos, slice_len, strip_star, &clean_ptr,
+                              &clean_len);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
+      }
       if (indent[0] != '\0') {
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, indent));
-        if (rc != CDD_C_SUCCESS)
+        rc = cdd_ffi_write_str(fp, indent);
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
       }
       if (clean_len > 0) {
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, " * "));
-        if (rc != CDD_C_SUCCESS)
+        rc = cdd_ffi_write_str(fp, " * ");
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
         rc = emit_escaped_segment(fp, clean_ptr, clean_len, style);
-        if (rc != CDD_C_SUCCESS)
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
       } else {
-        rc = cdd_c_keep_err(rc, cdd_ffi_write_str(fp, " *"));
-        if (rc != CDD_C_SUCCESS)
+        rc = cdd_ffi_write_str(fp, " *");
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
       }
       rc = cdd_ffi_write_str(fp, "\n");
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
         return rc;
+      }
 
       if (!line_end)
         break;
@@ -707,6 +750,10 @@ cdd_ffi_map_type_from_table(const cdd_ffi_type_map_table_t *table,
                             cdd_ffi_type_t type, const char **out_type) {
   if (!table || !out_type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
 
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {

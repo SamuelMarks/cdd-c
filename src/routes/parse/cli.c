@@ -50,6 +50,26 @@
 #endif
 
 /**
+ * @brief Frees the memory associated with parsed sig (`*_free` alias).
+ *
+ * @param[in,out] sig Parsed signature structure to clean.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t parsed_sig_free(struct C2OpenAPI_ParsedSig *sig) {
+  return free_parsed_sig(sig);
+}
+
+/**
+ * @brief Frees an OpenAPI_Operation structure (`*_free` alias).
+ *
+ * @param[in,out] op Operation structure to clean.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t cli_operation_free(struct OpenAPI_Operation *op) {
+  return free_operation(op);
+}
+
+/**
  * @brief Simple signature parser to split "int foo(int x, char
  * *y)" Populates `out`. Caller must free internals.
  *
@@ -69,9 +89,9 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
 
   memset(out, 0, sizeof(*out));
 
-  if (tokenize(az_span_create_from_str(sig_str), &tl) != 0) {
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
+  rc = tokenize(az_span_create_from_str(sig_str), &tl);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* Naive extraction: Name is identifier before LPAREN */
   for (i = 0; i < tl->size; ++i) {
@@ -83,8 +103,8 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
 
   /* Need at least name and parens */
   if (lp < 1) {
-    return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
-                           (int)free_token_list(tl));
+    rc = CDD_C_ERROR_INVALID_ARGUMENT;
+    goto cleanup;
   }
 
   /* Extract Name (token before lparen, ignoring WS) */
@@ -111,28 +131,25 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
   }
 
   /* Extract Args between ( and ) */
-  /* Split by COMMA. For each segment, last ID is name, rest is
-   * type. */
   rc = token_find_next(tl, lp, tl->size, TOKEN_RPAREN, &rp);
+  if (rc != CDD_C_SUCCESS) {
+    goto cleanup;
+  }
   if (rp >= tl->size) {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
     goto cleanup;
   }
 
   if (rp > lp + 1) {
-    /* Non-empty args */
     size_t start = lp + 1;
     size_t end = start;
 
     while (end < rp) {
-      /* Find comma or RP */
       size_t seg_end = end;
       while (seg_end < rp && tl->tokens[seg_end].kind != TOKEN_COMMA)
         seg_end++;
 
-      /* Process segment [start, seg_end) */
       {
-        /* Find name: last identifier in segment */
         size_t k = seg_end;
         size_t name_idx = 0;
         int found_name = 0;
@@ -147,18 +164,8 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
         }
 
         if (found_name) {
-          /* Type is start..name_idx (exclusive) + modifiers
-           * after? */
-          /* Simple approach: Type is [start, name_idx), Name is
-             name_idx. Postfix arrays `[]` might be after name.
-           */
-          /* Let's grab name string */
           const struct Token *nt = &tl->tokens[name_idx];
           size_t t_end = name_idx;
-
-          /* Check if type is pointer/const/struct before name
-           */
-          /* Construct type string */
           size_t t_len = 0;
           char *t_str;
           size_t m;
@@ -170,10 +177,8 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
           memcpy(n_str, nt->start, nt->length);
           n_str[nt->length] = '\0';
 
-          /* Calc type len */
           for (m = start; m < t_end; m++)
             t_len += tl->tokens[m].length;
-          /* Add postfix */
           for (m = name_idx + 1; m < seg_end; m++)
             t_len += tl->tokens[m].length;
 
@@ -196,6 +201,11 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
             *p = '\0';
           }
           rc = c_cdd_str_trim_trailing_whitespace(t_str);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(n_str);
+            C_CDD_FREE(t_str);
+            goto cleanup;
+          }
           {
             char *tp = t_str;
             while (*tp == ' ' || *tp == '\t')
@@ -204,7 +214,6 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
               memmove(t_str, tp, strlen(tp) + 1);
           }
 
-          /* Add to list */
           {
             struct C2OpenAPI_ParsedArg *new_arr = C_CDD_REALLOC(
                 out->args,
@@ -220,23 +229,24 @@ cdd_c_error_t parse_c_signature_string(const char *sig_str,
             out->args[out->n_args].type = t_str;
             out->n_args++;
           }
-
-        } else {
-          /* Void arg or unnamed? ignore */
         }
       }
 
-      start = seg_end + 1; /* Skip comma */
+      start = seg_end + 1;
       end = start;
     }
   }
 
-cleanup:
-  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tl));
+  rc = CDD_C_SUCCESS;
+
+cleanup: {
+  cdd_c_error_t rc_f1 = token_list_free(tl);
+  cdd_c_error_t rc_f2 = CDD_C_SUCCESS;
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_parsed_sig(out));
+    rc_f2 = parsed_sig_free(out);
   }
-  return rc;
+  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_f1, rc_f2));
+}
 }
 
 /**
@@ -276,7 +286,12 @@ cdd_c_error_t free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
 static cdd_c_error_t
 c2openapi_infer_client_route(const struct CstNode *func_node,
                              const struct TokenList *tokens, char **out_route) {
+  static const char *const k_verbs[][2] = {
+      {"HTTP_GET", "GET"},       {"HTTP_POST", "POST"},   {"HTTP_PUT", "PUT"},
+      {"HTTP_DELETE", "DELETE"}, {"HTTP_PATCH", "PATCH"},
+  };
   size_t k;
+  size_t v_idx;
   const char *verb = NULL;
   char *path_str = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
@@ -290,30 +305,17 @@ c2openapi_infer_client_route(const struct CstNode *func_node,
        (k < func_node->end_token) & (k < tokens->size); ++k) {
     const struct Token *tok = &tokens->tokens[k];
     if (tok->kind == TOKEN_IDENTIFIER) {
-      int m = 0;
       if (!verb) {
-        rc = token_matches_string(tok, "HTTP_GET", &m);
-        if (m) {
-          verb = "GET";
-        } else {
-          rc = token_matches_string(tok, "HTTP_POST", &m);
+        for (v_idx = 0; v_idx < 5; ++v_idx) {
+          int m = 0;
+          rc = token_matches_string(tok, k_verbs[v_idx][0], &m);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(path_str);
+            return rc;
+          }
           if (m) {
-            verb = "POST";
-          } else {
-            rc = token_matches_string(tok, "HTTP_PUT", &m);
-            if (m) {
-              verb = "PUT";
-            } else {
-              rc = token_matches_string(tok, "HTTP_DELETE", &m);
-              if (m) {
-                verb = "DELETE";
-              } else {
-                rc = token_matches_string(tok, "HTTP_PATCH", &m);
-                if (m) {
-                  verb = "PATCH";
-                }
-              }
-            }
+            verb = k_verbs[v_idx][1];
+            break;
           }
         }
       }
@@ -352,7 +354,7 @@ c2openapi_infer_client_route(const struct CstNode *func_node,
     C_CDD_FREE(path_str);
   }
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -378,6 +380,8 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
       int matches = 0;
       rc = token_matches_string(&tokens->tokens[i], "c_rest_router_add",
                                 &matches);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (matches) {
         size_t j = i + 1;
         char verb_str[16];
@@ -446,12 +450,11 @@ c2openapi_scan_server_routes(const struct TokenList *tokens,
                        path_str);
 #endif
           rc = openapi_aggregator_add_operation(spec, route_str, &op);
-          if (op.operation_id) {
-            C_CDD_FREE(op.operation_id);
-          }
           if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(op.operation_id);
             return rc;
           }
+          C_CDD_FREE(op.operation_id);
         }
       }
     }
@@ -503,10 +506,11 @@ static cdd_c_error_t c2openapi_scan_gui_views(const struct TokenList *tokens,
           CDD_SNPRINTF(route_str, sizeof(route_str), "GET /gui/%s", op_id);
 #endif
           rc = openapi_aggregator_add_operation(spec, route_str, &op);
-          C_CDD_FREE(op.operation_id);
           if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(op.operation_id);
             return rc;
           }
+          C_CDD_FREE(op.operation_id);
         }
       }
     }
@@ -536,6 +540,8 @@ static cdd_c_error_t c2openapi_scan_mcp_tools(const struct TokenList *tokens,
     if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
       int is_tool_obj = 0;
       rc = token_matches_string(&tokens->tokens[i], "tool_obj", &is_tool_obj);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (is_tool_obj && i + 4 < tokens->size &&
           tokens->tokens[i + 1].kind == TOKEN_COMMA &&
           tokens->tokens[i + 2].kind == TOKEN_STRING_LITERAL &&
@@ -564,10 +570,11 @@ static cdd_c_error_t c2openapi_scan_mcp_tools(const struct TokenList *tokens,
                        op_id);
 #endif
           rc = openapi_aggregator_add_operation(spec, route_str, &op);
-          C_CDD_FREE(op.operation_id);
           if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(op.operation_id);
             return rc;
           }
+          C_CDD_FREE(op.operation_id);
         }
       }
     }
@@ -589,41 +596,63 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   size_t sz = 0;
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
+  struct DocMetadata meta;
+  struct C2OpenAPI_ParsedSig psig;
+  struct OpenAPI_Operation op;
   int *comment_used = NULL;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
   size_t i;
 
   if (!path || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+  memset(&meta, 0, sizeof(meta));
+  memset(&psig, 0, sizeof(psig));
+  memset(&op, 0, sizeof(op));
+
   /* 1. Register Types (Structs/Enums) */
   {
     struct TypeDefList types;
+    cdd_c_error_t rc_tf;
     rc = type_def_list_init(&types);
-    if (c_inspector_scan_file_types(path, &types) == 0) {
-      rc = c2openapi_register_types(spec, &types);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = c_inspector_scan_file_types(path, &types);
+    if (rc != CDD_C_SUCCESS) {
+      rc_tf = type_def_list_free(&types);
+      return cdd_c_keep_err(rc, rc_tf);
     }
-    rc = type_def_list_free(&types);
+    rc = c2openapi_register_types(spec, &types);
+    if (rc != CDD_C_SUCCESS) {
+      rc_tf = type_def_list_free(&types);
+      return cdd_c_keep_err(rc, rc_tf);
+    }
+    rc_free = (cdd_c_error_t)((int)rc_free | (int)type_def_list_free(&types));
   }
 
   /* 2. Parse Code for Functions & Docs */
   rc = read_to_file(path, "r", &content, &sz);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
-  if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
-    C_CDD_FREE(content);
-    return CDD_C_ERROR_IO;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, rc_free);
   }
-  rc = parse_tokens(tokens, &cst); /* Best effort */
+
+  rc = tokenize(az_span_create_from_str(content), &tokens);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(content);
+    return cdd_c_keep_err(rc, rc_free);
+  }
+
+  rc = parse_tokens(tokens, &cst);
+  if (rc != CDD_C_SUCCESS) {
+    goto cleanup;
+  }
 
   if (cst.size > 0) {
     comment_used = (int *)C_CDD_CALLOC(cst.size, sizeof(int));
     if (!comment_used) {
-      rc = free_cst_node_list(&cst);
-      rc = free_token_list(tokens);
-      C_CDD_FREE(content);
-      return CDD_C_ERROR_MEMORY;
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup;
     }
   }
 
@@ -631,131 +660,95 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
     if (cst.nodes[i].kind == CST_NODE_FUNCTION) {
       struct CstNode *func_node = &cst.nodes[i];
       struct CstNode *doc_node = NULL;
-      size_t doc_index = (size_t)-1;
+      size_t doc_index = 0;
 
-      /* Look backwards for doc comment */
       if (i > 0 && cst.nodes[i - 1].kind == CST_NODE_COMMENT) {
         doc_node = &cst.nodes[i - 1];
         doc_index = i - 1;
       }
 
+      rc = doc_metadata_init(&meta);
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
+
       if (doc_node) {
-        /* Extract comment text */
         char *doc_text = C_CDD_MALLOC(doc_node->length + 1);
-        if (doc_text) {
-          struct DocMetadata meta;
-          memcpy(doc_text, doc_node->start, doc_node->length);
-          doc_text[doc_node->length] = '\0';
-
-          rc = doc_metadata_init(&meta);
-          if (doc_parse_block(doc_text, &meta) == 0) {
-            cdd_c_error_t rc_meta = apply_all_doc_meta(spec, &meta);
-            if (rc_meta != CDD_C_SUCCESS) {
-              rc = doc_metadata_free(&meta);
-              C_CDD_FREE(doc_text);
-              rc = free_cst_node_list(&cst);
-              rc = free_token_list(tokens);
-              C_CDD_FREE(content);
-              C_CDD_FREE(comment_used);
-              return rc_meta;
-            }
-            comment_used[doc_index] = 1;
-          }
-          if (!meta.route) {
-            rc = c2openapi_infer_client_route(func_node, tokens, &meta.route);
-          }
-          if (meta.route) {
-            /* Found Valid Documented Route! */
-
-            /* Extract Signature Text */
-            size_t sig_len = func_node->length; /* Approximation, includes
-                                                   body? */
-            /* We need signature string up to brace. CST Node
-             * includes body. */
-            char *sig_raw = (char *)C_CDD_MALLOC(sig_len + 1);
-            if (sig_raw) {
-              struct C2OpenAPI_ParsedSig psig;
-              const uint8_t *brace = memchr(func_node->start, '{', sig_len);
-              size_t effective_len = (size_t)(brace - func_node->start);
-
-              memcpy(sig_raw, func_node->start, effective_len);
-              sig_raw[effective_len] = '\0';
-
-              if (parse_c_signature_string(sig_raw, &psig) == CDD_C_SUCCESS) {
-                struct OpenAPI_Operation op = {0};
-                struct OpBuilderContext ctx;
-
-                ctx.sig = &psig;
-                ctx.doc = &meta;
-                ctx.func_name = psig.name;
-
-                if (c2openapi_build_operation(&ctx, &op) == CDD_C_SUCCESS) {
-                  cdd_c_error_t rc_add;
-                  if (meta.is_webhook) {
-                    rc_add = openapi_aggregator_add_webhook_operation(
-                        spec, meta.route, &op);
-                  } else {
-                    rc_add =
-                        openapi_aggregator_add_operation(spec, meta.route, &op);
-                  }
-                  if (rc_add != CDD_C_SUCCESS) {
-                    rc = free_operation(&op);
-                  }
-                } else {
-                  rc = free_operation(&op);
-                }
-                rc = free_parsed_sig(&psig);
-              }
-              C_CDD_FREE(sig_raw);
-            }
-          }
-          rc = doc_metadata_free(&meta);
-          C_CDD_FREE(doc_text);
+        if (!doc_text) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
         }
-      } else {
-        char *inferred_route = NULL;
-        rc = c2openapi_infer_client_route(func_node, tokens, &inferred_route);
-        if (inferred_route) {
-          struct DocMetadata meta;
-          size_t sig_len = func_node->length;
-          char *sig_raw = (char *)C_CDD_MALLOC(sig_len + 1);
-          if (sig_raw) {
-            struct C2OpenAPI_ParsedSig psig;
-            const uint8_t *brace =
-                (const uint8_t *)memchr(func_node->start, '{', sig_len);
-            size_t effective_len = (size_t)(brace - func_node->start);
+        memcpy(doc_text, doc_node->start, doc_node->length);
+        doc_text[doc_node->length] = '\0';
 
-            memcpy(sig_raw, func_node->start, effective_len);
-            sig_raw[effective_len] = '\0';
+        rc = doc_parse_block(doc_text, &meta);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(doc_text);
+          goto cleanup;
+        }
+        C_CDD_FREE(doc_text);
 
-            rc = doc_metadata_init(&meta);
-            meta.route = inferred_route;
+        rc = apply_all_doc_meta(spec, &meta);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
+        comment_used[doc_index] = 1;
+      }
 
-            if (parse_c_signature_string(sig_raw, &psig) == CDD_C_SUCCESS) {
-              struct OpenAPI_Operation op = {0};
-              struct OpBuilderContext ctx;
-
-              ctx.sig = &psig;
-              ctx.doc = &meta;
-              ctx.func_name = psig.name;
-
-              if (c2openapi_build_operation(&ctx, &op) == CDD_C_SUCCESS) {
-                if (openapi_aggregator_add_operation(spec, meta.route, &op) !=
-                    CDD_C_SUCCESS) {
-                  rc = free_operation(&op);
-                }
-              } else {
-                rc = free_operation(&op);
-              }
-              rc = free_parsed_sig(&psig);
-            }
-            rc = doc_metadata_free(&meta);
-            C_CDD_FREE(sig_raw);
-          } else {
-            C_CDD_FREE(inferred_route);
-          }
+      if (!meta.route) {
+        rc = c2openapi_infer_client_route(func_node, tokens, &meta.route);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
         }
       }
+
+      if (meta.route) {
+        size_t sig_len = func_node->length;
+        char *sig_raw = (char *)C_CDD_MALLOC(sig_len + 1);
+        const uint8_t *brace = memchr(func_node->start, '{', sig_len);
+        size_t effective_len;
+        struct OpBuilderContext ctx;
+
+        if (!sig_raw) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
+        effective_len = (size_t)(brace - func_node->start);
+        memcpy(sig_raw, func_node->start, effective_len);
+        sig_raw[effective_len] = '\0';
+
+        rc = parse_c_signature_string(sig_raw, &psig);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(sig_raw);
+          goto cleanup;
+        }
+        C_CDD_FREE(sig_raw);
+
+        ctx.sig = &psig;
+        ctx.doc = &meta;
+        ctx.func_name = psig.name;
+
+        rc = c2openapi_build_operation(&ctx, &op);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
+
+        if (meta.is_webhook) {
+          rc = openapi_aggregator_add_webhook_operation(spec, meta.route, &op);
+          if (rc != CDD_C_SUCCESS) {
+            goto cleanup;
+          }
+        } else {
+          rc = openapi_aggregator_add_operation(spec, meta.route, &op);
+          if (rc != CDD_C_SUCCESS) {
+            goto cleanup;
+          }
+        }
+        memset(&op, 0, sizeof(op));
+        rc_free = (cdd_c_error_t)((int)rc_free | (int)parsed_sig_free(&psig));
+      }
+
+      rc_free = (cdd_c_error_t)((int)rc_free | (int)doc_metadata_free(&meta));
     }
   }
 
@@ -763,28 +756,30 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   if (comment_used) {
     for (i = 0; i < cst.size; ++i) {
       if (cst.nodes[i].kind == CST_NODE_COMMENT && !comment_used[i]) {
-        struct DocMetadata meta;
         char *doc_text = C_CDD_MALLOC(cst.nodes[i].length + 1);
-        if (!doc_text)
-          continue;
+        if (!doc_text) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
         memcpy(doc_text, cst.nodes[i].start, cst.nodes[i].length);
         doc_text[cst.nodes[i].length] = '\0';
 
         rc = doc_metadata_init(&meta);
-        if (doc_parse_block(doc_text, &meta) == 0) {
-          cdd_c_error_t rc_meta = apply_all_doc_meta(spec, &meta);
-          if (rc_meta != CDD_C_SUCCESS) {
-            rc = doc_metadata_free(&meta);
-            C_CDD_FREE(doc_text);
-            rc = free_cst_node_list(&cst);
-            rc = free_token_list(tokens);
-            C_CDD_FREE(content);
-            C_CDD_FREE(comment_used);
-            return rc_meta;
-          }
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(doc_text);
+          goto cleanup;
         }
-        rc = doc_metadata_free(&meta);
+        rc = doc_parse_block(doc_text, &meta);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(doc_text);
+          goto cleanup;
+        }
         C_CDD_FREE(doc_text);
+        rc = apply_all_doc_meta(spec, &meta);
+        if (rc != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
+        rc_free = (cdd_c_error_t)((int)rc_free | (int)doc_metadata_free(&meta));
       }
     }
   }
@@ -792,41 +787,42 @@ cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   /* Scan for server router registrations */
   rc = c2openapi_scan_server_routes(tokens, spec);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
-    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
-    C_CDD_FREE(content);
-    C_CDD_FREE(comment_used);
-    return rc;
+    goto cleanup;
   }
 
   /* Scan for client GUI views */
   rc = c2openapi_scan_gui_views(tokens, spec);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
-    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
-    C_CDD_FREE(content);
-    C_CDD_FREE(comment_used);
-    return rc;
+    goto cleanup;
   }
 
   /* Scan for MCP tool definitions if no routes were registered yet */
   if (spec->n_paths == 0) {
     rc = c2openapi_scan_mcp_tools(tokens, spec);
     if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
-      rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
-      C_CDD_FREE(content);
-      C_CDD_FREE(comment_used);
-      return rc;
+      goto cleanup;
     }
   }
 
-  rc = free_cst_node_list(&cst);
-  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
+  rc = CDD_C_SUCCESS;
+
+cleanup: {
+  cdd_c_error_t rc_f1 = cli_operation_free(&op);
+  cdd_c_error_t rc_f2 = parsed_sig_free(&psig);
+  cdd_c_error_t rc_f3 = doc_metadata_free(&meta);
+  cdd_c_error_t rc_f4 = cst_node_list_free(&cst);
+  cdd_c_error_t rc_f5 = token_list_free(tokens);
   C_CDD_FREE(content);
   C_CDD_FREE(comment_used);
-
-  return rc;
+  return cdd_c_keep_err(
+      rc,
+      cdd_c_keep_err(
+          rc_free,
+          cdd_c_keep_err(
+              rc_f1, cdd_c_keep_err(
+                         rc_f2, cdd_c_keep_err(
+                                    rc_f3, cdd_c_keep_err(rc_f4, rc_f5))))));
+}
 }
 
 /**
@@ -874,15 +870,21 @@ cdd_c_error_t walker_cb(const char *path, void *user_data) {
 cdd_c_error_t load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free;
 
   if (!path || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (cdd_json_parse_file(path, &root) != CDD_C_SUCCESS)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = cdd_json_parse_file(path, &root);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   rc = openapi_load_from_json(root, spec);
-  return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root));
+  if (rc != CDD_C_SUCCESS) {
+    rc_free = cdd_json_value_free(root);
+    return cdd_c_keep_err(rc, rc_free);
+  }
+  return cdd_json_value_free(root);
 }
 
 /**
@@ -918,13 +920,15 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
   dialect_uri = config->dialect_uri;
 
   rc = openapi_spec_init(&spec);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (base_file) {
     rc = load_base_spec(base_file, &spec);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to load base OpenAPI spec %s: %d\n", base_file,
               rc);
-      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+      goto cleanup;
     }
   }
 
@@ -934,7 +938,7 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
     rc = c_cdd_strdup(self_uri, &spec.self_uri);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to set $self URI\n");
-      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+      goto cleanup;
     }
   }
   if (dialect_uri && *dialect_uri) {
@@ -943,7 +947,7 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
     rc = c_cdd_strdup(dialect_uri, &spec.json_schema_dialect);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to set jsonSchemaDialect\n");
-      return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+      goto cleanup;
     }
   }
 
@@ -951,32 +955,35 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
   rc = walk_directory(src_dir, walker_cb, &spec);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error walking directory %s: %d\n", src_dir, rc);
-    return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+    goto cleanup;
   }
 
   /* Derive top-level tags from operation tags */
   rc = collect_spec_tags(&spec);
   if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+    goto cleanup;
   }
 
   /* 2. Write */
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error serializing spec: %d\n", rc);
-    return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+    goto cleanup;
   }
 
   rc = fs_write_to_file(out_file, json);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Failed to write %s\n", out_file);
-  } else {
-    printf("Written %s\n", out_file);
-    rc = CDD_C_SUCCESS;
+    goto cleanup;
   }
+  printf("Written %s\n", out_file);
+  rc = CDD_C_SUCCESS;
 
+cleanup: {
+  cdd_c_error_t rc_free = openapi_spec_free(&spec);
   C_CDD_FREE(json);
-  return (cdd_c_error_t)((int)rc | (int)openapi_spec_free(&spec));
+  return cdd_c_keep_err(rc, rc_free);
+}
 }
 
 /**
@@ -988,12 +995,10 @@ c2openapi_generate(const cdd_to_openapi_config_t *config) {
  */
 C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t cfg;
-  const char *sug = NULL;
   int first_unk = -1;
   cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
-  rc = cdd_cli_suggest_closest("c2openapi", NULL, 0, &sug);
 
   if (!argv || argc < 3) {
     fprintf(stderr, "Usage: c2openapi [--base <openapi.json>] "
@@ -1005,6 +1010,13 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
 
   rc = cdd_cli_parse_reflected_argv(
       argc, argv, 1, &cdd_to_openapi_config_type_info, &cfg, NULL, &first_unk);
+  if (rc != CDD_C_SUCCESS) {
+    fprintf(stderr, "Usage: c2openapi [--base <openapi.json>] "
+                    "[--self <uri>] "
+                    "[--dialect <uri>] "
+                    "<src_dir> <out.json>\n");
+    return rc;
+  }
   if (!cfg.output) {
     fprintf(stderr, "Usage: c2openapi [--base <openapi.json>] "
                     "[--self <uri>] "
@@ -1013,8 +1025,7 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  rc = c2openapi_generate(&cfg);
-  return rc;
+  return c2openapi_generate(&cfg);
 }
 
 /**
@@ -1027,12 +1038,10 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   cdd_docs_json_config_t cfg;
   const char *env_val;
-  const char *sug = NULL;
   int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
-  rc = cdd_cli_suggest_closest("to_docs_json", NULL, 0, &sug);
   env_val = getenv("CDD_INPUT");
   cfg.input = env_val ? env_val : getenv("INPUT_FILE");
   env_val = getenv("CDD_OUTPUT");
@@ -1055,7 +1064,7 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
          "generated snippets");
     puts("  --no-wrapping             Omit main() wrapper from generated "
          "snippets");
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   return cdd_generate_docs_json(&cfg);
@@ -1070,16 +1079,14 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   cdd_generate_bindings_config_t config = {0};
-  const char *sug = NULL;
   int is_help = 0;
   cdd_c_error_t rc;
 
-  rc = cdd_cli_suggest_closest("bind", NULL, 0, &sug);
   rc = cdd_cli_parse_reflected_argv(argc, argv, 1,
                                     &cdd_generate_bindings_config_type_info,
                                     &config, &is_help, NULL);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_UNKNOWN;
+    return rc;
   if (is_help) {
     puts("Usage: cdd-c bind [OPTIONS]\n\n"
          "Options:\n"
@@ -1105,7 +1112,7 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
          "sanity-check tests\n"
          "  -h, --help                Show this help "
          "message");
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (!config.input || !config.output_dir || !config.target_langs) {
@@ -1117,7 +1124,7 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   rc = cdd_generate_bindings(&config);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error: Binding generation failed with code %d\n", rc);
-    return CDD_C_ERROR_UNKNOWN;
+    return rc;
   }
 
   return CDD_C_SUCCESS;
@@ -1133,6 +1140,10 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
     struct OpenAPI_Spec *spec, const struct TypeDefList *types) {
   size_t i, j;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!spec || !types)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -1267,8 +1278,7 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
  */
 C_CDD_EXPORT cdd_c_error_t c2openapi_set_json_allocators(
     void *(*malloc_fun)(size_t), void (*free_fun)(void *)) {
-  json_set_allocation_functions(malloc_fun, free_fun);
-  return CDD_C_SUCCESS;
+  return cdd_json_set_allocation_functions(malloc_fun, free_fun);
 }
 
 #ifdef CDD_BUILD_TESTS

@@ -19,6 +19,17 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Frees a CST node shell and child array without freeing child nodes or
+ * tokens.
+ *
+ * @param[in] node Node shell to free.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t cst_fmt_node_only_free(cdd_cst_node_t *node) {
+  return cdd_cst_free_node_only(node);
+}
+
 /*
  * @brief Parses a format string into a CST node.
  *
@@ -36,6 +47,8 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   cdd_cst_tree_t *temp_tree = NULL;
   cdd_cst_node_t *result = NULL;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
+  size_t i, j;
 
   if (!dest_tree || !out_node || !fmt)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -51,64 +64,73 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   va_end(args);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
+    *out_node = NULL;
+    return cdd_c_keep_err(rc, cdd_cst_tree_free(temp_tree));
+  }
   C_CDD_FREE(buf);
 
-  if (rc == CDD_C_SUCCESS) {
-    size_t i, j;
-    rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
+  rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
+  if (rc != CDD_C_SUCCESS) {
+    *out_node = NULL;
+    return cdd_c_keep_err(rc, cdd_cst_tree_free(temp_tree));
+  }
+
+  for (i = 0; i < temp_tree->root->num_children; i++) {
+    cdd_cst_node_t *stmt;
+    cdd_cst_node_t *stmt_clone = NULL;
+
+    if (temp_tree->root->children[i].kind == CDD_CST_CHILD_TOKEN)
+      continue;
+
+    stmt = temp_tree->root->children[i].val.node;
+
+    rc = cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone);
     if (rc != CDD_C_SUCCESS) {
       *out_node = NULL;
-      return (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(temp_tree));
+      return cdd_c_keep_err(
+          rc, cdd_c_keep_err(rc_free,
+                             cdd_c_keep_err(cdd_cst_node_free(result),
+                                            cdd_cst_tree_free(temp_tree))));
     }
 
-    for (i = 0; i < temp_tree->root->num_children; i++) {
-      cdd_cst_node_t *stmt;
-      cdd_cst_node_t *stmt_clone = NULL;
-
-      if (temp_tree->root->children[i].kind == CDD_CST_CHILD_TOKEN)
-        continue;
-
-      stmt = temp_tree->root->children[i].val.node;
-
-      rc = cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone);
-      if (rc != CDD_C_SUCCESS) {
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(result));
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(temp_tree));
-        *out_node = NULL;
-        return rc;
+    for (j = 0; j < stmt_clone->num_children; j++) {
+      if (stmt_clone->children[j].kind == CDD_CST_CHILD_TOKEN) {
+        rc = cdd_cst_append_child_token(result,
+                                        stmt_clone->children[j].val.token);
+        if (rc != CDD_C_SUCCESS)
+          goto append_fail;
+      } else {
+        rc =
+            cdd_cst_append_child_node(result, stmt_clone->children[j].val.node);
+        if (rc != CDD_C_SUCCESS)
+          goto append_fail;
       }
+      continue;
 
-      for (j = 0; j < stmt_clone->num_children; j++) {
-        if (stmt_clone->children[j].kind == CDD_CST_CHILD_TOKEN) {
-          rc = cdd_cst_append_child_token(result,
-                                          stmt_clone->children[j].val.token);
-        } else {
-          rc = cdd_cst_append_child_node(result,
-                                         stmt_clone->children[j].val.node);
-        }
-        if (rc != CDD_C_SUCCESS) {
-          size_t k;
-          for (k = j; k < stmt_clone->num_children; k++) {
-            if (stmt_clone->children[k].kind == CDD_CST_CHILD_NODE) {
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)cdd_cst_free_node(
-                                       stmt_clone->children[k].val.node));
-            }
-          }
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)cdd_cst_free_node_only(stmt_clone));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(result));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(temp_tree));
-          *out_node = NULL;
-          return rc;
+    append_fail: {
+      size_t k;
+      for (k = j; k < stmt_clone->num_children; k++) {
+        if (stmt_clone->children[k].kind == CDD_CST_CHILD_NODE) {
+          rc_free = (cdd_c_error_t)((int)rc_free |
+                                    (int)cdd_cst_node_free(
+                                        stmt_clone->children[k].val.node));
         }
       }
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node_only(stmt_clone));
+      rc_free = (cdd_c_error_t)((int)rc_free |
+                                (int)cst_fmt_node_only_free(stmt_clone));
+      *out_node = NULL;
+      return cdd_c_keep_err(
+          rc, cdd_c_keep_err(rc_free,
+                             cdd_c_keep_err(cdd_cst_node_free(result),
+                                            cdd_cst_tree_free(temp_tree))));
     }
+    }
+    rc_free =
+        (cdd_c_error_t)((int)rc_free | (int)cst_fmt_node_only_free(stmt_clone));
   }
-  if (temp_tree) {
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(temp_tree));
-  }
+
   *out_node = result;
-  return rc;
+  return cdd_c_keep_err(rc_free, cdd_cst_tree_free(temp_tree));
 }

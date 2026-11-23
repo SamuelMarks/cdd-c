@@ -31,12 +31,15 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
   CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name);
   rc = makedirs(tdir);
   if (rc != CDD_C_SUCCESS) {
-    goto cleanup;
+    return rc;
   }
 
   CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
   rc = cdd_vfs_fopen(tfile, "w", &tfp);
-  if (tfp) {
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
+  }
+  {
     int p_rc = 0;
     p_rc |= (int)fprintf(
         tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "
@@ -247,16 +250,11 @@ cdd_c_error_t client_gen_emit_mocks(const char *dir_name,
     }
 
     p_rc |= (int)fprintf(tfp, "  return failures > 0 ? 1 : 0;\n}\n");
-    if (p_rc < 0) {
-      rc = CDD_C_ERROR_IO;
-    }
     fclose(tfp);
-  } else {
-    rc = CDD_C_SUCCESS;
+    if (p_rc < 0) {
+      return CDD_C_ERROR_IO;
+    }
   }
 
-  return rc;
-
-cleanup:
-  return rc;
+  return CDD_C_SUCCESS;
 }

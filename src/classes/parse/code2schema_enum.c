@@ -21,7 +21,7 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
   cdd_c_error_t rc;
   if (!enum_arr || !em)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = cdd_json_array_get_count(enum_arr, &count);
+  count = enum_arr->count;
   for (i = 0; i < count; i++) {
     const char *s = NULL;
     char *clean = NULL;
@@ -30,12 +30,16 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
     int dup = 0;
     int needs_san = 0;
     const char *wire_override = NULL;
-    if (cdd_json_array_get_string(enum_arr, i, &s) != CDD_C_SUCCESS)
+    if (enum_arr->items[i]->type != JSONString)
       continue;
+    s = enum_arr->items[i]->string_val;
     rc = c2s_needs_identifier_sanitization(s, &needs_san);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (needs_san) {
-      if (sanitize_identifier(s, &clean) != CDD_C_SUCCESS) {
-        return CDD_C_ERROR_MEMORY;
+      rc = sanitize_identifier(s, &clean);
+      if (rc != CDD_C_SUCCESS) {
+        return rc;
       }
       CDD_STRCPY(final_name, sizeof(final_name), clean);
       C_CDD_FREE(clean);
@@ -71,11 +75,12 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
     if (strcmp(final_name, s) != 0) {
       wire_override = s;
     }
-    if (enum_members_add_ex(em, final_name, wire_override, 0) != 0)
-      return CDD_C_ERROR_MEMORY;
+    rc = enum_members_add_ex(em, final_name, wire_override, 0);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -96,6 +101,10 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
   size_t i, count = 0;
   const char *type = NULL;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_c2s_fail_step > 0 && --g_cdd_c2s_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (enum_arr_out)
     *enum_arr_out = NULL;
@@ -105,27 +114,32 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
   if (!schema_obj)
     return CDD_C_SUCCESS;
 
-  if (cdd_json_object_get_array(schema_obj, "enum", &enum_arr) != CDD_C_SUCCESS)
-    return CDD_C_SUCCESS;
+  rc = cdd_json_object_get_array(schema_obj, "enum", &enum_arr);
+  if (enum_arr) {
+    count = enum_arr->count;
+    if (count == 0)
+      return rc;
 
-  rc = cdd_json_array_get_count(enum_arr, &count);
-  if (count == 0)
+    for (i = 0; i < schema_obj->count; ++i) {
+      if (strcmp(schema_obj->names[i], "type") == 0 &&
+          schema_obj->values[i]->type == JSONString) {
+        type = schema_obj->values[i]->string_val;
+        break;
+      }
+    }
+    if (type && strcmp(type, "string") != 0)
+      return rc;
+
+    for (i = 0; i < count; ++i) {
+      if (enum_arr->items[i]->type != JSONString)
+        return rc;
+    }
+
+    if (enum_arr_out)
+      *enum_arr_out = enum_arr;
+    *out_is_enum = 1;
     return rc;
-
-  if (cdd_json_object_get_string(schema_obj, "type", &type) != CDD_C_SUCCESS)
-    type = NULL;
-  if (type && strcmp(type, "string") != 0)
-    return CDD_C_SUCCESS;
-
-  for (i = 0; i < count; ++i) {
-    const char *s = NULL;
-    if (cdd_json_array_get_string(enum_arr, i, &s) != CDD_C_SUCCESS)
-      return CDD_C_SUCCESS;
   }
-
-  if (enum_arr_out)
-    *enum_arr_out = enum_arr;
-  *out_is_enum = 1;
   return CDD_C_SUCCESS;
 }
 
@@ -152,9 +166,13 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
   rc_c2s = c_cdd_str_after_last(ref, '/', &name);
   if (rc_c2s != CDD_C_SUCCESS)
     return rc_c2s;
-  if (cdd_json_object_get_object(root, name, &schema_obj) != CDD_C_SUCCESS)
-    return CDD_C_SUCCESS;
-  return schema_object_is_string_enum(schema_obj, NULL, out_points_to_enum);
+  rc_c2s = cdd_json_object_get_object(root, name, &schema_obj);
+  if (schema_obj) {
+    return cdd_c_keep_err(
+        schema_object_is_string_enum(schema_obj, NULL, out_points_to_enum),
+        rc_c2s);
+  }
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -170,22 +188,24 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
 cdd_c_error_t required_name_in_list(const JSON_Array *required,
                                     const char *name, int *out_in_list) {
   size_t i, count = 0;
-  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_c2s_fail_step > 0 && --g_cdd_c2s_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_in_list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_in_list = 0;
   if (!required || !name)
     return CDD_C_SUCCESS;
-  rc = cdd_json_array_get_count(required, &count);
+  count = required->count;
   for (i = 0; i < count; ++i) {
-    const char *req_name = NULL;
-    if (cdd_json_array_get_string(required, i, &req_name) == CDD_C_SUCCESS &&
-        strcmp(req_name, name) == 0) {
+    if (required->items[i]->type == JSONString &&
+        strcmp(required->items[i]->string_val, name) == 0) {
       *out_in_list = 1;
-      return rc;
+      return CDD_C_SUCCESS;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -203,6 +223,10 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
   const char *name = NULL;
   JSON_Object *found_obj = NULL;
   cdd_c_error_t rc_c2s;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_c2s_fail_step > 0 && --g_cdd_c2s_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!root || !ref) {
@@ -216,8 +240,11 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  if (cdd_json_object_get_object(root, name, &found_obj) != CDD_C_SUCCESS)
-    found_obj = NULL;
-  *_out_val = found_obj;
+  rc_c2s = cdd_json_object_get_object(root, name, &found_obj);
+  if (found_obj) {
+    *_out_val = found_obj;
+    return rc_c2s;
+  }
+  *_out_val = NULL;
   return CDD_C_SUCCESS;
 }

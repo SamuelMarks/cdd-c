@@ -44,6 +44,44 @@ C_CDD_EXPORT cdd_c_error_t safe_crt_check_mock_fail(cdd_c_error_t current) {
 #define check_mock_fail(x) safe_crt_check_mock_fail(x)
 
 /**
+ * @brief Clones a CST token if `tok` is non-NULL and allocation succeeds,
+ * setting `*out_tok = NULL` and returning `CDD_C_SUCCESS` otherwise.
+ *
+ * @param[in,out] tree Target CST tree.
+ * @param[in] tok Token to clone (may be NULL).
+ * @param[out] out_tok Cloned token or NULL.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t opt_clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
+                                     cdd_token_t **out_tok) {
+  cdd_c_error_t rc;
+  *out_tok = NULL;
+  rc = clone_token(tree, tok, out_tok);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Pools `str` in `tree` if allocation succeeds, setting `*out_pooled =
+ * NULL` and returning `CDD_C_SUCCESS` otherwise.
+ *
+ * @param[in,out] tree Target CST tree.
+ * @param[in] str String to intern.
+ * @param[out] out_pooled Interned string pointer or NULL.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t opt_pool_string(cdd_cst_tree_t *tree, const char *str,
+                                     const char **out_pooled) {
+  cdd_c_error_t rc;
+  *out_pooled = NULL;
+  rc = safe_crt_pool_string_safe(tree, str, out_pooled);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+/**
  * @brief Emits an expression AST with stripped leading trivia.
  *
  * @param[in] node Expression AST node to emit.
@@ -54,13 +92,13 @@ C_CDD_EXPORT cdd_c_error_t safe_crt_check_mock_fail(cdd_c_error_t current) {
 C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(expr_t *node,
                                               cdd_cst_builder_t *bld,
                                               int is_msc) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+  int _ch = 0;
   size_t old_num_children =
       bld->target_node ? bld->target_node->num_children : 0;
-  {
-    int _ch = 0;
-    rc = emit_ast_bld(node, bld, is_msc, &_ch);
-  }
+  rc = emit_ast_bld(node, bld, is_msc, &_ch);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (bld->target_node && bld->target_node->num_children > old_num_children) {
     cdd_trivia_t *tr =
         bld->target_node->children[old_num_children].val.token->leading_trivia;
@@ -72,7 +110,7 @@ C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip(expr_t *node,
     bld->target_node->children[old_num_children].val.token->leading_trivia =
         NULL;
   }
-  return (cdd_c_error_t)rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -103,15 +141,24 @@ C_CDD_EXPORT cdd_c_error_t emit_ast_bld_strip_ampersand(expr_t *node,
 C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
                                               expr_t *dest) {
   inferred_size_t info;
+  cdd_cst_tree_t *prev_tree;
   cdd_c_error_t rc_err = CDD_C_SUCCESS;
   if (!bld)
     return CDD_C_SUCCESS;
+  prev_tree = current_tree;
   if (bld->tree) {
     current_tree = bld->tree;
   } else {
     current_tree = NULL;
   }
-  rc_err = infer_buffer_size(dest, &info);
+  {
+    rc_err = infer_buffer_size(dest, &info);
+    if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS) {
+      current_tree = prev_tree;
+      return rc_err;
+    }
+    current_tree = prev_tree;
+  }
   if (!info.valid) {
     {
       rc_err = cdd_cst_bld_ident(bld, "sizeof");
@@ -207,8 +254,12 @@ C_CDD_EXPORT cdd_c_error_t emit_inferred_size(cdd_cst_builder_t *bld,
         return rc_err;
     }
 
-    rc_err = clone_token(bld->tree, info.base_tok, &ct);
-    if (rc_err == CDD_C_SUCCESS) {
+    {
+      rc_err = opt_clone_token(bld->tree, info.base_tok, &ct);
+      if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+        return rc_err;
+    }
+    if (ct) {
       if (ct->leading_trivia) {
         cdd_trivia_t *curr = ct->leading_trivia;
         while (curr) {
@@ -384,16 +435,24 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
   while (node) {
     if (node->type == 0 || (node->type == 4 && !is_msc)) {
       cdd_token_t *ct = NULL;
-      rc_err = clone_token(bld->tree, node->tok, &ct);
-      if (rc_err == CDD_C_SUCCESS) {
+      {
+        rc_err = opt_clone_token(bld->tree, node->tok, &ct);
+        if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+          return rc_err;
+      }
+      if (ct) {
         rc_err = cdd_cst_append_child_token(bld->target_node, ct);
         if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
           return rc_err;
       }
     } else if (node->type == 2) {
       cdd_token_t *ct = NULL;
-      rc_err = clone_token(bld->tree, node->tok, &ct);
-      if (rc_err == CDD_C_SUCCESS) {
+      {
+        rc_err = opt_clone_token(bld->tree, node->tok, &ct);
+        if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+          return rc_err;
+      }
+      if (ct) {
         rc_err = cdd_cst_append_child_token(bld->target_node, ct);
         if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
           return rc_err;
@@ -406,8 +465,12 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
       }
       if (node->close_tok) {
         cdd_token_t *ct_close = NULL;
-        rc_err = clone_token(bld->tree, node->close_tok, &ct_close);
-        if (rc_err == CDD_C_SUCCESS) {
+        {
+          rc_err = opt_clone_token(bld->tree, node->close_tok, &ct_close);
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
+        }
+        if (ct_close) {
           rc_err = cdd_cst_append_child_token(bld->target_node, ct_close);
           if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
             return rc_err;
@@ -424,6 +487,8 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
 
       if (is_msc) {
         rc_err = classify_safe_crt_call(name, &is_safe);
+        if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+          return rc_err;
       }
 
       if (is_safe > 0)
@@ -444,11 +509,19 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
           CDD_SNPRINTF(safe_name, sizeof(safe_name), "%s_s", name);
         }
 
-        rc_err = clone_token(bld->tree, node->tok, &ct);
-        if (rc_err == CDD_C_SUCCESS) {
+        {
+          rc_err = opt_clone_token(bld->tree, node->tok, &ct);
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
+        }
+        if (ct) {
           const char *pooled = NULL;
-          if (safe_crt_pool_string_safe(tree, safe_name, &pooled) ==
-              CDD_C_SUCCESS) {
+          {
+            rc_err = opt_pool_string(tree, safe_name, &pooled);
+            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+              return rc_err;
+          }
+          if (pooled) {
             ct->start = (const uint8_t *)pooled;
             ct->length = strlen(pooled);
           }
@@ -465,8 +538,12 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         }
       } else if (!is_safe) {
         cdd_token_t *ct = NULL;
-        rc_err = clone_token(bld->tree, node->tok, &ct);
-        if (rc_err == CDD_C_SUCCESS) {
+        {
+          rc_err = opt_clone_token(bld->tree, node->tok, &ct);
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
+        }
+        if (ct) {
           rc_err = cdd_cst_append_child_token(bld->target_node, ct);
           if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
             return rc_err;
@@ -478,8 +555,12 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
         }
       } else {
         cdd_token_t *ct = NULL;
-        rc_err = clone_token(bld->tree, node->tok, &ct);
-        if (rc_err == CDD_C_SUCCESS) {
+        {
+          rc_err = opt_clone_token(bld->tree, node->tok, &ct);
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
+        }
+        if (ct) {
           ct->length = 0;
           ct->start = (const uint8_t *)"";
           {
@@ -564,19 +645,19 @@ cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc,
 
       {
         cdd_token_t *ct_close = NULL;
-        if (node->close_tok && clone_token(bld->tree, node->close_tok,
-                                           &ct_close) == CDD_C_SUCCESS) {
-          {
-            rc_err = cdd_cst_append_child_token(bld->target_node, ct_close);
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
+        if (node->close_tok) {
+          rc_err = opt_clone_token(bld->tree, node->close_tok, &ct_close);
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
+        }
+        if (ct_close) {
+          rc_err = cdd_cst_append_child_token(bld->target_node, ct_close);
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
         } else {
-          {
-            rc_err = cdd_cst_bld_punct(bld, ")");
-            if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
-              return rc_err;
-          }
+          rc_err = cdd_cst_bld_punct(bld, ")");
+          if ((rc_err = check_mock_fail(rc_err)) != CDD_C_SUCCESS)
+            return rc_err;
         }
       }
     } else if (node->type == 3) {

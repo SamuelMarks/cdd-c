@@ -94,9 +94,11 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
         const char *vt = NULL;
         fprintf(f, "pub mut:\n");
         /* Note: V uses `name type`, not `type name` */
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_vlang_type(&node->fields[j].type, &vt));
+        rc_emit = map_vlang_type(&node->fields[j].type, &vt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "\t%s %s\n", node->fields[j].name, vt);
       }
       fprintf(f, "}\n\n");
@@ -106,9 +108,11 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         const char *vt = NULL;
         fprintf(f, "pub mut:\n");
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_vlang_type(&node->fields[j].type, &vt));
+        rc_emit = map_vlang_type(&node->fields[j].type, &vt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "\t%s %s\n", node->fields[j].name, vt);
       }
       fprintf(f, "}\n\n");
@@ -138,15 +142,19 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
       fprintf(f, "fn C.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *vt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_vlang_type(&node->fields[j].type, &vt));
+        rc_emit = map_vlang_type(&node->fields[j].type, &vt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", node->fields[j].name, vt);
       }
 
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_vlang_type(&node->return_or_base_type,
-                                                    &ret_type));
+      rc_emit = map_vlang_type(&node->return_or_base_type, &ret_type);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (strcmp(ret_type, "void") != 0) {
         fprintf(f, ") %s\n", ret_type);
       } else {
@@ -164,5 +172,5 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
   fprintf(f, " */\n");
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

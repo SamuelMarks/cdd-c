@@ -40,9 +40,15 @@ static cdd_c_error_t cli_format_option_spec(const struct StructFields *sf,
   cdd_c_error_t rc;
 
   rc = cdd_cli_effective_action(f, &act);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   takes_val = (act == CDD_CLI_ACTION_SET || act == CDD_CLI_ACTION_APPEND);
   rc = cdd_cli_resolve_field_long(sf, f, long_name, sizeof(long_name));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = cdd_cli_resolve_value_name(f, val_name, sizeof(val_name));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   out_spec[0] = '\0';
   if (f->cli_short != '\0' && long_name[0] != '\0') {
@@ -113,6 +119,8 @@ static cdd_c_error_t cli_format_field_badges(
   }
 
   rc = cdd_cli_resolve_field_env(sf, f, env_name, sizeof(env_name));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!f->cli_hide_env && env_name[0] != '\0') {
     pos = strlen(out_badges);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -129,14 +137,20 @@ static cdd_c_error_t cli_format_field_badges(
     const char *ref_type = NULL;
     const struct TypeDefinition *edef = NULL;
     rc = get_type_from_ref(f->ref, &ref_type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_cli_find_type_def(config ? config->type_registry : NULL, ref_type,
                                KIND_ENUM, &edef);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (edef) {
       const struct EnumMembers *em = edef->details.enum_members;
       int first_v = 1;
       pos = strlen(out_badges);
       rc = cdd_cli_copy_str(out_badges + pos, badges_sz - pos,
                             " [possible values: ");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       for (i = 0; i < em->size; ++i) {
         char wname[64];
         if (strcmp(em->members[i], "UNKNOWN") == 0)
@@ -149,8 +163,12 @@ static cdd_c_error_t cli_format_field_badges(
             (!em->serde_names || !em->serde_names[i])) {
           rc = cdd_serde_transform_case(em->members[i], em->cli_rename_all,
                                         wname, sizeof(wname));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
           rc = cdd_serde_resolve_enum_member_name(em, i, wname, sizeof(wname));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
         pos = strlen(out_badges);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -170,6 +188,8 @@ static cdd_c_error_t cli_format_field_badges(
   if (f->n_serde_aliases > 0 && !f->cli_positional) {
     pos = strlen(out_badges);
     rc = cdd_cli_copy_str(out_badges + pos, badges_sz - pos, " [aliases: ");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     for (i = 0; i < f->n_serde_aliases; ++i) {
       pos = strlen(out_badges);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -184,7 +204,7 @@ static cdd_c_error_t cli_format_field_badges(
     out_badges[pos] = ']';
     out_badges[pos + 1] = '\0';
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -210,6 +230,8 @@ static cdd_c_error_t cli_emit_help_option_line(FILE *fp, const char *left_col,
   cdd_c_error_t rc;
 
   rc = cdd_cli_copy_str(line, sizeof(line), left_col);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   pos = left_len;
   if (has_desc || has_badges) {
     size_t spaces = (pad_width > left_len) ? (pad_width - left_len + 2) : 2;
@@ -220,13 +242,19 @@ static cdd_c_error_t cli_emit_help_option_line(FILE *fp, const char *left_col,
     line[pos] = '\0';
     if (has_desc) {
       rc = cdd_cli_copy_str(line + pos, sizeof(line) - pos, desc);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       pos = strlen(line);
     }
     if (has_badges) {
       rc = cdd_cli_copy_str(line + pos, sizeof(line) - pos, badges);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
   rc = cdd_escape_json_c_str(line, esc_line, sizeof(esc_line));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   CHECK_IO(FPRINTF_HOOK(fp,
                         "  if (fprintf(out_stream, \"%s\\n\") < 0)\n"
                         "    return CDD_C_ERROR_IO;\n",
@@ -258,13 +286,21 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
 
   if (sf->cli_bin_name[0] != '\0') {
     rc = cdd_cli_copy_str(default_prog, sizeof(default_prog), sf->cli_bin_name);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else if (sf->cli_name[0] != '\0') {
     rc = cdd_cli_copy_str(default_prog, sizeof(default_prog), sf->cli_name);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     rc = cdd_serde_transform_case(struct_name, CDD_SERDE_CASE_KEBABCASE,
                                   default_prog, sizeof(default_prog));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   rc = cdd_escape_json_c_str(default_prog, esc_prog, sizeof(esc_prog));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* Always include default "" heading first */
   headings[0][0] = '\0';
@@ -283,8 +319,12 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       const char *ref_t = NULL;
       const struct TypeDefinition *cdef = NULL;
       rc = get_type_from_ref(f->ref, &ref_t);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cdd_cli_find_type_def(config ? config->type_registry : NULL, ref_t,
                                  KIND_STRUCT, &cdef);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (cdef) {
         const struct StructFields *csf = cdef->details.struct_fields;
         for (j = 0; j < csf->size; ++j) {
@@ -293,6 +333,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
           if (cf->serde_skip || cf->cli_hidden || cf->cli_positional)
             continue;
           rc = cli_format_option_spec(csf, cf, spec_buf);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (strlen(spec_buf) > max_opt_width)
             max_opt_width = strlen(spec_buf);
         }
@@ -304,6 +346,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
     } else {
       char spec_buf[160];
       rc = cli_format_option_spec(sf, f, spec_buf);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (strlen(spec_buf) > max_opt_width)
         max_opt_width = strlen(spec_buf);
       if (f->cli_help_heading[0] != '\0') {
@@ -318,6 +362,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
           rc = cdd_cli_copy_str(headings[n_headings],
                                 sizeof(headings[n_headings]),
                                 f->cli_help_heading);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           n_headings++;
         }
       }
@@ -353,6 +399,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   /* 1. Header Block */
   if (sf->cli_version[0] != '\0') {
     rc = cdd_escape_json_c_str(sf->cli_version, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  if (fprintf(out_stream, \"%%s %s\\n\", _cdd_prog) < 0)\n"
@@ -361,6 +409,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   }
   if (sf->cli_author[0] != '\0') {
     rc = cdd_escape_json_c_str(sf->cli_author, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"%s\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -368,6 +418,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   }
   if (sf->cli_about[0] != '\0') {
     rc = cdd_escape_json_c_str(sf->cli_about, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"%s\\n\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -375,6 +427,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   }
   if (sf->cli_long_about) {
     rc = cdd_escape_json_c_str(sf->cli_long_about, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"%s\\n\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -382,6 +436,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   }
   if (sf->cli_before_help) {
     rc = cdd_escape_json_c_str(sf->cli_before_help, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"%s\\n\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -392,6 +448,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   if (sf->cli_usage_override[0] != '\0') {
     rc =
         cdd_escape_json_c_str(sf->cli_usage_override, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"Usage: %s\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -400,6 +458,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
     char usage_tail[512];
     size_t upos = 0;
     rc = cdd_cli_copy_str(usage_tail, sizeof(usage_tail), " [OPTIONS]");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     for (i = 0; i < sf->size; ++i) {
       const struct StructField *f = &sf->fields[i];
       if (f->serde_skip || f->cli_hidden || f->cli_subcommand ||
@@ -410,7 +470,11 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
         char lname[64];
         char vname[64];
         rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         rc = cdd_cli_resolve_value_name(f, vname, sizeof(vname));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         upos = strlen(usage_tail);
         if (lname[0] != '\0') {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -429,6 +493,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       if (f->serde_skip || f->cli_hidden || !f->cli_positional)
         continue;
       rc = cdd_cli_resolve_value_name(f, vname, sizeof(vname));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       upos = strlen(usage_tail);
       dots = (strcmp(f->type, "array") == 0 || f->cli_trailing_var_arg) ? "..."
                                                                         : "";
@@ -453,8 +519,12 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       rc = cdd_cli_copy_str(usage_tail + upos, sizeof(usage_tail) - upos,
                             sf->cli_subcommand_required ? " <COMMAND>"
                                                         : " [COMMAND]");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     rc = cdd_escape_json_c_str(usage_tail, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  if (fprintf(out_stream, \"Usage: %%s%s\\n\", _cdd_prog) < 0)\n"
@@ -467,8 +537,12 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
     const char *ref_t = NULL;
     const struct TypeDefinition *udef = NULL;
     rc = get_type_from_ref(subcmd_field->ref, &ref_t);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_cli_find_type_def(config ? config->type_registry : NULL, ref_t,
                                KIND_STRUCT, &udef);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (udef) {
       const struct StructFields *usf = udef->details.struct_fields;
       CHECK_IO(FPRINTF_HOOK(
@@ -483,16 +557,24 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
           continue;
         if (vf->serde_rename[0] != '\0') {
           rc = cdd_cli_copy_str(cmd_name, sizeof(cmd_name), vf->serde_rename);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
           rc = cdd_serde_transform_case(vf->name, CDD_SERDE_CASE_KEBABCASE,
                                         cmd_name, sizeof(cmd_name));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
         if (cmd_desc[0] == '\0') {
           const char *vref = NULL;
           const struct TypeDefinition *vdef = NULL;
           rc = get_type_from_ref(vf->ref, &vref);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           rc = cdd_cli_find_type_def(config->type_registry, vref, KIND_STRUCT,
                                      &vdef);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (vdef && vdef->details.struct_fields->cli_about[0] != '\0') {
             cmd_desc = vdef->details.struct_fields->cli_about;
           }
@@ -502,19 +584,16 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
 #else
         sprintf(left_col, "  %s", cmd_name);
 #endif
-        CHECK_IO(cli_emit_help_option_line(fp, left_col, 16, cmd_desc, NULL) !=
-                         CDD_C_SUCCESS
-                     ? -1
-                     : 0);
+        rc = cli_emit_help_option_line(fp, left_col, 16, cmd_desc, NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       if (!sf->cli_disable_help_subcommand) {
-        CHECK_IO(cli_emit_help_option_line(
-                     fp, "  help", 16,
-                     "Print this message or the help of the given "
-                     "subcommand(s)",
-                     NULL) != CDD_C_SUCCESS
-                     ? -1
-                     : 0);
+        rc = cli_emit_help_option_line(
+            fp, "  help", 16,
+            "Print this message or the help of the given subcommand(s)", NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   }
@@ -533,6 +612,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
       if (f->serde_skip || f->cli_hidden || !f->cli_positional)
         continue;
       rc = cdd_cli_resolve_value_name(f, vname, sizeof(vname));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(left_col, sizeof(left_col), "  <%s>%s", vname,
                 (strcmp(f->type, "array") == 0 || f->cli_trailing_var_arg)
@@ -544,10 +625,11 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
                                                                          : "");
 #endif
       rc = cli_format_field_badges(sf, f, config, badges, sizeof(badges));
-      CHECK_IO(cli_emit_help_option_line(fp, left_col, max_opt_width, desc,
-                                         badges) != CDD_C_SUCCESS
-                   ? -1
-                   : 0);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = cli_emit_help_option_line(fp, left_col, max_opt_width, desc, badges);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -555,6 +637,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   for (j = 0; j < n_headings; ++j) {
     const char *sec_title = (headings[j][0] != '\0') ? headings[j] : "Options";
     rc = cdd_escape_json_c_str(sec_title, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"\\n%s:\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -575,8 +659,12 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
           const char *ref_t = NULL;
           const struct TypeDefinition *cdef = NULL;
           rc = get_type_from_ref(f->ref, &ref_t);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           rc = cdd_cli_find_type_def(config ? config->type_registry : NULL,
                                      ref_t, KIND_STRUCT, &cdef);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (cdef) {
             size_t k;
             const struct StructFields *csf = cdef->details.struct_fields;
@@ -585,13 +673,17 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
               if (cf->serde_skip || cf->cli_hidden || cf->cli_positional)
                 continue;
               rc = cli_format_option_spec(csf, cf, left_col);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               rc = cli_format_field_badges(csf, cf, config, badges,
                                            sizeof(badges));
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               desc = cf->cli_help[0] ? cf->cli_help : cf->description;
-              CHECK_IO(cli_emit_help_option_line(fp, left_col, max_opt_width,
-                                                 desc, badges) != CDD_C_SUCCESS
-                           ? -1
-                           : 0);
+              rc = cli_emit_help_option_line(fp, left_col, max_opt_width, desc,
+                                             badges);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
             }
           }
         }
@@ -602,27 +694,29 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
         continue;
 
       rc = cli_format_option_spec(sf, f, left_col);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cli_format_field_badges(sf, f, config, badges, sizeof(badges));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       desc = f->cli_help[0] ? f->cli_help : f->description;
-      CHECK_IO(cli_emit_help_option_line(fp, left_col, max_opt_width, desc,
-                                         badges) != CDD_C_SUCCESS
-                   ? -1
-                   : 0);
+      rc = cli_emit_help_option_line(fp, left_col, max_opt_width, desc, badges);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
 
     if (j == 0) {
       if (!sf->cli_disable_help_flag) {
-        CHECK_IO(cli_emit_help_option_line(fp, "  -h, --help", max_opt_width,
-                                           "Print help", NULL) != CDD_C_SUCCESS
-                     ? -1
-                     : 0);
+        rc = cli_emit_help_option_line(fp, "  -h, --help", max_opt_width,
+                                       "Print help", NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       if (!sf->cli_disable_version_flag) {
-        CHECK_IO(cli_emit_help_option_line(fp, "  -V, --version", max_opt_width,
-                                           "Print version",
-                                           NULL) != CDD_C_SUCCESS
-                     ? -1
-                     : 0);
+        rc = cli_emit_help_option_line(fp, "  -V, --version", max_opt_width,
+                                       "Print version", NULL);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   }
@@ -630,6 +724,8 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   /* 6. Footer Block */
   if (sf->cli_after_help) {
     rc = cdd_escape_json_c_str(sf->cli_after_help, esc_buf, sizeof(esc_buf));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "  if (fprintf(out_stream, \"\\n%s\\n\") < 0)\n"
                           "    return CDD_C_ERROR_IO;\n",
@@ -641,7 +737,7 @@ write_struct_print_help_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -665,13 +761,21 @@ write_struct_print_completions_func(FILE *fp, const char *struct_name,
 
   if (sf->cli_bin_name[0] != '\0') {
     rc = cdd_cli_copy_str(default_prog, sizeof(default_prog), sf->cli_bin_name);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else if (sf->cli_name[0] != '\0') {
     rc = cdd_cli_copy_str(default_prog, sizeof(default_prog), sf->cli_name);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     rc = cdd_serde_transform_case(struct_name, CDD_SERDE_CASE_KEBABCASE,
                                   default_prog, sizeof(default_prog));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   rc = cdd_escape_json_c_str(default_prog, esc_prog, sizeof(esc_prog));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   words_buf[0] = '\0';
   for (i = 0; i < sf->size; ++i) {
@@ -680,6 +784,8 @@ write_struct_print_completions_func(FILE *fp, const char *struct_name,
     if (f->serde_skip || f->cli_hidden || f->cli_positional)
       continue;
     rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (lname[0] != '\0') {
       wpos = strlen(words_buf);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -712,13 +818,19 @@ write_struct_print_completions_func(FILE *fp, const char *struct_name,
     wpos = strlen(words_buf);
     rc = cdd_cli_copy_str(words_buf + wpos, sizeof(words_buf) - wpos,
                           wpos > 0 ? " --help -h" : "--help -h");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (!sf->cli_disable_version_flag) {
     wpos = strlen(words_buf);
     rc = cdd_cli_copy_str(words_buf + wpos, sizeof(words_buf) - wpos,
                           wpos > 0 ? " --version -V" : "--version -V");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   rc = cdd_escape_json_c_str(words_buf, esc_words, sizeof(esc_words));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
@@ -765,10 +877,14 @@ write_struct_print_completions_func(FILE *fp, const char *struct_name,
     if (f->serde_skip || f->cli_hidden || f->cli_positional)
       continue;
     rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (lname[0] == '\0')
       continue;
     rc = cdd_escape_json_c_str(f->cli_help[0] ? f->cli_help : f->description,
                                esc_help, sizeof(esc_help));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(fp,
                           "    if (fprintf(out_stream, \" '--%s[%s]'\") < 0)\n"
                           "      return CDD_C_ERROR_IO;\n",
@@ -788,8 +904,12 @@ write_struct_print_completions_func(FILE *fp, const char *struct_name,
     if (f->serde_skip || f->cli_hidden || f->cli_positional)
       continue;
     rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_escape_json_c_str(f->cli_help[0] ? f->cli_help : f->description,
                                esc_help, sizeof(esc_help));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (f->cli_short != '\0' && lname[0] != '\0') {
       CHECK_IO(FPRINTF_HOOK(fp,
                             "    if (fprintf(out_stream, \"complete -c %%s -s "

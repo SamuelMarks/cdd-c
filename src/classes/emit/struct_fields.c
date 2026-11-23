@@ -26,7 +26,7 @@
  * @param[in] n Number of elements in the array.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_string_array(char **arr, size_t n) {
+static cdd_c_error_t string_array_free(char **arr, size_t n) {
   size_t i;
   for (i = 0; i < n; ++i) {
     if (arr[i]) {
@@ -49,6 +49,10 @@ static cdd_c_error_t free_string_array(char **arr, size_t n) {
 cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
   static char s_ref_buf[16][256];
   static size_t s_ref_idx = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (ref == NULL) {
     *_out_val = "";
     return CDD_C_SUCCESS;
@@ -62,15 +66,22 @@ cdd_c_error_t get_type_from_ref(const char *ref, const char **_out_val) {
     }
     if (strchr(ref, '/') != NULL) {
       rc_after = c2s_needs_identifier_sanitization(after, &needs_san);
+      if (rc_after != CDD_C_SUCCESS) {
+        return rc_after;
+      }
       if (needs_san) {
         char *san = NULL;
-        if (sanitize_identifier(after, &san) == CDD_C_SUCCESS) {
+        rc_after = sanitize_identifier(after, &san);
+        if (rc_after != CDD_C_SUCCESS) {
+          return rc_after;
+        }
+        {
           size_t slot = s_ref_idx % 16;
           s_ref_idx++;
           CDD_STRCPY(s_ref_buf[slot], sizeof(s_ref_buf[slot]), san);
           C_CDD_FREE(san);
           *_out_val = s_ref_buf[slot];
-          return rc_after;
+          return CDD_C_SUCCESS;
         }
       }
     }
@@ -120,19 +131,19 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
         sf->fields[i].items_extra_json = NULL;
       }
       if (sf->fields[i].type_union) {
-        rc = free_string_array(sf->fields[i].type_union,
+        rc = string_array_free(sf->fields[i].type_union,
                                sf->fields[i].n_type_union);
         sf->fields[i].type_union = NULL;
         sf->fields[i].n_type_union = 0;
       }
       if (sf->fields[i].items_type_union) {
-        rc = free_string_array(sf->fields[i].items_type_union,
+        rc = string_array_free(sf->fields[i].items_type_union,
                                sf->fields[i].n_items_type_union);
         sf->fields[i].items_type_union = NULL;
         sf->fields[i].n_items_type_union = 0;
       }
       if (sf->fields[i].serde_aliases) {
-        rc = free_string_array(sf->fields[i].serde_aliases,
+        rc = string_array_free(sf->fields[i].serde_aliases,
                                sf->fields[i].n_serde_aliases);
         sf->fields[i].serde_aliases = NULL;
         sf->fields[i].n_serde_aliases = 0;
@@ -142,19 +153,19 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
         sf->fields[i].cli_long_help = NULL;
       }
       if (sf->fields[i].cli_conflicts_with) {
-        rc = free_string_array(sf->fields[i].cli_conflicts_with,
+        rc = string_array_free(sf->fields[i].cli_conflicts_with,
                                sf->fields[i].n_cli_conflicts_with);
         sf->fields[i].cli_conflicts_with = NULL;
         sf->fields[i].n_cli_conflicts_with = 0;
       }
       if (sf->fields[i].cli_requires) {
-        rc = free_string_array(sf->fields[i].cli_requires,
+        rc = string_array_free(sf->fields[i].cli_requires,
                                sf->fields[i].n_cli_requires);
         sf->fields[i].cli_requires = NULL;
         sf->fields[i].n_cli_requires = 0;
       }
       if (sf->fields[i].cli_required_unless) {
-        rc = free_string_array(sf->fields[i].cli_required_unless,
+        rc = string_array_free(sf->fields[i].cli_required_unless,
                                sf->fields[i].n_cli_required_unless);
         sf->fields[i].cli_required_unless = NULL;
         sf->fields[i].n_cli_required_unless = 0;
@@ -181,7 +192,7 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
       sf->cli_after_help = NULL;
     }
     if (sf->cli_aliases) {
-      rc = free_string_array(sf->cli_aliases, sf->n_cli_aliases);
+      rc = string_array_free(sf->cli_aliases, sf->n_cli_aliases);
       sf->cli_aliases = NULL;
       sf->n_cli_aliases = 0;
     }
@@ -194,12 +205,12 @@ cdd_c_error_t struct_fields_free(struct StructFields *sf) {
       for (i = 0; i < sf->n_union_variants; ++i) {
         struct UnionVariantMeta *meta = &sf->union_variants[i];
         if (meta->required_props) {
-          rc = free_string_array(meta->required_props, meta->n_required_props);
+          rc = string_array_free(meta->required_props, meta->n_required_props);
           meta->required_props = NULL;
           meta->n_required_props = 0;
         }
         if (meta->property_names) {
-          rc = free_string_array(meta->property_names, meta->n_property_names);
+          rc = string_array_free(meta->property_names, meta->n_property_names);
           meta->property_names = NULL;
           meta->n_property_names = 0;
         }

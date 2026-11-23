@@ -521,33 +521,36 @@ cdd_c_error_t spec_add_security_scheme(struct OpenAPI_Spec *spec,
   }
 
   scheme = NULL;
-  rc_fn = (cdd_c_error_t)((int)rc_fn | (int)spec_find_security_scheme(
-                                           spec, doc->name, &scheme));
-  if (!scheme) {
-    struct OpenAPI_SecurityScheme *new_schemes =
-        (struct OpenAPI_SecurityScheme *)C_CDD_REALLOC(
-            spec->security_schemes, (spec->n_security_schemes + 1) *
-                                        sizeof(struct OpenAPI_SecurityScheme));
-    cdd_c_error_t rc_str;
-    if (!new_schemes)
-      return CDD_C_ERROR_MEMORY;
-    spec->security_schemes = new_schemes;
-    scheme = &spec->security_schemes[spec->n_security_schemes];
-    memset(scheme, 0, sizeof(*scheme));
-    rc_str = c_cdd_strdup(doc->name, &scheme->name);
-    if (rc_str != CDD_C_SUCCESS) {
-      if (spec->n_security_schemes == 0) {
-        C_CDD_FREE(spec->security_schemes);
-        spec->security_schemes = NULL;
+  {
+    cdd_c_error_t rc_find = spec_find_security_scheme(spec, doc->name, &scheme);
+    if (!scheme) {
+      struct OpenAPI_SecurityScheme *new_schemes =
+          (struct OpenAPI_SecurityScheme *)C_CDD_REALLOC(
+              spec->security_schemes,
+              (spec->n_security_schemes + 1) *
+                  sizeof(struct OpenAPI_SecurityScheme));
+      cdd_c_error_t rc_str;
+      if (!new_schemes) {
+        return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_find);
       }
-      return rc_str;
+      spec->security_schemes = new_schemes;
+      scheme = &spec->security_schemes[spec->n_security_schemes];
+      memset(scheme, 0, sizeof(*scheme));
+      rc_str = c_cdd_strdup(doc->name, &scheme->name);
+      if (rc_str != CDD_C_SUCCESS) {
+        if (spec->n_security_schemes == 0) {
+          C_CDD_FREE(spec->security_schemes);
+          spec->security_schemes = NULL;
+        }
+        return rc_str;
+      }
+      scheme->type = type;
+      spec->n_security_schemes++;
+    } else if (scheme->type != type) {
+      fprintf(stderr, "Warning: Security scheme type collision ignored: %s\n",
+              doc->name);
+      return CDD_C_SUCCESS;
     }
-    scheme->type = type;
-    spec->n_security_schemes++;
-  } else if (scheme->type != type) {
-    fprintf(stderr, "Warning: Security scheme type collision ignored: %s\n",
-            doc->name);
-    return CDD_C_SUCCESS;
   }
 
   if (doc->description) {

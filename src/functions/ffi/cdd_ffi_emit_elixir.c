@@ -32,6 +32,10 @@ extern volatile int g_fail_io_after;
 static cdd_c_error_t elixirify_name(const char *c_name, char *out_name,
                                     size_t out_sz) {
   size_t i = 0, j = (out_sz & 0u);
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   while (c_name[i] != '\0') {
     if (i > 0 && c_name[i] == '_' && isupper((unsigned char)c_name[i + 1])) {
       out_name[j++] = (char)toupper((unsigned char)c_name[++i]);
@@ -57,6 +61,10 @@ static cdd_c_error_t elixirify_name(const char *c_name, char *out_name,
 static cdd_c_error_t snake_case_name(const char *c_name, char *out_name,
                                      size_t out_sz) {
   size_t i = 0, j = (out_sz & 0u);
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   while (c_name[i] != '\0') {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
       if (c_name[i - 1] != '_') {
@@ -103,9 +111,11 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
     CDD_SNPRINTF(elixir_module_name, sizeof(elixir_module_name), "%s",
                  config->module_name);
   } else {
-    rc_emit = (cdd_c_error_t)((int)rc_emit |
-                              (int)elixirify_name(lib_name, elixir_module_name,
-                                                  sizeof(elixir_module_name)));
+    rc_emit = elixirify_name(lib_name, elixir_module_name,
+                             sizeof(elixir_module_name));
+    if (rc_emit != CDD_C_SUCCESS) {
+      return rc_emit;
+    }
   }
 
 #if defined(_MSC_VER)
@@ -221,8 +231,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   c_f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(c_f);
+        fclose(ex_f);
+        return rc_emit;
+      }
       has_functions = 1;
       fprintf(c_f,
               "static ERL_NIF_TERM nif_%s(ErlNifEnv* env, int argc, const "
@@ -366,11 +380,19 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   c_f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)snake_case_name(
-                                                   node->name, snake_node_name,
-                                                   sizeof(snake_node_name)));
+      rc_emit = cdd_ffi_emit_trivia(c_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(c_f);
+        fclose(ex_f);
+        return rc_emit;
+      }
+      rc_emit =
+          snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(c_f);
+        fclose(ex_f);
+        return rc_emit;
+      }
       fprintf(c_f, "    {\"%s\", %lu, nif_%s, 0},\n", snake_node_name,
               (unsigned long)node->fields_count, node->name);
     }
@@ -417,11 +439,17 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   ex_f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)snake_case_name(
-                                                   node->name, snake_node_name,
-                                                   sizeof(snake_node_name)));
+      rc_emit = cdd_ffi_emit_trivia(ex_f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(ex_f);
+        return rc_emit;
+      }
+      rc_emit =
+          snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(ex_f);
+        return rc_emit;
+      }
       fprintf(ex_f, "  def %s(", snake_node_name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(ex_f, "%sarg%lu", j > 0 ? ", " : "", (unsigned long)j);
@@ -435,5 +463,5 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   fprintf(ex_f, "end\n");
   fclose(ex_f);
 
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

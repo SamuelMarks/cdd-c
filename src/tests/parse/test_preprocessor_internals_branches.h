@@ -125,7 +125,7 @@ TEST test_pp_scan_includes_directives(void) {
                                "#include \"test_inc_target.h\"\n");
   count = 0;
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_abort_cb, &count);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   ASSERT_EQ(1, count);
 
   g_cdd_last_alloc_err = pp_context_free(&ctx);
@@ -416,6 +416,79 @@ TEST test_pp_arithmetic_all_operators(void) {
   EVAL_ASSERT("(1 || 0) && (0 || 1) && !(0 || 0)", 1);
 
 #undef EVAL_ASSERT
+
+#ifdef CDD_BUILD_TESTS
+  {
+    struct MacroDef mdef;
+    int step;
+    memset(&mdef, 0, sizeof(mdef));
+    g_cdd_last_alloc_err = c_cdd_strdup("MY_PP_NUM", &mdef.name);
+    g_cdd_last_alloc_err = c_cdd_strdup("7", &mdef.value);
+    ASSERT_EQ(CDD_C_SUCCESS, pp_add_macro_internal(&ctx, &mdef));
+
+    rc = tokenize(
+        az_span_create_from_str(
+            "MY_PP_NUM && defined(MY_PP_NUM) && __has_include(<stdio.h>)"),
+        &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    for (step = 1; step <= 30; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = pp_eval_expression(tl, 0, tl->size, &ctx, &val);
+      g_cdd_step_fail = 0;
+    }
+    g_cdd_last_alloc_err = free_token_list(tl);
+
+    for (step = 1; step <= 45; ++step) {
+      struct TokenList *ptl = NULL;
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = tokenize(
+          az_span_create_from_str("//c\n/*b*/ %:%: <<= >>= ..."), &ptl);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_token_list(ptl);
+    }
+
+    rc = tokenize(az_span_create_from_str(
+                      "_Generic(0, int: 1); int x = _Generic(0, int: 1);"),
+                  &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    for (step = 1; step <= 20; ++step) {
+      struct CstNodeList cst = {0};
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = step;
+      s_rc = parse_tokens(tl, &cst);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = cst_node_list_free(&cst);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_last_alloc_err = free_token_list(tl);
+
+    rc = tokenize(az_span_create_from_str("void f() { void *p = malloc(1); }"),
+                  &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    for (step = 1; step <= 12; ++step) {
+      struct AllocationSiteList al = {0};
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = step;
+      s_rc = find_allocations(tl, &al);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = allocation_site_list_free(&al);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+    for (step = 1; step <= 12; ++step) {
+      struct AllocationSiteList al = {0};
+      cdd_c_error_t s_rc;
+      g_cdd_alloc_fail = step;
+      s_rc = find_allocations(tl, &al);
+      g_cdd_alloc_fail = 0;
+      g_cdd_last_alloc_err = allocation_site_list_free(&al);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_last_alloc_err = free_token_list(tl);
+  }
+#endif
 
   g_cdd_last_alloc_err = pp_context_free(&ctx);
   PASS();
@@ -875,6 +948,59 @@ TEST test_pp_branch_coverage_maximizer(void) {
                                                   "#endif\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    const char *step_hdr = "test_pp_step_hdr.h";
+    int step;
+    g_cdd_last_alloc_err =
+        write_to_file(step_hdr, "#define FOO(a, b) (a + b)\n");
+    g_cdd_last_alloc_err = pp_add_search_path(&ctx, ".");
+    g_cdd_last_alloc_err = pp_add_macro(&ctx, "DEF_M", "1");
+
+    for (step = 1; step <= 400; ++step) {
+      g_cdd_step_fail = step;
+      rc = pp_scan_defines(&ctx, step_hdr);
+      if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    g_cdd_last_alloc_err =
+        write_to_file(test_file, "#ifdef DEF_M\n"
+                                 "#elif 1\n"
+                                 "#else\n"
+                                 "#endif\n"
+                                 "#ifndef DEF_M\n"
+                                 "#elif 1\n"
+                                 "#endif\n"
+                                 "#if 1\n"
+                                 "#else\n"
+                                 "#endif\n"
+                                 "#if 0\n"
+                                 "#else\n"
+                                 "#endif\n"
+                                 "#include \"test_pp_step_hdr.h\"\n"
+                                 "#include <test_pp_step_hdr.h>\n"
+                                 "#\?\\?=\n"
+                                 "#embed \"test_pp_step_hdr.h\" limit(1)\n"
+                                 "#\\u0065mbed \"test_pp_step_hdr.h\"\n");
+
+    for (step = 1; step <= 1200; ++step) {
+      g_cdd_step_fail = step;
+      rc = pp_scan_includes(test_file, &ctx, test_scan_inc_cb, &count);
+      if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    remove(step_hdr);
+  }
+#endif
 
   g_cdd_last_alloc_err = pp_context_free(&ctx);
   remove(test_file);

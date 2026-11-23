@@ -1252,6 +1252,828 @@ TEST test_openapi_utils_url_version_examples(void) {
 }
 
 /**
+ * @brief Failing JSON allocator for testing cdd_json_serialize_to_string /
+ * cdd_json_parse_string OOM paths.
+ */
+static int g_oa_json_fail_at = 0;
+
+/**
+ * @brief Mock malloc for Parson JSON DOM allocations.
+ *
+ * @param[in] sz Allocation size.
+ * @return Allocated pointer or NULL on fault injection.
+ */
+static void *oa_mock_json_malloc(size_t sz) {
+  if (g_oa_json_fail_at > 0 && --g_oa_json_fail_at == 0)
+    return NULL;
+  return malloc(sz);
+}
+
+/**
+ * @brief Step-fail and OOM coverage for openapi_uri.c, openapi_utils.c,
+ * openapi_examples.c, and openapi_media.c.
+ * @return GREATEST_TEST_RES
+ */
+TEST test_openapi_percolation_batch1(void) {
+  int sf;
+  int bval = 0;
+  size_t cnt = 0;
+  const char *sname = NULL;
+  JSON_Value *val_out = NULL;
+  enum OpenAPI_OAuthFlowType ft = OA_OAUTH_FLOW_UNKNOWN;
+  enum OpenAPI_XmlNodeType xt = OA_XML_NODE_UNSET;
+
+  /* 1. openapi_uri.c branches */
+  {
+    char *doc_u = NULL;
+    JSON_Value *self_jv = NULL;
+    struct OpenAPI_Spec sp;
+
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              compute_document_uri("https://a.com/x", NULL, &doc_u));
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              compute_document_uri(NULL, "https://a.com/x", &doc_u));
+    g_cdd_strdup_fail = 0;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              compute_document_uri("sub/a.json", "https://a.com/x", &doc_u));
+    g_cdd_alloc_fail = 0;
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"$self\":\"https://a.com\"}", &self_jv));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              root_has_openapi_fields(json_value_get_object(self_jv), &bval));
+    ASSERT_EQ(1, bval);
+
+    {
+      JSON_Value *dial_jv = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(
+                                   "{\"jsonSchemaDialect\":\"x\"}", &dial_jv));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                root_has_openapi_fields(json_value_get_object(dial_jv), &bval));
+      ASSERT_EQ(1, bval);
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(dial_jv));
+    }
+
+    memset(&sp, 0, sizeof(sp));
+    json_set_allocation_functions(oa_mock_json_malloc, free);
+    g_oa_json_fail_at = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, store_schema_root_json(&sp, self_jv));
+    g_oa_json_fail_at = 0;
+    json_set_allocation_functions(malloc, free);
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(self_jv));
+  }
+
+  /* 2. oa_json_* helpers including NULL and step-fail */
+  {
+    JSON_Value *jv = NULL;
+    JSON_Object *jo = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"a\":\"x\",\"b\":1}", &jv));
+    jo = json_value_get_object(jv);
+
+    ASSERT_EQ(CDD_C_SUCCESS, oa_json_object_name(NULL, 0, &sname));
+    ASSERT_EQ(NULL, sname);
+    ASSERT_EQ(CDD_C_SUCCESS, oa_json_object_value_at(NULL, 0, &val_out));
+    ASSERT_EQ(NULL, val_out);
+    ASSERT_EQ(CDD_C_SUCCESS, oa_json_object_value_at(jo, 0, &val_out));
+    ASSERT(val_out != NULL);
+    g_cdd_step_fail = 2;
+    ASSERT_EQ(CDD_C_SUCCESS, oa_json_object_value_at(jo, 0, &val_out));
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, oa_json_object_value_at(jo, 0, &val_out));
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, oa_json_object_count(jo, &cnt));
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, oa_json_object_name(jo, 0, &sname));
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, oa_json_has_value(jo, "a", &bval));
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, oa_json_opt_value(jo, "a", &val_out));
+    g_cdd_step_fail = 0;
+
+    /* Leaf step-fail probes in openapi_utils.c */
+    {
+      struct OpenAPI_Parameter p;
+      struct OpenAPI_Example ex;
+      memset(&p, 0, sizeof(p));
+      memset(&ex, 0, sizeof(ex));
+      p.in = OA_PARAM_IN_QUERY;
+      p.style = OA_STYLE_FORM;
+      for (sf = 1; sf <= 2; ++sf) {
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = validate_parameter_style(&p, 0);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = header_name_is_content_type("X", &bval);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = parse_oauth_flow_type("implicit", &ft);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = parse_xml_node_type("element", &xt);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = url_has_query_or_fragment("a", &bval);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = openapi_version_supported("3.1.0", &bval);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = example_fields_valid(&ex, &bval);
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = object_has_example_and_examples(jo, &bval);
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    for (sf = 1; sf <= 15; ++sf) {
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = validate_component_key_map(jo);
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = validate_media_type_key_map(jo);
+      g_cdd_step_fail = 0;
+    }
+
+    /* parse_any_value / parse_any_field / parse_any_array / clone / extras */
+    {
+      JSON_Value *mix_jv = NULL;
+      JSON_Object *mix_jo = NULL;
+      JSON_Array *mix_ja = NULL;
+      const char *skip_k[1] = {"s"};
+      ASSERT_EQ(
+          CDD_C_SUCCESS,
+          cdd_json_parse_string("{\"s\":\"hi\",\"n\":1,\"b\":true,\"z\":null,"
+                                "\"o\":{\"k\":1},\"x-ext\":2,"
+                                "\"arr\":[\"hi\",1,true,null,{\"k\":1}]}",
+                                &mix_jv));
+      mix_jo = json_value_get_object(mix_jv);
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_array(mix_jo, "arr", &mix_ja));
+
+      for (sf = 1; sf <= 35; ++sf) {
+        struct OpenAPI_Any *arr_out = NULL;
+        size_t arr_n = 0;
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = parse_any_array(mix_ja, &arr_out, &arr_n);
+        g_cdd_step_fail = 0;
+        if (arr_out) {
+          size_t ai;
+          for (ai = 0; ai < arr_n; ++ai)
+            g_cdd_last_alloc_err = free_any_value(&arr_out[ai]);
+          free(arr_out);
+        }
+      }
+
+      for (sf = 1; sf <= 25; ++sf) {
+        struct OpenAPI_Any a_out;
+        int a_set = 0;
+        char *ext_json = NULL;
+        memset(&a_out, 0, sizeof(a_out));
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = parse_any_field(mix_jo, "s", &a_out, &a_set);
+        g_cdd_step_fail = 0;
+        g_cdd_last_alloc_err = free_any_value(&a_out);
+
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err =
+            collect_schema_extras(mix_jo, skip_k, 1, &ext_json);
+        g_cdd_step_fail = 0;
+        free(ext_json);
+        ext_json = NULL;
+
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = collect_extensions(mix_jo, &ext_json);
+        g_cdd_step_fail = 0;
+        free(ext_json);
+      }
+
+      /* OOM on cdd_json_serialize_to_string / cdd_json_parse_string */
+      json_set_allocation_functions(oa_mock_json_malloc, free);
+      for (sf = 1; sf <= 20; ++sf) {
+        char *ext_json = NULL;
+        g_oa_json_fail_at = sf;
+        g_cdd_last_alloc_err = collect_schema_extras(jo, NULL, 0, &ext_json);
+        g_oa_json_fail_at = 0;
+        free(ext_json);
+      }
+      for (sf = 1; sf <= 25; ++sf) {
+        struct OpenAPI_Any a_out;
+        JSON_Value *cl = NULL;
+        char *ext_json = NULL;
+        memset(&a_out, 0, sizeof(a_out));
+        g_oa_json_fail_at = sf;
+        g_cdd_last_alloc_err = parse_any_value(mix_jv, &a_out);
+        g_oa_json_fail_at = 0;
+        g_cdd_last_alloc_err = free_any_value(&a_out);
+
+        g_oa_json_fail_at = sf;
+        g_cdd_last_alloc_err = clone_json_value(mix_jv, &cl);
+        g_oa_json_fail_at = 0;
+        if (cl)
+          g_cdd_last_alloc_err = cdd_json_value_free(cl);
+
+        g_oa_json_fail_at = sf;
+        g_cdd_last_alloc_err =
+            collect_schema_extras(mix_jo, skip_k, 1, &ext_json);
+        g_oa_json_fail_at = 0;
+        free(ext_json);
+        ext_json = NULL;
+
+        g_oa_json_fail_at = sf;
+        g_cdd_last_alloc_err = collect_extensions(mix_jo, &ext_json);
+        g_oa_json_fail_at = 0;
+        free(ext_json);
+      }
+      json_set_allocation_functions(malloc, free);
+
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(mix_jv));
+    }
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(jv));
+  }
+
+  /* 3. openapi_examples.c & openapi_media.c step-fail sweeps */
+  {
+    JSON_Value *ex_jv = NULL;
+    JSON_Object *ex_jo = NULL;
+    JSON_Value *mt_jv = NULL;
+    JSON_Object *mt_jo = NULL;
+    const char *ex_json_str =
+        "{\"refEx\":{\"$ref\":\"#/components/examples/E1\"},"
+        "\"inlEx\":{\"summary\":\"s\",\"value\":\"v\",\"x-e\":1},"
+        "\"singleMedia\":{\"example\":\"v\"},"
+        "\"mapMedia\":{\"examples\":{\"e1\":{\"summary\":\"s\"}}},"
+        "\"flows\":{\"authorizationCode\":{\"authorizationUrl\":\"https://a\","
+        "\"tokenUrl\":\"https://t\",\"scopes\":{\"r\":\"read\"},\"x-f\":1}}}";
+    const char *mt_json_str =
+        "{\"refMt\":{\"$ref\":\"#/components/mediaTypes/M1\"},"
+        "\"boolMt\":{\"schema\":true,\"itemSchema\":false},"
+        "\"fullMt\":{\"schema\":{\"type\":\"string\"},"
+        "\"itemSchema\":{\"type\":\"integer\"},"
+        "\"prefixEncoding\":[{\"contentType\":\"text/plain\"}],"
+        "\"itemEncoding\":{\"contentType\":\"text/plain\"},"
+        "\"examples\":{\"e1\":{\"value\":\"x\"}},\"x-m\":1},"
+        "\"encMt\":{\"encoding\":{\"f\":{\"contentType\":\"text/plain\"}}},"
+        "\"contentMap\":{\"application/json; charset=utf-8\":{\"schema\":true},"
+        "\"text/plain\":{\"schema\":false}}}";
+    struct OpenAPI_Spec sp;
+    struct OpenAPI_Example comp_ex;
+    char *comp_ex_name = cdd_test_mut_str("E1");
+    struct OpenAPI_MediaType comp_mt;
+    char *comp_mt_name = cdd_test_mut_str("M1");
+
+    memset(&sp, 0, sizeof(sp));
+    memset(&comp_ex, 0, sizeof(comp_ex));
+    memset(&comp_mt, 0, sizeof(comp_mt));
+    comp_ex.summary = cdd_test_mut_str("s");
+    sp.component_examples = &comp_ex;
+    sp.component_example_names = &comp_ex_name;
+    sp.n_component_examples = 1;
+    sp.component_media_types = &comp_mt;
+    sp.component_media_type_names = &comp_mt_name;
+    sp.n_component_media_types = 1;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(ex_json_str, &ex_jv));
+    ex_jo = json_value_get_object(ex_jv);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(mt_json_str, &mt_jv));
+    mt_jo = json_value_get_object(mt_jv);
+
+    for (sf = 1; sf <= 90; ++sf) {
+      JSON_Object *sub = NULL;
+      struct OpenAPI_Example ex_out;
+      struct OpenAPI_MediaType mt_out;
+      struct OpenAPI_MediaType *mt_arr = NULL;
+      size_t mt_n = 0;
+      const JSON_Object *found_mt = NULL;
+      struct OpenAPI_SecurityScheme sec_out;
+
+      /* refEx + inlEx */
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(ex_jo, "refEx", &sub));
+      memset(&ex_out, 0, sizeof(ex_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_example_object(sub, "r", &ex_out, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_example(&ex_out);
+
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(ex_jo, "inlEx", &sub));
+      memset(&ex_out, 0, sizeof(ex_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_example_object(sub, "i", &ex_out, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_example(&ex_out);
+
+      /* singleMedia + mapMedia */
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(ex_jo, "singleMedia", &sub));
+      memset(&mt_out, 0, sizeof(mt_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err =
+          parse_media_examples(sub, &mt_out.example, &mt_out.example_set,
+                               &mt_out.examples, &mt_out.n_examples, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_media_type(&mt_out);
+
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(ex_jo, "mapMedia", &sub));
+      memset(&mt_out, 0, sizeof(mt_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err =
+          parse_media_examples(sub, &mt_out.example, &mt_out.example_set,
+                               &mt_out.examples, &mt_out.n_examples, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_media_type(&mt_out);
+
+      /* refMt + boolMt + fullMt + encMt */
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(mt_jo, "refMt", &sub));
+      memset(&mt_out, 0, sizeof(mt_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_media_type_object(sub, &mt_out, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_media_type(&mt_out);
+
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(mt_jo, "boolMt", &sub));
+      memset(&mt_out, 0, sizeof(mt_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_media_type_object(sub, &mt_out, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_media_type(&mt_out);
+
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(mt_jo, "fullMt", &sub));
+      memset(&mt_out, 0, sizeof(mt_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_media_type_object(sub, &mt_out, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_media_type(&mt_out);
+
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(mt_jo, "encMt", &sub));
+      memset(&mt_out, 0, sizeof(mt_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_media_type_object(sub, &mt_out, &sp, 1);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = free_media_type(&mt_out);
+
+      /* contentMap + find_media_object_by_name + flows */
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(mt_jo, "contentMap", &sub));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_content_object(sub, &mt_arr, &mt_n, &sp, 1);
+      g_cdd_step_fail = 0;
+      if (mt_arr) {
+        size_t mi;
+        for (mi = 0; mi < mt_n; ++mi)
+          g_cdd_last_alloc_err = free_media_type(&mt_arr[mi]);
+        free(mt_arr);
+      }
+
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err =
+          find_media_object_by_name(sub, "application/json", &found_mt);
+      g_cdd_step_fail = 0;
+
+      ASSERT_EQ(CDD_C_SUCCESS, oa_json_opt_object(ex_jo, "flows", &sub));
+      memset(&sec_out, 0, sizeof(sec_out));
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = parse_oauth_flows(sub, &sec_out);
+      g_cdd_step_fail = 0;
+      if (sec_out.flows) {
+        struct OpenAPI_Spec dummy_sp;
+        memset(&dummy_sp, 0, sizeof(dummy_sp));
+        dummy_sp.security_schemes =
+            calloc(1, sizeof(struct OpenAPI_SecurityScheme));
+        dummy_sp.security_schemes[0] = sec_out;
+        dummy_sp.n_security_schemes = 1;
+        g_cdd_last_alloc_err = openapi_spec_free(&dummy_sp);
+      }
+    }
+
+    /* select_primary_media_type_index + preference_rank step-fail */
+    {
+      struct OpenAPI_MediaType mts[4];
+      int idx = -1;
+      memset(mts, 0, sizeof(mts));
+      mts[0].name = cdd_test_mut_str("application/json");
+      mts[1].name = cdd_test_mut_str("application/x-www-form-urlencoded");
+      mts[2].name = cdd_test_mut_str("multipart/form-data");
+      mts[3].name = cdd_test_mut_str("text/plain");
+      for (sf = 1; sf <= 35; ++sf) {
+        g_cdd_step_fail = sf;
+        g_cdd_last_alloc_err = select_primary_media_type_index(mts, 4, &idx);
+        g_cdd_step_fail = 0;
+      }
+    }
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(mt_jv));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(ex_jv));
+  }
+
+  PASS();
+}
+
+/** @brief Countdown counter for Parson OOM fault injection in OpenAPI parser
+ * tests. */
+static int g_oa_parson_oom_at = -1;
+
+/**
+ * @brief Mock Parson allocator that fails when `g_oa_parson_oom_at` reaches 0.
+ *
+ * @param[in] sz Allocation size in bytes.
+ * @return Allocated buffer or NULL on simulated OOM.
+ */
+static void *oa_mock_parson_malloc(size_t sz) {
+  if (g_oa_parson_oom_at >= 0) {
+    if (g_oa_parson_oom_at == 0) {
+      g_oa_parson_oom_at = -1;
+      return NULL;
+    }
+    g_oa_parson_oom_at--;
+  }
+  return malloc(sz);
+}
+
+/**
+ * @brief Mock Parson deallocator paired with `oa_mock_parson_malloc`.
+ *
+ * @param[in,out] p Pointer to free.
+ */
+static void oa_mock_parson_free(void *p) { free(p); }
+
+/**
+ * @brief Concatenates NULL-terminated string chunks (<509 chars each for C89)
+ * into a heap buffer.
+ *
+ * @param[in] parts NULL-terminated array of C strings.
+ * @return Newly allocated concatenated string.
+ */
+static char *oa_join_c89_chunks(const char *const *parts) {
+  size_t total = 0;
+  size_t i;
+  size_t pos = 0;
+  char *buf;
+  for (i = 0; parts[i]; ++i)
+    total += strlen(parts[i]);
+  buf = (char *)C_CDD_MALLOC(total + 1);
+  if (!buf)
+    return NULL;
+  for (i = 0; parts[i]; ++i) {
+    size_t len = strlen(parts[i]);
+    memcpy(buf + pos, parts[i], len);
+    pos += len;
+  }
+  buf[pos] = '\0';
+  return buf;
+}
+
+/**
+ * @brief Sweeps step-fail and OOM fault injection across all OpenAPI 3.2,
+ * Swagger 2.0, and standalone JSON Schema parser modules.
+ * @return Greatest test result.
+ */
+TEST test_openapi_percolation_batch2(void) {
+  static const char *const oas3_chunks[] = {
+      "{\"openapi\":\"3.2.0\",\"$self\":\"https://api.example.com/openapi\","
+      "\"jsonSchemaDialect\":\"https://spec.openapis.org/oas/3.1/dialect/base\""
+      ",\"x-root\":1,\"info\":{\"title\":\"API\",\"summary\":\"Sum\","
+      "\"description\":\"Desc\",\"termsOfService\":\"https://example.com/"
+      "tos\",",
+      "\"version\":\"1.0\",\"x-info\":1,\"contact\":{\"name\":\"N\",\"url\":"
+      "\"https://example.com\",\"email\":\"a@b.c\",\"x-c\":1},\"license\":{"
+      "\"name\":\"MIT\",\"identifier\":\"MIT\",\"x-l\":1}},",
+      "\"externalDocs\":{\"url\":\"https://docs.example.com\",\"description\":"
+      "\"Docs\",\"x-ed\":1},\"security\":[{\"OAuth\":[\"read\"]}],",
+      "\"servers\":[{\"url\":\"https://{env}.example.com/{port}\",\"name\":"
+      "\"prod\",\"description\":\"Prod\",\"x-s\":1,\"variables\":{\"env\":{"
+      "\"default\":\"api\",\"enum\":[\"api\",\"stg\"],\"description\":\"Env\","
+      "\"x-v\":1},\"port\":{\"default\":\"443\"}}},{\"url\":\"https://b.co\","
+      "\"name\":\"backup\"}],",
+      "\"tags\":[{\"name\":\"rootTag\",\"description\":\"R\",\"x-t\":1,"
+      "\"externalDocs\":{\"url\":\"https://t.co\"}},{\"name\":\"childTag\","
+      "\"parent\":\"rootTag\"}],",
+      "\"components\":{\"securitySchemes\":{\"OAuth\":{\"type\":\"oauth2\","
+      "\"flows\":{\"clientCredentials\":{\"tokenUrl\":\"https://auth/token\","
+      "\"scopes\":{\"read\":\"R\"}}}}},",
+      "\"parameters\":{\"P1\":{\"name\":\"qref\",\"in\":\"query\",\"schema\":{"
+      "\"type\":\"string\"}}},\"responses\":{\"R1\":{\"description\":\"RefR\","
+      "\"summary\":\"RS\"}},\"headers\":{\"H1\":{\"description\":\"RefH\","
+      "\"schema\":{\"type\":\"string\"}}},",
+      "\"requestBodies\":{\"RB1\":{\"description\":\"RefRB\",\"required\":true,"
+      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}}},"
+      "\"mediaTypes\":{\"MT1\":{\"schema\":{\"type\":\"string\"}}},",
+      "\"examples\":{\"EX1\":{\"summary\":\"Ex\",\"value\":\"v\"}},\"links\":{"
+      "\"L1\":{\"operationId\":\"opGet\",\"description\":\"LD\"}},\"callbacks\""
+      ":{\"CB1\":{\"{$request.body#/u}\":{\"post\":{\"responses\":{\"200\":{"
+      "\"description\":\"ok\"}}}}}},",
+      "\"pathItems\":{\"PI1\":{\"summary\":\"PS\",\"description\":\"PD\","
+      "\"get\":{\"operationId\":\"piGet\",\"responses\":{\"200\":{"
+      "\"description\":\"ok\"}}}}},",
+      "\"schemas\":{\"RawBool\":true,\"Pet\":{\"$id\":\"https://e.co/Pet\","
+      "\"$anchor\":\"petA\",\"$dynamicAnchor\":\"petDA\",\"type\":\"object\","
+      "\"summary\":\"PetS\",\"description\":\"PetD\",\"format\":\"obj\",",
+      "\"contentMediaType\":\"application/json\",\"contentEncoding\":\"utf-8\","
+      "\"contentSchema\":{\"type\":\"string\"},\"deprecated\":true,"
+      "\"readOnly\":false,\"writeOnly\":false,\"default\":{\"id\":\"1\"},"
+      "\"const\":{\"id\":\"1\"},\"enum\":[{\"id\":\"1\"}],\"examples\":[{\"id\""
+      ":\"1\"}],",
+      "\"externalDocs\":{\"url\":\"https://p.co\"},\"discriminator\":{"
+      "\"propertyName\":\"kind\",\"defaultMapping\":\"Pet\",\"x-d\":1,"
+      "\"mapping\":{\"x-m\":1,\"dog\":\"#/components/schemas/Pet\"}},",
+      "\"xml\":{\"name\":\"pet\",\"namespace\":\"urn:x\",\"prefix\":\"p\","
+      "\"nodeType\":\"element\",\"attribute\":false,\"wrapped\":true,\"x-x\":1}"
+      ",\"allOf\":[{\"type\":\"object\"}],\"anyOf\":[{\"type\":\"object\"}],"
+      "\"oneOf\":[{\"type\":\"object\"}],\"not\":{\"type\":\"null\"},",
+      "\"if\":{\"type\":\"object\"},\"then\":{\"type\":\"object\"},\"else\":{"
+      "\"type\":\"object\"},\"properties\":{\"id\":{\"type\":\"string\"},"
+      "\"kind\":{\"type\":[\"string\",\"null\"]},\"arrRef\":{\"type\":\"array\""
+      ",\"items\":{\"$ref\":\"#/components/schemas/RawBool\"}},",
+      "\"arrDyn\":{\"type\":\"array\",\"items\":{\"$dynamicRef\":\"#petDA\"}},"
+      "\"arrBool\":{\"type\":\"array\",\"items\":true},\"arrFull\":{\"type\":"
+      "\"array\",\"items\":{\"type\":[\"string\",\"null\"],\"format\":\"uri\","
+      "\"collectionFormat\":\"csv\",\"contentMediaType\":\"text/plain\",",
+      "\"contentEncoding\":\"7bit\",\"contentSchema\":{\"type\":\"string\"},"
+      "\"enum\":[\"a\"],\"examples\":[\"a\"],\"const\":\"a\",\"default\":\"a\","
+      "\"minLength\":1}}}}}},",
+      "\"webhooks\":{\"newPet\":{\"post\":{\"operationId\":\"whPost\","
+      "\"responses\":{\"200\":{\"description\":\"ok\"}}}}},",
+      "\"paths\":{\"x-paths\":1,\"/ref-path\":{\"$ref\":"
+      "\"#/components/pathItems/PI1\",\"summary\":\"OS\",\"description\":\"OD\""
+      "},\"/items/{id}\":{\"summary\":\"IS\",\"description\":\"ID\",\"x-p\":1,"
+      "\"servers\":[{\"url\":\"https://p.example.com\"}],",
+      "\"parameters\":[{\"name\":\"id\",\"in\":\"path\",\"required\":true,"
+      "\"schema\":{\"type\":\"string\"}}],\"additionalOperations\":{\"COPY\":{"
+      "\"operationId\":\"copyItem\",\"responses\":{\"200\":{\"description\":"
+      "\"ok\"}}}},",
+      "\"post\":{\"operationId\":\"opGet\",\"summary\":\"OS\",\"description\":"
+      "\"OD\",\"deprecated\":true,\"externalDocs\":{\"url\":\"https://o.co\"},"
+      "\"security\":[],\"tags\":[\"rootTag\"],\"servers\":[{\"url\":"
+      "\"https://op.example.com\"}],\"x-op\":1,",
+      "\"parameters\":[{\"$ref\":\"#/components/parameters/P1\",\"description\""
+      ":\"PDesc\"},{\"name\":\"Accept\",\"in\":\"header\",\"schema\":{\"type\":"
+      "\"string\"}},{\"name\":\"q1\",\"in\":\"query\",\"description\":\"QD\","
+      "\"required\":false,\"deprecated\":true,\"allowReserved\":true,"
+      "\"allowEmptyValue\":true,\"style\":\"form\",\"explode\":true,",
+      "\"schema\":{\"type\":[\"string\",\"null\"]},\"examples\":{\"e1\":{"
+      "\"value\":\"a\"}}},{\"name\":\"qb\",\"in\":\"header\",\"schema\":true,"
+      "\"example\":\"x\"},{\"name\":\"qc\",\"in\":\"cookie\",\"content\":{"
+      "\"text/plain\":{\"schema\":{\"type\":\"string\"},\"example\":\"y\"}}},",
+      "{\"name\":\"qm\",\"in\":\"header\",\"content\":{\"text/plain\":{\"$ref\""
+      ":\"#/components/mediaTypes/MT1\"}}}],",
+      "\"requestBody\":{\"description\":\"RBD\",\"required\":true,\"x-rb\":1,"
+      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\","
+      "\"properties\":{\"f\":{\"type\":\"string\"}}},\"examples\":{\"e1\":{"
+      "\"value\":{\"f\":\"a\"}}},\"encoding\":{\"f\":{\"contentType\":"
+      "\"text/plain\",\"style\":\"form\",\"explode\":true,\"allowReserved\":"
+      "true,\"x-e\":1,\"headers\":{\"Content-Type\":{\"schema\":{\"type\":"
+      "\"string\"}},\"X-E\":{\"schema\":{\"type\":\"string\"}}},\"encoding\":{"
+      "\"sub\":{\"contentType\":\"text/plain\"}}}}}}},",
+      "\"callbacks\":{\"cbRef\":{\"$ref\":\"#/components/callbacks/CB1\","
+      "\"summary\":\"CBS\",\"description\":\"CBD\"},\"cbInline\":{"
+      "\"x-cb\":1,\"{$url}\":{\"post\":{\"responses\":{\"200\":{\"description\""
+      ":\"ok\"}}}}}},",
+      "\"responses\":{\"x-r\":1,\"200\":{\"summary\":\"S200\",\"description\":"
+      "\"D200\",\"x-200\":1,\"headers\":{\"Content-Type\":{\"schema\":{\"type\""
+      ":\"string\"}},\"X-Ref\":{\"$ref\":\"#/components/headers/H1\","
+      "\"description\":\"HD\"},\"X-Bool\":{\"description\":\"HB\",\"required\":"
+      "true,\"deprecated\":true,\"style\":\"simple\",\"explode\":false,"
+      "\"schema\":true,\"example\":\"1\"},",
+      "\"X-Content\":{\"content\":{\"text/plain\":{\"schema\":{\"type\":"
+      "\"string\"},\"example\":\"z\"}}},\"X-MtRef\":{\"content\":{\"text/"
+      "plain\""
+      ":{\"$ref\":\"#/components/mediaTypes/MT1\"}}},\"X-Exs\":{\"schema\":{"
+      "\"type\":\"string\"},\"examples\":{\"e1\":{\"value\":\"v\"}}}},",
+      "\"links\":{\"lRef\":{\"$ref\":\"#/components/links/L1\",\"summary\":"
+      "\"LS\",\"description\":\"LD\"},\"lIn\":{\"operationId\":\"opGet\","
+      "\"parameters\":{\"id\":\"$response.body#/id\"},\"requestBody\":\"x\","
+      "\"server\":{\"url\":\"https://l.co\"},\"x-lk\":1}},",
+      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"array\","
+      "\"items\":{\"type\":\"object\",\"properties\":{\"a\":{\"type\":"
+      "\"string\""
+      "}}}},\"example\":[{\"a\":\"1\"}],\"prefixEncoding\":[{\"contentType\":"
+      "\"text/plain\"}],\"itemEncoding\":{\"contentType\":\"text/plain\"}}}},"
+      "\"201\":{\"$ref\":\"#/components/responses/R1\",\"summary\":\"S201\","
+      "\"description\":\"D201\"},\"2XX\":{\"description\":\"Wild\","
+      "\"content\":{\"application/jsonl\":{\"itemSchema\":{\"type\":\"object\","
+      "\"properties\":{\"m\":{\"type\":\"string\"}}}}}}}}},",
+      "\"/"
+      "alt\":{\"get\":{\"operationId\":\"opAltGet\",\"parameters\":[{\"name\""
+      ":\"qs\",\"in\":\"querystring\",\"content\":{\"application/json\":{"
+      "\"schema\":{\"type\":\"object\",\"properties\":{\"k\":{\"type\":"
+      "\"string\"}}}}}}],\"responses\":{\"200\":{\"description\":\"ok\"}}},",
+      "\"put\":{\"operationId\":\"opPut\",\"parameters\":[{\"name\":"
+      "\"qs2\",\"in\":\"querystring\",\"content\":{"
+      "\"application/x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\","
+      "\"properties\":{\"a\":{\"type\":\"string\"}}}}}}],\"requestBody\":{"
+      "\"$ref\":\"#/components/requestBodies/RB1\",\"description\":\"ORBD\"},"
+      "\"responses\":{\"default\":{\"description\":\"Def\",\"content\":{"
+      "\"text/plain\":{\"$ref\":\"#/components/mediaTypes/MT1\"}}}}}}}}",
+      NULL};
+  static const char *const sw2_chunks[] = {
+      "{\"swagger\":\"2.0\",\"info\":{\"title\":\"S2\",\"version\":\"1.0\","
+      "\"license\":{\"name\":\"Apache\",\"url\":\"https://a.org\"}},"
+      "\"host\":\"api.example.com\",\"basePath\":\"/v1\",\"schemes\":[\"https\""
+      "],\"consumes\":[\"application/json\"],\"produces\":[\"application/json\""
+      "],\"definitions\":{\"Item\":{\"type\":\"object\",\"properties\":{\"id\":"
+      "{\"type\":\"string\"}}}},",
+      "\"parameters\":{\"SP\":{\"name\":\"sp\",\"in\":\"query\",\"type\":"
+      "\"array\",\"items\":{\"type\":\"string\"},\"collectionFormat\":\"ssv\"}}"
+      ","
+      "\"responses\":{\"SR\":{\"description\":\"ok\",\"schema\":{\"$ref\":"
+      "\"#/definitions/Item\"},\"headers\":{\"X-Sw\":{\"type\":\"array\","
+      "\"items\":{\"type\":\"string\"},\"collectionFormat\":\"csv\"}}}},",
+      "\"securityDefinitions\":{\"Basic\":{\"type\":\"basic\"}},\"paths\":{"
+      "\"/s\":{\"get\":{\"operationId\":\"swGet\",\"parameters\":[{\"name\":"
+      "\"p1\",\"in\":\"query\",\"type\":\"array\",\"items\":{\"type\":"
+      "\"string\""
+      "},\"collectionFormat\":\"pipes\"},{\"name\":\"p2\",\"in\":\"query\","
+      "\"type\":\"array\",\"items\":{\"type\":\"string\"},\"collectionFormat\":"
+      "\"multi\"},",
+      "{\"name\":\"p3\",\"in\":\"cookie\",\"type\":\"array\",\"items\":{"
+      "\"type\""
+      ":\"string\"},\"collectionFormat\":\"csv\"},{\"name\":\"p4\",\"in\":"
+      "\"header\",\"type\":\"array\",\"items\":{\"type\":\"string\"},"
+      "\"collectionFormat\":\"csv\"}],\"responses\":{\"200\":{\"description\":"
+      "\"ok\",\"schema\":{\"type\":\"string\"},\"headers\":{\"X-H\":{\"type\":"
+      "\"string\"}}}}}}}}",
+      NULL};
+  static const char *const mini_cov_chunks[] = {
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"M\",\"version\":\"1\"},"
+      "\"components\":{\"requestBodies\":{\"RB\":{\"description\":\"RBD\","
+      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}}},"
+      "\"schemas\":{\"a_b\":{\"type\":\"string\",\"enum\":[\"x\",\"y\"]},"
+      "\"PropsOnly\":{\"properties\":{\"p\":{\"type\":\"string\"}}},"
+      "\"CompOnly\":{\"allOf\":[{\"$ref\":\"#/components/schemas/"
+      "PropsOnly\"}]}}},",
+      "\"paths\":{\"/p/{a}/{b}\":{\"parameters\":[{\"name\":\"a\",\"in\":"
+      "\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
+      "\"additionalOperations\":{\"LOCK\":{\"parameters\":[{\"name\":\"b\","
+      "\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
+      "\"responses\":{\"200\":{\"description\":\"ok\"}}}},",
+      "\"post\":{\"operationId\":\"mPost\",\"parameters\":[{\"name\":\"b\","
+      "\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
+      "\"requestBody\":{\"$ref\":\"#/components/requestBodies/RB\","
+      "\"description\":\"Ovr\"},\"responses\":{\"200\":{\"description\":\"ok\","
+      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\","
+      "\"contentSchema\":{\"type\":\"string\"},\"allOf\":[{\"type\":\"string\"}"
+      ","
+      "{\"type\":\"string\"}],\"not\":{\"type\":\"null\"},",
+      "\"discriminator\":{\"propertyName\":\"k\",\"mapping\":{\"x-m\":1,\"d\":"
+      "\"#/components/schemas/PropsOnly\"}},\"xml\":{\"name\":\"n\","
+      "\"nodeType\":\"element\",\"attribute\":true,\"wrapped\":false}}}}},"
+      "\"201\":{\"description\":\"arr\",\"content\":{\"application/json\":{"
+      "\"schema\":{\"type\":\"array\",\"items\":{\"$ref\":"
+      "\"#/components/schemas/a~1b\",\"contentSchema\":{\"type\":\"string\"}"
+      "}}}}}}}},",
+      "\"/q/{x}/"
+      "z\":{\"get\":{\"operationId\":\"qGet\",\"parameters\":[{\"name\""
+      ":\"x\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\""
+      "}}],\"responses\":{\"200\":{\"description\":\"ok\"}}}},\"/qs\":{\"get\":"
+      "{\"operationId\":\"qsGet\",\"parameters\":[{\"name\":\"qs\",\"in\":"
+      "\"querystring\",\"content\":{\"application/json\":{\"schema\":{\"type\":"
+      "\"object\",\"properties\":{\"f\":{\"type\":\"string\"}}}}}}],"
+      "\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}",
+      NULL};
+  static const char *const mini_tail_chunks[] = {
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
+      "\"components\":{\"responses\":{\"R1\":{\"description\":\"RD\"}},"
+      "\"headers\":{\"H1\":{\"description\":\"HD\",\"schema\":{"
+      "\"type\":\"string\"}}},\"mediaTypes\":{\"M1\":{\"schema\":{\"type\":"
+      "\"string\"}}},\"links\":{\"L1\":{\"operationId\":\"tOp\"}},"
+      "\"callbacks\":{\"C1\":{\"{$u}\":{\"post\":{\"responses\":{\"200\":{"
+      "\"description\":\"ok\"}}}}}}},",
+      "\"paths\":{\"/t\":{\"post\":{\"operationId\":\"tOp\",\"tags\":[\"tg\"],"
+      "\"callbacks\":{\"cRef\":{\"$ref\":\"#/components/callbacks/C1\","
+      "\"summary\":\"CS\",\"description\":\"CD\"},\"cIn\":{\"{$v}\":{\"post\":{"
+      "\"responses\":{\"200\":{\"description\":\"ok\"}}}}}},",
+      "\"responses\":{\"200\":{\"description\":\"ok\",\"headers\":{\"XB\":{"
+      "\"schema\":true},\"XR\":{"
+      "\"$ref\":\"#/components/headers/H1\",\"description\":\"OD\"},\"XS\":{"
+      "\"style\":\"simple\",\"content\":{\"text/plain\":{\"schema\":{\"type\":"
+      "\"string\"}}}},\"XM\":{\"content\":{\"text/plain\":{\"$ref\":"
+      "\"#/components/mediaTypes/M1\"}}}},",
+      "\"links\":{\"lR\":{\"$ref\":\"#/components/links/L1\",\"summary\":\"S\","
+      "\"description\":\"D\"},\"lI\":{\"operationId\":\"tOp\",\"parameters\":{"
+      "\"p\":\"1\"}}},\"content\":{\"application/jsonl\":{\"itemSchema\":{"
+      "\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"string\"}}},"
+      "\"prefixEncoding\":[{\"contentType\":\"text/plain\"}]}}},"
+      "\"201\":{\"$ref\":\"#/components/responses/R1\"}}}}}}",
+      NULL};
+  static const char *const oauth2_mini =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"O\",\"version\":\"1\"},"
+      "\"components\":{\"securitySchemes\":{\"OA\":{\"type\":\"oauth2\","
+      "\"flows\":{\"password\":{\"tokenUrl\":\"https://e.co/t\",\"scopes\":{}}"
+      "}}}},\"paths\":{}}";
+  static const char *const schema_doc =
+      "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":"
+      "\"https://e.co/root.json\",\"title\":\"RootModel\",\"description\":"
+      "\"Desc\",\"$defs\":{\"Sub\":{\"type\":\"object\",\"properties\":{\"k\":"
+      "{\"type\":\"string\"}}}},\"type\":\"object\",\"properties\":{\"s\":{"
+      "\"$ref\":\"#/$defs/Sub\"}}}";
+  const char *docs[6];
+  char *oas3_json = oa_join_c89_chunks(oas3_chunks);
+  char *sw2_json = oa_join_c89_chunks(sw2_chunks);
+  char *mini_json = oa_join_c89_chunks(mini_cov_chunks);
+  char *tail_json = oa_join_c89_chunks(mini_tail_chunks);
+  size_t d;
+  int k;
+  struct OpenAPI_Spec spec;
+
+  ASSERT(oas3_json != NULL);
+  ASSERT(sw2_json != NULL);
+  ASSERT(mini_json != NULL);
+  ASSERT(tail_json != NULL);
+  docs[0] = mini_json;
+  docs[1] = tail_json;
+  docs[2] = oas3_json;
+  docs[3] = sw2_json;
+  docs[4] = schema_doc;
+  docs[5] = "true";
+
+  for (d = 0; d < 6; ++d) {
+    JSON_Value *doc_jv = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(docs[d], &doc_jv));
+    ASSERT(doc_jv != NULL);
+    memset(&spec, 0, sizeof(spec));
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_load_from_json(doc_jv, &spec));
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_free(&spec));
+
+    for (k = 1; k <= 2500; ++k) {
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_step_fail = k;
+      if (openapi_load_from_json(doc_jv, &spec) == CDD_C_SUCCESS) {
+        g_cdd_step_fail = 0;
+        ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_free(&spec));
+        continue;
+      }
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    g_cdd_step_fail = 0;
+
+    for (k = 1; k <= 2500; ++k) {
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_alloc_fail = k;
+      if (openapi_load_from_json(doc_jv, &spec) == CDD_C_SUCCESS) {
+        g_cdd_alloc_fail = 0;
+        ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_free(&spec));
+        break;
+      }
+      g_cdd_alloc_fail = 0;
+    }
+
+    for (k = 1; k <= 2500; ++k) {
+      memset(&spec, 0, sizeof(spec));
+      g_cdd_strdup_fail = k;
+      if (openapi_load_from_json(doc_jv, &spec) == CDD_C_SUCCESS) {
+        g_cdd_strdup_fail = 0;
+        ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_free(&spec));
+        break;
+      }
+      g_cdd_strdup_fail = 0;
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(doc_jv));
+  }
+
+  for (k = 1; k <= 300; ++k) {
+    JSON_Value *oa_jv = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(oauth2_mini, &oa_jv));
+    memset(&spec, 0, sizeof(spec));
+    g_cdd_step_fail = k;
+    if (openapi_load_from_json(oa_jv, &spec) == CDD_C_SUCCESS) {
+      g_cdd_step_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_free(&spec));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(oa_jv));
+      continue;
+    }
+    g_cdd_last_alloc_err = cdd_json_value_free(oa_jv);
+    if (g_cdd_step_fail > 0) {
+      g_cdd_step_fail = 0;
+      break;
+    }
+  }
+  g_cdd_step_fail = 0;
+
+  for (k = 0; k <= 60; ++k) {
+    JSON_Value *oa_jv = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(oauth2_mini, &oa_jv));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(
+                                 oa_mock_parson_malloc, oa_mock_parson_free));
+    memset(&spec, 0, sizeof(spec));
+    g_oa_parson_oom_at = k;
+    if (openapi_load_from_json(oa_jv, &spec) == CDD_C_SUCCESS) {
+      g_oa_parson_oom_at = -1;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+      ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_free(&spec));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(oa_jv));
+      break;
+    }
+    g_oa_parson_oom_at = -1;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(oa_jv));
+  }
+
+  C_CDD_FREE(tail_json);
+  C_CDD_FREE(mini_json);
+
+  C_CDD_FREE(oas3_json);
+  C_CDD_FREE(sw2_json);
+  PASS();
+}
+
+/**
  * @brief Registers openapi utils coverage tests.
  */
 #define OPENAPI_UTILS_COVERAGE_TESTS()                                         \
@@ -1261,7 +2083,9 @@ TEST test_openapi_utils_url_version_examples(void) {
   RUN_TEST(test_openapi_utils_security_and_xml);                               \
   RUN_TEST(test_openapi_utils_any_values);                                     \
   RUN_TEST(test_openapi_utils_clone_and_extras);                               \
-  RUN_TEST(test_openapi_utils_url_version_examples)
+  RUN_TEST(test_openapi_utils_url_version_examples);                           \
+  RUN_TEST(test_openapi_percolation_batch1);                                   \
+  RUN_TEST(test_openapi_percolation_batch2)
 
 #ifdef __cplusplus
 }

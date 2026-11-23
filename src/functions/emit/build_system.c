@@ -63,12 +63,6 @@ C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void) {
  */
 static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
                                          int has_tests) {
-  /* Standard Settings */
-  if (CHECK_IO_RC(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n\n")))
-    return CDD_C_ERROR_IO;
-
   /* Source Globbing (Simplification for generated projects) */
   if (CHECK_IO_RC(fprintf(
           fp, "file(GLOB SOURCES \"${CMAKE_CURRENT_SOURCE_DIR}/*.c\")\n")))
@@ -87,7 +81,12 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
 
   /* Target */
-  if (CHECK_IO_RC(fprintf(fp, "add_library(%s ${SOURCES} ${HEADERS})\n\n",
+  if (CHECK_IO_RC(
+          fprintf(fp, "add_library(%s ${SOURCES} ${HEADERS})\n", project_name)))
+    return CDD_C_ERROR_IO;
+  if (CHECK_IO_RC(fprintf(fp,
+                          "set_target_properties(%s PROPERTIES C_STANDARD 90 "
+                          "C_STANDARD_REQUIRED ON)\n\n",
                           project_name)))
     return CDD_C_ERROR_IO;
 
@@ -131,7 +130,8 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
                       "    get_filename_component(_CUR_REAL "
                       "\"${CMAKE_CURRENT_SOURCE_DIR}\" REALPATH)\n"
                       "    foreach(_rel \"../..\" \"../../..\" \"../../../..\" "
-                      "\"../../../../..\")\n"
+                      "\"../../../../..\" \"../../../../../..\" "
+                      "\"../../../../../../..\")\n"
                       "        if(EXISTS "
                       "\"${_CUR_REAL}/${_rel}/${DIR_NAME}/"
                       "CMakeLists.txt\")\n"
@@ -178,9 +178,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        FetchContent_MakeAvailable(parson)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
-          fp,
-          "        include_directories(SYSTEM \"${parson_SOURCE_DIR}\")\n")))
+  if (CHECK_IO_RC(fprintf(fp,
+                          "        target_include_directories(%s SYSTEM PUBLIC "
+                          "\"$<BUILD_INTERFACE:${parson_SOURCE_DIR}>\")\n",
+                          project_name)))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
     return CDD_C_ERROR_IO;
@@ -215,9 +216,11 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   if (CHECK_IO_RC(
           fprintf(fp, "        FetchContent_MakeAvailable(c89stringutils)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "        include_directories(SYSTEM "
-                      "\"${c89stringutils_SOURCE_DIR}/c89stringutils\")\n")))
+  if (CHECK_IO_RC(fprintf(fp,
+                          "        target_include_directories(%s SYSTEM PUBLIC "
+                          "\"$<BUILD_INTERFACE:${c89stringutils_SOURCE_DIR}/"
+                          "c89stringutils>\")\n",
+                          project_name)))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
     return CDD_C_ERROR_IO;
@@ -252,8 +255,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   if (CHECK_IO_RC(
           fprintf(fp, "        FetchContent_MakeAvailable(c_str_span)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        include_directories(SYSTEM "
-                              "\"${c_str_span_SOURCE_DIR}\")\n")))
+  if (CHECK_IO_RC(fprintf(fp,
+                          "        target_include_directories(%s SYSTEM PUBLIC "
+                          "\"$<BUILD_INTERFACE:${c_str_span_SOURCE_DIR}>\")\n",
+                          project_name)))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
     return CDD_C_ERROR_IO;
@@ -286,8 +291,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        FetchContent_MakeAvailable(cfs)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        include_directories(SYSTEM "
-                              "\"${cfs_SOURCE_DIR}/include\")\n")))
+  if (CHECK_IO_RC(fprintf(fp,
+                          "        target_include_directories(%s SYSTEM PUBLIC "
+                          "\"$<BUILD_INTERFACE:${cfs_SOURCE_DIR}/include>\")\n",
+                          project_name)))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
     return CDD_C_ERROR_IO;
@@ -323,14 +330,26 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
   if (CHECK_IO_RC(
           fprintf(fp, "        FetchContent_MakeAvailable(c-abstract-http)\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp, "        include_directories(SYSTEM "
-                              "\"${c-abstract-http_SOURCE_DIR}/include\")\n")))
+  if (CHECK_IO_RC(fprintf(
+          fp,
+          "        target_include_directories(%s SYSTEM PUBLIC "
+          "\"$<BUILD_INTERFACE:${c-abstract-http_SOURCE_DIR}/include>\")\n",
+          project_name)))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "    endif()\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "endif()\n\n")))
     return CDD_C_ERROR_IO;
 
+  if (CHECK_IO_RC(fprintf(
+          fp, "if(APPLE AND TARGET parson)\n"
+              "    get_target_property(_parson_aliased parson ALIASED_TARGET)\n"
+              "    if(NOT _parson_aliased)\n"
+              "        target_compile_options(parson PRIVATE "
+              "-Wno-deprecated-declarations)\n"
+              "    endif()\n"
+              "endif()\n")))
+    return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(
           fp, "if(APPLE AND TARGET c-abstract-http)\n"
               "    get_target_property(_cah_opts c-abstract-http "
@@ -479,8 +498,9 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     CDD_SNPRINTF(full_path, len, "%s/%s", output_path, filename);
   } else {
     /* Fixed C99 warning */
-    if (c_cdd_strdup(filename, &full_path) != CDD_C_SUCCESS) {
-      return CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup(filename, &full_path);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
     }
   }
 
@@ -504,7 +524,8 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   full_path = NULL;
 
   /* Write Root CMakeLists.txt */
-  if (CHECK_IO_RC(fprintf(fp, "cmake_minimum_required(VERSION 3.10)\n\n"))) {
+  if (CHECK_IO_RC(
+          fprintf(fp, "cmake_minimum_required(VERSION 3.15...4.0)\n\n"))) {
     fclose(fp);
     return CDD_C_ERROR_IO;
   }
@@ -571,8 +592,8 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s",
                  src_dir, filename);
   } else {
-    if (c_cdd_strdup("src", &src_dir) != CDD_C_SUCCESS) {
-      rc = CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup("src", &src_dir);
+    if (rc != CDD_C_SUCCESS) {
       goto cleanup_src;
     }
     rc = makedirs(src_dir);
@@ -597,20 +618,19 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
 
   if (fp) {
     rc = write_cmake_content(fp, project_name, has_tests);
+    if (rc != CDD_C_SUCCESS) {
+      fclose(fp);
+      goto cleanup_src;
+    }
     fclose(fp);
   } else {
     rc = CDD_C_ERROR_IO;
   }
-  C_CDD_FREE(src_dir);
-  src_dir = NULL;
-  C_CDD_FREE(src_cmake);
-  src_cmake = NULL;
-  fp = NULL;
 
-  return rc;
 cleanup_src:
   if (src_dir)
     C_CDD_FREE(src_dir);
+  C_CDD_FREE(src_cmake);
   return rc;
 }
 
@@ -644,7 +664,7 @@ cdd_c_error_t generate_build_system_main(int argc, char **argv) {
     cdd_c_error_t rc = generate_cmake_project(out_dir, name, has_tests);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to generate CMakeLists.txt (error %d)\n", rc);
-      return CDD_C_ERROR_IO;
+      return rc;
     }
   } else {
     fprintf(stderr, "Unsupported build system type: %s\n", sys_type);

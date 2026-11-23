@@ -202,6 +202,35 @@ TEST test_arazzo_client_gen_and_roundtrip(void) {
     min_st.request_body.content_type = NULL;
     min_spec.source_descriptions = &min_sd;
     min_spec.n_source_descriptions = 1;
+    {
+      int f;
+      for (f = 1; f <= 160; ++f) {
+        g_cdd_fprintf_fail = f;
+        if (arazzo_client_render_to_strings(&min_spec, NULL, "min", NULL, &hdr,
+                                            &src) == CDD_C_SUCCESS) {
+          C_CDD_FREE(hdr);
+          C_CDD_FREE(src);
+          hdr = NULL;
+          src = NULL;
+        }
+        g_cdd_fprintf_fail = 0;
+      }
+      min_st.request_body.content_type = C_CDD_STR_LIT("text/plain");
+      min_spec.n_source_descriptions = 0;
+      for (f = 1; f <= 160; ++f) {
+        g_cdd_fprintf_fail = f;
+        if (arazzo_client_render_to_strings(&min_spec, NULL, "min", NULL, &hdr,
+                                            &src) == CDD_C_SUCCESS) {
+          C_CDD_FREE(hdr);
+          C_CDD_FREE(src);
+          hdr = NULL;
+          src = NULL;
+        }
+        g_cdd_fprintf_fail = 0;
+      }
+      min_st.request_body.content_type = NULL;
+      min_spec.n_source_descriptions = 1;
+    }
     ASSERT_EQ(CDD_C_SUCCESS, arazzo_client_render_to_strings(
                                  &min_spec, NULL, "min", NULL, &hdr, &src));
     C_CDD_FREE(hdr);
@@ -226,6 +255,41 @@ TEST test_arazzo_client_gen_and_roundtrip(void) {
       }
       g_cdd_alloc_fail = 0;
     }
+    for (f = 1; f <= 450; ++f) {
+      g_cdd_fprintf_fail = f;
+      if (arazzo_client_render_to_strings(&spec, NULL, "shop", "api_", &hdr,
+                                          &src) == CDD_C_SUCCESS) {
+        C_CDD_FREE(hdr);
+        C_CDD_FREE(src);
+        hdr = NULL;
+        src = NULL;
+      }
+      g_cdd_fprintf_fail = 0;
+    }
+    for (f = 1; f <= 40; ++f) {
+      g_cdd_step_fail = f;
+      if (arazzo_client_render_to_strings(&spec, NULL, "shop", "api_", &hdr,
+                                          &src) == CDD_C_SUCCESS) {
+        C_CDD_FREE(hdr);
+        C_CDD_FREE(src);
+        hdr = NULL;
+        src = NULL;
+      }
+      g_cdd_step_fail = 0;
+    }
+    json_set_allocation_functions(mock_parson_malloc, mock_parson_free);
+    for (f = 0; f <= 15; ++f) {
+      g_parson_fail_at = f;
+      if (arazzo_client_render_to_strings(&spec, NULL, "shop", "api_", &hdr,
+                                          &src) == CDD_C_SUCCESS) {
+        C_CDD_FREE(hdr);
+        C_CDD_FREE(src);
+        hdr = NULL;
+        src = NULL;
+      }
+      g_parson_fail_at = -1;
+    }
+    json_set_allocation_functions(malloc, free);
   }
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_client_render_to_strings(&spec, NULL, "shop",
@@ -272,6 +336,11 @@ TEST test_arazzo_client_gen_and_roundtrip(void) {
         makedirs("test_build_dir/arazzo_shop_hfail/src/shop_workflows.h");
     cfg.filename_base = "test_build_dir/arazzo_shop_hfail/shop";
     ASSERT_NEQ(CDD_C_SUCCESS, arazzo_client_generate(&spec, NULL, &cfg));
+    g_cdd_last_alloc_err =
+        makedirs("test_build_dir/arazzo_shop_cfail/src/shop_workflows.c");
+    cfg.filename_base = "test_build_dir/arazzo_shop_cfail/shop";
+    ASSERT_NEQ(CDD_C_SUCCESS, arazzo_client_generate(&spec, NULL, &cfg));
+    remove("test_build_dir/arazzo_shop_cfail/src/shop_workflows.h");
     cfg.filename_base = base_path;
   }
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_client_generate(&spec, NULL, &cfg));

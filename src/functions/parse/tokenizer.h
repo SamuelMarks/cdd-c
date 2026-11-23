@@ -64,6 +64,14 @@ extern C_CDD_EXPORT cdd_c_error_t tokenize(az_span source,
 extern C_CDD_EXPORT cdd_c_error_t free_token_list(struct TokenList *tl);
 
 /**
+ * @brief Frees resources associated with a `TokenList` (`*_free` alias).
+ *
+ * @param[in] tl The token list to free. Safe to pass NULL.
+ * @return `CDD_C_SUCCESS`.
+ */
+extern C_CDD_EXPORT cdd_c_error_t token_list_free(struct TokenList *tl);
+
+/**
  * @param[out] _out_val Pointer to store the result
  * @brief Check if a token's content matches a C string exactly.
  *

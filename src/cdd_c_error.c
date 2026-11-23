@@ -18,7 +18,7 @@ C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err = CDD_C_SUCCESS;
  * string.
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT otherwise.
  */
-cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out) {
+cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, const char **out) {
   if (out == NULL) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }

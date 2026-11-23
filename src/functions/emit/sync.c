@@ -440,23 +440,17 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 
     for (k = 0; k < hdr_tokens->size; ++k) {
       int matches = 0;
-      {
-        cdd_c_error_t rc_sync;
 #ifdef CDD_BUILD_TESTS
-        extern C_CDD_EXPORT int g_cdd_fail_sync_matches;
-        if (g_cdd_fail_sync_matches)
-          rc_sync = CDD_C_ERROR_UNKNOWN;
-        else
-          rc_sync =
-              token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
+      extern C_CDD_EXPORT int g_cdd_fail_sync_matches;
+      if (g_cdd_fail_sync_matches)
+        rc = CDD_C_ERROR_UNKNOWN;
+      else
+        rc = token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
 #else
-        rc_sync =
-            token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
+      rc = token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
 #endif
-        if (rc_sync != CDD_C_SUCCESS) {
-          rc = rc_sync;
-          goto cleanup;
-        }
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
       }
       if (hdr_tokens->tokens[k].kind == TOKEN_IDENTIFIER && matches) {
 
@@ -569,13 +563,15 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
     }
   }
 
-cleanup:
-  rc = (cdd_c_error_t)((int)rc | (int)func_sig_list_free(&sigs));
-  rc = (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
-  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(hdr_tokens));
+cleanup: {
+  cdd_c_error_t rc_f1 = func_sig_list_free(&sigs);
+  cdd_c_error_t rc_f2 = patch_list_free(&patches);
   if (hdr_content)
     C_CDD_FREE(hdr_content);
   if (new_header)
     C_CDD_FREE(new_header);
-  return rc;
+  return cdd_c_keep_err(
+      rc, cdd_c_keep_err(rc_f1,
+                         cdd_c_keep_err(rc_f2, free_token_list(hdr_tokens))));
+}
 }

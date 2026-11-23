@@ -54,7 +54,7 @@ extern C_CDD_EXPORT cdd_c_error_t g_cdd_last_alloc_err;
  * otherwise.
  */
 C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_c_strerror(cdd_c_error_t err,
-                                                     char **out);
+                                                     const char **out);
 
 /**
  * @brief Preserves the first non-success error code across primary and cleanup
@@ -66,6 +66,12 @@ C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_c_strerror(cdd_c_error_t err,
  */
 C_CDD_EXPORT NO_DISCARD cdd_c_error_t cdd_c_keep_err(cdd_c_error_t primary,
                                                      cdd_c_error_t cleanup_rc);
+
+#ifdef CDD_BUILD_TESTS
+/** @brief Countdown counter for step-level error-percolation fault injection in
+ * tests. */
+extern C_CDD_EXPORT int g_cdd_step_fail;
+#endif
 
 #ifdef __cplusplus
 }

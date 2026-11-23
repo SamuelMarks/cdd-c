@@ -448,6 +448,141 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
   }
 
+#ifdef CDD_BUILD_TESTS
+  /* 11. Step-failure sweeps for error percolation branches */
+  {
+    int step;
+    int out_flag = 0;
+    struct OpenAPI_Spec mp_spec;
+    struct OpenAPI_Operation mp_op;
+    struct OpenAPI_MediaType mp_mt;
+    struct OpenAPI_Encoding mp_encs[4];
+    struct OpenAPI_Header mp_hdrs[2];
+    struct OpenAPI_Response mp_resps[6];
+
+    g_cdd_step_fail = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               client_body_status_range_prefix("2XX", &out_flag));
+    g_cdd_step_fail = 2;
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               client_body_status_range_prefix("2XX", &out_flag));
+    g_cdd_step_fail = 3;
+    ASSERT_EQ(CDD_C_SUCCESS, client_body_status_range_prefix("2XX", &out_flag));
+    g_cdd_step_fail = 0;
+
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&mp_spec));
+    mp_spec.defined_schemas =
+        (struct StructFields *)calloc(1, sizeof(struct StructFields));
+    mp_spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+    ASSERT(mp_spec.defined_schemas && mp_spec.defined_schema_names);
+    g_cdd_last_alloc_err = struct_fields_init(&mp_spec.defined_schemas[0]);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &mp_spec.defined_schemas[0], "arr_f", "array", "Item", NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &mp_spec.defined_schemas[0], "str_f", "string", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &mp_spec.defined_schemas[0], "int_f", "integer", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &mp_spec.defined_schemas[0], "num_f", "number", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &mp_spec.defined_schemas[0], "bool_f", "boolean", NULL, NULL, NULL);
+    g_cdd_last_alloc_err = struct_fields_add(
+        &mp_spec.defined_schemas[0], "obj_f", "object", "Item", NULL, NULL);
+    g_cdd_last_alloc_err =
+        c_cdd_strdup("MpBody", &mp_spec.defined_schema_names[0]);
+    mp_spec.n_defined_schemas = 1;
+
+    memset(&mp_op, 0, sizeof(mp_op));
+    memset(&mp_mt, 0, sizeof(mp_mt));
+    memset(mp_encs, 0, sizeof(mp_encs));
+    memset(mp_hdrs, 0, sizeof(mp_hdrs));
+    memset(mp_resps, 0, sizeof(mp_resps));
+
+    mp_hdrs[0].name = C_CDD_STR_LIT("Content-Type");
+    mp_hdrs[1].name = C_CDD_STR_LIT("X-Part-Id");
+    mp_hdrs[1].type = C_CDD_STR_LIT("string");
+    mp_encs[0].name = C_CDD_STR_LIT("str_f");
+    mp_encs[0].content_type = C_CDD_STR_LIT("text/plain");
+    mp_encs[0].headers = mp_hdrs;
+    mp_encs[0].n_headers = 2;
+    mp_encs[1].name = C_CDD_STR_LIT("int_f");
+    mp_encs[1].content_type = C_CDD_STR_LIT("text/plain");
+    mp_encs[2].name = C_CDD_STR_LIT("num_f");
+    mp_encs[2].content_type = C_CDD_STR_LIT("text/plain");
+    mp_encs[3].name = C_CDD_STR_LIT("bool_f");
+    mp_encs[3].content_type = C_CDD_STR_LIT("text/plain");
+    mp_mt.name = C_CDD_STR_LIT("multipart/form-data");
+    mp_mt.encoding = mp_encs;
+    mp_mt.n_encoding = 4;
+
+    mp_op.operation_id = C_CDD_STR_LIT("stepSweep");
+    mp_op.verb = OA_VERB_POST;
+    mp_op.is_additional = 1;
+    mp_op.method = C_CDD_STR_LIT("POST");
+    mp_op.req_body.ref_name = C_CDD_STR_LIT("MpBody");
+    mp_op.req_body.content_type = C_CDD_STR_LIT("multipart/form-data");
+    mp_op.req_body_media_types = &mp_mt;
+    mp_op.n_req_body_media_types = 1;
+
+    mp_resps[0].code = C_CDD_STR_LIT("200");
+    mp_resps[0].content_type = C_CDD_STR_LIT("application/json");
+    mp_resps[0].schema.inline_type = C_CDD_STR_LIT("string");
+    mp_resps[1].code = C_CDD_STR_LIT("400");
+    mp_resps[2].code = C_CDD_STR_LIT("2XX");
+    mp_resps[2].content_type = C_CDD_STR_LIT("application/json");
+    mp_resps[2].schema.inline_type = C_CDD_STR_LIT("string");
+    mp_resps[3].code = C_CDD_STR_LIT("4XX");
+    mp_resps[4].code = C_CDD_STR_LIT("default");
+    mp_resps[4].content_type = C_CDD_STR_LIT("application/json");
+    mp_resps[4].schema.inline_type = C_CDD_STR_LIT("string");
+    mp_op.responses = mp_resps;
+    mp_op.n_responses = 5;
+
+    for (step = 1; step <= 80; ++step) {
+      cdd_c_error_t s_rc;
+      fp = cdd_test_tmpfile_global();
+      g_cdd_step_fail = step;
+      s_rc = client_body_write_multipart_part_headers(fp, &mp_encs[0]);
+      g_cdd_step_fail = 0;
+      fclose(fp);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+
+    for (step = 1; step <= 140; ++step) {
+      cdd_c_error_t s_rc;
+      fp = cdd_test_tmpfile_global();
+      g_cdd_step_fail = step;
+      s_rc = codegen_client_write_body(fp, &mp_op, &mp_spec, "/mp", NULL);
+      g_cdd_step_fail = 0;
+      fclose(fp);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+
+    /* Also sweep fallback default-only response path in
+     * codegen_client_write_body */
+    mp_op.req_body.ref_name = NULL;
+    mp_op.req_body.content_type = NULL;
+    mp_resps[0].code = C_CDD_STR_LIT("default");
+    mp_resps[0].content_type = C_CDD_STR_LIT("text/plain");
+    mp_resps[0].schema.inline_type = C_CDD_STR_LIT("string");
+    mp_op.n_responses = 1;
+    for (step = 1; step <= 80; ++step) {
+      cdd_c_error_t s_rc;
+      fp = cdd_test_tmpfile_global();
+      g_cdd_step_fail = step;
+      s_rc = codegen_client_write_body(fp, &mp_op, &mp_spec, "/def", NULL);
+      g_cdd_step_fail = 0;
+      fclose(fp);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+
+    g_cdd_last_alloc_err = openapi_spec_free(&mp_spec);
+  }
+#endif
+
   g_cdd_last_alloc_err = openapi_spec_free(&spec);
   PASS();
 }

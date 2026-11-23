@@ -112,8 +112,13 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   if (argc != 1 || !argv)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = audit_stats_init(&stats);
-  rc = (cdd_c_error_t)((int)rc | (int)audit_project(argv[0], &stats));
-  return (cdd_c_error_t)((int)rc | (int)audit_stats_free(&stats));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = audit_project(argv[0], &stats);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, audit_stats_free(&stats));
+  }
+  return audit_stats_free(&stats);
 }
 
 /**
@@ -125,9 +130,16 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
   const char *display_name = program_name ? program_name : "cdd-c";
-  const char *slash = strrchr(display_name, '/');
-  const char *bslash = strrchr(display_name, '\\');
-  const char *last = slash > bslash ? slash : bslash;
+  const char *slash;
+  const char *bslash;
+  const char *last;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_IO;
+#endif
+  slash = strrchr(display_name, '/');
+  bslash = strrchr(display_name, '\\');
+  last = slash > bslash ? slash : bslash;
   if (last) {
     display_name = last + 1;
   }
@@ -200,13 +212,11 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   cdd_from_openapi_config_t api_cfg;
   const char *subcmd_str = "to_sdk";
   const char *env_val;
-  const char *sug = NULL;
   int has_subcommand = 0;
   int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
-  rc = cdd_cli_suggest_closest("from_openapi", NULL, 0, &sug);
   api_cfg.subcommand = CDD_OPENAPI_SUBCOMMAND_TO_SDK;
   env_val = getenv("CDD_INPUT");
   api_cfg.input = env_val ? env_val : getenv("INPUT_FILE");
@@ -292,12 +302,10 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   cdd_to_openapi_config_t api_cfg;
   const char *env_val;
-  const char *sug = NULL;
   int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&api_cfg, 0, sizeof(api_cfg));
-  rc = cdd_cli_suggest_closest("to_openapi", NULL, 0, &sug);
   env_val = getenv("CDD_INPUT");
   api_cfg.input = env_val ? env_val : getenv("INPUT_DIR");
   env_val = getenv("CDD_OUTPUT");
@@ -331,12 +339,10 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
  */
 C_CDD_EXPORT cdd_c_error_t from_arazzo_cli_main(int argc, char **argv) {
   cdd_from_arazzo_config_t cfg;
-  const char *sug = NULL;
   int is_help = 0;
   cdd_c_error_t rc;
 
   memset(&cfg, 0, sizeof(cfg));
-  rc = cdd_cli_suggest_closest("from_arazzo", NULL, 0, &sug);
   cfg.subcommand = CDD_ARAZZO_SUBCOMMAND_TO_SDK;
 
   if (argc >= 2 && argv[1][0] != '-') {
@@ -407,6 +413,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
 
   if (argc < 2) {
     rc = print_help(argc > 0 ? argv[0] : "cdd-c");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -424,7 +432,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     if (argc < 3)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     rc = handle_audit(argc - 2, argv + 2);
-    printf("handle_audit returned %d\n", rc);
     if (rc != CDD_C_SUCCESS)
       goto handle_err;
     return CDD_C_SUCCESS;
@@ -526,6 +533,8 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
       const char *sug = NULL;
       rc = cdd_cli_suggest_closest(
           cmd, k_top_cmds, sizeof(k_top_cmds) / sizeof(k_top_cmds[0]), &sug);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (sug) {
         fprintf(
             stderr,

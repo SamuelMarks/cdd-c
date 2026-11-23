@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     uses: SamuelMarks/c-ci/.github/workflows/c-cmake-ci.yml@master
+    with:
+      msdos_testing: true
 
   memory-check:
     runs-on: ubuntu-latest

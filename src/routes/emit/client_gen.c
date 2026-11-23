@@ -21,23 +21,46 @@
 /* clang-format on */
 
 /**
- * @brief Generate the C Client Library (Header and Source).
+ * @brief Resolves or generates the client header include guard macro.
  *
- * Performs the following steps:
- * 1. Opens `<basename>.h` and `<basename>.c` for writing.
- * 2. Writes Preamble (Includes, Type Definitions).
- *    - Injects `struct ApiError` definition for global error handling.
- * 3. Iterates through all Paths and Operations in the Spec.
- * 4. For each operation:
- *    - Generates a Doxygen-style docblock in the header.
- *    - Resolves naming convention (Namespace + Tag + Prefix).
- *    - Generates a function prototype in the header.
- *    - Generates the function definition and body in the source.
- * 5. Writes the `_init`, `_cleanup`, and `ApiError` lifecycle functions.
+ * @param[in] config Client generation configuration.
+ * @param[out] out_guard Newly allocated header guard string.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+static cdd_c_error_t
+resolve_client_guard(const struct OpenApiClientConfig *config,
+                     char **out_guard) {
+  if (config->header_guard) {
+    *out_guard = C_CDD_STRDUP(config->header_guard);
+    return CDD_C_SUCCESS;
+  }
+  return generate_guard(config->filename_base, out_guard);
+}
+
+/**
+ * @brief Resolves or derives the models header filename.
+ *
+ * @param[in] config Client generation configuration.
+ * @param[in] base_name Derived base filename.
+ * @param[out] out_model_h Newly allocated models header filename.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+static cdd_c_error_t
+resolve_client_model_header(const struct OpenApiClientConfig *config,
+                            const char *base_name, char **out_model_h) {
+  if (config->model_header) {
+    *out_model_h = C_CDD_STRDUP(config->model_header);
+    return CDD_C_SUCCESS;
+  }
+  return derive_model_header(base_name, out_model_h);
+}
+
+/*
+ * @brief Generate the C Client Library (Header and Source).
  *
  * @param[in] spec The parsed OpenAPI specification.
  * @param[in] config Configuration options for generation.
- * @return 0 on success, error code (EINVAL, ENOMEM, EIO) on failure.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
  */
 cdd_c_error_t
 openapi_client_generate(const struct OpenAPI_Spec *spec,
@@ -47,6 +70,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   char *guard = NULL, *model_h = NULL, *model_guard = NULL;
   const char *prefix = "";
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_g = CDD_C_SUCCESS;
+  cdd_c_error_t rc_m = CDD_C_SUCCESS;
   size_t i, j;
 
   char *dir_name = NULL;
@@ -127,38 +152,41 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 #endif
 
   rc = cdd_vfs_fopen(h_name, "w", &hfile);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
+    goto cleanup;
+  }
   rc = cdd_vfs_fopen(c_name, "w", &cfile);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
+    goto cleanup;
+  }
   rc = cdd_vfs_fopen(mh_name, "w", &mhfile);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
+    goto cleanup;
+  }
   rc = cdd_vfs_fopen(mc_name, "w", &mcfile);
-  if (!hfile || !cfile || !mhfile || !mcfile) {
-    rc = CDD_C_ERROR_IO;
-    {
-      C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
-      goto cleanup;
-    }
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
+    goto cleanup;
   }
 
   /* Prepare configurations */
-  if (config->header_guard)
-    guard = C_CDD_STRDUP(config->header_guard);
-  else
-    rc = generate_guard(config->filename_base, &guard);
+  rc_g = resolve_client_guard(config, &guard);
+  if (!guard) {
+    rc = CDD_C_ERROR_MEMORY;
+    goto cleanup;
+  }
 
-  if (config->model_header)
-    model_h = C_CDD_STRDUP(config->model_header);
-  else
-    rc = derive_model_header(base_name, &model_h);
+  rc_m = resolve_client_model_header(config, base_name, &model_h);
+  if (!model_h) {
+    rc = CDD_C_ERROR_MEMORY;
+    goto cleanup;
+  }
 
   if (config->func_prefix)
     prefix = config->func_prefix;
-
-  if (!guard || !model_h) {
-    rc = CDD_C_ERROR_MEMORY;
-    {
-      C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
-      goto cleanup;
-    }
-  }
 
   model_guard = C_CDD_MALLOC(strlen(guard) + 8);
   if (!model_guard) {
@@ -196,11 +224,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       goto cleanup;
     }
     rc = write_source_preamble(cfile, base);
-    C_CDD_FREE(base);
     if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(base);
       C_CDD_LOG_DEBUG("goto cleanup in client_gen.c\n");
       goto cleanup;
     }
+    C_CDD_FREE(base);
   }
 
   /* --- Write Lifecycle --- */
@@ -248,17 +277,21 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
 
     CDD_SNPRINTF(cpath, 512, "%s/src/url_utils.c", dir_name);
-    if (cdd_vfs_fopen(cpath, "w", &uc) != CDD_C_SUCCESS) {
-      uc = NULL;
+    rc = cdd_vfs_fopen(cpath, "w", &uc);
+    if (rc != CDD_C_SUCCESS) {
+      goto cleanup;
     }
-    if (uc) {
-      rc = (cdd_c_error_t)((int)client_gen_emit_url_utils_c1(uc) |
-                           (int)client_gen_emit_url_utils_c2(uc));
+    rc = client_gen_emit_url_utils_c1(uc);
+    if (rc != CDD_C_SUCCESS) {
       fclose(uc);
-      if (rc != CDD_C_SUCCESS) {
-        goto cleanup;
-      }
+      goto cleanup;
     }
+    rc = client_gen_emit_url_utils_c2(uc);
+    if (rc != CDD_C_SUCCESS) {
+      fclose(uc);
+      goto cleanup;
+    }
+    fclose(uc);
   }
 
   if (config->create_tests_and_mocks) {
@@ -297,5 +330,5 @@ cleanup:
   C_CDD_FREE(base_name);
   C_CDD_FREE(actual_base);
 
-  return rc;
+  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_g, rc_m));
 }

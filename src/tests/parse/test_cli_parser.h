@@ -490,6 +490,31 @@ TEST test_cli_parser_mappings(void) {
     }
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    const char *step_src =
+        "struct option opts[] = { { \"in\", required_argument, 0, 'i' }, { 0 } "
+        "};\n"
+        "void f(int argc, char **argv) { int i = 0; char *in = NULL; "
+        "if (strcmp(argv[i], \"--out\") == 0) { in = argv[++i]; } "
+        "in = getenv(\"MY_IN\"); }\n";
+    struct TokenList *tl = NULL;
+    struct CstNodeList nl = {0};
+    int step;
+    ASSERT_EQ(0, tokenize(az_span_create_from_str(step_src), &tl));
+    for (step = 1; step <= 20; ++step) {
+      struct CliCommand cmd_s;
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = step;
+      s_rc = cst_extract_cli_command(&nl, tl, &cmd_s);
+      g_cdd_step_fail = 0;
+      if (s_rc == CDD_C_SUCCESS)
+        g_cdd_last_alloc_err = cli_command_free(&cmd_s);
+    }
+    g_cdd_last_alloc_err = free_token_list(tl);
+  }
+#endif
+
   g_fail_io_after = -1;
   PASS();
 }

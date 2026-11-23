@@ -238,7 +238,20 @@ TEST test_client_gui_gen_errors(void) {
     g_fail_io_after = 20;
     ASSERT_EQ(CDD_C_ERROR_IO,
               openapi_client_gui_write_streams(rw_fp, ro_fp, "b", "s"));
-    g_fail_io_after = -1;
+    {
+      int io_step;
+      config.filename_base = cdd_test_mut_str("test_build_dir/gui_write_fail");
+      for (io_step = 0; io_step <= 5; ++io_step) {
+        g_io_calls = 0;
+        g_fail_io_after = io_step;
+        rc = openapi_client_gui_generate(&spec, &config);
+        g_fail_io_after = -1;
+        ASSERT_EQ(CDD_C_ERROR_IO, rc);
+      }
+      remove("test_build_dir/src/gui_write_fail_gui.c");
+      remove("test_build_dir/src/gui_write_fail_gui.h");
+      remove("test_build_dir/src");
+    }
 
     fclose(ro_fp);
     fclose(rw_fp);

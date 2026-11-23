@@ -19,59 +19,60 @@ extern volatile int g_fail_io_after;
 /* clang-format on */
 
 /**
- * @brief Maps an FFI primitive kind to its corresponding C# primitive type
- * string.
+ * @brief Writes a C# P/Invoke primitive type name directly to `f`.
  *
+ * @param[in,out] f Output file stream.
  * @param[in] kind FFI primitive kind enum value.
- * @param[out] out_type Output pointer receiving the resolved C# type string.
  * @return `CDD_C_SUCCESS` on success.
  */
-static cdd_c_error_t get_csharp_primitive(cdd_ffi_primitive_kind_t kind,
-                                          const char **out_type) {
+static cdd_c_error_t emit_csharp_primitive(FILE *f,
+                                           cdd_ffi_primitive_kind_t kind) {
+  const char *prim;
   switch (kind) {
   case CDD_FFI_KIND_BOOL:
-    *out_type = "byte";
+    prim = "byte";
     break;
   case CDD_FFI_KIND_INT8:
-    *out_type = "sbyte";
+    prim = "sbyte";
     break;
   case CDD_FFI_KIND_UINT8:
-    *out_type = "byte";
+    prim = "byte";
     break;
   case CDD_FFI_KIND_INT16:
-    *out_type = "short";
+    prim = "short";
     break;
   case CDD_FFI_KIND_UINT16:
-    *out_type = "ushort";
+    prim = "ushort";
     break;
   case CDD_FFI_KIND_INT32:
-    *out_type = "int";
+    prim = "int";
     break;
   case CDD_FFI_KIND_UINT32:
-    *out_type = "uint";
+    prim = "uint";
     break;
   case CDD_FFI_KIND_INT64:
-    *out_type = "long";
+    prim = "long";
     break;
   case CDD_FFI_KIND_UINT64:
-    *out_type = "ulong";
+    prim = "ulong";
     break;
   case CDD_FFI_KIND_FLOAT32:
-    *out_type = "float";
+    prim = "float";
     break;
   case CDD_FFI_KIND_FLOAT64:
-    *out_type = "double";
+    prim = "double";
     break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    *out_type = "IntPtr";
+    prim = "IntPtr";
     break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    *out_type = "IntPtr";
+    prim = "IntPtr";
     break;
   default:
-    *out_type = "IntPtr";
+    prim = "IntPtr";
     break;
   }
+  fprintf(f, "%s", prim);
   return CDD_C_SUCCESS;
 }
 
@@ -86,8 +87,10 @@ static cdd_c_error_t get_csharp_primitive(cdd_ffi_primitive_kind_t kind,
  */
 static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
                                       int is_return) {
-  const char *prim = NULL;
-  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type->kind == CDD_FFI_KIND_VOID && type->pointer_depth == 0) {
     if (is_return) {
       fprintf(f, "void");
@@ -120,10 +123,7 @@ static cdd_c_error_t emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
     return CDD_C_SUCCESS;
   }
 
-  rc_emit = (cdd_c_error_t)((int)rc_emit |
-                            (int)get_csharp_primitive(type->kind, &prim));
-  fprintf(f, "%s", prim);
-  return rc_emit;
+  return emit_csharp_primitive(f, type->kind);
 }
 
 /**
@@ -194,8 +194,11 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "    public enum %s : int\n    {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         fprintf(f, "        %s = %s,\n", node->variants[j].name,
@@ -212,8 +215,11 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -256,9 +262,11 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
           fprintf(f, "        [FieldOffset(0)]\n");
         }
         fprintf(f, "        public ");
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)emit_csharp_type(f, &node->fields[j].type, 0));
+        rc_emit = emit_csharp_type(f, &node->fields[j].type, 0);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, " %s;\n", node->fields[j].name);
       }
       fprintf(f, "    }\n\n");
@@ -271,8 +279,11 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "        [DllImport(LibraryName, CallingConvention = "
                  "CallingConvention.Cdecl)]\n");
 
@@ -284,9 +295,11 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
       }
 
       fprintf(f, "        public static extern ");
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)emit_csharp_type(
-                                             f, &node->return_or_base_type, 1));
+      rc_emit = emit_csharp_type(f, &node->return_or_base_type, 1);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, " %s(", node->name);
 
       for (j = 0; j < node->fields_count; j++) {
@@ -307,8 +320,11 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
           }
-          rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                    (int)emit_csharp_type(f, &base_t, 0));
+          rc_emit = emit_csharp_type(f, &base_t, 0);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, " ");
         }
         fprintf(f, "%s", node->fields[j].name ? node->fields[j].name : "arg");
@@ -325,7 +341,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   fprintf(f, "}\n");
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }
 
 /**

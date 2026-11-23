@@ -56,7 +56,7 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
  * @param[in] field Head of the field info linked list to free.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_fields(cdd_cst_field_info_t *field) {
+static cdd_c_error_t scope_fields_free(cdd_cst_field_info_t *field) {
   while (field) {
     cdd_cst_field_info_t *next = field->next;
     C_CDD_FREE(field->name);
@@ -73,17 +73,18 @@ static cdd_c_error_t free_fields(cdd_cst_field_info_t *field) {
  * @param[in] sym Head of the symbol linked list to free.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_symbols(cdd_cst_symbol_t *sym) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+static cdd_c_error_t scope_symbols_free(cdd_cst_symbol_t *sym) {
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
-    rc = (cdd_c_error_t)((int)rc | (int)free_fields(sym->fields));
+    rc_free =
+        (cdd_c_error_t)((int)rc_free | (int)scope_fields_free(sym->fields));
     C_CDD_FREE(sym->type_str);
     C_CDD_FREE(sym->name);
     C_CDD_FREE(sym);
     sym = next;
   }
-  return rc;
+  return rc_free;
 }
 
 /**
@@ -93,19 +94,21 @@ static cdd_c_error_t free_symbols(cdd_cst_symbol_t *sym) {
  * @param[in] scope Scope to free.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_scope(cdd_cst_scope_t *scope) {
+static cdd_c_error_t scope_node_free(cdd_cst_scope_t *scope) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
   if (!scope)
     return CDD_C_SUCCESS;
-  rc = (cdd_c_error_t)((int)rc | (int)free_symbols(scope->symbols));
+  rc_free =
+      (cdd_c_error_t)((int)rc_free | (int)scope_symbols_free(scope->symbols));
   for (i = 0; i < scope->num_children; i++) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_scope(scope->children[i]));
+    rc_free = (cdd_c_error_t)((int)rc_free |
+                              (int)scope_node_free(scope->children[i]));
   }
   if (scope->children)
     C_CDD_FREE(scope->children);
   C_CDD_FREE(scope);
-  return rc;
+  return rc_free;
 }
 
 /*
@@ -115,15 +118,15 @@ static cdd_c_error_t free_scope(cdd_cst_scope_t *scope) {
  * @return CDD_C_SUCCESS.
  */
 cdd_c_error_t cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_free;
   if (!env)
     return CDD_C_SUCCESS;
   if (env->bound_tree && env->bound_tree->active_sem_env == env) {
     env->bound_tree->active_sem_env = NULL;
   }
-  rc = (cdd_c_error_t)((int)rc | (int)free_scope(env->global_scope));
+  rc_free = scope_node_free(env->global_scope);
   C_CDD_FREE(env);
-  return rc;
+  return rc_free;
 }
 
 /*
@@ -229,11 +232,12 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
     return CDD_C_ERROR_MEMORY;
   }
 
-  if (cdd_strdup(name, &sym->name) != 0)
-    sym->name = NULL;
-  if (!sym->name) {
-    C_CDD_FREE(sym);
-    return CDD_C_ERROR_MEMORY;
+  {
+    cdd_c_error_t rc = cdd_strdup(name, &sym->name);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(sym);
+      return rc;
+    }
   }
   sym->kind = kind;
   sym->decl_node = decl_node;
@@ -416,13 +420,20 @@ static cdd_c_error_t find_scope_by_ast_node(cdd_cst_scope_t *scope,
                                             const cdd_cst_node_t *target,
                                             cdd_cst_scope_t **out_scope) {
   size_t i;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (scope->ast_node == target) {
     *out_scope = scope;
     return CDD_C_SUCCESS;
   }
   for (i = 0; i < scope->num_children; i++) {
-    if (find_scope_by_ast_node(scope->children[i], target, out_scope) ==
-        CDD_C_SUCCESS) {
+    rc = find_scope_by_ast_node(scope->children[i], target, out_scope);
+    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+      return rc;
+    if (rc == CDD_C_SUCCESS) {
       return CDD_C_SUCCESS;
     }
   }
@@ -442,14 +453,17 @@ cdd_c_error_t cdd_cst_scope_find_for_node(const cdd_cst_scope_env_t *env,
                                           const cdd_cst_node_t *node,
                                           cdd_cst_scope_t **out_scope) {
   const cdd_cst_node_t *cur;
+  cdd_c_error_t rc;
   if (!env || !env->global_scope || !out_scope)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   cur = node;
   while (cur) {
     cdd_cst_scope_t *found = NULL;
-    if (find_scope_by_ast_node(env->global_scope, cur, &found) ==
-        CDD_C_SUCCESS) {
+    rc = find_scope_by_ast_node(env->global_scope, cur, &found);
+    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+      return rc;
+    if (rc == CDD_C_SUCCESS) {
       *out_scope = found;
       return CDD_C_SUCCESS;
     }
@@ -473,15 +487,20 @@ static cdd_c_error_t remap_scope_ast_node_rec(cdd_cst_scope_t *scope,
                                               const cdd_cst_node_t *old_node,
                                               cdd_cst_node_t *new_node) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (scope->ast_node == old_node) {
     scope->ast_node = new_node;
   }
   for (i = 0; i < scope->num_children; i++) {
-    rc = (cdd_c_error_t)((int)rc | (int)remap_scope_ast_node_rec(
-                                       scope->children[i], old_node, new_node));
+    rc = remap_scope_ast_node_rec(scope->children[i], old_node, new_node);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*

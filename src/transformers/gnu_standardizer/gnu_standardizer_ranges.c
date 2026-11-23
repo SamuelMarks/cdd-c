@@ -20,6 +20,10 @@
 static cdd_c_error_t gnu_decode_char_tok(const char *raw, size_t len,
                                          int *out_val, int *out_ok) {
   size_t p = 1;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_val = 0;
   *out_ok = 0;
   if (len < 3 || raw[0] != '\'' || raw[len - 1] != '\'')
@@ -133,12 +137,14 @@ static cdd_c_error_t gnu_eval_range_bound(
     int ok = 0;
     cdd_c_error_t rc_ch =
         gnu_decode_char_tok((const char *)tok->start, tok->length, &cv, &ok);
+    if (rc_ch != CDD_C_SUCCESS)
+      return rc_ch;
     if (ok) {
       *out_val = is_neg ? -cv : cv;
       *out_is_char = !is_neg;
       *out_ok = 1;
     }
-    return rc_ch;
+    return CDD_C_SUCCESS;
   }
   if (tok->kind == CDD_TOKEN_NUMBER) {
     char buf[128];
@@ -156,12 +162,14 @@ static cdd_c_error_t gnu_eval_range_bound(
       uint64_t hi = 0;
       uint64_t lo = 0;
       cdd_c_error_t rc_b = cdd_parse_bin_128_literal(buf, w, &hi, &lo);
+      if (rc_b != CDD_C_SUCCESS)
+        return rc_b;
       if (hi == 0) {
         v = (long)lo;
         *out_val = is_neg ? (int)(-v) : (int)v;
         *out_ok = 1;
       }
-      return rc_b;
+      return CDD_C_SUCCESS;
     }
     if (w >= 3 && buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X')) {
       v = strtol(buf + 2, NULL, 16);
@@ -182,20 +190,27 @@ static cdd_c_error_t gnu_eval_range_bound(
     cdd_cst_symbol_t *sym = NULL;
     size_t cidx = 0;
     cdd_cst_node_t *owner = NULL;
-    cdd_c_error_t rc_sc = CDD_C_SUCCESS;
+    cdd_c_error_t rc_fn;
+    cdd_c_error_t rc_lu;
     memcpy(name, tok->start, tok->length);
     name[tok->length] = '\0';
-    if (gnu_find_node(tree->root, tok, &cidx, &owner) == CDD_C_SUCCESS) {
-      rc_sc = cdd_cst_scope_find_for_node(gctx->sem_env, owner, &sc);
+    rc_fn = gnu_find_node(tree->root, tok, &cidx, &owner);
+    if (rc_fn == CDD_C_SUCCESS) {
+      cdd_c_error_t rc_sc =
+          cdd_cst_scope_find_for_node(gctx->sem_env, owner, &sc);
+      if (rc_sc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc_sc, rc_fn);
+      }
     }
-    if (cdd_cst_scope_lookup_in_scope(sc, name, CDD_CST_SYMBOL_ENUM_CONSTANT,
-                                      &sym) == CDD_C_SUCCESS &&
-        sym->has_enum_value) {
+    rc_lu = cdd_cst_scope_lookup_in_scope(sc, name,
+                                          CDD_CST_SYMBOL_ENUM_CONSTANT, &sym);
+    if (rc_lu == CDD_C_SUCCESS && sym->has_enum_value) {
       int ev = (int)sym->enum_value;
       *out_val = is_neg ? -ev : ev;
       *out_ok = 1;
+      return rc_lu;
     }
-    return rc_sc;
+    return CDD_C_SUCCESS;
   }
   return CDD_C_SUCCESS;
 }
@@ -338,12 +353,14 @@ cdd_c_error_t gnu_standardize_ranges_ctx(cdd_cst_tree_t *tree,
           next = &tree->base_tokens->tokens[next_idx];
         }
 
-        rc = (cdd_c_error_t)((int)rc | (int)gnu_eval_range_bound(
-                                           tree, gctx, prev, is_neg_start,
-                                           &start_val, &start_char, &ok_s));
-        rc = (cdd_c_error_t)((int)rc | (int)gnu_eval_range_bound(
-                                           tree, gctx, next, is_neg_end,
-                                           &end_val, &end_char, &ok_e));
+        rc = gnu_eval_range_bound(tree, gctx, prev, is_neg_start, &start_val,
+                                  &start_char, &ok_s);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = gnu_eval_range_bound(tree, gctx, next, is_neg_end, &end_val,
+                                  &end_char, &ok_e);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
 
         if (ok_s && ok_e &&
             (end_val < start_val || end_val - start_val <= 4096)) {
@@ -404,8 +421,11 @@ cdd_c_error_t gnu_standardize_ranges_ctx(cdd_cst_tree_t *tree,
               strcpy(p, "case ");
 #endif
               p += 5;
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)gnu_append_case_val(p, v, use_ch, &p));
+              rc = gnu_append_case_val(p, v, use_ch, &p);
+              if (rc != CDD_C_SUCCESS) {
+                C_CDD_FREE(heap_buf);
+                return rc;
+              }
               if (v != end_val) {
 #if defined(_MSC_VER)
                 strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), ": ");
@@ -419,10 +439,10 @@ cdd_c_error_t gnu_standardize_ranges_ctx(cdd_cst_tree_t *tree,
             if (is_neg_start) {
               tree->base_tokens->tokens[i - 2].length = 0;
             }
-            if (cdd_pool_string_safe(tree, heap_buf, &pooled) !=
-                CDD_C_SUCCESS) {
+            rc = cdd_pool_string_safe(tree, heap_buf, &pooled);
+            if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(heap_buf);
-              return CDD_C_ERROR_MEMORY;
+              return rc;
             }
             tree->base_tokens->tokens[is_case_idx].start =
                 (const uint8_t *)pooled;
@@ -487,7 +507,11 @@ cdd_c_error_t gnu_standardize_ranges_ctx(cdd_cst_tree_t *tree,
                 p = heap_buf;
                 for (v = start_val; v <= end_val; v++) {
                   *p++ = '[';
-                  rc = (cdd_c_error_t)((int)rc | (int)cdd_append_int(p, v, &p));
+                  rc = cdd_append_int(p, v, &p);
+                  if (rc != CDD_C_SUCCESS) {
+                    C_CDD_FREE(heap_buf);
+                    return rc;
+                  }
 #if defined(_MSC_VER)
                   strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), "] = ");
 #else
@@ -507,10 +531,10 @@ cdd_c_error_t gnu_standardize_ranges_ctx(cdd_cst_tree_t *tree,
                 }
                 *p = '\0';
 
-                if (cdd_pool_string_safe(tree, heap_buf, &pooled) !=
-                    CDD_C_SUCCESS) {
+                rc = cdd_pool_string_safe(tree, heap_buf, &pooled);
+                if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(heap_buf);
-                  return CDD_C_ERROR_MEMORY;
+                  return rc;
                 }
                 tree->base_tokens->tokens[is_range_idx].start =
                     (const uint8_t *)pooled;

@@ -744,6 +744,35 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
     rc = cdd_cst_transfer_trivia(n1, n2);
     ASSERT_EQ(0, rc);
+#ifdef CDD_BUILD_TESTS
+    {
+      int step;
+      cdd_cst_node_t *sub = NULL;
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &sub));
+      ASSERT_EQ(0, cdd_cst_append_child_node(n1, sub));
+      for (step = 1; step <= 30; ++step) {
+        cdd_cst_builder_t bs;
+        g_cdd_step_fail = step;
+        rc = cdd_cst_builder_init(&bs, tree, n1);
+        if (rc == CDD_C_SUCCESS) {
+          rc = cdd_cst_bld_snippet(&bs, "int s;");
+          if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+            g_cdd_step_fail = 0;
+            g_cdd_last_alloc_err = cdd_cst_builder_free(&bs);
+            break;
+          }
+          g_cdd_last_alloc_err = cdd_cst_builder_free(&bs);
+        }
+        g_cdd_step_fail = 0;
+      }
+      g_cdd_step_fail = 2;
+      {
+        cdd_trivia_t *lt = NULL;
+        rc = cdd_cst_extract_trailing_trivia(n1, &lt);
+      }
+      g_cdd_step_fail = 0;
+    }
+#endif
     g_cdd_last_alloc_err = cdd_cst_free_node(n1);
     g_cdd_last_alloc_err = cdd_cst_free_node(n2);
   }

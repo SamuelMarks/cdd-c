@@ -1172,6 +1172,10 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
   ASSERT_STR_EQ("7", out_str);
   C_CDD_FREE(out_str);
 
+  CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$response.body#/xml");
+  CDD_SNPRINTF(sel_buf, sizeof(sel_buf), "%s", "/order/missing");
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_selector(&sel, &ctx, &out_str));
+
   CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$response.body#/missing");
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, arazzo_eval_selector(&sel, &ctx, &out_str));
 
@@ -1333,6 +1337,119 @@ TEST test_arazzo_eval_criteria_selectors_and_replacements(void) {
             arazzo_apply_payload_replacements(payload_val, reps, 1, &ctx));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             arazzo_apply_payload_replacements(payload_val, reps + 4, 1, &ctx));
+
+  /* Step-failure and JSON-allocator OOM sweeps across arazzo_eval */
+  {
+    int step;
+    char *s_tmp = NULL;
+    JSON_Value *steps_jv = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_parse_string("{\"s1\":{\"outputs\":{\"out\":\"v\"}}}",
+                                    &steps_jv));
+    ctx.steps = json_value_get_object(steps_jv);
+
+    /* 1. Runtime expressions (map lookup + nested sub_obj lookup) */
+    for (step = 1; step <= 20; ++step) {
+      s_tmp = NULL;
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err =
+          arazzo_eval_runtime_expr_to_str("$inputs.env", &ctx, &s_tmp);
+      C_CDD_FREE(s_tmp);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    for (step = 1; step <= 20; ++step) {
+      s_tmp = NULL;
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = arazzo_eval_runtime_expr_to_str(
+          "$steps.s1.outputs.out", &ctx, &s_tmp);
+      C_CDD_FREE(s_tmp);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+              arazzo_eval_runtime_expr_to_str("$steps.noStep.outputs.out", &ctx,
+                                              &s_tmp));
+    g_cdd_step_fail = 0;
+
+    /* 2. Simple boolean criterion (||, &&, !, (...), $lhs op $rhs, unary $x) */
+    crit.type = ARAZZO_CRITERION_SIMPLE;
+    crit.context = NULL;
+    CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s",
+                 "!($inputs.env == 'nope') && ($statusCode == $statusCode || "
+                 "$inputs.env)");
+    for (step = 1; step <= 60; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = arazzo_eval_criterion(&crit, &ctx, &passed);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "$inputs.env");
+    for (step = 1; step <= 20; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = arazzo_eval_criterion(&crit, &ctx, &passed);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    g_cdd_step_fail = 0;
+
+    /* 3. Regex criterion (|, ^, unanchored, quantifiers) */
+    crit.type = ARAZZO_CRITERION_REGEX;
+    crit.context = ctx_buf;
+    CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$response.body#/status");
+    CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "zzz|ct+i*ve$");
+    for (step = 1; step <= 60; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = arazzo_eval_criterion(&crit, &ctx, &passed);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    g_cdd_step_fail = 0;
+
+    /* 4. XPath criterion step-fail */
+    crit.type = ARAZZO_CRITERION_XPATH;
+    CDD_SNPRINTF(ctx_buf, sizeof(ctx_buf), "%s", "$response.body#/xml");
+    CDD_SNPRINTF(cond_buf, sizeof(cond_buf), "%s", "/order/ok");
+    for (step = 1; step <= 20; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = arazzo_eval_criterion(&crit, &ctx, &passed);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    g_cdd_step_fail = 0;
+
+    /* 5. Payload replacements OOM sweep with custom JSON allocator */
+    CDD_SNPRINTF(v0, sizeof(v0), "%s", "$inputs.newName");
+    CDD_SNPRINTF(t1, sizeof(t1), "%s", "/new_num");
+    CDD_SNPRINTF(t2, sizeof(t2), "%s", "/new_bool");
+    CDD_SNPRINTF(t3, sizeof(t3), "%s", "/new_null");
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_set_allocation_functions(arazzo_test_json_malloc, free));
+    for (step = 1; step <= 60; ++step) {
+      JSON_Value *pv_clone = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_json_value_deep_copy(payload_val, &pv_clone));
+      g_cdd_alloc_fail = step;
+      g_cdd_last_alloc_err =
+          arazzo_apply_payload_replacements(pv_clone, reps, 8, &ctx);
+      g_cdd_alloc_fail = 0;
+      g_cdd_last_alloc_err = json_value_free(pv_clone);
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_set_allocation_functions(NULL, NULL));
+    g_cdd_last_alloc_err = json_value_free(steps_jv);
+  }
 
   g_cdd_last_alloc_err = json_value_free(payload_val);
   g_cdd_last_alloc_err = json_value_free(resp_val);

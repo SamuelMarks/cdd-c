@@ -526,6 +526,8 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
     } else if (strcmp(f->type, "string") == 0 && f->fixed_array_len == 0) {
       char esc_def[128];
       rc_h = cdd_escape_json_c_str(f->default_val, esc_def, sizeof(esc_def));
+      if (rc_h != CDD_C_SUCCESS)
+        return rc_h;
       fprintf(fp,
               "  ret->%s = strdup(\"%s\");\n"
               "  if (!ret->%s) goto err;\n",
@@ -572,6 +574,8 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
         if (rc != CDD_C_SUCCESS)
           return rc;
         rc_h = cdd_escape_json_c_str(kn, esc_kn, sizeof(esc_kn));
+        if (rc_h != CDD_C_SUCCESS)
+          return rc_h;
         fprintf(fp, "      %s (strcmp(key, \"%s\") == 0",
                 (string_idx == 0) ? "if" : "else if", esc_kn);
         for (a = 0; a < f->n_serde_aliases; ++a) {
@@ -579,6 +583,8 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
             char esc_al[128];
             rc_h = cdd_escape_json_c_str(f->serde_aliases[a], esc_al,
                                          sizeof(esc_al));
+            if (rc_h != CDD_C_SUCCESS)
+              return rc_h;
             fprintf(fp, " || strcmp(key, \"%s\") == 0", esc_al);
           }
         }
@@ -646,6 +652,8 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
         if (rc != CDD_C_SUCCESS)
           return rc;
         rc_h = cdd_escape_json_c_str(kn, esc_kn, sizeof(esc_kn));
+        if (rc_h != CDD_C_SUCCESS)
+          return rc_h;
         fprintf(fp, "      %s (strcmp(key, \"%s\") == 0",
                 (primitive_idx == 0) ? "if" : "else if", esc_kn);
         for (a = 0; a < f->n_serde_aliases; ++a) {
@@ -653,6 +661,8 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
             char esc_al[128];
             rc_h = cdd_escape_json_c_str(f->serde_aliases[a], esc_al,
                                          sizeof(esc_al));
+            if (rc_h != CDD_C_SUCCESS)
+              return rc_h;
             fprintf(fp, " || strcmp(key, \"%s\") == 0", esc_al);
           }
         }
@@ -792,6 +802,8 @@ write_struct_to_json_standalone_func(FILE *fp, const char *struct_name,
     if (rc != CDD_C_SUCCESS)
       return rc;
     rc_h = cdd_escape_json_c_str(kn, esc_kn, sizeof(esc_kn));
+    if (rc_h != CDD_C_SUCCESS)
+      return rc_h;
 
     CHECK_IO(FPRINTF_HOOK(
         fp,

@@ -356,7 +356,7 @@ TEST test_c2openapi_cli_main_edge_branches(void) {
 
   /* Base file load failure */
   rc = c2openapi_cli_main(5, argv_base_fail);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
 
   /* Walk failure on nonexistent dir */
   rc = c2openapi_cli_main(3, argv_walk_fail);

@@ -14,6 +14,10 @@
  * @return 0 on success, or an error code.
  */
 cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

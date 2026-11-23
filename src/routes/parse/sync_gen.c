@@ -123,7 +123,7 @@ cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
 #endif
   if (rc != CDD_C_SUCCESS) {
     fclose(tmp);
-    return CDD_C_ERROR_IO;
+    return rc;
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -137,27 +137,25 @@ cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
   }
 
   {
-    cdd_c_error_t rc_trim = CDD_C_SUCCESS;
-    size_t len;
+    cdd_c_error_t rc_trim;
     size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
+    fclose(tmp);
     buf[bytes_read] = '\0';
+    *_out_val = buf;
     rc_trim = c_cdd_str_trim_trailing_whitespace(buf);
-    len = strlen(buf);
 #ifdef CDD_BUILD_TESTS
     {
       extern C_CDD_EXPORT int g_cdd_sync_sig_no_brace;
       if (g_cdd_sync_sig_no_brace) {
         g_cdd_sync_sig_no_brace = 0;
-        buf[len - 1] = ')';
+        buf[strlen(buf) - 1] = ')';
       }
     }
 #endif
-    if (buf[len - 1] == '{')
-      buf[len - 1] = '\0';
-    rc_trim = (cdd_c_error_t)((int)rc_trim |
-                              (int)c_cdd_str_trim_trailing_whitespace(buf));
-    fclose(tmp);
-    *_out_val = buf;
+    if (buf[strlen(buf) - 1] == '{') {
+      buf[strlen(buf) - 1] = '\0';
+      return cdd_c_keep_err(rc_trim, c_cdd_str_trim_trailing_whitespace(buf));
+    }
     return rc_trim;
   }
 }
@@ -196,7 +194,7 @@ cdd_c_error_t generate_expected_query(const struct OpenAPI_Operation *op,
 #endif
   if (rc != CDD_C_SUCCESS) {
     fclose(tmp);
-    return CDD_C_ERROR_IO;
+    return rc;
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -338,7 +336,7 @@ cdd_c_error_t generate_expected_url(const char *path,
 #endif
   if (rc != CDD_C_SUCCESS) {
     fclose(tmp);
-    return CDD_C_ERROR_IO;
+    return rc;
   }
 
   fseek(tmp, 0, SEEK_END);

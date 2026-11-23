@@ -515,6 +515,11 @@ TEST test_macro_evaluator_uncovered(void) {
     ASSERT(rc != 0);
     g_cdd_alloc_fail = 0;
 
+    g_cdd_alloc_fail = 2;
+    rc = cdd_macro_evaluate(&ctx, "\"str\"", &res);
+    ASSERT(rc != 0);
+    g_cdd_alloc_fail = 0;
+
     rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
     g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
     g_cdd_last_alloc_err = cdd_macro_eval_result_free(NULL);
@@ -522,9 +527,75 @@ TEST test_macro_evaluator_uncovered(void) {
     rc = cdd_macro_evaluate(&ctx, "   ", &res);
     ASSERT_NEQ(0, rc);
 
+    rc = cdd_macro_evaluate(&ctx, "1 & 1.5", &res);
+    ASSERT_NEQ(0, rc);
+
+    rc = cdd_macro_evaluate(&ctx, "1 << 1.5", &res);
+    ASSERT_NEQ(0, rc);
+
     g_cdd_alloc_fail = 1;
     rc = cdd_macro_evaluate(&ctx, "ABC", &res);
     g_cdd_alloc_fail = 0;
+
+#ifdef CDD_BUILD_TESTS
+    {
+      int step;
+      def.name = cdd_test_mut_str("MREF");
+      def.value = cdd_test_mut_str("4");
+      def.is_function_like = 0;
+      def.arg_count = 0;
+      def.args = NULL;
+      ctx.macros = &def;
+      ctx.macro_count = 1;
+
+      for (step = 1; step <= 300; ++step) {
+        g_cdd_step_fail = step;
+        rc = cdd_macro_evaluate(
+            &ctx,
+            "(((+1 - -2 + ~3 + !0 + (5 * 2 / 1 % 3)) << 1 >> 1) < 99 == 1) "
+            "& 3 ^ 2 | 1 && MREF || UNDEF",
+            &res);
+        if (rc == CDD_C_SUCCESS) {
+          g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
+          if (g_cdd_step_fail > 0) {
+            g_cdd_step_fail = 0;
+            break;
+          }
+        }
+        g_cdd_step_fail = 0;
+      }
+
+      for (step = 1; step <= 120; ++step) {
+        g_cdd_step_fail = step;
+        rc = cdd_macro_evaluate(
+            &ctx, "(1.5 * 2.0 / 1.0 + 1.0 - 0.5) < 9.0 == 1", &res);
+        if (rc == CDD_C_SUCCESS) {
+          g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
+          if (g_cdd_step_fail > 0) {
+            g_cdd_step_fail = 0;
+            break;
+          }
+        }
+        g_cdd_step_fail = 0;
+      }
+
+      for (step = 1; step <= 30; ++step) {
+        g_cdd_step_fail = step;
+        rc = cdd_macro_evaluate(&ctx, "\"hello\"", &res);
+        if (rc == CDD_C_SUCCESS) {
+          g_cdd_last_alloc_err = cdd_macro_eval_result_free(&res);
+          if (g_cdd_step_fail > 0) {
+            g_cdd_step_fail = 0;
+            break;
+          }
+        }
+        g_cdd_step_fail = 0;
+      }
+
+      ctx.macros = NULL;
+      ctx.macro_count = 0;
+    }
+#endif
 
     g_cdd_last_alloc_err = pp_context_free(&ctx);
     PASS();

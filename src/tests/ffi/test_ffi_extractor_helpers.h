@@ -710,6 +710,164 @@ TEST test_ffi_extractor_trivia_oom(void) {
   }
 
   remove(filename);
+
+  /* Step-fail, macro OOM, template OOM, and recursive include OOM sweeps */
+  {
+    const char *rich_file = "test_ext_percolate.h";
+    const char *inc_file = "test_ext_inc_sub.h";
+    const char *rich_code = "#include \"test_ext_inc_sub.h\"\n"
+                            "#define M_PERC_INT 42\n"
+                            "#define M_PERC_FLT 1.5\n"
+                            "#define M_PERC_STR \"hello\"\n"
+                            "template <typename T> struct PBox { T val; };\n"
+                            "class PCls { public: int a; };\n"
+                            "struct PUse { struct PBox<int> b; };\n"
+                            "void pFuncDef(void) {}\n";
+    cdd_ffi_ir_t stack_ir;
+
+    ASSERT_EQ(CDD_C_SUCCESS, write_to_file(inc_file, "int sub_var;\n"));
+    ASSERT_EQ(CDD_C_SUCCESS, write_to_file(rich_file, rich_code));
+
+    for (i = 1; i < 120; i++) {
+      int rem;
+      g_cdd_step_fail = i;
+      rc = cdd_ffi_ir_extract_exports(rich_file, rich_code, &config, &ir);
+      rem = g_cdd_step_fail;
+      g_cdd_step_fail = 0;
+      if (ir) {
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+        free(ir);
+        ir = NULL;
+      }
+      if (rem > 0)
+        break;
+    }
+
+    for (i = 1; i < 200; i++) {
+      int rem;
+      g_ffi_extractor_alloc_fail = i;
+      rc = cdd_ffi_ir_extract_exports(rich_file, rich_code, &config, &ir);
+      rem = g_ffi_extractor_alloc_fail;
+      g_ffi_extractor_alloc_fail = 0;
+      if (ir) {
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+        free(ir);
+        ir = NULL;
+      }
+      if (rem > 0)
+        break;
+    }
+
+    config.recursive_includes = 1;
+    for (i = 1; i < 250; i++) {
+      int rem;
+      g_cdd_alloc_fail = i;
+      rc = cdd_ffi_ir_extract_exports(rich_file, rich_code, &config, &ir);
+      rem = g_cdd_alloc_fail;
+      g_cdd_alloc_fail = 0;
+      if (ir) {
+        g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+        free(ir);
+        ir = NULL;
+      }
+      if (rem > 0)
+        break;
+    }
+    config.recursive_includes = 0;
+
+    /* Pure-C CST + minimal recursive include sweeps for remaining branches */
+    {
+      const char *pure_c_file = "test_ext_pure_c.h";
+      const char *pure_c_code =
+          "/* leading */\nvoid pureFuncDef(void) {}\n/* trailing */\n";
+      const char *macro_file = "test_ext_macro_only.h";
+      const char *macro_code = "#define M_P_INT 42\n";
+      const char *inc_top = "test_ext_inc_top.h";
+      const char *inc_top_code =
+          "#include \"test_ext_inc_sub.h\"\n#define M_P_STR \"hi\"\n";
+      ASSERT_EQ(CDD_C_SUCCESS, write_to_file(pure_c_file, pure_c_code));
+      ASSERT_EQ(CDD_C_SUCCESS, write_to_file(macro_file, macro_code));
+      ASSERT_EQ(CDD_C_SUCCESS, write_to_file(inc_top, inc_top_code));
+
+      for (i = 1; i < 300; i++) {
+        int rem;
+        g_cdd_step_fail = i;
+        rc = cdd_ffi_ir_extract_exports(pure_c_file, pure_c_code, &config, &ir);
+        rem = g_cdd_step_fail;
+        g_cdd_step_fail = 0;
+        if (ir) {
+          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+          free(ir);
+          ir = NULL;
+        }
+        if (rem > 0)
+          break;
+      }
+
+      for (i = 1; i < 300; i++) {
+        int rem;
+        g_cdd_step_fail = i;
+        rc = cdd_ffi_ir_extract_exports(macro_file, macro_code, &config, &ir);
+        rem = g_cdd_step_fail;
+        g_cdd_step_fail = 0;
+        if (ir) {
+          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+          free(ir);
+          ir = NULL;
+        }
+        if (rem > 0)
+          break;
+      }
+
+      for (i = 1; i < 80; i++) {
+        int rem;
+        g_cdd_alloc_fail = i;
+        rc = cdd_ffi_ir_extract_exports(macro_file, macro_code, &config, &ir);
+        rem = g_cdd_alloc_fail;
+        g_cdd_alloc_fail = 0;
+        if (ir) {
+          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+          free(ir);
+          ir = NULL;
+        }
+        if (rem > 0)
+          break;
+      }
+
+      config.recursive_includes = 1;
+      for (i = 1; i < 160; i++) {
+        int rem;
+        g_cdd_alloc_fail = i;
+        rc = cdd_ffi_ir_extract_exports(inc_top, inc_top_code, &config, &ir);
+        rem = g_cdd_alloc_fail;
+        g_cdd_alloc_fail = 0;
+        if (ir) {
+          g_cdd_last_alloc_err = cdd_ffi_ir_free(ir);
+          free(ir);
+          ir = NULL;
+        }
+        if (rem > 0)
+          break;
+      }
+      config.recursive_includes = 0;
+      remove(pure_c_file);
+      remove(macro_file);
+      remove(inc_top);
+    }
+
+    /* tree_full == NULL + extract_single_file_exports_impl failure */
+    memset(&stack_ir, 0, sizeof(stack_ir));
+    g_ffi_extractor_alloc_fail = 1;
+    rc = cdd_ffi_extract_single_file_exports_test(
+        &stack_ir, rich_file, "} /* syntax err */\nstruct S { int x; };\n",
+        &config);
+    g_ffi_extractor_alloc_fail = 0;
+    g_cdd_last_alloc_err = cdd_ffi_ir_free(&stack_ir);
+
+    remove(rich_file);
+    remove(inc_file);
+  }
+
   PASS();
 }
 #ifdef __cplusplus

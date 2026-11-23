@@ -11,6 +11,7 @@ extern volatile int g_fail_io_after;
 #include "cdd_ffi_emit_rust.h"
 #include "../parse/fs.h"
 #include "c_cdd/safe_crt.h"
+#include "cdd_ffi_emit_common.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,59 +19,60 @@ extern volatile int g_fail_io_after;
 /* clang-format on */
 
 /**
- * @brief Maps an FFI primitive kind to its corresponding Rust primitive type
- * string.
+ * @brief Writes a Rust raw FFI primitive type name directly to `f`.
  *
+ * @param[in,out] f Output file stream.
  * @param[in] kind FFI primitive kind enum value.
- * @param[out] out_type Output pointer receiving the resolved Rust type string.
  * @return `CDD_C_SUCCESS` on success.
  */
-static cdd_c_error_t get_rust_primitive(cdd_ffi_primitive_kind_t kind,
-                                        const char **out_type) {
+static cdd_c_error_t emit_rust_primitive(FILE *f,
+                                         cdd_ffi_primitive_kind_t kind) {
+  const char *prim;
   switch (kind) {
   case CDD_FFI_KIND_BOOL:
-    *out_type = "bool";
+    prim = "bool";
     break;
   case CDD_FFI_KIND_INT8:
-    *out_type = "i8";
+    prim = "i8";
     break;
   case CDD_FFI_KIND_UINT8:
-    *out_type = "u8";
+    prim = "u8";
     break;
   case CDD_FFI_KIND_INT16:
-    *out_type = "i16";
+    prim = "i16";
     break;
   case CDD_FFI_KIND_UINT16:
-    *out_type = "u16";
+    prim = "u16";
     break;
   case CDD_FFI_KIND_INT32:
-    *out_type = "i32";
+    prim = "i32";
     break;
   case CDD_FFI_KIND_UINT32:
-    *out_type = "u32";
+    prim = "u32";
     break;
   case CDD_FFI_KIND_INT64:
-    *out_type = "i64";
+    prim = "i64";
     break;
   case CDD_FFI_KIND_UINT64:
-    *out_type = "u64";
+    prim = "u64";
     break;
   case CDD_FFI_KIND_FLOAT32:
-    *out_type = "f32";
+    prim = "f32";
     break;
   case CDD_FFI_KIND_FLOAT64:
-    *out_type = "f64";
+    prim = "f64";
     break;
   case CDD_FFI_KIND_OPAQUE_PTR:
-    *out_type = "std::ffi::c_void";
+    prim = "std::ffi::c_void";
     break;
   case CDD_FFI_KIND_FUNCTION_PTR:
-    *out_type = "std::ffi::c_void";
+    prim = "std::ffi::c_void";
     break;
   default:
-    *out_type = "std::ffi::c_void";
+    prim = "std::ffi::c_void";
     break;
   }
+  fprintf(f, "%s", prim);
   return CDD_C_SUCCESS;
 }
 
@@ -86,8 +88,10 @@ static cdd_c_error_t get_rust_primitive(cdd_ffi_primitive_kind_t kind,
  */
 static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
                                         int is_return) {
-  const char *prim = NULL;
-  cdd_c_error_t rc_emit = CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type->kind == CDD_FFI_KIND_VOID && type->pointer_depth == 0) {
     if (is_return) {
       fprintf(f, "()");
@@ -118,9 +122,7 @@ static cdd_c_error_t emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
     return CDD_C_SUCCESS;
   }
 
-  rc_emit = get_rust_primitive(type->kind, &prim);
-  fprintf(f, "%s", prim);
-  return rc_emit;
+  return emit_rust_primitive(f, type->kind);
 }
 
 /**
@@ -179,9 +181,11 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "    pub %s: ",
                 node->fields[j].name ? node->fields[j].name : "field");
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)emit_rust_sys_type(
-                                               f, &node->fields[j].type, 0));
+        rc_emit = emit_rust_sys_type(f, &node->fields[j].type, 0);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, ",\n");
       }
       fprintf(f, "}\n\n");
@@ -195,9 +199,11 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       fprintf(f, "\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
       fprintf(f, "pub type %s = ", node->name);
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)emit_rust_sys_type(
-                                             f, &node->return_or_base_type, 0));
+      rc_emit = emit_rust_sys_type(f, &node->return_or_base_type, 0);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, ";\n\n");
     }
   }
@@ -210,25 +216,29 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       fprintf(f, "    pub fn %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "%s: ", node->fields[j].name ? node->fields[j].name : "arg");
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)emit_rust_sys_type(
-                                               f, &node->fields[j].type, 0));
+        rc_emit = emit_rust_sys_type(f, &node->fields[j].type, 0);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
       if (node->fields_count > 0)
         fprintf(f, ", ");
       fprintf(f, "err: *mut CddFfiError) -> ");
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)emit_rust_sys_type(
-                                             f, &node->return_or_base_type, 1));
+      rc_emit = emit_rust_sys_type(f, &node->return_or_base_type, 1);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, ";\n");
     }
   }
   fprintf(f, "}\n");
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -312,17 +322,21 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
              node->fields[j].type.kind == CDD_FFI_KIND_UINT8)) {
           fprintf(f, "&std::ffi::CStr");
         } else {
-          rc_emit =
-              (cdd_c_error_t)((int)rc_emit | (int)emit_rust_sys_type(
-                                                 f, &node->fields[j].type, 0));
+          rc_emit = emit_rust_sys_type(f, &node->fields[j].type, 0);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
         }
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
       fprintf(f, ") -> Result<");
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit | (int)emit_rust_sys_type(
-                                             f, &node->return_or_base_type, 1));
+      rc_emit = emit_rust_sys_type(f, &node->return_or_base_type, 1);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, ", FfiError> {\n");
 
       fprintf(f, "        let mut err = sys::CddFfiError {\n");
@@ -484,7 +498,7 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
 static cdd_c_error_t maybe_mkdir(const char *path) {
   cdd_c_error_t rc = makedir(path);
   if (rc == CDD_C_SUCCESS)
-    return CDD_C_SUCCESS;
+    return rc;
   if (errno == EEXIST) {
     return CDD_C_SUCCESS;
   }

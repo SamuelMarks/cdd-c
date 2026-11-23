@@ -558,10 +558,61 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
     errno = EIO;
   }
 #endif
-  if (close_rc != 0 && rc == CDD_C_SUCCESS)
-    rc = errno_to_cdd_error(errno);
+  if (close_rc != 0 && rc == CDD_C_SUCCESS) {
+    return errno_to_cdd_error(errno);
+  }
 
   return rc;
+}
+
+/**
+ * @brief Frees `*out_data` when `err_rc` indicates failure and propagates
+ * `err_rc`.
+ *
+ * @param[in,out] out_data Output buffer pointer to clear on failure.
+ * @param[in,out] out_size Output size pointer to clear on failure.
+ * @param[in] err_rc Error code to propagate.
+ * @return `err_rc` unaltered.
+ */
+static cdd_c_error_t cleanup_read_output(char **out_data, size_t *out_size,
+                                         cdd_c_error_t err_rc) {
+  if (err_rc != CDD_C_SUCCESS && *out_data != NULL) {
+    C_CDD_FREE(*out_data);
+    *out_data = NULL;
+    *out_size = 0;
+  }
+  return err_rc;
+}
+
+/**
+ * @brief Closes `f` after `read_from_fh` and reconciles read and close errors.
+ *
+ * @param[in,out] f Open file handle to close.
+ * @param[in] internal_rc Result returned by `read_from_fh`.
+ * @param[in,out] out_data Output buffer pointer.
+ * @param[in,out] out_size Output size pointer.
+ * @return `CDD_C_SUCCESS` on success, or the preserved read/close error code.
+ */
+static cdd_c_error_t finish_read_to_file(FILE *f, cdd_c_error_t internal_rc,
+                                         char **out_data, size_t *out_size) {
+  int close_rc = fclose(f);
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 86) {
+    close_rc = -1;
+    errno = EIO;
+  }
+  if (g_fail_io_after == 87) {
+    internal_rc = CDD_C_ERROR_IO;
+    close_rc = -1;
+    errno = EIO;
+  }
+#endif
+  if (close_rc != 0) {
+    if (internal_rc == CDD_C_SUCCESS) {
+      return cleanup_read_output(out_data, out_size, errno_to_cdd_error(errno));
+    }
+  }
+  return cleanup_read_output(out_data, out_size, internal_rc);
 }
 
 /*
@@ -577,8 +628,6 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
 cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
                            size_t *out_size) {
   FILE *f = NULL;
-  cdd_c_error_t internal_rc = CDD_C_SUCCESS;
-  int close_rc;
 
   if (!path || !mode || !out_data || !out_size) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -594,68 +643,23 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
     if (e != 0) {
       return errno_to_cdd_error((int)e);
     }
-    if (f == NULL)
+    if (f == NULL) {
       return CDD_C_ERROR_IO;
+    }
   }
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, mode);
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, mode);
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, mode);
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, mode);
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, mode);
 #else
 #if defined(_MSC_VER)
   fopen_s(&f, path, mode);
 #else
   f = fopen(path, mode);
 #endif
-#endif
-#endif
-#endif
-#endif
-#endif
-  if (f == NULL)
+  if (f == NULL) {
     return errno_to_cdd_error(errno);
-#endif
-
-  internal_rc = read_from_fh(f, out_data, out_size);
-
-  close_rc = fclose(f);
-#ifdef CDD_BUILD_TESTS
-  if (g_fail_io_after == 86) {
-    close_rc = -1;
-    errno = EIO;
-  }
-  if (g_fail_io_after == 87) {
-    internal_rc = CDD_C_ERROR_IO;
-    close_rc = -1;
-    errno = EIO;
   }
 #endif
-  /* Preserve read error if it occurred, but also check fclose error */
-  if (close_rc != 0) {
-    if (internal_rc == CDD_C_SUCCESS) {
-      internal_rc =
-          errno_to_cdd_error(errno); /* Return fclose error if read was OK */
-    }
-  }
 
-  if (internal_rc != CDD_C_SUCCESS && *out_data != NULL) {
-    C_CDD_FREE(*out_data);
-    *out_data = NULL;
-    *out_size = 0;
-  }
-
-  return internal_rc;
+  return finish_read_to_file(f, read_from_fh(f, out_data, out_size), out_data,
+                             out_size);
 }
 
 /*
@@ -705,12 +709,12 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   if (ferror(fh)) {
 #endif
     rc = errno_to_cdd_error(errno);
-    /* If errno is not set by fread failure (rare but possible), default to EIO
-     */
-    if (rc == CDD_C_SUCCESS)
-      rc = CDD_C_ERROR_IO;
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(buffer);
+      return rc;
+    }
     C_CDD_FREE(buffer);
-    return rc;
+    return CDD_C_ERROR_IO;
   }
 
   /* Null terminate just in case text usage */
@@ -736,32 +740,33 @@ cdd_c_error_t cp(const char *dst, const char *src) {
   if (g_fail_io_after == 66 || g_fail_io_after == 77 || g_fail_io_after == 64)
     return CDD_C_ERROR_IO;
 #endif
-  if (!CopyFileA(src, dst, TRUE))
+  if (!CopyFileA(src, dst, TRUE)) {
     return errno_to_cdd_error((int)GetLastError());
+  }
   return CDD_C_SUCCESS;
 #else
   int fd_to, fd_from;
   char buf[READ_CHUNK_SIZE];
   ssize_t nread;
-  cdd_c_error_t saved_errno;
+  int saved_err = 0;
   char *out_ptr;
   ssize_t nwritten;
-  cdd_c_error_t ret_val = CDD_C_SUCCESS;
   int close_res;
 
   if (!dst || !src)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   fd_from = open(src, O_RDONLY);
-  if (fd_from < 0)
+  if (fd_from < 0) {
     return errno_to_cdd_error(errno);
+  }
 
   /* O_EXCL to fail if dest exists */
   fd_to = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0666);
   if (fd_to < 0) {
-    saved_errno = errno_to_cdd_error(errno);
+    saved_err = errno;
     close(fd_from);
-    return saved_errno;
+    return errno_to_cdd_error(saved_err);
   }
 
   while ((nread = read(fd_from, buf, sizeof(buf))) > 0) {
@@ -787,7 +792,7 @@ cdd_c_error_t cp(const char *dst, const char *src) {
         nread -= nwritten;
         out_ptr += nwritten;
       } else if (errno != EINTR) {
-        ret_val = errno_to_cdd_error(errno);
+        saved_err = errno;
         goto out_error;
       }
     } while (nread > 0);
@@ -801,16 +806,14 @@ cdd_c_error_t cp(const char *dst, const char *src) {
 #endif
 
   if (nread < 0) {
-    ret_val = errno_to_cdd_error(errno);
+    saved_err = errno;
   }
 
 out_error:
-  if (ret_val != CDD_C_SUCCESS) {
-    /* If error, try to preserve it */
-    saved_errno = ret_val;
+  if (saved_err != 0) {
     close(fd_to);
     close(fd_from);
-    return saved_errno;
+    return errno_to_cdd_error(saved_err);
   }
 
   close_res = close(fd_to);
@@ -821,9 +824,9 @@ out_error:
   }
 #endif
   if (close_res < 0) {
-    saved_errno = errno_to_cdd_error(errno);
+    saved_err = errno;
     close(fd_from);
-    return saved_errno;
+    return errno_to_cdd_error(saved_err);
   }
   close(fd_from);
   return CDD_C_SUCCESS;

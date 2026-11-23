@@ -918,6 +918,19 @@ TEST test_cli_cst_out_of_tree_and_dispatch(void) {
 #else
       rmdir("test_tf_oom_dir");
 #endif
+
+      a_err[0] = cdd_test_mut_str("--passes=extern_c");
+      a_err[1] = cdd_test_mut_str("-Iinc");
+      a_err[2] = cdd_test_mut_str("--stdout");
+      a_err[3] = cdd_test_mut_str("test_tf_in.c");
+      for (k = 1; k <= 50; k++) {
+        g_cdd_alloc_fail = k;
+        if (cli_cst_transform_pipeline_main(4, a_err) == CDD_C_SUCCESS) {
+          g_cdd_alloc_fail = 0;
+          break;
+        }
+      }
+      g_cdd_alloc_fail = 0;
     }
   }
 

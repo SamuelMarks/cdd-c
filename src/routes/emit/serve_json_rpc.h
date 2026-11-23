@@ -195,6 +195,17 @@ extern C_CDD_EXPORT cdd_c_error_t
 serve_json_rpc_run(const cdd_serve_json_rpc_config_t *config);
 
 /**
+ * @brief Dispatches a parsed HTTP JSON-RPC request body string and writes the
+ * HTTP JSON-RPC response to `client_fd`.
+ *
+ * @param[in] client_fd Connected client socket descriptor (or mocked fd).
+ * @param[in] body Raw JSON-RPC request payload following HTTP headers.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+serve_json_rpc_dispatch_body(int client_fd, const char *body);
+
+/**
  * @brief CLI entry point for running the JSON-RPC 2.0 server over HTTP or
  * stdio.
  *
@@ -213,6 +224,169 @@ extern C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv);
  * @return CDD_C_SUCCESS on success, or error code.
  */
 extern C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv);
+
+/**
+ * @brief Frees a JSON serialized string returned by the JSON DOM serializer.
+ *
+ * @param[in,out] s Heap string to release (may be NULL).
+ * @return CDD_C_SUCCESS on success.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_serialized_str_free(char *s);
+
+/**
+ * @brief Releases heap fields owned by a reflected struct instance.
+ *
+ * @param[in,out] obj Struct instance pointer.
+ * @param[in] ti Reflection type descriptor.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_reflect_struct_free(void *obj, const struct cdd_type_info *ti);
+
+/**
+ * @brief Looks up an optional string property on `obj`, setting `*out_str` to
+ * NULL when absent or non-string.
+ *
+ * @param[in] obj JSON object to query (may be NULL).
+ * @param[in] key Property name.
+ * @param[out] out_str Output string pointer or NULL.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_json_opt_string(const JSON_Object *obj,
+                                                      const char *key,
+                                                      const char **out_str);
+
+/**
+ * @brief Looks up an optional child object property on `obj`, setting
+ * `*out_obj` to NULL when absent or non-object.
+ *
+ * @param[in] obj JSON object to query (may be NULL).
+ * @param[in] key Property name.
+ * @param[out] out_obj Output child object pointer or NULL.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_json_opt_object(const JSON_Object *obj,
+                                                      const char *key,
+                                                      JSON_Object **out_obj);
+
+/**
+ * @brief Looks up an optional child value property on `obj`, setting `*out_val`
+ * to NULL when absent.
+ *
+ * @param[in] obj JSON object to query (may be NULL).
+ * @param[in] key Property name.
+ * @param[out] out_val Output child value pointer or NULL.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_json_opt_value(const JSON_Object *obj,
+                                                     const char *key,
+                                                     JSON_Value **out_val);
+
+/**
+ * @brief Looks up an optional boolean property on `obj`, setting `*out_bool` to
+ * 1 when true or 0 otherwise.
+ *
+ * @param[in] obj JSON object to query (may be NULL).
+ * @param[in] key Property name.
+ * @param[out] out_bool Output boolean value (0 or 1).
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_json_opt_bool(const JSON_Object *obj,
+                                                    const char *key,
+                                                    int *out_bool);
+
+/**
+ * @brief Attempts to parse `body` into `*out_val`, setting `*out_ok` to 1 on
+ * valid JSON or 0 on syntax error while percolating OOM/fault errors.
+ *
+ * @param[in] body Raw JSON string.
+ * @param[out] out_val Parsed JSON value on success, or NULL.
+ * @param[out] out_ok Receives 1 when parsed as a JSON object, 0 otherwise.
+ * @return CDD_C_SUCCESS on completion, or error code on OOM/fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_json_try_parse(const char *body,
+                                                     JSON_Value **out_val,
+                                                     int *out_ok);
+
+/**
+ * @brief Attempts to extract MCP `tools/call` parameters from `params`, setting
+ * `*out_ok` to 1 when valid or 0 when missing/invalid.
+ *
+ * @param[in] params Optional JSON params object.
+ * @param[out] out_tc Populated `CddMcpToolCallParams` struct.
+ * @param[out] out_ok Receives 1 when valid, 0 otherwise.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_try_tool_call_params(const JSON_Object *params,
+                         struct CddMcpToolCallParams *out_tc, int *out_ok);
+
+/**
+ * @brief Executes `cdd_generate_to_openapi` for RPC dispatch, setting `*out_ok`
+ * to 1 on success or 0 on application failure.
+ *
+ * @param[in] cfg Configuration struct.
+ * @param[out] out_ok Receives 1 on success, 0 on generation failure.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_exec_to_openapi(const cdd_to_openapi_config_t *cfg, int *out_ok);
+
+/**
+ * @brief Executes `cdd_generate_docs_json` for RPC dispatch, setting `*out_ok`
+ * to 1 on success or 0 on application failure.
+ *
+ * @param[in] cfg Configuration struct.
+ * @param[out] out_ok Receives 1 on success, 0 on generation failure.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_exec_docs_json(const cdd_docs_json_config_t *cfg, int *out_ok);
+
+/**
+ * @brief Executes `cdd_generate_to_arazzo` for RPC dispatch, setting `*out_ok`
+ * to 1 on success or 0 on application failure.
+ *
+ * @param[in] cfg Configuration struct.
+ * @param[out] out_ok Receives 1 on success, 0 on generation failure.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_exec_to_arazzo(const cdd_to_arazzo_config_t *cfg, int *out_ok);
+
+/**
+ * @brief Populates a `cdd_from_arazzo_config_t` from optional MCP tool call
+ * JSON arguments, mapping string `"subcommand"` values (`"to_sdk"`,
+ * `"to_sdk_cli"`, `"to_server"`) to enum constants.
+ *
+ * @param[in] args Optional JSON arguments object.
+ * @param[out] out_cfg Populated `cdd_from_arazzo_config_t` struct.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t rpc_parse_from_arazzo_args(
+    const JSON_Object *args, cdd_from_arazzo_config_t *out_cfg);
+
+/**
+ * @brief Executes `cdd_generate_from_arazzo` for RPC dispatch, setting
+ * `*out_ok` to 1 on success or 0 on application failure.
+ *
+ * @param[in] cfg Configuration struct.
+ * @param[out] out_ok Receives 1 on success, 0 on generation failure.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_exec_from_arazzo(const cdd_from_arazzo_config_t *cfg, int *out_ok);
+
+/**
+ * @brief Executes `cdd_generate_from_openapi` for RPC dispatch, setting
+ * `*out_ok` to 1 on success or 0 on application failure.
+ *
+ * @param[in] cfg Configuration struct.
+ * @param[out] out_ok Receives 1 on success, 0 on generation failure.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+rpc_exec_from_openapi(const cdd_from_openapi_config_t *cfg, int *out_ok);
 
 #ifdef __cplusplus
 }

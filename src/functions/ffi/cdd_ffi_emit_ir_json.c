@@ -41,6 +41,10 @@ cdd_ffi_emit_ir_json(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(path, sizeof(path), "%s/ir_dump.json", config->output_dir);
 
   rc = fs_write_to_file(path, json_str);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(json_str);
+    return rc;
+  }
   C_CDD_FREE(json_str);
-  return rc;
+  return CDD_C_SUCCESS;
 }

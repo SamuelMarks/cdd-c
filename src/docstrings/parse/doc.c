@@ -29,6 +29,10 @@
  * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_INVALID_ARGUMENT if NULL.
  */
 cdd_c_error_t doc_metadata_init(struct DocMetadata *meta) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!meta)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   memset(meta, 0, sizeof(*meta));
@@ -440,6 +444,10 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
   const char *p = comment;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!comment || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

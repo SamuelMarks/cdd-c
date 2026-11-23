@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../win_compat_sym.h"
+#include "win_compat_sym.h"
 
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
@@ -43,6 +43,8 @@
 cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_cdd_fail_type_def_list_init;
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
   if (g_cdd_fail_type_def_list_init && --g_cdd_fail_type_def_list_init == 0)
     return CDD_C_ERROR_MEMORY;
 #endif
@@ -106,6 +108,7 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
                                   const enum TypeDefinitionKind kind,
                                   const char *name, void *details) {
   struct TypeDefinition *item;
+  cdd_c_error_t rc;
 
   if (list->size >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
@@ -121,11 +124,9 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
 
   item = &list->items[list->size];
   item->kind = kind;
-  {
-    cdd_c_error_t rc_str = c_cdd_strdup(name, &item->name);
-    if (rc_str != CDD_C_SUCCESS)
-      return rc_str;
-  }
+  rc = c_cdd_strdup(name, &item->name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (kind == KIND_ENUM)
     item->details.enum_members = (struct EnumMembers *)details;
@@ -133,19 +134,6 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
     item->details.struct_fields = (struct StructFields *)details;
 
   list->size++;
-  return CDD_C_SUCCESS;
-}
-
-/**
- * @brief Checks if `s` starts with a C block or line comment delimiter.
- *
- * @param[in] s String to inspect.
- * @param[out] out_is_cmt Set to 1 if `s` starts with a comment delimiter, 0
- * otherwise.
- * @return CDD_C_SUCCESS on success.
- */
-static cdd_c_error_t is_comment_start(const char *s, int *out_is_cmt) {
-  *out_is_cmt = (s[0] == '/' && (s[1] == '*' || s[1] == '/')) ? 1 : 0;
   return CDD_C_SUCCESS;
 }
 
@@ -160,6 +148,10 @@ static cdd_c_error_t is_comment_start(const char *s, int *out_is_cmt) {
  */
 static cdd_c_error_t find_code_char(char *s, char target, char **out) {
   int in_str = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (*s) {
     if (!in_str && s[0] == '/' && s[1] == '/') {
       *out = NULL;
@@ -198,6 +190,10 @@ static cdd_c_error_t next_delim_tok(char **cursor, char delim, char **out_tok) {
   char *s = *cursor;
   char *start;
   int in_str = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!s) {
     *out_tok = NULL;
     return CDD_C_SUCCESS;
@@ -260,6 +256,11 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
   struct StructFields *curr_sf = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+
   if (!filename || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -291,8 +292,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
       if (state == ST_NONE) {
         int starts1 = false, starts2 = false;
-        int is_cmt = 0;
-        rc = is_comment_start(p, &is_cmt);
+        int is_cmt = (p[0] == '/' && (p[1] == '*' || p[1] == '/')) ? 1 : 0;
         /* Collect standalone or leading comment lines before struct/enum */
         if (in_block_comment || is_cmt) {
           int is_blk = in_block_comment || (p[1] == '*');
@@ -328,7 +328,11 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             p += 8;
           }
           rc = c_cdd_str_starts_with(p, "enum ", &starts1);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_scan;
           rc = c_cdd_str_starts_with(p, "struct ", &starts2);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_scan;
           if (!starts1 && strncmp(p, "enum{", 5) == 0)
             starts1 = 1;
           if (!starts2 && strncmp(p, "struct{", 7) == 0)
@@ -338,6 +342,8 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           char *brace = NULL;
           int is_enum = starts1;
           rc = find_code_char(p, '{', &brace);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup_scan;
 
           if (*p != '{') {
             const char *name_start =
@@ -385,32 +391,38 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           if (brace) {
             if (is_enum) {
               curr_em = (struct EnumMembers *)C_CDD_CALLOC(1, sizeof(*curr_em));
-              if (!curr_em || enum_members_init(curr_em) != 0) {
+              if (!curr_em) {
                 rc = CDD_C_ERROR_MEMORY;
-                break;
+                goto cleanup_scan;
               }
+              rc = enum_members_init(curr_em);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_scan;
               if (pending_comment[0] != '\0') {
                 rc = cdd_serde_parse_enum_comment(pending_comment, curr_em);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup_scan;
                 pending_comment[0] = '\0';
                 pending_len = 0;
-                if (rc != CDD_C_SUCCESS)
-                  break;
               }
               state = ST_ENUM;
             } else {
               curr_sf =
                   (struct StructFields *)C_CDD_CALLOC(1, sizeof(*curr_sf));
-              if (!curr_sf || struct_fields_init(curr_sf) != 0) {
+              if (!curr_sf) {
                 rc = CDD_C_ERROR_MEMORY;
-                break;
+                goto cleanup_scan;
               }
+              rc = struct_fields_init(curr_sf);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_scan;
               if (pending_comment[0] != '\0') {
                 rc =
                     cdd_serde_parse_container_comment(pending_comment, curr_sf);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup_scan;
                 pending_comment[0] = '\0';
                 pending_len = 0;
-                if (rc != CDD_C_SUCCESS)
-                  break;
               }
               state = ST_STRUCT;
             }
@@ -441,6 +453,8 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
       } else {
         /* Inside a definition block */
         rc = find_code_char(p, '}', &close_brace);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup_scan;
 
         if (close_brace && state == ST_STRUCT && in_union_sub) {
           /* Closing `}` of nested `union { ... } data;` inside a tagged union
@@ -464,8 +478,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         /* Parse Member string in p (up to terminator) */
         /* For enums on one line: "A, B" */
         if (state == ST_ENUM && *p) {
-          int is_cmt = 0;
-          rc = is_comment_start(p, &is_cmt);
+          int is_cmt = (p[0] == '/' && (p[1] == '*' || p[1] == '/')) ? 1 : 0;
           if (is_cmt) {
             size_t clen = strlen(p);
             size_t k;
@@ -478,17 +491,17 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             pending_comment[pending_len] = '\0';
           } else {
             char *copy = NULL;
-            {
-              cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
-              if (rc_str != CDD_C_SUCCESS) {
-                rc = rc_str;
-                break;
-              }
-            }
+            rc = c_cdd_strdup(p, &copy);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup_scan;
             {
               char *ctx = copy;
               char *tok = NULL;
               rc = next_delim_tok(&ctx, ',', &tok);
+              if (rc != CDD_C_SUCCESS) {
+                C_CDD_FREE(copy);
+                goto cleanup_scan;
+              }
               while (tok) {
                 char var_cmt[512];
                 size_t vc_pos = 0;
@@ -530,27 +543,28 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 if (eq)
                   *eq = 0;
                 rc = c_cdd_str_trim_trailing_whitespace(tok);
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(copy);
+                  goto cleanup_scan;
+                }
                 while (*tok && isspace((unsigned char)*tok))
                   tok++;
                 if (*tok) {
                   char effective_rename[128] = {0};
                   const char *member_tok = tok;
                   size_t ename_len = strlen(current_name);
-                  cdd_c_error_t rc_str;
                   if (strncmp(tok, current_name, ename_len) == 0 &&
                       tok[ename_len] == '_' && tok[ename_len + 1] != '\0') {
                     member_tok = tok + ename_len + 1;
                   }
                   if (var_cmt[0] != '\0') {
-                    rc_str = cdd_serde_parse_enum_variant_comment_ex(
+                    rc = cdd_serde_parse_enum_variant_comment_ex(
                         var_cmt, var_rename, sizeof(var_rename), &var_skip,
                         &var_case, var_rep_from, sizeof(var_rep_from),
                         var_rep_to, sizeof(var_rep_to), &var_other, NULL, 0);
-                    if (rc_str != CDD_C_SUCCESS) {
-                      rc = rc_str;
+                    if (rc != CDD_C_SUCCESS) {
                       C_CDD_FREE(copy);
-                      copy = NULL;
-                      break;
+                      goto cleanup_scan;
                     }
                   }
                   if (var_rename[0] != '\0') {
@@ -561,56 +575,59 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                     char tmp_v[128];
                     CDD_STRCPY(tmp_v, sizeof(tmp_v), member_tok);
                     if (var_case != CDD_SERDE_CASE_NONE) {
-                      rc_str = cdd_serde_transform_case(
-                          tmp_v, var_case, effective_rename,
-                          sizeof(effective_rename));
+                      rc = cdd_serde_transform_case(tmp_v, var_case,
+                                                    effective_rename,
+                                                    sizeof(effective_rename));
+                      if (rc != CDD_C_SUCCESS) {
+                        C_CDD_FREE(copy);
+                        goto cleanup_scan;
+                      }
                       CDD_STRCPY(tmp_v, sizeof(tmp_v), effective_rename);
                     }
                     if (var_rep_from[0] != '\0') {
-                      rc_str = cdd_serde_replace_str(
-                          tmp_v, var_rep_from, var_rep_to, effective_rename,
-                          sizeof(effective_rename));
+                      rc = cdd_serde_replace_str(tmp_v, var_rep_from,
+                                                 var_rep_to, effective_rename,
+                                                 sizeof(effective_rename));
+                      if (rc != CDD_C_SUCCESS) {
+                        C_CDD_FREE(copy);
+                        goto cleanup_scan;
+                      }
                     }
                   }
-                  rc_str = enum_members_add_ex(
+                  rc = enum_members_add_ex(
                       curr_em, member_tok,
                       effective_rename[0] ? effective_rename : NULL, var_skip);
-                  if (rc_str != CDD_C_SUCCESS) {
-                    rc = rc_str;
+                  if (rc != CDD_C_SUCCESS) {
                     C_CDD_FREE(copy);
-                    copy = NULL;
-                    break;
+                    goto cleanup_scan;
                   }
                   if (var_other) {
                     curr_em->serde_other_idx = (int)(curr_em->size - 1);
                   }
                   if (var_cmt[0] != '\0') {
-                    rc_str = cdd_serde_parse_enum_variant_comment_ex(
+                    rc = cdd_serde_parse_enum_variant_comment_ex(
                         var_cmt, var_rename, sizeof(var_rename), &var_skip,
                         &var_case, var_rep_from, sizeof(var_rep_from),
                         var_rep_to, sizeof(var_rep_to), NULL, curr_em,
                         curr_em->size - 1);
-                    if (rc_str != CDD_C_SUCCESS) {
-                      rc = rc_str;
+                    if (rc != CDD_C_SUCCESS) {
                       C_CDD_FREE(copy);
-                      copy = NULL;
-                      break;
+                      goto cleanup_scan;
                     }
                   }
                 }
                 rc = next_delim_tok(&ctx, ',', &tok);
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(copy);
+                  goto cleanup_scan;
+                }
               }
-              if (copy) {
-                C_CDD_FREE(copy);
-                copy = NULL;
-              }
-              if (rc != CDD_C_SUCCESS)
-                break;
+              C_CDD_FREE(copy);
             }
           }
         } else if (state == ST_STRUCT) {
           if (*p) {
-            int is_cmt = 0;
+            int is_cmt = (p[0] == '/' && (p[1] == '*' || p[1] == '/')) ? 1 : 0;
             /* Check for nested `union {` inside tagged union struct */
             if (strncmp(p, "union", 5) == 0 &&
                 (isspace((unsigned char)p[5]) || p[5] == '{') &&
@@ -632,7 +649,6 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             }
             /* If the line is purely a comment, accumulate into
              * pending_comment for the next field */
-            rc = is_comment_start(p, &is_cmt);
             if (is_cmt) {
               size_t clen = strlen(p);
               size_t k;
@@ -648,17 +664,17 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                * while attaching trailing comments on the same line to the
                * preceding field */
               char *copy = NULL;
-              {
-                cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
-                if (rc_str != CDD_C_SUCCESS) {
-                  rc = rc_str;
-                  break;
-                }
-              }
+              rc = c_cdd_strdup(p, &copy);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_scan;
               {
                 char *ctx = copy;
                 char *tok = NULL;
                 rc = next_delim_tok(&ctx, ';', &tok);
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(copy);
+                  goto cleanup_scan;
+                }
                 while (tok) {
                   /* Ensure not just whitespace */
                   char *chk = tok;
@@ -669,49 +685,41 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                       /* Trailing comment after ';' on same line -> apply to
                        * most recently added field if any */
                       if (curr_sf->size > 0) {
-                        cdd_c_error_t rc_sc = cdd_serde_parse_field_comment(
+                        rc = cdd_serde_parse_field_comment(
                             chk, &curr_sf->fields[curr_sf->size - 1]);
-                        if (rc_sc != CDD_C_SUCCESS) {
-                          rc = rc_sc;
+                        if (rc != CDD_C_SUCCESS) {
                           C_CDD_FREE(copy);
-                          copy = NULL;
-                          break;
+                          goto cleanup_scan;
                         }
                       }
                     } else {
                       size_t prev_sz = curr_sf->size;
-                      cdd_c_error_t rc_str =
-                          parse_struct_member_line(tok, curr_sf);
-                      if (rc_str != CDD_C_SUCCESS) {
-                        rc = rc_str;
+                      rc = parse_struct_member_line(tok, curr_sf);
+                      if (rc != CDD_C_SUCCESS) {
                         C_CDD_FREE(copy);
-                        copy = NULL;
-                        break;
+                        goto cleanup_scan;
                       }
                       if (curr_sf->size > prev_sz &&
                           pending_comment[0] != '\0') {
-                        rc_str = cdd_serde_parse_field_comment(
+                        rc = cdd_serde_parse_field_comment(
                             pending_comment,
                             &curr_sf->fields[curr_sf->size - 1]);
+                        if (rc != CDD_C_SUCCESS) {
+                          C_CDD_FREE(copy);
+                          goto cleanup_scan;
+                        }
                         pending_comment[0] = '\0';
                         pending_len = 0;
-                        if (rc_str != CDD_C_SUCCESS) {
-                          rc = rc_str;
-                          C_CDD_FREE(copy);
-                          copy = NULL;
-                          break;
-                        }
                       }
                     }
                   }
                   rc = next_delim_tok(&ctx, ';', &tok);
+                  if (rc != CDD_C_SUCCESS) {
+                    C_CDD_FREE(copy);
+                    goto cleanup_scan;
+                  }
                 }
-                if (copy) {
-                  C_CDD_FREE(copy);
-                  copy = NULL;
-                }
-                if (rc != CDD_C_SUCCESS)
-                  break;
+                C_CDD_FREE(copy);
               }
             }
           }
@@ -735,19 +743,17 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           /* Definition Ended */
           if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
-              if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0) {
-                rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                     (int)enum_members_free(curr_em));
-                C_CDD_FREE(curr_em);
-              }
+              rc = add_type_def(out, KIND_ENUM, current_name, curr_em);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_scan;
               curr_em = NULL;
             } else {
               rc = c2s_collapse_arrays(curr_sf);
-              if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0) {
-                rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                     (int)struct_fields_free(curr_sf));
-                C_CDD_FREE(curr_sf);
-              }
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_scan;
+              rc = add_type_def(out, KIND_STRUCT, current_name, curr_sf);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup_scan;
               curr_sf = NULL;
             }
           } else {
@@ -770,24 +776,26 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         }
       }
     }
-    if (rc != CDD_C_SUCCESS)
-      break;
   }
 
-  /* Cleanup leftovers */
+cleanup_scan: {
+  cdd_c_error_t f1 = CDD_C_SUCCESS;
+  cdd_c_error_t f2 = CDD_C_SUCCESS;
+  cdd_c_error_t f3 = CDD_C_SUCCESS;
   if (curr_em) {
-    rc = (cdd_c_error_t)((int)rc | (int)enum_members_free(curr_em));
+    f1 = enum_members_free(curr_em);
     C_CDD_FREE(curr_em);
   }
   if (curr_sf) {
-    rc = (cdd_c_error_t)((int)rc | (int)struct_fields_free(curr_sf));
+    f2 = struct_fields_free(curr_sf);
     C_CDD_FREE(curr_sf);
   }
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)type_def_list_free(out));
+    f3 = type_def_list_free(out);
   }
   fclose(fp);
-  return rc;
+  return cdd_c_keep_err(rc, (cdd_c_error_t)((int)f1 | (int)f2 | (int)f3));
+}
 }
 
 /* --- Function Signature Logic --- */
@@ -841,7 +849,7 @@ cdd_c_error_t func_sig_list_free(struct FuncSigList *list) {
  * @param[in] start Inclusive start token index.
  * @param[in] end Exclusive end token index.
  * @param[out] _out_val Pointer to receive the allocated concatenated text.
- * @return CDD_C_SUCCESS on success.
+ * @return CDD_C_SUCCESS on success, or CDD_C_ERROR_MEMORY on OOM.
  */
 static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
                                        size_t start, size_t end,
@@ -856,7 +864,7 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
   buf = (char *)C_CDD_MALLOC(total_len + 1);
   if (!buf) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   p = buf;
@@ -865,10 +873,8 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
     p += tokens->tokens[i].length;
   }
   *p = '\0';
-  {
-    *_out_val = buf;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = buf;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -923,14 +929,11 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = tokenize(az_span_create_from_str(source_code), &tl);
-  if (rc == CDD_C_SUCCESS) {
-    rc = parse_tokens(tl, &cst);
-  }
-  if (rc != CDD_C_SUCCESS) {
-    if (tl) {
-      rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tl));
-    }
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  rc = parse_tokens(tl, &cst);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, token_list_free(tl));
   }
 
   for (i = 0; i < cst.size; ++i) {
@@ -995,37 +998,35 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
         }
 
         memset(&out->items[out->size], 0, sizeof(struct FuncSignature));
-        out->items[out->size].name = NULL;
         rc = extract_span_text(tl, name_idx, name_idx + 1,
                                &out->items[out->size].name);
-        out->items[out->size].sig = NULL;
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
         rc = extract_span_text(tl, start_idx, sig_end_idx,
                                &out->items[out->size].sig);
-        out->items[out->size].doc = NULL;
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(out->items[out->size].name);
+          goto cleanup;
+        }
         if (found_comment) {
           rc = extract_span_text(tl, comment_idx, comment_idx + 1,
                                  &out->items[out->size].doc);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(out->items[out->size].name);
+            C_CDD_FREE(out->items[out->size].sig);
+            goto cleanup;
+          }
         }
         out->items[out->size].is_variadic = is_variadic;
-
-        if (!out->items[out->size].name || !out->items[out->size].sig) {
-          if (out->items[out->size].name)
-            C_CDD_FREE(out->items[out->size].name);
-          if (out->items[out->size].sig)
-            C_CDD_FREE(out->items[out->size].sig);
-          if (out->items[out->size].doc)
-            C_CDD_FREE(out->items[out->size].doc);
-          rc = CDD_C_ERROR_MEMORY;
-          goto cleanup;
-        }
-        memset(out->items[out->size].return_type, 0,
-               sizeof(out->items[out->size].return_type));
-        out->items[out->size].params = NULL;
-        out->items[out->size].n_params = 0;
-        out->items[out->size].params_capacity = 0;
         rc = copy_token_span_trimmed(tl, start_idx, name_idx,
                                      out->items[out->size].return_type,
                                      sizeof(out->items[out->size].return_type));
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(out->items[out->size].name);
+          C_CDD_FREE(out->items[out->size].sig);
+          C_CDD_FREE(out->items[out->size].doc);
+          goto cleanup;
+        }
         {
           size_t p_start = lparen_idx + 1;
           int depth = 1;
@@ -1074,10 +1075,24 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
                     tl, p_start, last_id,
                     out->items[out->size].params[pidx].type,
                     sizeof(out->items[out->size].params[pidx].type));
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(out->items[out->size].name);
+                  C_CDD_FREE(out->items[out->size].sig);
+                  C_CDD_FREE(out->items[out->size].doc);
+                  C_CDD_FREE(out->items[out->size].params);
+                  goto cleanup;
+                }
                 rc = copy_token_span_trimmed(
                     tl, last_id, last_id + 1,
                     out->items[out->size].params[pidx].name,
                     sizeof(out->items[out->size].params[pidx].name));
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(out->items[out->size].name);
+                  C_CDD_FREE(out->items[out->size].sig);
+                  C_CDD_FREE(out->items[out->size].doc);
+                  C_CDD_FREE(out->items[out->size].params);
+                  goto cleanup;
+                }
                 out->items[out->size].n_params++;
               }
               p_start = cur + 1;
@@ -1090,8 +1105,8 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
     }
   }
 
-cleanup:
-  rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst) |
-                       (int)free_token_list(tl));
-  return rc;
+cleanup: {
+  return cdd_c_keep_err(
+      rc, cdd_c_keep_err(cst_node_list_free(&cst), token_list_free(tl)));
+}
 }

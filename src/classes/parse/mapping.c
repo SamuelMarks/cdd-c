@@ -60,17 +60,20 @@ cdd_c_error_t c_mapping_free(struct OpenApiTypeMapping *out) {
 }
 
 /**
- * @brief Adds or sets primitive.
+ * @brief Adds or sets primitive (promoting `kind` to `OA_TYPE_ARRAY` when
+ * `is_array` is non-zero).
  *
  * @param[out] out Target `OpenApiTypeMapping` structure.
  * @param[in] type OpenAPI primitive type string.
  * @param[in] fmt Optional OpenAPI format string.
+ * @param[in] is_array Non-zero if declarator is an array.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
-                                   const char *type, const char *fmt) {
+                                   const char *type, const char *fmt,
+                                   int is_array) {
   cdd_c_error_t rc_str;
-  out->kind = OA_TYPE_PRIMITIVE;
+  out->kind = is_array ? OA_TYPE_ARRAY : OA_TYPE_PRIMITIVE;
   rc_str = c_cdd_strdup(type, &out->oa_type);
   if (rc_str != CDD_C_SUCCESS)
     return rc_str;
@@ -86,15 +89,33 @@ static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
 }
 
 /**
- * @brief Adds or sets ref.
+ * @brief Adds or sets ref (promoting `kind` to `OA_TYPE_ARRAY` when `is_array`
+ * is non-zero).
  *
  * @param[out] out Target `OpenApiTypeMapping` structure.
  * @param[in] ref Schema reference name.
+ * @param[in] is_array Non-zero if declarator is an array.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
-static cdd_c_error_t set_ref(struct OpenApiTypeMapping *out, const char *ref) {
-  out->kind = OA_TYPE_OBJECT;
-  return c_cdd_strdup(ref, &out->ref_name);
+static cdd_c_error_t set_ref(struct OpenApiTypeMapping *out, const char *ref,
+                             int is_array) {
+  cdd_c_error_t rc = c_cdd_strdup(ref, &out->ref_name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  out->kind = is_array ? OA_TYPE_ARRAY : OA_TYPE_OBJECT;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Frees a heap buffer `p` and returns `err`.
+ *
+ * @param[in,out] p Heap buffer to free.
+ * @param[in] err Error code to return.
+ * @return `err`.
+ */
+static cdd_c_error_t mapping_free_and_return(void *p, cdd_c_error_t err) {
+  C_CDD_FREE(p);
+  return err;
 }
 
 /**
@@ -156,9 +177,8 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   if (p)
     *p = '\0';
 
-  rc = c_cdd_str_trim_trailing_whitespace(buf);
   *_out_val = buf;
-  return rc;
+  return c_cdd_str_trim_trailing_whitespace(buf);
 }
 
 /*
@@ -178,7 +198,7 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   const char *c_type = NULL;
   int is_ptr = 0;
   int is_array = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!c_type_in)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -201,49 +221,55 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   if (strchr(c_type, '<') && strchr(c_type, '>')) {
     /* Keep the exact type as object for templates so FFI extractor can parse it
      */
-    return set_ref(out, c_type);
+    return set_ref(out, c_type, 0);
   }
 
   /* Check for char* or char[] -> string */
   if (strstr(c_type, "char") && (is_ptr || is_array)) {
     /* Special case: strings are primitives in OpenAPI */
-    return set_primitive(out, "string", NULL);
+    return set_primitive(out, "string", NULL, 0);
   }
 
   /* Primitives */
   if (strstr(c_type, "int")) {
-    if (strstr(c_type, "long"))
-      rc = set_primitive(out, "integer", "int64");
-    else if (strstr(c_type, "short"))
-      rc = set_primitive(out, "integer", NULL);
-    else
-      rc = set_primitive(out, "integer", "int32");
-  } else if (strstr(c_type, "long") || strstr(c_type, "short")) {
-    /* Handle long/short without "int" (e.g. "unsigned short") */
-    if (strstr(c_type, "long"))
-      rc = set_primitive(out, "integer", "int64");
-    else
-      rc = set_primitive(out, "integer", NULL);
-  } else if (strstr(c_type, "float")) {
-    rc = set_primitive(out, "number", "float");
-  } else if (strstr(c_type, "double")) {
-    rc = set_primitive(out, "number", "double");
-  } else if (strstr(c_type, "bool") || strstr(c_type, "_Bool")) {
-    rc = set_primitive(out, "boolean", NULL);
-  } else if (strstr(c_type, "size_t")) {
-    rc = set_primitive(out, "integer", "int64"); /* Usually safe assumption */
-  } else if (strstr(c_type, "void")) {
-    /* void * usually maps to something generic or string, but void return is
-     * null */
-    /* If pointer: binary string? */
-    if (is_ptr)
-      rc = set_primitive(out, "string", "binary");
-    else
-      out->kind = OA_TYPE_UNKNOWN;
+    if (strstr(c_type, "long")) {
+      return set_primitive(out, "integer", "int64", is_array);
+    }
+    if (strstr(c_type, "short")) {
+      return set_primitive(out, "integer", NULL, is_array);
+    }
+    return set_primitive(out, "integer", "int32", is_array);
   }
+  if (strstr(c_type, "long") || strstr(c_type, "short")) {
+    /* Handle long/short without "int" (e.g. "unsigned short") */
+    if (strstr(c_type, "long")) {
+      return set_primitive(out, "integer", "int64", is_array);
+    }
+    return set_primitive(out, "integer", NULL, is_array);
+  }
+  if (strstr(c_type, "float")) {
+    return set_primitive(out, "number", "float", is_array);
+  }
+  if (strstr(c_type, "double")) {
+    return set_primitive(out, "number", "double", is_array);
+  }
+  if (strstr(c_type, "bool") || strstr(c_type, "_Bool")) {
+    return set_primitive(out, "boolean", NULL, is_array);
+  }
+  if (strstr(c_type, "size_t")) {
+    return set_primitive(out, "integer", "int64", is_array);
+  }
+  if (strstr(c_type, "void")) {
+    if (is_ptr) {
+      return set_primitive(out, "string", "binary", is_array);
+    }
+    out->kind = is_array ? OA_TYPE_ARRAY : OA_TYPE_UNKNOWN;
+    return CDD_C_SUCCESS;
+  }
+
   /* Structs / Enums */
-  else {
-    int starts1 = false, starts2 = false;
+  {
+    int starts1 = 0, starts2 = 0;
     rc = c_cdd_str_starts_with(c_type, "struct ", &starts1);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -252,45 +278,28 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
       return rc;
 
     if (starts1 || starts2) {
-      clean = NULL;
+      const char *start;
       rc = clean_type_str(c_type, &clean);
       if (rc != CDD_C_SUCCESS)
         return rc;
 
-      /* Skip "struct " (7 chars) or "enum " (5 chars) */
-      {
-        const char *start = clean;
-        if (strncmp(start, "struct ", 7) == 0)
-          start += 7;
-        else
-          start += 5;
+      start = clean;
+      if (strncmp(start, "struct ", 7) == 0)
+        start += 7;
+      else
+        start += 5;
 
-        while (isspace((unsigned char)*start))
-          start++; /* Trim logic */
+      while (isspace((unsigned char)*start))
+        start++;
 
-        rc = set_ref(out, start);
-      }
-      C_CDD_FREE(clean);
-    } else {
-      /* Fallback: Unknown type (defaults to string usually in schemas?) */
-      /* Keep generic T as object for templates */
-      if (strlen(c_type) == 1) {
-        rc = set_ref(out, c_type);
-      } else {
-        rc = set_primitive(out, "string", NULL);
-      }
+      return mapping_free_and_return(clean, set_ref(out, start, is_array));
     }
   }
 
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
-  /* Handle Arrays (Pointer to POD/Obj, but not char*) */
-  if (is_array) {
-    out->kind = OA_TYPE_ARRAY;
+  if (strlen(c_type) == 1) {
+    return set_ref(out, c_type, is_array);
   }
-
-  return CDD_C_SUCCESS;
+  return set_primitive(out, "string", NULL, is_array);
 }
 
 /**

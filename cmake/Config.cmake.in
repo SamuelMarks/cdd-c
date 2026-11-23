@@ -1,4 +1,5 @@
-
 @PACKAGE_INIT@
 
-include ( "${CMAKE_CURRENT_LIST_DIR}/c_cddTargets.cmake" )
+include(CMakeFindDependencyMacro)
+@_C_CDD_PACKAGE_FIND_DEPS@
+include("${CMAKE_CURRENT_LIST_DIR}/c_cddTargets.cmake")

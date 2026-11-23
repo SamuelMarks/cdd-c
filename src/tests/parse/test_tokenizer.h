@@ -800,6 +800,30 @@ TEST test_tokenizer_oom_and_edge_cases(void) {
   ASSERT(tl);
   g_cdd_last_alloc_err = free_token_list(tl);
 
+#ifdef CDD_BUILD_TESTS
+  {
+    static const char *const k_step_src =
+        "?\?=  # ## \\x \\uz \\u0041 a\\u0041 a\\uz a\\x in\\\nt ret\\\nurn "
+        "swi\\\ntch i\\\nf othe\\\nr 123 .5 123'456 123' \"a\\\\b\" 'x' +";
+    int step;
+    for (step = 1; step <= 400; ++step) {
+      tl = NULL;
+      g_cdd_step_fail = step;
+      rc = tokenize(az_span_create_from_str(k_step_src), &tl);
+      if (rc == CDD_C_SUCCESS) {
+        g_cdd_last_alloc_err = free_token_list(tl);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      } else {
+        ASSERT_EQ(NULL, tl);
+      }
+      g_cdd_step_fail = 0;
+    }
+  }
+#endif
+
   g_fail_io_after = -1;
   PASS();
 }

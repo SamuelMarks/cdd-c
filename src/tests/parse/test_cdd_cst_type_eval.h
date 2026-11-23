@@ -20,6 +20,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+/** @brief Deterministic fault-injection counter for CST type-eval helpers. */
+extern C_CDD_EXPORT int g_cdd_te_fail_step;
 /**
  * @brief Unit test test_cdd_cst_eval_primitive_type_basic.
  * @return Greatest test result.
@@ -1191,8 +1193,110 @@ TEST test_cdd_cst_eval_tokens_type_full_branches(void) {
                                    k_extra[c].mode, buf, sizeof(buf), &is_tn));
       ASSERT_STR_EQ(k_extra[c].expected, buf);
       ASSERT_EQ(k_extra[c].exp_is_type, is_tn);
+#ifdef CDD_BUILD_TESTS
+      {
+        int sf;
+        for (sf = 1; sf <= 80; sf++) {
+          cdd_c_error_t s_rc;
+          g_cdd_te_fail_step = sf;
+          s_rc = cdd_cst_eval_tokens_type(env, env->global_scope, tl->tokens,
+                                          tl->size, k_extra[c].mode, buf,
+                                          sizeof(buf), &is_tn);
+          g_cdd_te_fail_step = 0;
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+      }
+#endif
       ASSERT_EQ(CDD_C_SUCCESS, cdd_lexer_free_token_list(tl));
     }
+#ifdef CDD_BUILD_TESTS
+    /* Step-fail sweeps across additional expression forms & sizeof/alignof */
+    {
+      static const char *const k_step_exprs[] = {
+          "const struct Node",
+          "my_td_t",
+          "(int)1",
+          "1 ? 3.5 : 2",
+          "1 + 2.5",
+          "1 << 2",
+          "sizeof(int)",
+          "*g_nptr",
+          "&g_arr",
+          "(1).x",
+          "\"hi\"",
+          "'a'",
+          "1.0f",
+          "1.0L",
+          "1.0",
+          "1ULL",
+          "1L",
+          "get_cstr(1)",
+          "malloc(4)",
+          "strdup(\"x\")",
+          "unk_fn(1)",
+          "g_node.val",
+          "NULL",
+          "unk_var",
+          "g_arr[0]++",
+          ("1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+"
+           "1")};
+      size_t se;
+      int sf;
+      cdd_cst_node_t dn;
+      cdd_cst_child_t dc;
+      cdd_token_t dt;
+      size_t tsz = 0;
+
+      for (se = 0; se < sizeof(k_step_exprs) / sizeof(k_step_exprs[0]); se++) {
+        cdd_token_list_t *stl = NULL;
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_lexer_tokenize(az_span_create_from_str(k_step_exprs[se]),
+                                     &stl));
+        for (sf = 1; sf <= 120; sf++) {
+          cdd_c_error_t s_rc;
+          g_cdd_te_fail_step = sf;
+          s_rc = cdd_cst_eval_tokens_type(env, env->global_scope, stl->tokens,
+                                          stl->size, CDD_CST_TYPE_MODE_RVALUE,
+                                          buf, sizeof(buf), &is_tn);
+          g_cdd_te_fail_step = 0;
+          if (s_rc == CDD_C_SUCCESS)
+            break;
+        }
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_lexer_free_token_list(stl));
+      }
+
+      memset(&dn, 0, sizeof(dn));
+      memset(&dc, 0, sizeof(dc));
+      memset(&dt, 0, sizeof(dt));
+      dt.kind = CDD_TOKEN_IDENTIFIER;
+      dt.start = (const uint8_t *)"my_td_t";
+      dt.length = 7;
+      dc.kind = CDD_CST_CHILD_TOKEN;
+      dc.val.token = &dt;
+      dn.kind = CDD_CST_TYPE_SPECIFIER;
+      dn.children = &dc;
+      dn.num_children = 1;
+      for (sf = 1; sf <= 20; sf++) {
+        g_cdd_te_fail_step = sf;
+        if (cdd_cst_eval_sizeof(env, &dn, CDD_CST_ABI_LP64, &tsz) ==
+            CDD_C_SUCCESS) {
+          g_cdd_te_fail_step = 0;
+          break;
+        }
+        g_cdd_te_fail_step = 0;
+      }
+      for (sf = 1; sf <= 20; sf++) {
+        g_cdd_te_fail_step = sf;
+        if (cdd_cst_eval_alignof(env, &dn, CDD_CST_ABI_LP64, &tsz) ==
+            CDD_C_SUCCESS) {
+          g_cdd_te_fail_step = 0;
+          break;
+        }
+        g_cdd_te_fail_step = 0;
+      }
+    }
+#endif
   }
 
   ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(env));

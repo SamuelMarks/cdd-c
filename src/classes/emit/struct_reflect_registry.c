@@ -146,6 +146,10 @@ cdd_c_error_t cdd_reflect_register_type(const struct cdd_type_info *ti) {
 cdd_c_error_t cdd_reflect_type_by_name(const char *name,
                                        const struct cdd_type_info **out_ti) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!name || !out_ti)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_ti = NULL;
@@ -156,6 +160,20 @@ cdd_c_error_t cdd_reflect_type_by_name(const char *name,
     }
   }
   return CDD_C_ERROR_NOT_FOUND;
+}
+
+cdd_c_error_t cdd_reflect_lookup_type_opt(const char *name,
+                                          const struct cdd_type_info **out_ti) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_ti = NULL;
+  rc = cdd_reflect_type_by_name(name, out_ti);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -212,6 +230,50 @@ cdd_c_error_t cdd_reflect_enum_by_name(const char *name,
     }
   }
   return CDD_C_ERROR_NOT_FOUND;
+}
+
+cdd_c_error_t cdd_reflect_lookup_enum_opt(const char *name,
+                                          const struct cdd_enum_info **out_ei) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_ei = NULL;
+  rc = cdd_reflect_enum_by_name(name, out_ei);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+cdd_c_error_t cdd_reflect_lookup_enum_variant_opt(
+    const struct cdd_enum_info *ei, const char *name,
+    const struct cdd_enum_variant_info **out_ev) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_ev = NULL;
+  rc = cdd_reflect_find_enum_variant(ei, name, out_ev);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+cdd_c_error_t
+cdd_reflect_lookup_enum_value_opt(const struct cdd_enum_info *ei, int value,
+                                  const struct cdd_enum_variant_info **out_ev) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_ev = NULL;
+  rc = cdd_reflect_find_enum_by_value(ei, value, out_ev);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -570,10 +632,10 @@ static cdd_c_error_t resolve_path_mut(void *obj, const struct cdd_type_info *ti,
       {
         int is_ptr = 0;
         rc = cdd_reflect_is_obj_elem_ptr(cur_field, cur_ti, &is_ptr);
-        cur_obj = is_ptr ? *(void **)elem_ptr : elem_ptr;
+        if ((cur_obj = is_ptr ? *(void **)elem_ptr : elem_ptr) == NULL) {
+          return cdd_c_keep_err(CDD_C_ERROR_NOT_FOUND, rc);
+        }
       }
-      if (!cur_obj)
-        return CDD_C_ERROR_NOT_FOUND;
     } else {
       return CDD_C_ERROR_NOT_FOUND;
     }

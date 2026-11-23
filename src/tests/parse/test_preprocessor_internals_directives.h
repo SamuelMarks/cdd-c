@@ -608,7 +608,7 @@ TEST test_pp_100_cov_directives(void) {
   g_cdd_last_alloc_err =
       write_to_file(test_file, "#include \"test_inc_exist.h\"\n");
   rc = pp_scan_includes(test_file, &ctx, test_scan_inc_abort_cb, &count);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   remove("test_inc_exist.h");
 
   g_cdd_last_alloc_err = pp_context_free(&ctx);

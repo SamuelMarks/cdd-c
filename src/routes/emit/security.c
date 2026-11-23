@@ -278,6 +278,10 @@ codegen_security_requires_query(const struct OpenAPI_Operation *op,
   int security_set = 0;
   size_t i;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out_requires)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -324,6 +328,10 @@ codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
   int security_set = 0;
   size_t i;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out_requires)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -353,33 +361,137 @@ codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
 }
 
 /**
+ * @brief Emits active client security scheme blocks starting at `idx`.
+ *
+ * @param[in,out] fp Output file stream.
+ * @param[in] spec Full OpenAPI specification.
+ * @param[in] active_sets Active security requirement sets.
+ * @param[in] n_active_sets Count of active requirement sets.
+ * @param[in] security_set Non-zero if operation-level security is set.
+ * @param[in] idx Current security scheme index.
+ * @param[in,out] io_has_security Set to 1 if any security block was emitted.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t codegen_security_emit_client_schemes(
+    FILE *fp, const struct OpenAPI_Spec *spec,
+    const struct OpenAPI_SecurityRequirementSet *active_sets,
+    size_t n_active_sets, int security_set, size_t idx, int *io_has_security) {
+  const struct OpenAPI_SecurityScheme *sch;
+  int is_active = 0;
+  cdd_c_error_t rc;
+  if (idx >= spec->n_security_schemes)
+    return CDD_C_SUCCESS;
+  sch = &spec->security_schemes[idx];
+  rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
+                        &is_active);
+  if (!is_active) {
+    return cdd_c_keep_err(rc, codegen_security_emit_client_schemes(
+                                  fp, spec, active_sets, n_active_sets,
+                                  security_set, idx + 1, io_has_security));
+  }
+
+  /* Scheme: API Key (Header) */
+  if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_HEADER) {
+    if (sch->name && sch->key_name) {
+      fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
+      fprintf(fp,
+              "    rc = (cdd_c_error_t)http_headers_add(&req.headers, \"%s\", "
+              "NULL /* api_key_%s */);\n    if (rc != CDD_C_SUCCESS) goto "
+              "cleanup;\n",
+              sch->key_name, sch->name);
+      fprintf(fp, "  }\n");
+      *io_has_security = 1;
+    }
+  } else if ((sch->type == OA_SEC_HTTP && sch->scheme &&
+              strcmp(sch->scheme, "bearer") == 0) ||
+             sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
+    fprintf(fp, "  { const char *bearer_token = NULL; if (bearer_token) {\n");
+    fprintf(fp, "    rc = (cdd_c_error_t)http_request_set_auth_bearer(&req, "
+                "NULL /* bearer_token */);\n");
+    fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
+    fprintf(fp, "  } }\n");
+    *io_has_security = 1;
+  } else if (sch->type == OA_SEC_HTTP && sch->scheme &&
+             strcmp(sch->scheme, "basic") == 0) {
+    fprintf(fp, "  if (0 /* basic_token */) {\n");
+    fprintf(fp, "    rc = (cdd_c_error_t)http_request_set_auth_basic(&req, "
+                "NULL /* basic_token */);\n");
+    fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
+    fprintf(fp, "  }\n");
+    *io_has_security = 1;
+  } else if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_QUERY) {
+    if (sch->name && sch->key_name) {
+      fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
+      fprintf(fp, "    if (!qp_initialized) {\n");
+      fprintf(fp, "      rc = url_query_init(&qp);\n");
+      fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n");
+      fprintf(fp, "      qp_initialized = 1;\n");
+      fprintf(fp, "    }\n");
+      fprintf(fp,
+              "    rc = url_query_add(&qp, \"%s\", "
+              "NULL /* api_key_%s */);\n",
+              sch->key_name, sch->name);
+      fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
+      fprintf(fp, "  }\n");
+      *io_has_security = 1;
+    }
+  } else if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_COOKIE) {
+    if (sch->name && sch->key_name) {
+      fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
+      fprintf(fp, "    const char *cookie_val = NULL /* api_key_%s */;\n",
+              sch->name);
+      fprintf(fp, "    if (cookie_val) {\n");
+      fprintf(fp, "      size_t name_len = strlen(\"%s\");\n", sch->key_name);
+      fprintf(fp, "      size_t val_len = strlen(cookie_val);\n");
+      fprintf(fp, "      size_t extra = name_len + 1 + val_len + "
+                  "(cookie_len ? 2 : 0);\n");
+      fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
+                  "cookie_len + "
+                  "extra + 1);\n");
+      fprintf(fp,
+              "      if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n");
+      fprintf(fp, "      cookie_str = tmp;\n");
+      fprintf(fp, "      if (cookie_len) { cookie_str[cookie_len++] = ';'; "
+                  "cookie_str[cookie_len++] = ' '; }\n");
+      fprintf(fp, "      memcpy(cookie_str + cookie_len, \"%s\", name_len);\n",
+              sch->key_name);
+      fprintf(fp, "      cookie_len += name_len;\n");
+      fprintf(fp, "      cookie_str[cookie_len++] = '=';\n");
+      fprintf(fp,
+              "      memcpy(cookie_str + cookie_len, cookie_val, val_len);\n");
+      fprintf(fp, "      cookie_len += val_len;\n");
+      fprintf(fp, "      cookie_str[cookie_len] = '\\0';\n");
+      fprintf(fp, "    }\n");
+      fprintf(fp, "  }\n");
+      *io_has_security = 1;
+    }
+  }
+
+  return cdd_c_keep_err(rc, codegen_security_emit_client_schemes(
+                                fp, spec, active_sets, n_active_sets,
+                                security_set, idx + 1, io_has_security));
+}
+
+/*
  * @brief Generate code to apply authentication headers/params.
  *
- * Scans `spec->components.securitySchemes`.
- * Honors root or operation-level `security` requirements when present,
- * otherwise falls back to applying all schemes (legacy behavior).
- *
- * Generates C logic checking `ctx->security` fields and injecting:
- * - `Authorization: Bearer ...` (HTTP Bearer, OAuth2, OpenID Connect)
- * - `Authorization: Basic ...` (HTTP Basic; token is base64 of "user:pass")
- * - `X-Api-Key: ...` (API Key in Header)
- * - Query params for `apiKey` in query
- * - Cookie params for `apiKey` in cookie
- *
  * @param[in] fp Output file stream.
- * @param[in] op The operation context (unused currently, for future scopes).
+ * @param[in] op The operation context.
  * @param[in] spec The full spec containing security definitions.
- * @return 0 on success, error code on failure.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t codegen_security_write_apply(FILE *fp,
                                            const struct OpenAPI_Operation *op,
                                            const struct OpenAPI_Spec *spec) {
-  size_t i;
   int has_security = 0;
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
   size_t n_active_sets = 0;
   int security_set = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!fp || !op || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -396,108 +508,11 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
     return rc; /* No schemes defined, nothing to inject */
   }
 
-  for (i = 0; i < spec->n_security_schemes; ++i) {
-    const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
-    int is_active = 0;
-    rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
-                          &is_active);
-    if (!is_active)
-      continue;
-
-    /* Scheme: API Key (Header) */
-    if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_HEADER) {
-      if (sch->name && sch->key_name) {
-        /* "if (ctx->security.api_key_NAME) ..." */
-        fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
-        fprintf(
-            fp,
-            "    rc = (cdd_c_error_t)http_headers_add(&req.headers, \"%s\", "
-            "NULL /* api_key_%s */);\n    if (rc != CDD_C_SUCCESS) goto "
-            "cleanup;\n",
-            sch->key_name, sch->name);
-        fprintf(fp, "  }\n");
-        has_security = 1;
-      }
-    }
-    /* Scheme: HTTP Bearer, OAuth2, or OpenID Connect (Bearer token) */
-    else if ((sch->type == OA_SEC_HTTP && sch->scheme &&
-              strcmp(sch->scheme, "bearer") == 0) ||
-             sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
-
-      /* Usually generic, or scoped by scheme name if multiple exist */
-      fprintf(fp, "  { const char *bearer_token = NULL; if (bearer_token) {\n");
-      fprintf(fp, "    rc = (cdd_c_error_t)http_request_set_auth_bearer(&req, "
-                  "NULL /* bearer_token */);\n");
-      fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
-      fprintf(fp, "  } }\n");
-      has_security = 1;
-    }
-    /* Scheme: HTTP Basic (token must be base64 of "user:pass") */
-    else if (sch->type == OA_SEC_HTTP && sch->scheme &&
-             strcmp(sch->scheme, "basic") == 0) {
-      fprintf(fp, "  if (0 /* basic_token */) {\n");
-      fprintf(fp, "    rc = (cdd_c_error_t)http_request_set_auth_basic(&req, "
-                  "NULL /* basic_token */);\n");
-      fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
-      fprintf(fp, "  }\n");
-      has_security = 1;
-    }
-    /* Scheme: API Key (Query) */
-    else if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_QUERY) {
-      if (sch->name && sch->key_name) {
-        fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
-        fprintf(fp, "    if (!qp_initialized) {\n");
-        fprintf(fp, "      rc = url_query_init(&qp);\n");
-        fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n");
-        fprintf(fp, "      qp_initialized = 1;\n");
-        fprintf(fp, "    }\n");
-        fprintf(fp,
-                "    rc = url_query_add(&qp, \"%s\", "
-                "NULL /* api_key_%s */);\n",
-                sch->key_name, sch->name);
-        fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
-        fprintf(fp, "  }\n");
-        has_security = 1;
-      }
-    }
-    /* Scheme: API Key (Cookie) */
-    else if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_COOKIE) {
-      if (sch->name && sch->key_name) {
-        fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
-        fprintf(fp, "    const char *cookie_val = NULL /* api_key_%s */;\n",
-                sch->name);
-        fprintf(fp, "    if (cookie_val) {\n");
-        fprintf(fp, "      size_t name_len = strlen(\"%s\");\n", sch->key_name);
-        fprintf(fp, "      size_t val_len = strlen(cookie_val);\n");
-        fprintf(fp, "      size_t extra = name_len + 1 + val_len + "
-                    "(cookie_len ? 2 : 0);\n");
-        fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
-                    "cookie_len + "
-                    "extra + 1);\n");
-        fprintf(fp,
-                "      if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n");
-        fprintf(fp, "      cookie_str = tmp;\n");
-        fprintf(fp, "      if (cookie_len) { cookie_str[cookie_len++] = ';'; "
-                    "cookie_str[cookie_len++] = ' '; }\n");
-        fprintf(fp,
-                "      memcpy(cookie_str + cookie_len, \"%s\", name_len);\n",
-                sch->key_name);
-        fprintf(fp, "      cookie_len += name_len;\n");
-        fprintf(fp, "      cookie_str[cookie_len++] = '=';\n");
-        fprintf(
-            fp,
-            "      memcpy(cookie_str + cookie_len, cookie_val, val_len);\n");
-        fprintf(fp, "      cookie_len += val_len;\n");
-        fprintf(fp, "      cookie_str[cookie_len] = '\\0';\n");
-        fprintf(fp, "    }\n");
-        fprintf(fp, "  }\n");
-        has_security = 1;
-      }
-    }
-  }
-
+  rc = codegen_security_emit_client_schemes(
+      fp, spec, active_sets, n_active_sets, security_set, 0, &has_security);
   if (has_security) {
     fprintf(fp, "\n");
+    return rc;
   }
 
   return CDD_C_SUCCESS;
@@ -540,28 +555,28 @@ codegen_security_write_server_apply(FILE *fp,
     int is_active = 0;
     rc = scheme_is_active(sch, active_sets, n_active_sets, security_set, spec,
                           &is_active);
-    if (!is_active)
-      continue;
-
-    if ((sch->type == OA_SEC_HTTP && sch->scheme &&
-         strcmp(sch->scheme, "bearer") == 0) ||
-        sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
-      if ((int)FPRINTF_HOOK(fp, "    /* Validate Bearer Token / OAuth2 */\n") <
-          0)
-        return CDD_C_ERROR_IO;
-      fprintf(fp, "    if (c_rest_middleware_bearer_auth(conn) != 0) {\n");
-      fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
-                  "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
-      fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
-      fprintf(fp, "    }\n");
-    } else if (sch->type == OA_SEC_HTTP && sch->scheme &&
-               strcmp(sch->scheme, "basic") == 0) {
-      fprintf(fp, "    /* Validate Basic Auth */\n");
-      fprintf(fp, "    if (c_rest_middleware_basic_auth(conn) != 0) {\n");
-      fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
-                  "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
-      fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
-      fprintf(fp, "    }\n");
+    if (is_active) {
+      if ((sch->type == OA_SEC_HTTP && sch->scheme &&
+           strcmp(sch->scheme, "bearer") == 0) ||
+          sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
+        if ((int)FPRINTF_HOOK(
+                fp, "    /* Validate Bearer Token / OAuth2 */\n") < 0) {
+          return cdd_c_keep_err(CDD_C_ERROR_IO, rc);
+        }
+        fprintf(fp, "    if (c_rest_middleware_bearer_auth(conn) != 0) {\n");
+        fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
+                    "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
+        fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
+        fprintf(fp, "    }\n");
+      } else if (sch->type == OA_SEC_HTTP && sch->scheme &&
+                 strcmp(sch->scheme, "basic") == 0) {
+        fprintf(fp, "    /* Validate Basic Auth */\n");
+        fprintf(fp, "    if (c_rest_middleware_basic_auth(conn) != 0) {\n");
+        fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
+                    "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
+        fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
+        fprintf(fp, "    }\n");
+      }
     }
   }
 

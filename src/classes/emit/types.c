@@ -83,9 +83,15 @@ write_union_to_json_func(FILE *fp, const char *union_name,
         !sf->serde_untagged) {
       char esc_tag[128], esc_val[128], esc_cnt[128];
       rc_esc = cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
+      if (rc_esc != CDD_C_SUCCESS)
+        return rc_esc;
       rc_esc = cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
+      if (rc_esc != CDD_C_SUCCESS)
+        return rc_esc;
       rc_esc =
           cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
+      if (rc_esc != CDD_C_SUCCESS)
+        return rc_esc;
       CHECK_IO(FPRINTF_HOOK(fp,
                             "      rc = c89stringutils_jasprintf(json, "
                             "\"{\\\"%s\\\":\\\"%s\\\",\\\"%s\\\":\");\n"
@@ -137,7 +143,11 @@ write_union_to_json_func(FILE *fp, const char *union_name,
           !sf->serde_untagged) {
         char esc_tag[128], esc_val[128];
         rc_esc = cdd_escape_json_c_str(sf->serde_tag, esc_tag, sizeof(esc_tag));
+        if (rc_esc != CDD_C_SUCCESS)
+          return rc_esc;
         rc_esc = cdd_escape_json_c_str(disc_val, esc_val, sizeof(esc_val));
+        if (rc_esc != CDD_C_SUCCESS)
+          return rc_esc;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "      {\n"
@@ -311,6 +321,8 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
   if (!sf->serde_untagged && disc_tag && disc_tag[0]) {
     char esc_tag[128];
     rc_esc = cdd_escape_json_c_str(disc_tag, esc_tag, sizeof(esc_tag));
+    if (rc_esc != CDD_C_SUCCESS)
+      return rc_esc;
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  {\n"
@@ -338,6 +350,8 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       if (strcmp(type, "object") != 0 && sf->serde_content[0] == '\0')
         continue;
       rc_esc = cdd_escape_json_c_str(disc_val, esc_dval, sizeof(esc_dval));
+      if (rc_esc != CDD_C_SUCCESS)
+        return rc_esc;
       CHECK_IO(
           FPRINTF_HOOK(fp, "      if (strcmp(disc, \"%s\") == 0", esc_dval));
       for (a_idx = 0; a_idx < vf->n_serde_aliases; ++a_idx) {
@@ -345,6 +359,8 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
           char esc_al[128];
           rc_esc = cdd_escape_json_c_str(vf->serde_aliases[a_idx], esc_al,
                                          sizeof(esc_al));
+          if (rc_esc != CDD_C_SUCCESS)
+            return rc_esc;
           CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(disc, \"%s\") == 0", esc_al));
         }
       }
@@ -355,6 +371,8 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
         char esc_cnt[128];
         rc_esc =
             cdd_escape_json_c_str(sf->serde_content, esc_cnt, sizeof(esc_cnt));
+        if (rc_esc != CDD_C_SUCCESS)
+          return rc_esc;
         if (strcmp(type, "object") == 0) {
           cdd_c_error_t rc_ref = get_type_from_ref(ref, &ref_type);
           if (rc_ref != CDD_C_SUCCESS)

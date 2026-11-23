@@ -111,8 +111,7 @@ static cdd_c_error_t parse_two_segments(const char *rest, size_t head_len,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = dup_slice(rem, rem_len, second_out);
-  return rc;
+  return dup_slice(rem, rem_len, second_out);
 }
 
 /*

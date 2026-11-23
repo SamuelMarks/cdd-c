@@ -136,6 +136,10 @@ static cdd_c_error_t resolve_schema_c_name(const char *raw_name,
   int needs_san = 0;
   cdd_c_error_t rc;
   cdd_c_error_t rc_opt;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   rc_opt = cdd_json_object_get_string(s, "x-cdd-c-name", &c_name_ext);
   if (c_name_ext && c_name_ext[0] != '\0') {
@@ -144,16 +148,61 @@ static cdd_c_error_t resolve_schema_c_name(const char *raw_name,
   }
   rc = c2s_needs_identifier_sanitization(raw_name, &needs_san);
   if (needs_san) {
-    if (sanitize_identifier(raw_name, &san_name) != CDD_C_SUCCESS)
-      return CDD_C_ERROR_MEMORY;
+    cdd_c_error_t rc_san = sanitize_identifier(raw_name, &san_name);
+    if (rc_san != CDD_C_SUCCESS)
+      return rc_san;
     CDD_STRCPY(out_name, 64, san_name);
     C_CDD_FREE(san_name);
     return rc;
   }
+
   CDD_STRCPY(out_name, 64, raw_name);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Extracts a schema entry at index `idx` from `schemas_obj` and checks
+ * whether it describes an object/struct schema (`"type": "object"` or has
+ * `"properties"`).
+ *
+ * @param[in] schemas_obj Schemas JSON object map.
+ * @param[in] idx Zero-based schema index.
+ * @param[out] out_name Schema key name.
+ * @param[out] out_schema Schema JSON object (or NULL if entry is not an
+ * object).
+ * @param[out] out_is_obj Set to 1 if `out_schema` represents a struct/object
+ * schema, 0 otherwise.
+ * @return CDD_C_SUCCESS on success.
+ */
+static cdd_c_error_t schema_entry_at(const JSON_Object *schemas_obj, size_t idx,
+                                     const char **out_name,
+                                     JSON_Object **out_schema,
+                                     int *out_is_obj) {
+  JSON_Value *val_at = schemas_obj->values[idx];
+  JSON_Object *s = (val_at->type == JSONObject) ? val_at->object_val : NULL;
+  const char *type = NULL;
+  JSON_Object *props = NULL;
+  cdd_c_error_t rc_t;
+  cdd_c_error_t rc_p;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_name = schemas_obj->names[idx];
+  *out_schema = s;
+  rc_t = cdd_json_object_get_string(s, "type", &type);
+  if (rc_t == CDD_C_SUCCESS && strcmp(type, "object") == 0) {
+    *out_is_obj = 1;
+    return rc_t;
+  }
+  rc_p = cdd_json_object_get_object(s, "properties", &props);
+  if (rc_p == CDD_C_SUCCESS) {
+    *out_is_obj = 1;
+    return rc_p;
+  }
+  *out_is_obj = 0;
+  return CDD_C_SUCCESS;
+}
 /**
  * @brief Generates a C header file (`<prefix>.h`) for the given JSON Schemas.
  *
@@ -240,100 +289,82 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
   F_CHECK_RC_TESTABLE(cdd_json_object_get_count(schemas_obj, &count));
   for (i = 0; i < count; i++) {
     const char *raw_name = NULL;
-    JSON_Value *val_at = NULL;
     JSON_Object *s = NULL;
     struct StructFields sf;
+    int is_obj_hint = 0;
     int is_object_schema = 0;
-    const char *type = NULL;
-    JSON_Object *props = NULL;
     char c_name[64];
-    cdd_c_error_t rc_it;
-    cdd_c_error_t rc_opt;
+    cdd_c_error_t rc_step;
 
-    rc_it = cdd_json_object_get_name(schemas_obj, i, &raw_name);
-    rc_it = (cdd_c_error_t)((int)rc_it | (int)cdd_json_object_get_value_at(
-                                             schemas_obj, i, &val_at));
-    rc_opt = cdd_json_value_get_object(val_at, &s);
-    rc_opt = (cdd_c_error_t)((int)rc_opt |
-                             (int)cdd_json_object_get_string(s, "type", &type));
-    rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_object(
-                                               s, "properties", &props));
+    F_CHECK_RC_TESTABLE(
+        schema_entry_at(schemas_obj, i, &raw_name, &s, &is_obj_hint));
 
-    if (resolve_schema_c_name(raw_name, s, c_name) != CDD_C_SUCCESS) {
+    rc_step = resolve_schema_c_name(raw_name, s, c_name);
+    if (rc_step != CDD_C_SUCCESS) {
       fclose(fp);
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                             ((int)rc_it + (int)rc_opt * 0));
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_step);
     }
 
-    if (struct_fields_init(&sf) != 0) {
+    rc_step = struct_fields_init(&sf);
+    if (rc_step != CDD_C_SUCCESS) {
       fclose(fp);
-      return CDD_C_ERROR_MEMORY;
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_step);
     }
-    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
-                                                raw_name) != 0) {
-      rc_it = (cdd_c_error_t)((int)rc_it | (int)struct_fields_free(&sf));
+    rc_step =
+        json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, raw_name);
+    if (rc_step != CDD_C_SUCCESS) {
       fclose(fp);
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY | (int)rc_it);
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                            cdd_c_keep_err(rc_step, struct_fields_free(&sf)));
     }
 
-    is_object_schema =
-        (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
+    is_object_schema = is_obj_hint || sf.size > 0;
 
     if (sf.is_union || is_object_schema) {
       F_CHECK_RC_TESTABLE_SF(write_forward_decl(fp, c_name));
     }
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)struct_fields_free(&sf));
+    rc_fn = struct_fields_free(&sf);
   }
   fprintf(fp, "\n");
 
   /* Pass 2: Definitions */
-  count = 0;
-  rc_fn = (cdd_c_error_t)((int)rc_fn |
-                          (int)cdd_json_object_get_count(schemas_obj, &count));
+  count = schemas_obj->count;
   for (i = 0; i < count; i++) {
     const char *raw_name = NULL;
-    JSON_Value *val_at = NULL;
     JSON_Object *s = NULL;
     struct StructFields sf;
+    int is_obj_hint = 0;
     int is_object_schema = 0;
-    const char *type = NULL;
-    JSON_Object *props = NULL;
     char c_name[64];
-    cdd_c_error_t rc_it;
-    cdd_c_error_t rc_opt;
+    cdd_c_error_t rc_step;
 
-    rc_it = cdd_json_object_get_name(schemas_obj, i, &raw_name);
-    rc_it = (cdd_c_error_t)((int)rc_it | (int)cdd_json_object_get_value_at(
-                                             schemas_obj, i, &val_at));
-    rc_opt = cdd_json_value_get_object(val_at, &s);
-    rc_opt = (cdd_c_error_t)((int)rc_opt |
-                             (int)cdd_json_object_get_string(s, "type", &type));
-    rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_object(
-                                               s, "properties", &props));
+    F_CHECK_RC_TESTABLE(
+        schema_entry_at(schemas_obj, i, &raw_name, &s, &is_obj_hint));
 
-    if (resolve_schema_c_name(raw_name, s, c_name) != CDD_C_SUCCESS) {
+    rc_step = resolve_schema_c_name(raw_name, s, c_name);
+    if (rc_step != CDD_C_SUCCESS) {
       fclose(fp);
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                             ((int)rc_it + (int)rc_opt * 0));
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_step);
     }
 
-    if (struct_fields_init(&sf) != 0) {
+    rc_step = struct_fields_init(&sf);
+    if (rc_step != CDD_C_SUCCESS) {
       fclose(fp);
-      return CDD_C_ERROR_MEMORY;
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_step);
     }
-    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
-                                                raw_name) != 0) {
-      rc_it = (cdd_c_error_t)((int)rc_it | (int)struct_fields_free(&sf));
+    rc_step =
+        json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, raw_name);
+    if (rc_step != CDD_C_SUCCESS) {
       fclose(fp);
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY | (int)rc_it);
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                            cdd_c_keep_err(rc_step, struct_fields_free(&sf)));
     }
 
     if (strcmp(c_name, raw_name) != 0 && sf.serde_rename[0] == '\0') {
       CDD_STRCPY(sf.serde_rename, sizeof(sf.serde_rename), raw_name);
     }
 
-    is_object_schema =
-        (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
+    is_object_schema = is_obj_hint || sf.size > 0;
 
     if (sf.is_enum) {
       F_CHECK_RC_TESTABLE_SF(write_enum_declaration_h(fp, c_name, &sf, config));
@@ -468,45 +499,36 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
     F_CHECK_RC_TESTABLE(cdd_json_object_get_count(schemas_obj, &count));
     for (i = 0; i < count; i++) {
       const char *raw_name = NULL;
-      JSON_Value *val_at = NULL;
       JSON_Object *s = NULL;
-      const char *type = NULL;
-      JSON_Object *props = NULL;
       char name[64];
       struct StructFields sf;
+      int is_obj_hint = 0;
       int is_object_schema = 0;
-      cdd_c_error_t rc_it;
-      cdd_c_error_t rc_opt;
+      cdd_c_error_t rc_step;
 
-      rc_it = cdd_json_object_get_name(schemas_obj, i, &raw_name);
-      rc_it = (cdd_c_error_t)((int)rc_it | (int)cdd_json_object_get_value_at(
-                                               schemas_obj, i, &val_at));
-      rc_opt = cdd_json_value_get_object(val_at, &s);
-      rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_string(
-                                                 s, "type", &type));
-      rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_object(
-                                                 s, "properties", &props));
+      F_CHECK_RC_TESTABLE(
+          schema_entry_at(schemas_obj, i, &raw_name, &s, &is_obj_hint));
 
-      if (resolve_schema_c_name(raw_name, s, name) != CDD_C_SUCCESS) {
+      rc_step = resolve_schema_c_name(raw_name, s, name);
+      if (rc_step != CDD_C_SUCCESS) {
         fclose(fp);
-        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                               ((int)rc_it + (int)rc_opt * 0));
+        return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_step);
       }
 
-      if (struct_fields_init(&sf) != 0) {
+      rc_step = struct_fields_init(&sf);
+      if (rc_step != CDD_C_SUCCESS) {
         fclose(fp);
-        return CDD_C_ERROR_MEMORY;
+        return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_step);
       }
-      if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
-                                                  raw_name) != 0) {
-        rc_it = (cdd_c_error_t)((int)rc_it | (int)struct_fields_free(&sf));
+      rc_step = json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj,
+                                                        raw_name);
+      if (rc_step != CDD_C_SUCCESS) {
         fclose(fp);
-        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                               (int)rc_it); /* Parse error */
+        return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                              cdd_c_keep_err(rc_step, struct_fields_free(&sf)));
       }
 
-      is_object_schema =
-          (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
+      is_object_schema = is_obj_hint || sf.size > 0;
 
       if (sf.is_enum) {
         F_CHECK_RC_TESTABLE_SF(
@@ -553,11 +575,36 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
             write_struct_eq_func(fp, name, &sf, &struct_cfg));
       }
 
-      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)struct_fields_free(&sf));
+      rc_fn = struct_fields_free(&sf);
     }
     fclose(fp);
     return rc_fn;
   }
+}
+
+/**
+ * @brief Locates the schemas JSON object map (`components.schemas` or `$defs`)
+ * from a parsed root JSON value.
+ *
+ * @param[in] root Parsed root JSON value.
+ * @param[out] out_schemas Resolved schemas map object.
+ * @return CDD_C_SUCCESS if found, or error code if absent/invalid.
+ */
+static cdd_c_error_t extract_schemas_map(const JSON_Value *root,
+                                         JSON_Object **out_schemas) {
+  JSON_Object *root_obj = (root->type == JSONObject) ? root->object_val : NULL;
+  JSON_Object *comp = NULL;
+  cdd_c_error_t rc;
+  *out_schemas = NULL;
+  rc = cdd_json_object_get_object(root_obj, "components", &comp);
+  if (rc == CDD_C_SUCCESS) {
+    cdd_c_error_t rc_s =
+        cdd_json_object_get_object(comp, "schemas", out_schemas);
+    if (rc_s == CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc_s, rc);
+    }
+  }
+  return cdd_json_object_get_object(root_obj, "$defs", out_schemas);
 }
 
 /*
@@ -573,10 +620,8 @@ cdd_c_error_t schema2code_main(int argc, char **argv) {
   char *basename = NULL;
   struct CodegenConfig config = {0};
   JSON_Value *root = NULL;
-  JSON_Object *root_obj = NULL;
   JSON_Object *schemas = NULL;
-  cdd_c_error_t rc_opt;
-  cdd_c_error_t rc_free;
+  cdd_c_error_t rc;
   int i;
 
   if (argc < 2) {
@@ -584,69 +629,49 @@ cdd_c_error_t schema2code_main(int argc, char **argv) {
   }
   schema_file = argv[0];
   prefix = argv[1];
-  if (get_basename(prefix, &basename) != 0) {
-    return CDD_C_ERROR_UNKNOWN;
+  rc = get_basename(prefix, &basename);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(CDD_C_ERROR_UNKNOWN, rc);
   }
 
   for (i = 2; i < argc; ++i) {
-    int starts = 0;
-    cdd_c_error_t rc_sw = str_starts_with(argv[i], "--guard-enum=", &starts);
-    if (starts) {
+    if (strncmp(argv[i], "--guard-enum=", 13) == 0) {
       config.enum_guard = argv[i] + 13;
-    } else {
-      rc_sw = str_starts_with(argv[i], "--guard-json=", &starts);
-      if (starts) {
-        config.json_guard = argv[i] + 13;
-      } else {
-        rc_sw = str_starts_with(argv[i], "--guard-utils=", &starts);
-        if (starts)
-          config.utils_guard = argv[i] + 14;
-      }
-    }
-    starts += (int)rc_sw;
-  }
-
-  {
-    cdd_c_error_t rc_pf = cdd_json_parse_file(schema_file, &root);
-    if (!root) {
-      C_CDD_FREE(basename);
-      return (cdd_c_error_t)(CDD_C_ERROR_UNKNOWN + (int)rc_pf * 0);
+    } else if (strncmp(argv[i], "--guard-json=", 13) == 0) {
+      config.json_guard = argv[i] + 13;
+    } else if (strncmp(argv[i], "--guard-utils=", 14) == 0) {
+      config.utils_guard = argv[i] + 14;
     }
   }
 
-  rc_opt = cdd_json_value_get_object(root, &root_obj);
-  rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_object(
-                                             root_obj, "components", &schemas));
-  if (schemas) {
-    rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_object(
-                                               schemas, "schemas", &schemas));
-  }
-  if (!schemas) {
-    rc_opt = (cdd_c_error_t)((int)rc_opt | (int)cdd_json_object_get_object(
-                                               root_obj, "$defs", &schemas));
+  rc = cdd_json_parse_file(schema_file, &root);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(basename);
+    return cdd_c_keep_err(CDD_C_ERROR_UNKNOWN, rc);
   }
 
-  if (!schemas) {
-    rc_free = cdd_json_value_free(root);
+  rc = extract_schemas_map(root, &schemas);
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(basename);
-    return (cdd_c_error_t)((int)CDD_C_ERROR_UNKNOWN |
-                           ((int)rc_free + (int)rc_opt * 0));
+    return cdd_c_keep_err(CDD_C_ERROR_UNKNOWN,
+                          cdd_c_keep_err(rc, cdd_json_value_free(root)));
   }
 
-  if (generate_header(prefix, basename, schemas, &config) != 0) {
-    rc_free = cdd_json_value_free(root);
+  rc = generate_header(prefix, basename, schemas, &config);
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(basename);
-    return (cdd_c_error_t)((int)CDD_C_ERROR_UNKNOWN | (int)rc_free);
+    return cdd_c_keep_err(CDD_C_ERROR_UNKNOWN,
+                          cdd_c_keep_err(rc, cdd_json_value_free(root)));
   }
-  if (generate_source(prefix, basename, schemas, &config) != 0) {
-    rc_free = cdd_json_value_free(root);
+  rc = generate_source(prefix, basename, schemas, &config);
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(basename);
-    return (cdd_c_error_t)((int)CDD_C_ERROR_UNKNOWN | (int)rc_free);
+    return cdd_c_keep_err(CDD_C_ERROR_UNKNOWN,
+                          cdd_c_keep_err(rc, cdd_json_value_free(root)));
   }
 
-  rc_free = cdd_json_value_free(root);
   C_CDD_FREE(basename);
-  return rc_free;
+  return cdd_json_value_free(root);
 }
 
 /*  */

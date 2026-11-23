@@ -697,6 +697,24 @@ TEST test_rewriter_sig_error_hooks(void) {
     ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
     g_cdd_fail_check_is_void = 0;
   }
+
+  {
+    int step;
+    for (step = 1; step <= 8; ++step) {
+      struct TokenList *tl = NULL;
+      char *out = NULL;
+      cdd_c_error_t s_rc;
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("static int f(x) int x;"), &tl);
+      g_cdd_step_fail = step;
+      s_rc = rewrite_signature(tl, &out);
+      g_cdd_step_fail = 0;
+      C_CDD_FREE(out);
+      g_cdd_last_alloc_err = free_token_list(tl);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+  }
 #endif
 
   PASS();

@@ -191,7 +191,7 @@ TEST test_openapi_examples_copy_and_find(void) {
   /* json_pointer_unescape failure in find_component_example */
   g_cdd_alloc_fail = 1;
   ASSERT_EQ(
-      CDD_C_SUCCESS,
+      CDD_C_ERROR_MEMORY,
       find_component_example(&spec, "#/components/examples/comp_ex", &out_ex));
   ASSERT_EQ(NULL, out_ex);
   g_cdd_alloc_fail = 0;
@@ -215,11 +215,20 @@ TEST test_openapi_examples_copy_and_find(void) {
     {
       int af;
       for (af = 1; af <= 15; ++af) {
+        cdd_c_error_t ex_rc;
         g_cdd_alloc_fail = af;
-        ASSERT_EQ(CDD_C_SUCCESS,
-                  find_component_example(
-                      &spec, "ext.json#/components/examples/comp_ex", &out_ex));
+        ex_rc = find_component_example(
+            &spec, "ext.json#/components/examples/comp_ex", &out_ex);
         g_cdd_alloc_fail = 0;
+        ASSERT(ex_rc == CDD_C_SUCCESS || ex_rc == CDD_C_ERROR_MEMORY);
+      }
+      for (af = 1; af <= 10; ++af) {
+        cdd_c_error_t ex_rc;
+        g_cdd_step_fail = af;
+        ex_rc = find_component_example(
+            &spec, "ext.json#/components/examples/comp_ex", &out_ex);
+        g_cdd_step_fail = 0;
+        ASSERT(ex_rc == CDD_C_SUCCESS || ex_rc == CDD_C_ERROR_UNKNOWN);
       }
     }
     spec.document_uri = NULL;

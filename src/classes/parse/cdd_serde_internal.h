@@ -52,8 +52,8 @@ enum CddDirectiveScope {
  * @param[in] src Source null-terminated string.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_copy_str(char *dst, size_t dst_sz,
-                                        const char *src);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_copy_str(char *dst, size_t dst_sz,
+                                                     const char *src);
 
 /**
  * @brief Case-insensitive ASCII string comparison helper.
@@ -63,8 +63,8 @@ extern cdd_c_error_t cdd_serde_copy_str(char *dst, size_t dst_sz,
  * @param[out] out_eq Output flag set to 1 if equal, 0 otherwise.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_str_ieq(const char *a, const char *b,
-                                       int *out_eq);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_str_ieq(const char *a,
+                                                    const char *b, int *out_eq);
 
 /**
  * @brief Advances pointer past whitespace, commas, and comment asterisks.
@@ -73,7 +73,8 @@ extern cdd_c_error_t cdd_serde_str_ieq(const char *a, const char *b,
  * @param[in] end End of slice.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_skip_delims(const char **p, const char *end);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_skip_delims(const char **p,
+                                                        const char *end);
 
 /**
  * @brief Extracts a quoted string or bare identifier value starting at `*p`.
@@ -84,8 +85,10 @@ extern cdd_c_error_t cdd_serde_skip_delims(const char **p, const char *end);
  * @param[in] val_sz Capacity of `out_val`.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_parse_value(const char **p, const char *end,
-                                           char *out_val, size_t val_sz);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_parse_value(const char **p,
+                                                        const char *end,
+                                                        char *out_val,
+                                                        size_t val_sz);
 
 /**
  * @brief Parses a replacement tuple `("<from>" -> "<to>")` or
@@ -99,7 +102,7 @@ extern cdd_c_error_t cdd_serde_parse_value(const char **p, const char *end,
  * @param[in] to_sz Capacity of `out_to`.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 cdd_serde_parse_replace_tuple(const char **p, const char *end, char *out_from,
                               size_t from_sz, char *out_to, size_t to_sz);
 
@@ -116,22 +119,23 @@ cdd_serde_parse_replace_tuple(const char **p, const char *end, char *out_from,
  * `CddDirectiveScope` (optional).
  * @return CDD_C_SUCCESS on success (sets `*out_start = NULL` if none found).
  */
-extern cdd_c_error_t
-cdd_serde_find_directive_ex(const char *cur, const char **out_start,
-                            const char **out_end, const char **out_next,
-                            enum CddDirectiveScope *out_scope);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_find_directive_ex(
+    const char *cur, const char **out_start, const char **out_end,
+    const char **out_next, enum CddDirectiveScope *out_scope);
 
 /**
  * @brief Extracts the next directive key identifier within `[ *p, end )`.
  *
- * @param[in,out] p Pointer to current scan position.
+ * @param[in] p Pointer to current scan position.
  * @param[in] end End of directive slice.
  * @param[out] key_buf Buffer receiving the key identifier.
  * @param[in] key_sz Capacity of `key_buf`.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_next_key(const char **p, const char *end,
-                                        char *key_buf, size_t key_sz);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_next_key(const char **p,
+                                                     const char *end,
+                                                     char *key_buf,
+                                                     size_t key_sz);
 
 /**
  * @brief Parses a boolean string (`"true"` / `"false"` / `"1"` / `"0"`) into
@@ -141,7 +145,8 @@ extern cdd_c_error_t cdd_serde_next_key(const char **p, const char *end,
  * @param[out] out_bool Output integer (`0` or `1`).
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_parse_bool_val(const char *val, int *out_bool);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_parse_bool_val(const char *val,
+                                                           int *out_bool);
 
 /**
  * @brief Parses a `clap` `num_args` specification (e.g. `"2"`, `"1..=3"`,
@@ -152,8 +157,9 @@ extern cdd_c_error_t cdd_serde_parse_bool_val(const char *val, int *out_bool);
  * @param[out] out_max Maximum number of arguments (`-1` for unbounded).
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_parse_num_args(const char *val, int *out_min,
-                                              int *out_max);
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_parse_num_args(const char *val,
+                                                           int *out_min,
+                                                           int *out_max);
 
 /**
  * @brief Scans `comment_text` for Doxygen metadata (`@brief`, `@summary`,
@@ -171,7 +177,7 @@ extern cdd_c_error_t cdd_serde_parse_num_args(const char *val, int *out_min,
  * @param[in] author_sz Capacity of `out_author`.
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t cdd_serde_extract_doxygen_fallbacks(
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_extract_doxygen_fallbacks(
     const char *comment_text, char *out_brief, size_t brief_sz,
     char *out_details, size_t details_sz, char *out_version, size_t version_sz,
     char *out_author, size_t author_sz);
@@ -184,8 +190,48 @@ extern cdd_c_error_t cdd_serde_extract_doxygen_fallbacks(
  * @param[out] out_scope Output scope (`CDD_SCOPE_GENERAL` if not a scope key).
  * @return CDD_C_SUCCESS on success.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 cdd_serde_match_scope_key(const char *key, enum CddDirectiveScope *out_scope);
+
+/**
+ * @brief Attempts to parse a case transformation rule without failing on
+ * unrecognized keywords.
+ *
+ * @param[in] str Candidate rule string.
+ * @param[out] out_rule Output rule when matched.
+ * @param[out] out_matched Set to 1 if `str` matched a valid rule, 0 otherwise.
+ * @return CDD_C_SUCCESS on match or unrecognized keyword, or error code on
+ * internal step failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_serde_try_parse_case_rule(
+    const char *str, enum CddSerdeCaseRule *out_rule, int *out_matched);
+
+/**
+ * @brief Attempts to parse a CLI action string without failing on unrecognized
+ * keywords.
+ *
+ * @param[in] str Candidate action string.
+ * @param[out] out_action Output action when matched.
+ * @param[out] out_matched Set to 1 if `str` matched a valid action, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on match or unrecognized keyword, or error code on
+ * internal step failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_cli_try_parse_action(
+    const char *str, enum CddCliAction *out_action, int *out_matched);
+
+/**
+ * @brief Attempts to parse a CLI value hint string without failing on
+ * unrecognized keywords.
+ *
+ * @param[in] str Candidate value hint string.
+ * @param[out] out_hint Output value hint when matched.
+ * @param[out] out_matched Set to 1 if `str` matched a valid hint, 0 otherwise.
+ * @return CDD_C_SUCCESS on match or unrecognized keyword, or error code on
+ * internal step failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_cli_try_parse_value_hint(
+    const char *str, enum CddCliValueHint *out_hint, int *out_matched);
 
 #ifdef __cplusplus
 }

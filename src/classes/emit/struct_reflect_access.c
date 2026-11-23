@@ -33,6 +33,10 @@ cdd_c_error_t cdd_reflect_find_field(const struct cdd_type_info *ti,
                                      const char *name,
                                      const struct cdd_field_info **out_field) {
   size_t i, k;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!ti || !name || !out_field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_field = NULL;
@@ -174,6 +178,10 @@ cdd_reflect_resolve_field_scalar_width(const struct cdd_field_info *field,
   const char *ct = field->c_type ? field->c_type : "";
   size_t w = field->size;
   int is_u = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (strstr(ct, "uint") != NULL || strstr(ct, "unsigned") != NULL) {
     is_u = 1;
@@ -268,14 +276,18 @@ cdd_c_error_t cdd_reflect_get_int64(const void *obj,
     if (rc != CDD_C_SUCCESS)
       return rc;
     rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (is_unsigned && field->bit_width == 32U) {
       *out_val = (int64_t)((uint32_t)bf_val);
     } else {
       *out_val = (int64_t)bf_val;
     }
-    return rc;
+    return CDD_C_SUCCESS;
   }
   rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (field->is_pointer) {
     const void *const *pptr = (const void *const *)((
         const void *)((const unsigned char *)obj + field->offset));
@@ -331,6 +343,8 @@ cdd_c_error_t cdd_reflect_set_int64(void *obj,
       field->kind != CDD_FIELD_KIND_ENUM)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (field->bit_width > 0) {
     if (!field->set_bitfield)
       return CDD_C_ERROR_NOT_FOUND;
@@ -423,6 +437,8 @@ cdd_c_error_t cdd_reflect_get_uint64(const void *obj,
   if (!obj || !field || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (width == 8 && is_unsigned) {
     if (field->is_pointer) {
       const void *const *pptr = (const void *const *)((
@@ -434,7 +450,7 @@ cdd_c_error_t cdd_reflect_get_uint64(const void *obj,
       addr = (const void *)((const unsigned char *)obj + field->offset);
     }
     *out_val = *(const uint64_t *)addr;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   rc = cdd_reflect_get_int64(obj, field, &val64);
   if (rc != CDD_C_SUCCESS)
@@ -464,12 +480,15 @@ cdd_c_error_t cdd_reflect_set_uint64(void *obj,
   cdd_c_error_t rc;
   if (!obj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (val <= max_i64)
+  if (val <= max_i64) {
     return cdd_reflect_set_int64(obj, field, (int64_t)val);
+  }
   rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (width == 8 && is_unsigned) {
     *(uint64_t *)((void *)((unsigned char *)obj + field->offset)) = val;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
@@ -495,6 +514,8 @@ cdd_c_error_t cdd_reflect_get_double(const void *obj,
   if (field->kind != CDD_FIELD_KIND_NUMBER)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (field->is_pointer) {
     const void *const *pptr = (const void *const *)((
         const void *)((const unsigned char *)obj + field->offset));
@@ -509,7 +530,7 @@ cdd_c_error_t cdd_reflect_get_double(const void *obj,
   } else {
     *out_val = *(const double *)addr;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -533,6 +554,8 @@ cdd_c_error_t cdd_reflect_set_double(void *obj,
   if (field->kind != CDD_FIELD_KIND_NUMBER)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = cdd_reflect_resolve_field_scalar_width(field, &width, &is_unsigned);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (field->is_pointer) {
     void **pptr = (void **)((void *)((unsigned char *)obj + field->offset));
     if (!*pptr)
@@ -605,6 +628,10 @@ cdd_c_error_t cdd_reflect_get_string(const void *obj,
                                      const struct cdd_field_info *field,
                                      const char **out_str) {
   const char *const *pptr;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!obj || !field || !out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (field->kind != CDD_FIELD_KIND_STRING)
@@ -637,6 +664,10 @@ cdd_c_error_t cdd_reflect_set_string(void *obj,
                                      const char *val) {
   char **pptr;
   char *dup_val = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!obj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (field->kind != CDD_FIELD_KIND_STRING)
@@ -679,6 +710,10 @@ cdd_c_error_t cdd_reflect_set_string(void *obj,
 cdd_c_error_t cdd_reflect_array_len(const void *obj,
                                     const struct cdd_field_info *field,
                                     size_t *out_len) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!obj || !field || !out_len)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (field->kind != CDD_FIELD_KIND_ARRAY)
@@ -782,6 +817,10 @@ cdd_c_error_t cdd_reflect_array_at_mut(void *obj,
 cdd_c_error_t cdd_reflect_is_obj_elem_ptr(const struct cdd_field_info *f,
                                           const struct cdd_type_info *elem_ti,
                                           int *out_is_ptr) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (f->c_type && f->c_type[0] != '\0') {
     *out_is_ptr = (strstr(f->c_type, "**") != NULL) ? 1 : 0;
   } else if (elem_ti) {
@@ -809,7 +848,7 @@ cdd_reflect_cleanup_shrunk_array_elements(void *buf,
                                           const struct cdd_field_info *field,
                                           size_t new_len, size_t old_len) {
   size_t k;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (field->elem_kind == CDD_FIELD_KIND_STRING) {
     char **sarr = (char **)buf;
     for (k = new_len; k < old_len; ++k) {
@@ -821,15 +860,23 @@ cdd_reflect_cleanup_shrunk_array_elements(void *buf,
   } else if (field->elem_kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *elem_ti = NULL;
     int is_ptr = 0;
-    rc = cdd_reflect_type_by_name(field->ref_name, &elem_ti);
-    rc = cdd_c_keep_err(rc,
-                        cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_ptr));
+    rc = cdd_reflect_lookup_type_opt(field->ref_name, &elem_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = cdd_reflect_is_obj_elem_ptr(field, elem_ti, &is_ptr);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (is_ptr) {
       void **parr = (void **)buf;
       for (k = new_len; k < old_len; ++k) {
         if (parr[k]) {
           if (elem_ti) {
             rc = cdd_reflect_struct_cleanup(parr[k], elem_ti);
+            if (rc != CDD_C_SUCCESS) {
+              C_CDD_FREE(parr[k]);
+              parr[k] = NULL;
+              return rc;
+            }
           }
           C_CDD_FREE(parr[k]);
           parr[k] = NULL;
@@ -839,12 +886,12 @@ cdd_reflect_cleanup_shrunk_array_elements(void *buf,
       for (k = new_len; k < old_len; ++k) {
         void *elem = (void *)((unsigned char *)buf + k * field->elem_size);
         rc = cdd_reflect_struct_cleanup(elem, elem_ti);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   }
-  if (rc != CDD_C_SUCCESS)
-    rc = CDD_C_SUCCESS;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -866,7 +913,7 @@ cdd_c_error_t cdd_reflect_array_resize(void *obj,
   size_t *len_ptr;
   size_t old_len;
   void *new_buf;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!obj || !field || field->kind != CDD_FIELD_KIND_ARRAY ||
       !field->is_pointer || field->elem_size == 0) {
@@ -881,6 +928,8 @@ cdd_c_error_t cdd_reflect_array_resize(void *obj,
   if (new_len < old_len) {
     rc = cdd_reflect_cleanup_shrunk_array_elements(*pptr, field, new_len,
                                                    old_len);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (new_len == 0) {
@@ -889,7 +938,7 @@ cdd_c_error_t cdd_reflect_array_resize(void *obj,
       *pptr = NULL;
     }
     *len_ptr = 0;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   new_buf = C_CDD_REALLOC(*pptr, new_len * field->elem_size);
@@ -902,7 +951,7 @@ cdd_c_error_t cdd_reflect_array_resize(void *obj,
   }
   *pptr = new_buf;
   *len_ptr = new_len;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -939,7 +988,10 @@ static cdd_c_error_t visit_deep_field_cb(const struct cdd_field_info *f,
 
   if (f->kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *child_ti = NULL;
-    if (cdd_reflect_type_by_name(f->ref_name, &child_ti) == CDD_C_SUCCESS) {
+    rc = cdd_reflect_lookup_type_opt(f->ref_name, &child_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (child_ti) {
       const void *child_obj =
           f->is_pointer ? *(const void *const *)field_ptr : field_ptr;
       if (child_obj) {
@@ -953,26 +1005,32 @@ static cdd_c_error_t visit_deep_field_cb(const struct cdd_field_info *f,
   } else if (f->kind == CDD_FIELD_KIND_ARRAY &&
              f->elem_kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *elem_ti = NULL;
-    if (cdd_reflect_type_by_name(f->ref_name, &elem_ti) == CDD_C_SUCCESS) {
+    rc = cdd_reflect_lookup_type_opt(f->ref_name, &elem_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (elem_ti) {
       size_t alen = 0;
       size_t idx;
       rc = cdd_reflect_array_len(ctx->obj, f, &alen);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       for (idx = 0; idx < alen; ++idx) {
         const void *elem_ptr = NULL;
         int is_ptr = 0;
+        const void *elem_obj;
         rc = cdd_reflect_array_at(ctx->obj, f, idx, &elem_ptr);
-        rc = cdd_c_keep_err(rc,
-                            cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr));
-        {
-          const void *elem_obj =
-              is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
-          if (elem_obj) {
-            rc = visit_deep_recursive(elem_obj, elem_ti, ctx->visitor,
-                                      ctx->user_data, ctx->visited,
-                                      ctx->depth + 1U);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-          }
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        elem_obj = is_ptr ? *(const void *const *)elem_ptr : elem_ptr;
+        if (elem_obj) {
+          rc = visit_deep_recursive(elem_obj, elem_ti, ctx->visitor,
+                                    ctx->user_data, ctx->visited,
+                                    ctx->depth + 1U);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     }
@@ -1068,39 +1126,53 @@ static cdd_c_error_t visit_deep_mut_field_cb(const struct cdd_field_info *f,
 
   if (f->kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *child_ti = NULL;
-    if (cdd_reflect_type_by_name(f->ref_name, &child_ti) == CDD_C_SUCCESS) {
+    rc = cdd_reflect_lookup_type_opt(f->ref_name, &child_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (child_ti) {
       void *child_obj = f->is_pointer ? *(void **)field_ptr : field_ptr;
       if (child_obj) {
         rc = visit_deep_mut_recursive(child_obj, child_ti, ctx->visitor,
                                       ctx->user_data, ctx->visited,
                                       ctx->depth + 1U);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   } else if (f->kind == CDD_FIELD_KIND_ARRAY &&
              f->elem_kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *elem_ti = NULL;
-    if (cdd_reflect_type_by_name(f->ref_name, &elem_ti) == CDD_C_SUCCESS) {
+    rc = cdd_reflect_lookup_type_opt(f->ref_name, &elem_ti);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (elem_ti) {
       size_t alen = 0;
       size_t idx;
       rc = cdd_reflect_array_len(ctx->obj, f, &alen);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       for (idx = 0; idx < alen; ++idx) {
         void *elem_ptr = NULL;
         int is_ptr = 0;
+        void *elem_obj;
         rc = cdd_reflect_array_at_mut(ctx->obj, f, idx, &elem_ptr);
-        rc = cdd_c_keep_err(rc,
-                            cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr));
-        {
-          void *elem_obj = is_ptr ? *(void **)elem_ptr : elem_ptr;
-          if (elem_obj) {
-            rc = visit_deep_mut_recursive(elem_obj, elem_ti, ctx->visitor,
-                                          ctx->user_data, ctx->visited,
-                                          ctx->depth + 1U);
-          }
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        elem_obj = is_ptr ? *(void **)elem_ptr : elem_ptr;
+        if (elem_obj) {
+          rc = visit_deep_mut_recursive(elem_obj, elem_ti, ctx->visitor,
+                                        ctx->user_data, ctx->visited,
+                                        ctx->depth + 1U);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**

@@ -52,6 +52,8 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (p->content_type) {
     rc = media_type_is_json_url(p->content_type, &is_json);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (!p->content_type || !is_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -70,6 +72,8 @@ cdd_c_error_t write_query_json_param(FILE *fp,
       return CDD_C_SUCCESS;
     }
     rc = is_primitive_type_url(item_type, &is_prim);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (is_prim) {
       CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
       CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
@@ -271,6 +275,8 @@ cdd_c_error_t write_query_json_param(FILE *fp,
 
   if (type) {
     rc = is_primitive_type_url(type, &is_prim);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   if (type && is_prim) {
     if (strcmp(type, "string") == 0) {

@@ -266,27 +266,36 @@ cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...), const char *fmt,
      We pass the arguments as 'void*', which works for pointers and integers
      on typical 64-bit platforms (size_t). */
   switch (argc) {
-  case 0:
+  case 0: {
     return fn(fmt);
-  case 1:
+  }
+  case 1: {
     return fn(fmt, args[0].p);
-  case 2:
+  }
+  case 2: {
     return fn(fmt, args[0].p, args[1].p);
-  case 3:
+  }
+  case 3: {
     return fn(fmt, args[0].p, args[1].p, args[2].p);
-  case 4:
+  }
+  case 4: {
     return fn(fmt, args[0].p, args[1].p, args[2].p, args[3].p);
-  case 5:
+  }
+  case 5: {
     return fn(fmt, args[0].p, args[1].p, args[2].p, args[3].p, args[4].p);
-  case 6:
+  }
+  case 6: {
     return fn(fmt, args[0].p, args[1].p, args[2].p, args[3].p, args[4].p,
               args[5].p);
-  case 7:
+  }
+  case 7: {
     return fn(fmt, args[0].p, args[1].p, args[2].p, args[3].p, args[4].p,
               args[5].p, args[6].p);
-  case 8:
+  }
+  case 8: {
     return fn(fmt, args[0].p, args[1].p, args[2].p, args[3].p, args[4].p,
               args[5].p, args[6].p, args[7].p);
+  }
   default:
     /* Exceeded maximum supported arguments for the fallback trampoline */
     return CDD_C_ERROR_INVALID_ARGUMENT;

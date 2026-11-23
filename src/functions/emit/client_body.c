@@ -19,6 +19,10 @@
  */
 cdd_c_error_t client_body_is_status_range_code(const char *code,
                                                int *out_is_range) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_range)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_range = 0;
@@ -43,16 +47,22 @@ cdd_c_error_t client_body_status_range_prefix(const char *code,
                                               int *out_prefix) {
   int is_range = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out_prefix)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_prefix = 0;
   rc = client_body_is_status_range_code(code, &is_range);
-  if (!is_range)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (!is_range)
+    return CDD_C_SUCCESS;
 
   *out_prefix = (int)(code[0] - '0');
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -65,6 +75,10 @@ cdd_c_error_t client_body_status_range_prefix(const char *code,
  */
 cdd_c_error_t client_body_is_status_code_literal(const char *code,
                                                  int *out_is_lit) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_lit)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_lit = 0;
@@ -125,36 +139,39 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc_fn =
-      (cdd_c_error_t)((int)rc_fn | (int)client_body_schema_has_inline(
-                                       &op->req_body, &req_body_has_inline));
+  rc_fn = client_body_schema_has_inline(&op->req_body, &req_body_has_inline);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
 
   if (op->req_body.content_type) {
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)media_type_is_json(op->req_body.content_type,
-                                                    &req_is_json));
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)media_type_is_form(op->req_body.content_type,
-                                                    &req_is_form));
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)media_type_is_multipart(
-                                op->req_body.content_type, &req_is_mp));
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)media_type_is_multipart_form(
-                                op->req_body.content_type, &req_is_mp_form));
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)media_type_is_textual(
-                                op->req_body.content_type, &req_is_textual));
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)media_type_is_binary(op->req_body.content_type,
-                                                      &req_is_binary));
+    rc_fn = media_type_is_json(op->req_body.content_type, &req_is_json);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = media_type_is_form(op->req_body.content_type, &req_is_form);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = media_type_is_multipart(op->req_body.content_type, &req_is_mp);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = media_type_is_multipart_form(op->req_body.content_type,
+                                         &req_is_mp_form);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = media_type_is_textual(op->req_body.content_type, &req_is_textual);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = media_type_is_binary(op->req_body.content_type, &req_is_binary);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
   }
 
   if (spec) {
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)codegen_security_requires_query(
-                                             op, spec, &security_query));
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)codegen_security_requires_cookie(
-                                             op, spec, &security_cookie));
+    rc_fn = codegen_security_requires_query(op, spec, &security_query);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = codegen_security_requires_cookie(op, spec, &security_cookie);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
   }
 
   for (i = 0; i < op->n_parameters; ++i) {
@@ -256,14 +273,16 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
       if (op->responses[_i].code[0] == '2') {
         int is_bin = 0;
         int resp_has_inline = 0;
-        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)response_is_binary(
-                                                 &op->responses[_i], &is_bin));
+        rc_fn = response_is_binary(&op->responses[_i], &is_bin);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         if (is_bin) {
           success_is_binary = 1;
         }
-        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)client_body_schema_has_inline(
-                                                 &op->responses[_i].schema,
-                                                 &resp_has_inline));
+        rc_fn = client_body_schema_has_inline(&op->responses[_i].schema,
+                                              &resp_has_inline);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         if (op->responses[_i].schema.ref_name || resp_has_inline ||
             op->responses[_i].schema.is_array) {
           success_schema = &op->responses[_i].schema;
@@ -274,11 +293,13 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     if (!success_is_binary && !success_schema && d_resp) {
       int is_bin = 0;
       int d_resp_has_inline = 0;
-      rc_fn = (cdd_c_error_t)((int)rc_fn |
-                              (int)response_is_binary(d_resp, &is_bin));
-      rc_fn = (cdd_c_error_t)((int)rc_fn |
-                              (int)client_body_schema_has_inline(
-                                  &d_resp->schema, &d_resp_has_inline));
+      rc_fn = response_is_binary(d_resp, &is_bin);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
+      rc_fn =
+          client_body_schema_has_inline(&d_resp->schema, &d_resp_has_inline);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       if (is_bin) {
 
         success_is_binary = 1;
@@ -303,9 +324,9 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
           has_out = 1;
         }
       } else {
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)client_body_schema_has_inline(
-                                             success_schema, &succ_has_inline));
+        rc_fn = client_body_schema_has_inline(success_schema, &succ_has_inline);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         if (success_schema->ref_name || succ_has_inline) {
           has_out = 1;
         }
@@ -330,38 +351,38 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) return rc;\n\n"));
 
   if (spec) {
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)codegen_security_write_apply(fp, op, spec));
+    rc_fn = codegen_security_write_apply(fp, op, spec);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
   }
 
   /* --- 3. Header Param Logic --- */
-  if (write_header_param_logic(fp, op) != 0)
-
-    return CDD_C_ERROR_IO;
+  rc_fn = write_header_param_logic(fp, op);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
 
   /* --- 4. Cookie Param Logic --- */
-  if (write_cookie_param_logic(fp, op) != 0)
-
-    return CDD_C_ERROR_IO;
+  rc_fn = write_cookie_param_logic(fp, op);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
 
   /* --- 5. Query Param Logic --- */
-  if (codegen_url_write_query_params(fp, op, query_exists ? 1 : 0) != 0)
-
-    return CDD_C_ERROR_IO;
+  rc_fn = codegen_url_write_query_params(fp, op, query_exists ? 1 : 0);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
 
   /* --- 6. Body Serialization --- */
   {
     const char *ct = op->req_body.content_type;
     if (ct) {
       if (req_is_mp_form) {
-        if (write_multipart_body(fp, op, spec) != 0)
-
-          return CDD_C_ERROR_IO;
-
+        rc_fn = write_multipart_body(fp, op, spec);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
       } else if (req_is_form) {
-        if (write_form_urlencoded_body(fp, op, spec) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_form_urlencoded_body(fp, op, spec);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
       } else if (req_is_json && op->req_body.ref_name) {
 
@@ -519,11 +540,10 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   url_cfg.out_variable = query_exists ? "path_str" : "url";
   url_cfg.base_variable = base_url_expr ? base_url_expr : "ctx->base_url";
 
-  if (codegen_url_write_builder(fp, path_template, op->parameters,
-                                op->n_parameters, &url_cfg) != 0) {
-
-    return CDD_C_ERROR_IO;
-  }
+  rc_fn = codegen_url_write_builder(fp, path_template, op->parameters,
+                                    op->n_parameters, &url_cfg);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
 
   if (query_exists) {
     CHECK_IO(fprintf(
@@ -535,12 +555,14 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
   {
     const char *method_enum = NULL;
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)verb_to_enum_str(op->verb, &method_enum));
+    rc_fn = verb_to_enum_str(op->verb, &method_enum);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
     if (op->is_additional) {
       const char *mapped = NULL;
-      rc_fn = (cdd_c_error_t)((int)rc_fn |
-                              (int)method_str_to_enum_str(op->method, &mapped));
+      rc_fn = method_str_to_enum_str(op->method, &mapped);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       if (mapped) {
         method_enum = mapped;
       } else if (op->method && op->method[0] != '\0') {
@@ -580,11 +602,13 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
       default_resp = resp;
       continue;
     }
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)is_status_range_code(
-                                             resp->code, &is_range_code));
+    rc_fn = is_status_range_code(resp->code, &is_range_code);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
     if (is_range_code) {
-      rc_fn = (cdd_c_error_t)((int)rc_fn |
-                              (int)status_range_prefix(resp->code, &range_bkt));
+      rc_fn = status_range_prefix(resp->code, &range_bkt);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       range_resp[range_bkt] = resp;
       has_range = 1;
       if (range_bkt == 2) {
@@ -592,9 +616,9 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         has_success = 1;
         if (!success_schema_name && resp->schema.ref_name)
           success_schema_name = resp->schema.ref_name;
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)client_body_schema_has_inline(
-                                             &resp->schema, &r2_has_inline));
+        rc_fn = client_body_schema_has_inline(&resp->schema, &r2_has_inline);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         if (!success_inline_type && r2_has_inline) {
           success_inline_type = resp->schema.inline_type;
           success_inline_is_array = resp->schema.is_array ? 1 : 0;
@@ -609,8 +633,9 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
         success_schema_name = resp->schema.ref_name;
 
-      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)client_body_schema_has_inline(
-                                               &resp->schema, &r2_has_inline));
+      rc_fn = client_body_schema_has_inline(&resp->schema, &r2_has_inline);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       if (!success_inline_type && r2_has_inline) {
         success_inline_type = resp->schema.inline_type;
         success_inline_is_array = resp->schema.is_array ? 1 : 0;
@@ -619,14 +644,15 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   }
   if (!success_schema_name && !success_inline_type && default_resp &&
       !has_success) {
-    rc_fn =
-        (cdd_c_error_t)((int)rc_fn | (int)schema_has_payload(
-                                         &default_resp->schema, &def_has_pl));
+    rc_fn = schema_has_payload(&default_resp->schema, &def_has_pl);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
     if (def_has_pl) {
       int def_has_inline = 0;
-      rc_fn = (cdd_c_error_t)((int)rc_fn |
-                              (int)client_body_schema_has_inline(
-                                  &default_resp->schema, &def_has_inline));
+      rc_fn =
+          client_body_schema_has_inline(&default_resp->schema, &def_has_inline);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       if (default_resp->schema.ref_name) {
         success_schema_name = default_resp->schema.ref_name;
       } else {
@@ -647,12 +673,14 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
     if (strcmp(resp->code, "default") == 0)
       continue;
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)is_status_range_code(
-                                             resp->code, &is_range_code));
+    rc_fn = is_status_range_code(resp->code, &is_range_code);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
     if (is_range_code)
       continue;
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)is_status_code_literal(
-                                             resp->code, &is_lit_code));
+    rc_fn = is_status_code_literal(resp->code, &is_lit_code);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
     if (!is_lit_code)
       continue;
 
@@ -660,20 +688,22 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     CHECK_IO(fprintf(fp, "      handled = 1;\n"));
     if (resp->code[0] == '2') {
       int resp_has_inline = 0;
-      rc_fn = (cdd_c_error_t)((int)rc_fn |
-                              (int)response_is_binary(resp, &is_bin_resp));
-      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)response_is_textual_string(
-                                               resp, &is_text_str_resp));
+      rc_fn = response_is_binary(resp, &is_bin_resp);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
+      rc_fn = response_is_textual_string(resp, &is_text_str_resp);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 
       if (is_bin_resp) {
-        if (write_binary_success(fp) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_binary_success(fp);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
       } else if (is_text_str_resp) {
-        if (write_text_plain_success(fp) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_text_plain_success(fp);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
       } else if (resp->schema.ref_name) {
 
@@ -695,20 +725,20 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         CHECK_IO(fprintf(fp, "      }\n"));
 
       } else {
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)client_body_schema_has_inline(
-                                             &resp->schema, &resp_has_inline));
+        rc_fn = client_body_schema_has_inline(&resp->schema, &resp_has_inline);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         if (resp_has_inline) {
-          if (write_inline_json_parse(fp, &resp->schema) != 0)
-
-            return CDD_C_ERROR_IO;
+          rc_fn = write_inline_json_parse(fp, &resp->schema);
+          if (rc_fn != CDD_C_SUCCESS)
+            return rc_fn;
         }
       }
       CHECK_IO(fprintf(fp, "      break;\n"));
     } else {
-      rc_fn =
-          (cdd_c_error_t)((int)rc_fn | (int)mapped_err_code(atoi(resp->code),
-                                                            &err_code_str));
+      rc_fn = mapped_err_code(atoi(resp->code), &err_code_str);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       CHECK_IO(fprintf(fp, "      rc = %s;\n", err_code_str));
       CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
@@ -732,23 +762,25 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         continue;
       if (i == 2) {
         int resp_has_inline = 0;
-        rc_fn = (cdd_c_error_t)((int)rc_fn |
-                                (int)response_is_binary(resp, &is_bin_resp));
-        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)response_is_textual_string(
-                                                 resp, &is_text_str_resp));
+        rc_fn = response_is_binary(resp, &is_bin_resp);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
+        rc_fn = response_is_textual_string(resp, &is_text_str_resp);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
         CHECK_IO(fprintf(fp, "    if (res->status_code >= 200 && "
                              "res->status_code < 300) {\n"));
         CHECK_IO(fprintf(fp, "      handled = 1;\n"));
         if (is_bin_resp) {
-
-          if (write_binary_success(fp) != 0)
-            return CDD_C_ERROR_IO;
+          rc_fn = write_binary_success(fp);
+          if (rc_fn != CDD_C_SUCCESS)
+            return rc_fn;
 
         } else if (is_text_str_resp) {
-          if (write_text_plain_success(fp) != 0)
-
-            return CDD_C_ERROR_IO;
+          rc_fn = write_text_plain_success(fp);
+          if (rc_fn != CDD_C_SUCCESS)
+            return rc_fn;
 
         } else if (resp->schema.ref_name) {
           CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
@@ -758,12 +790,14 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
           CHECK_IO(fprintf(fp, "      }\n"));
 
         } else {
-          rc_fn = (cdd_c_error_t)((int)rc_fn |
-                                  (int)client_body_schema_has_inline(
-                                      &resp->schema, &resp_has_inline));
+          rc_fn =
+              client_body_schema_has_inline(&resp->schema, &resp_has_inline);
+          if (rc_fn != CDD_C_SUCCESS)
+            return rc_fn;
           if (resp_has_inline) {
-            if (write_inline_json_parse(fp, &resp->schema) != 0)
-              return CDD_C_ERROR_IO;
+            rc_fn = write_inline_json_parse(fp, &resp->schema);
+            if (rc_fn != CDD_C_SUCCESS)
+              return rc_fn;
           }
         }
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -776,9 +810,9 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
                          (int)(i * 100), (int)((i + 1) * 100)));
 
         CHECK_IO(fprintf(fp, "      handled = 1;\n"));
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)mapped_err_code((int)(i * 100),
-                                                              &err_code_str));
+        rc_fn = mapped_err_code((int)(i * 100), &err_code_str);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         CHECK_IO(
 
             fprintf(fp, "      rc = %s;\n", err_code_str));
@@ -805,19 +839,22 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     int default_matches_success = 0;
     int def_has_inline = 0;
 
-    rc_fn =
-        (cdd_c_error_t)((int)rc_fn | (int)schema_has_payload(
-                                         &default_resp->schema, &def_has_pl));
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)response_is_binary(default_resp,
-                                                                 &is_bin_resp));
-    rc_fn = (cdd_c_error_t)((int)rc_fn | (int)response_is_textual_string(
-                                             default_resp, &is_text_str_resp));
+    rc_fn = schema_has_payload(&default_resp->schema, &def_has_pl);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = response_is_binary(default_resp, &is_bin_resp);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
+    rc_fn = response_is_textual_string(default_resp, &is_text_str_resp);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
 
     default_is_success = (!has_success && (def_has_pl || is_bin_resp));
 
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)client_body_schema_has_inline(
-                                &default_resp->schema, &def_has_inline));
+    rc_fn =
+        client_body_schema_has_inline(&default_resp->schema, &def_has_inline);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
 
     if (success_schema_name && default_resp->schema.ref_name &&
         strcmp(success_schema_name, default_resp->schema.ref_name) == 0) {
@@ -831,14 +868,14 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     CHECK_IO(fprintf(fp, "    /* default response */\n"));
     if (default_is_success || default_matches_success) {
       if (is_bin_resp) {
-
-        if (write_binary_success(fp) != 0)
-          return CDD_C_ERROR_IO;
+        rc_fn = write_binary_success(fp);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
       } else if (is_text_str_resp) {
-        if (write_text_plain_success(fp) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_text_plain_success(fp);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
@@ -857,8 +894,9 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         CHECK_IO(fprintf(fp, "    }\n"));
 
       } else {
-        if (write_inline_json_parse(fp, &default_resp->schema) != 0)
-          return CDD_C_ERROR_IO;
+        rc_fn = write_inline_json_parse(fp, &default_resp->schema);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
       }
     } else {
 

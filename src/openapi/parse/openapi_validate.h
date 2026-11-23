@@ -190,7 +190,11 @@ extern C_CDD_EXPORT cdd_c_error_t is_valid_response_code_key(const char *code,
  * @param[in] count Number of elements.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_name_list(char **names, size_t count);
+extern C_CDD_EXPORT cdd_c_error_t openapi_name_list_free(char **names,
+                                                         size_t count);
+
+/** @brief Compatibility alias for `openapi_name_list_free`. */
+#define free_name_list openapi_name_list_free
 
 /**
  * @brief Checks if `name` is present in a string array `names`.

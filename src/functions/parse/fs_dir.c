@@ -136,8 +136,9 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
       errno = EIO;
     }
 #endif
-    if (stat_res != 0)
+    if (stat_res != 0) {
       return errno_to_cdd_error(errno);
+    }
     if (!IS_DIR(st.st_mode))
       return CDD_C_ERROR_IO;
     return CDD_C_SUCCESS;
@@ -205,8 +206,12 @@ cdd_c_error_t makedirs(const char *path) {
   }
 
   rc = maybe_mkdir(dup_path);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(dup_path);
+    return rc;
+  }
   C_CDD_FREE(dup_path);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -486,8 +491,9 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Check if root exists and is directory */
-  if (c_stat_func(path, &st) != 0)
+  if (c_stat_func(path, &st) != 0) {
     return errno_to_cdd_error(errno);
+  }
 
   if (!IS_DIR(st.st_mode)) {
     /* Not a directory, just call back once?
@@ -546,15 +552,20 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 
       if (file_info.attrib & _A_SUBDIR) {
         rc = walk_directory(full_path, cb, user_data);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(full_path);
+          _findclose(handle);
+          return rc;
+        }
       } else {
         rc = cb(full_path, user_data);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(full_path);
+          _findclose(handle);
+          return rc;
+        }
       }
       C_CDD_FREE(full_path);
-
-      if (rc != CDD_C_SUCCESS) {
-        _findclose(handle);
-        return rc;
-      }
 
     } while (_findnext(handle, &file_info) == 0);
 
@@ -579,8 +590,9 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     d = opendir(path);
 #endif
 
-    if (!d)
+    if (!d) {
       return errno_to_cdd_error(errno);
+    }
 
     while ((entry = readdir(d)) != NULL) {
       if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
@@ -605,18 +617,24 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
       if (stat_res == 0) {
         if (IS_DIR(st.st_mode)) {
           rc = walk_directory(full_path, cb, user_data);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(full_path);
+            closedir(d);
+            return rc;
+          }
         } else {
           rc = cb(full_path, user_data);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(full_path);
+            closedir(d);
+            return rc;
+          }
         }
+        C_CDD_FREE(full_path);
       } else {
-        rc = errno_to_cdd_error(errno);
-      }
-
-      C_CDD_FREE(full_path);
-
-      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(full_path);
         closedir(d);
-        return rc;
+        return errno_to_cdd_error(errno);
       }
     }
     closedir(d);

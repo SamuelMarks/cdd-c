@@ -739,6 +739,49 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_alloc_fail = 0;
+
+#ifdef CDD_BUILD_TESTS
+    {
+      const char *code_step = "int callee(int a) {\n"
+                              "  void *p1 = malloc(1);\n"
+                              "  void *p2 = malloc(1);\n"
+                              "  return;\n"
+                              "}\n"
+                              "void caller(void) {\n"
+                              "  callee(1);\n"
+                              "  return;\n"
+                              "}\n";
+      for (k = 1; k <= 600; k++) {
+        ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_step), &tree));
+        g_cdd_step_fail = k;
+        rc = cdd_transform_percolate_errors(tree, &config);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+      for (k = 1; k <= 60; k++) {
+        ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_step), &tree));
+        g_cdd_cst_alloc_token_fail = k;
+        rc = cdd_transform_percolate_errors(tree, &config);
+        g_cdd_cst_alloc_token_fail = 0;
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      for (k = 1; k <= 60; k++) {
+        ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code_step), &tree));
+        g_cdd_cst_realloc_fail = k;
+        rc = cdd_transform_percolate_errors(tree, &config);
+        g_cdd_cst_realloc_fail = 0;
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+    }
+#endif
   }
 
   PASS();

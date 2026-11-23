@@ -289,7 +289,7 @@ TEST test_writer_xml_types(void) {
  */
 TEST test_openapi_utils(void) {
   struct OpenAPI_Parameter p;
-  char *out = NULL;
+  const char *out = NULL;
 
   /* Hit the default missing branches */
   ASSERT_EQ(0, verb_to_str_openapi((enum OpenAPI_Verb) - 1, &out));

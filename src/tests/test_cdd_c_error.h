@@ -19,7 +19,7 @@ extern "C" {
  * @return Greatest test result.
  */
 TEST test_cdd_c_strerror(void) {
-  char *out = NULL;
+  const char *out = NULL;
   cdd_c_error_t rc = 0;
 
   rc = cdd_c_strerror(CDD_C_SUCCESS, &out);

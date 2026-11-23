@@ -6,11 +6,6 @@
   "description": "Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (to C code).",
   "dependencies": [
     "c-str-span",
-    "c89stringutils",
-    "civetweb",
-    {
-      "name": "curl",
-      "platform": "!windows"
-    }
+    "c89stringutils"
   ]
 }

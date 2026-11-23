@@ -26,6 +26,10 @@
  */
 static cdd_c_error_t map_crystal_type(cdd_ffi_type_t *t,
                                       const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
@@ -140,14 +144,19 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  struct %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_crystal_type(&node->fields[j].type, &ct));
+        rc_emit = map_crystal_type(&node->fields[j].type, &ct);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
@@ -155,15 +164,20 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       fprintf(f, "  union %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_crystal_type(&node->fields[j].type, &ct));
+        rc_emit = map_crystal_type(&node->fields[j].type, &ct);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    %s : %s\n", node->fields[j].name, ct);
       }
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  enum %s\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -176,19 +190,26 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
       fprintf(f, "  end\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ct = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  fun %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *ct = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_crystal_type(&node->fields[j].type, &ct));
+        rc_emit = map_crystal_type(&node->fields[j].type, &ct);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s : %s", j > 0 ? ", " : "", node->fields[j].name, ct);
       }
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_crystal_type(
-                                    &node->return_or_base_type, &ret_ct));
+      rc_emit = map_crystal_type(&node->return_or_base_type, &ret_ct);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, ") : %s\n", ret_ct);
     }
   }
@@ -198,5 +219,5 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
   /* Optional idiomatic wrapper generator logic could go here */
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

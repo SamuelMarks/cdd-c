@@ -126,7 +126,7 @@ TEST test_refactor_mocks(void) {
 
   /* Test tokenize and find_allocations OOM inside apply_refactoring_to_string
    */
-  for (step = 1; step <= 10; ++step) {
+  for (step = 1; step <= 100; ++step) {
     int rc;
     g_cdd_alloc_fail = step;
     rc = apply_refactoring_to_string(
@@ -140,6 +140,17 @@ TEST test_refactor_mocks(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
   ASSERT(step > 2);
+
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_find_refactored_func;
+    ASSERT_EQ(CDD_C_SUCCESS, refactor_context_add_function(
+                                 &ctx, "foo", REF_VOID_TO_INT, "int"));
+    g_cdd_fail_find_refactored_func = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+              apply_refactoring_to_string(
+                  &ctx, "int main() { foo(); return 0; }", &out));
+    g_cdd_fail_find_refactored_func = 0;
+  }
 
   g_cdd_last_alloc_err = refactor_context_free(&ctx);
 #endif

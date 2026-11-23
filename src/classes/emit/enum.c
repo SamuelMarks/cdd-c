@@ -400,6 +400,8 @@ cdd_c_error_t write_enum_to_str_func(FILE *fp, const char *enum_name,
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
       rc_name = cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      if (rc_name != CDD_C_SUCCESS)
+        return rc_name;
       CHECK_IO(FPRINTF_HOOK(
           fp, "    case %s_%s:\n      *str_out = %s(\"%s\");\n      break;\n",
           enum_name, em->members[i], kStrDupFunc, esc_wname));
@@ -462,6 +464,8 @@ cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
       rc_name = cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      if (rc_name != CDD_C_SUCCESS)
+        return rc_name;
       if (n_al == 0) {
         CHECK_IO(FPRINTF_HOOK(
             fp, "  else if (strcmp(str, \"%s\") == 0) *val = %s_%s;\n",
@@ -475,6 +479,8 @@ cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
             char esc_al[256];
             rc_name = cdd_escape_json_c_str(em->serde_aliases[i][a_idx], esc_al,
                                             sizeof(esc_al));
+            if (rc_name != CDD_C_SUCCESS)
+              return rc_name;
             CHECK_IO(FPRINTF_HOOK(fp, " || strcmp(str, \"%s\") == 0", esc_al));
           }
         }
@@ -535,6 +541,8 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
         char esc_al[256];
         rc_esc = cdd_escape_json_c_str(em->serde_aliases[i][a_idx], esc_al,
                                        sizeof(esc_al));
+        if (rc_esc != CDD_C_SUCCESS)
+          return rc_esc;
         CHECK_IO(FPRINTF_HOOK(fp, "\"%s\"%s", esc_al,
                               (a_idx + 1 < n_al) ? ", " : " };\n"));
       }
@@ -560,6 +568,8 @@ cdd_c_error_t write_enum_reflect_func(FILE *fp, const char *enum_name,
       if (rc_name != CDD_C_SUCCESS)
         return rc_name;
       rc_name = cdd_escape_json_c_str(wname, esc_wname, sizeof(esc_wname));
+      if (rc_name != CDD_C_SUCCESS)
+        return rc_name;
       if (n_al > 0) {
         CDD_SNPRINTF(al_ref, sizeof(al_ref), "%s_%s_aliases", enum_name,
                      em->members[i]);

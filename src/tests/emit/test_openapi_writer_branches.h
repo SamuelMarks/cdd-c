@@ -319,7 +319,7 @@ TEST test_openapi_writer_branch_sweep(void) {
  */
 TEST test_openapi_writer_null_and_defensive(void) {
   JSON_Value *val = NULL;
-  char *str = NULL;
+  const char *str = NULL;
   int bval = 0;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, license_fields_invalid(NULL, NULL));

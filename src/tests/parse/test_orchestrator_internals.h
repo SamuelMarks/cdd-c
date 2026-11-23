@@ -224,7 +224,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test fix_file_callback read failure */
   g_fail_io_after = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback("does_not_exist.c", &ctx));
+  ASSERT_NEQ(CDD_C_SUCCESS, fix_file_callback("does_not_exist.c", &ctx));
   g_fail_io_after = -1;
 
   /* Test fix_file_callback write failure */
@@ -263,7 +263,7 @@ TEST test_orchestrator_internals(void) {
       fputs("void A() { malloc(1); }", f);
       fclose(f);
       g_force_parse_tokens_fail = 1;
-      ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback(test_file, &ctx));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, fix_file_callback(test_file, &ctx));
       g_force_parse_tokens_fail = 0;
       remove(test_file);
     }
@@ -594,6 +594,65 @@ TEST test_orchestrator_internals(void) {
     if (out_str) {
       C_CDD_FREE(out_str);
       out_str = NULL;
+    }
+  }
+
+  /* Step-failure and OOM sweeps for orchestrate_fix and
+   * analyze_signature_tokens */
+  {
+    const char *code = "typedef void myvoid;\n"
+                       "myvoid A() { char *p = malloc(1); }\n"
+                       "void Idle() { int z = 0; }\n"
+                       "int main() { A(); return 0; }\n";
+    int step;
+    for (step = 1; step <= 250; ++step) {
+      char *out_str = NULL;
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
+      g_cdd_step_fail = 0;
+      C_CDD_FREE(out_str);
+    }
+    for (step = 1; step <= 100; ++step) {
+      char *out_str = NULL;
+      g_cdd_alloc_fail = step;
+      g_cdd_last_alloc_err = orchestrate_fix(code, &out_str);
+      g_cdd_alloc_fail = 0;
+      C_CDD_FREE(out_str);
+    }
+    {
+      struct TokenList *sig_tl = NULL;
+      int is_p = 0, is_v = 0;
+      char *tstr = NULL;
+      size_t out_pos = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, concat_strings(NULL, ",", "b", &tstr));
+      C_CDD_FREE(tstr);
+      tstr = NULL;
+      g_cdd_last_alloc_err =
+          tokenize(az_span_create_from_str("myvoid fn(int a) {"), &sig_tl);
+      g_cdd_step_fail = 1;
+      ASSERT_NEQ(CDD_C_SUCCESS,
+                 extract_func_name(sig_tl, 0, sig_tl->size - 1, &tstr));
+      g_cdd_step_fail = 0;
+      for (step = 1; step <= 40; ++step) {
+        char *out_str = NULL;
+        g_cdd_step_fail = step;
+        g_cdd_last_alloc_err = orchestrate_fix("void A(){}", &out_str);
+        g_cdd_step_fail = 0;
+        C_CDD_FREE(out_str);
+      }
+      g_cdd_step_fail = 1;
+      ASSERT_NEQ(CDD_C_SUCCESS, find_token_in_range(sig_tl, 0, sig_tl->size,
+                                                    TOKEN_LPAREN, &out_pos));
+      g_cdd_step_fail = 0;
+      for (step = 1; step <= 10; ++step) {
+        g_cdd_step_fail = step;
+        g_cdd_last_alloc_err = analyze_signature_tokens(
+            sig_tl, 0, sig_tl->size - 1, &is_p, &is_v, &tstr);
+        g_cdd_step_fail = 0;
+        C_CDD_FREE(tstr);
+        tstr = NULL;
+      }
+      g_cdd_last_alloc_err = free_token_list(sig_tl);
     }
   }
 

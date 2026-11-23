@@ -117,6 +117,28 @@ TEST test_arazzo_server_gen_and_api(void) {
       }
       g_cdd_alloc_fail = 0;
     }
+    for (f = 1; f <= 60; ++f) {
+      g_cdd_fprintf_fail = f;
+      if (arazzo_server_render_to_strings(&spec, "ord", "api_", &srv_src,
+                                          &tst_hdr) == CDD_C_SUCCESS) {
+        C_CDD_FREE(srv_src);
+        C_CDD_FREE(tst_hdr);
+        srv_src = NULL;
+        tst_hdr = NULL;
+      }
+      g_cdd_fprintf_fail = 0;
+    }
+    for (f = 1; f <= 10; ++f) {
+      g_cdd_step_fail = f;
+      if (arazzo_server_render_to_strings(&spec, "ord", "api_", &srv_src,
+                                          &tst_hdr) == CDD_C_SUCCESS) {
+        C_CDD_FREE(srv_src);
+        C_CDD_FREE(tst_hdr);
+        srv_src = NULL;
+        tst_hdr = NULL;
+      }
+      g_cdd_step_fail = 0;
+    }
   }
 
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_server_render_to_strings(&spec, "ord", "api_",
@@ -157,11 +179,35 @@ TEST test_arazzo_server_gen_and_api(void) {
       g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
       g_cdd_strdup_fail = 0;
     }
-    for (f = 0; f <= 4; ++f) {
+    for (f = 0; f <= 10; ++f) {
       g_fail_io_after = f;
       g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
       g_fail_io_after = -1;
     }
+    for (f = 1; f <= 250; ++f) {
+      g_cdd_fprintf_fail = f;
+      g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
+      g_cdd_fprintf_fail = 0;
+    }
+    for (f = 1; f <= 120; ++f) {
+      g_cdd_step_fail = f;
+      g_cdd_last_alloc_err = arazzo_server_generate(&spec, NULL, &cfg);
+      g_cdd_step_fail = 0;
+    }
+    g_cdd_last_alloc_err =
+        makedirs("test_build_dir/arazzo_ord_sfail/src/ord_workflow_server.c");
+    cfg.filename_base = "test_build_dir/arazzo_ord_sfail/ord";
+    ASSERT_NEQ(CDD_C_SUCCESS, arazzo_server_generate(&spec, NULL, &cfg));
+    remove("test_build_dir/arazzo_ord_sfail/src/ord_workflows.h");
+    remove("test_build_dir/arazzo_ord_sfail/src/ord_workflows.c");
+    g_cdd_last_alloc_err =
+        makedirs("test_build_dir/arazzo_ord_tfail/src/ord_workflow_tests.h");
+    cfg.filename_base = "test_build_dir/arazzo_ord_tfail/ord";
+    ASSERT_NEQ(CDD_C_SUCCESS, arazzo_server_generate(&spec, NULL, &cfg));
+    remove("test_build_dir/arazzo_ord_tfail/src/ord_workflows.h");
+    remove("test_build_dir/arazzo_ord_tfail/src/ord_workflows.c");
+    remove("test_build_dir/arazzo_ord_tfail/src/ord_workflow_server.c");
+    cfg.filename_base = base_path;
   }
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_server_generate(&spec, NULL, &cfg));
 

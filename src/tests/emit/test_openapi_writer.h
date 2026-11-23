@@ -32,6 +32,7 @@ extern "C" {
  * @brief Executes the openapi_writer_suite test suite.
  */
 SUITE(openapi_writer_suite) {
+  RUN_TEST(test_openapi_writer_percolation_exhaustive);
   RUN_TEST(test_openapi_writer_close_100_percent);
   RUN_TEST(test_openapi_writer_nail_all_remaining);
   RUN_TEST(test_openapi_writer_null_and_defensive);

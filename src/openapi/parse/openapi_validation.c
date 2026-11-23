@@ -227,10 +227,10 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
     *cap = new_cap;
   }
   rc = c_cdd_strdup(op_id, &(*ids)[*count]);
-  if (!(*ids)[*count])
-    return CDD_C_ERROR_MEMORY;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   (*count)++;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -289,14 +289,16 @@ cdd_c_error_t path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
   if (!ref || !name)
     return CDD_C_SUCCESS;
   rc = ref_name_from_prefix(spec, ref, "#/components/pathItems/", &name_enc);
-  if (!name_enc)
-    return CDD_C_SUCCESS;
-  rc = json_pointer_unescape(name_enc, &name_dec);
-  if (!name_dec)
-    return CDD_C_SUCCESS;
-  *out_matches = (strcmp(name_dec, name) == 0) ? 1 : 0;
-  C_CDD_FREE(name_dec);
-  return rc;
+  if (name_enc) {
+    cdd_c_error_t rc_dec = json_pointer_unescape(name_enc, &name_dec);
+    if (name_dec) {
+      *out_matches = (strcmp(name_dec, name) == 0) ? 1 : 0;
+      C_CDD_FREE(name_dec);
+      return cdd_c_keep_err(rc_dec, rc);
+    }
+    return rc;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -311,7 +313,7 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                                 const char *name,
                                                 int *out_referenced) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!out_referenced)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_referenced = 0;
@@ -324,7 +326,7 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                            &matches);
       if (matches) {
         *out_referenced = 1;
-        return CDD_C_SUCCESS;
+        return rc;
       }
     }
   }
@@ -335,11 +337,11 @@ cdd_c_error_t component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                            &matches);
       if (matches) {
         *out_referenced = 1;
-        return CDD_C_SUCCESS;
+        return rc;
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -363,14 +365,16 @@ cdd_c_error_t callback_ref_matches_component(const struct OpenAPI_Spec *spec,
   if (!ref || !name)
     return CDD_C_SUCCESS;
   rc = ref_name_from_prefix(spec, ref, "#/components/callbacks/", &name_enc);
-  if (!name_enc)
-    return CDD_C_SUCCESS;
-  rc = json_pointer_unescape(name_enc, &name_dec);
-  if (!name_dec)
-    return CDD_C_SUCCESS;
-  *out_matches = (strcmp(name_dec, name) == 0) ? 1 : 0;
-  C_CDD_FREE(name_dec);
-  return rc;
+  if (name_enc) {
+    cdd_c_error_t rc_dec = json_pointer_unescape(name_enc, &name_dec);
+    if (name_dec) {
+      *out_matches = (strcmp(name_dec, name) == 0) ? 1 : 0;
+      C_CDD_FREE(name_dec);
+      return cdd_c_keep_err(rc_dec, rc);
+    }
+    return rc;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -388,7 +392,7 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
     const struct OpenAPI_Operation *ops, size_t n_ops,
     const struct OpenAPI_Spec *spec, const char *name, int *out_referenced) {
   size_t i, j;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!out_referenced)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_referenced = 0;
@@ -403,12 +407,12 @@ cdd_c_error_t component_callback_is_referenced_in_ops(
         rc = callback_ref_matches_component(spec, cb->ref, name, &matches);
         if (matches) {
           *out_referenced = 1;
-          return CDD_C_SUCCESS;
+          return rc;
         }
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -423,7 +427,7 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
                                                const char *name,
                                                int *out_referenced) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!out_referenced)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_referenced = 0;
@@ -434,14 +438,16 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
     rc = component_callback_is_referenced_in_ops(spec->paths[i].operations,
                                                  spec->paths[i].n_operations,
                                                  spec, name, &ref1);
-    if (!ref1) {
-      rc = component_callback_is_referenced_in_ops(
-          spec->paths[i].additional_operations,
-          spec->paths[i].n_additional_operations, spec, name, &ref2);
-    }
-    if (ref1 || ref2) {
+    if (ref1) {
       *out_referenced = 1;
-      return CDD_C_SUCCESS;
+      return rc;
+    }
+    rc = component_callback_is_referenced_in_ops(
+        spec->paths[i].additional_operations,
+        spec->paths[i].n_additional_operations, spec, name, &ref2);
+    if (ref2) {
+      *out_referenced = 1;
+      return rc;
     }
   }
   for (i = 0; i < spec->n_webhooks; ++i) {
@@ -449,43 +455,46 @@ cdd_c_error_t component_callback_is_referenced(const struct OpenAPI_Spec *spec,
     rc = component_callback_is_referenced_in_ops(spec->webhooks[i].operations,
                                                  spec->webhooks[i].n_operations,
                                                  spec, name, &ref1);
-    if (!ref1) {
-      rc = component_callback_is_referenced_in_ops(
-          spec->webhooks[i].additional_operations,
-          spec->webhooks[i].n_additional_operations, spec, name, &ref2);
-    }
-    if (ref1 || ref2) {
+    if (ref1) {
       *out_referenced = 1;
-      return CDD_C_SUCCESS;
+      return rc;
+    }
+    rc = component_callback_is_referenced_in_ops(
+        spec->webhooks[i].additional_operations,
+        spec->webhooks[i].n_additional_operations, spec, name, &ref2);
+    if (ref2) {
+      *out_referenced = 1;
+      return rc;
     }
   }
   if (spec->component_path_items && spec->n_component_path_items > 0) {
     for (i = 0; i < spec->n_component_path_items; ++i) {
-      const char *item_name = NULL;
+      const char *item_name = spec->component_path_item_names
+                                  ? spec->component_path_item_names[i]
+                                  : NULL;
       int item_ref = 0, ref1 = 0, ref2 = 0;
-      if (spec->component_path_item_names)
-        item_name = spec->component_path_item_names[i];
-      if (item_name) {
-        rc = component_path_item_is_referenced(spec, item_name, &item_ref);
-        if (item_ref)
-          continue;
-      }
-      rc = component_callback_is_referenced_in_ops(
-          spec->component_path_items[i].operations,
-          spec->component_path_items[i].n_operations, spec, name, &ref1);
-      if (!ref1) {
+      cdd_c_error_t rc_ir =
+          component_path_item_is_referenced(spec, item_name, &item_ref);
+      if (!item_ref) {
+        rc = component_callback_is_referenced_in_ops(
+            spec->component_path_items[i].operations,
+            spec->component_path_items[i].n_operations, spec, name, &ref1);
+        if (ref1) {
+          *out_referenced = 1;
+          return cdd_c_keep_err(rc, rc_ir);
+        }
         rc = component_callback_is_referenced_in_ops(
             spec->component_path_items[i].additional_operations,
             spec->component_path_items[i].n_additional_operations, spec, name,
             &ref2);
-      }
-      if (ref1 || ref2) {
-        *out_referenced = 1;
-        return CDD_C_SUCCESS;
+        if (ref2) {
+          *out_referenced = 1;
+          return cdd_c_keep_err(rc, rc_ir);
+        }
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -576,6 +585,24 @@ collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
 }
 
 /**
+ * @brief Frees collected `operationId` strings and returns `err`.
+ *
+ * @param[in,out] ids Array of operation ID strings.
+ * @param[in] count Number of allocated strings in `ids`.
+ * @param[in] err Error code to return.
+ * @return `err`.
+ */
+static cdd_c_error_t free_op_ids_and_return(char **ids, size_t count,
+                                            cdd_c_error_t err) {
+  size_t i;
+  for (i = 0; i < count; ++i) {
+    C_CDD_FREE(ids[i]);
+  }
+  C_CDD_FREE(ids);
+  return err;
+}
+
+/**
  * @brief Validates that all `operationId` values across the entire `spec` are
  * unique.
  *
@@ -613,48 +640,42 @@ cdd_c_error_t validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
 
   if (spec->component_path_items && spec->n_component_path_items > 0) {
     for (i = 0; i < spec->n_component_path_items; ++i) {
-      const char *name = NULL;
+      const char *name = spec->component_path_item_names
+                             ? spec->component_path_item_names[i]
+                             : NULL;
       int is_ref = 0;
-      if (spec->component_path_item_names)
-        name = spec->component_path_item_names[i];
-      if (name) {
-        rc = component_path_item_is_referenced(spec, name, &is_ref);
-        if (is_ref)
-          continue;
+      cdd_c_error_t rc_ir =
+          component_path_item_is_referenced(spec, name, &is_ref);
+      if (!is_ref) {
+        rc = collect_operation_ids(&spec->component_path_items[i], 1, &ids,
+                                   &count, &cap);
+        if (rc != CDD_C_SUCCESS) {
+          return free_op_ids_and_return(ids, count, cdd_c_keep_err(rc, rc_ir));
+        }
+        rc = collect_callback_operation_ids_from_paths(
+            &spec->component_path_items[i], 1, &ids, &count, &cap);
+        if (rc != CDD_C_SUCCESS) {
+          return free_op_ids_and_return(ids, count, cdd_c_keep_err(rc, rc_ir));
+        }
       }
-      rc = collect_operation_ids(&spec->component_path_items[i], 1, &ids,
-                                 &count, &cap);
-      if (rc != CDD_C_SUCCESS)
-        goto cleanup;
-      rc = collect_callback_operation_ids_from_paths(
-          &spec->component_path_items[i], 1, &ids, &count, &cap);
-      if (rc != CDD_C_SUCCESS)
-        goto cleanup;
     }
   }
 
   if (spec->component_callbacks && spec->n_component_callbacks > 0) {
     for (i = 0; i < spec->n_component_callbacks; ++i) {
       const struct OpenAPI_Callback *cb = &spec->component_callbacks[i];
-      const char *name = cb->name;
       int is_ref = 0;
-      if (name) {
-        rc = component_callback_is_referenced(spec, name, &is_ref);
-        if (is_ref)
-          continue;
-      }
-      if (cb->paths && cb->n_paths > 0) {
+      cdd_c_error_t rc_ir =
+          component_callback_is_referenced(spec, cb->name, &is_ref);
+      if (!is_ref && cb->paths && cb->n_paths > 0) {
         rc = collect_operation_ids(cb->paths, cb->n_paths, &ids, &count, &cap);
-        if (rc != CDD_C_SUCCESS)
-          goto cleanup;
+        if (rc != CDD_C_SUCCESS) {
+          return free_op_ids_and_return(ids, count, cdd_c_keep_err(rc, rc_ir));
+        }
       }
     }
   }
 
-cleanup:
-  for (i = 0; i < count; ++i) {
-    C_CDD_FREE(ids[i]);
-  }
-  C_CDD_FREE(ids);
-  return rc;
+cleanup:;
+  return free_op_ids_and_return(ids, count, rc);
 }

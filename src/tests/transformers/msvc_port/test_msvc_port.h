@@ -224,7 +224,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
         cdd_cst_parse(az_span_create_from_str(simple_code), &tree);
     g_cdd_cst_alloc_token_fail = 1;
     rc = cdd_transform_msvc(tree, &config);
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_cst_alloc_token_fail = 0;
     g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
@@ -661,6 +661,73 @@ TEST test_cdd_transform_msvc_auto_win_and_arity(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_msvc(tree, &cfg_extra));
     g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
     tree = NULL;
+
+#ifdef CDD_BUILD_TESTS
+    {
+      const char *step_src = "#include <unistd.h>\n"
+                             "#include <sys/time.h>\n"
+                             "int main(void) {\n"
+                             "  ssize_t s = 0;\n"
+                             "  __builtin_expect(1, 1);\n"
+                             "  mkdir(\"d\", 0755);\n"
+                             "  setmode(0, 1);\n"
+                             "  return (int)s;\n"
+                             "}\n";
+      int step;
+      cdd_c_error_t s_rc;
+      cfg_extra.rename_main = "entry_fn";
+      for (step = 1; step <= 250; ++step) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(step_src), &tree));
+        g_cdd_step_fail = step;
+        s_rc = cdd_transform_msvc(tree, &cfg_extra);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        tree = NULL;
+        if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+      for (step = 1; step <= 25; ++step) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(step_src), &tree));
+        g_cdd_cst_alloc_token_fail = step;
+        g_cdd_last_alloc_err = cdd_transform_msvc(tree, &cfg_extra);
+        g_cdd_cst_alloc_token_fail = 0;
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        tree = NULL;
+      }
+      cfg_extra.with_auto_win_msvc = 0;
+      for (step = 1; step <= 120; ++step) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(step_src), &tree));
+        g_cdd_step_fail = step;
+        s_rc = cdd_transform_msvc(tree, &cfg_extra);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        tree = NULL;
+        if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+      cfg_extra.with_auto_win_msvc = 1;
+      for (step = 1; step <= 40; ++step) {
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_cst_parse(az_span_create_from_str(""), &tree));
+        g_cdd_step_fail = step;
+        s_rc = cdd_transform_msvc(tree, &cfg_extra);
+        g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+        tree = NULL;
+        if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+        g_cdd_step_fail = 0;
+      }
+    }
+#endif
   }
 
   g_fail_io_after = -1;

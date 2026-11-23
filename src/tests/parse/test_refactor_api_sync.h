@@ -424,7 +424,7 @@ TEST test_sync_full_coverage(void) {
 
   g_cdd_alloc_fail = 1;
   rc = cdd_test_sync_generate_expected_url("/path", &op, &cfg, &str_out);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_cdd_alloc_fail = 0;
 
   g_cdd_alloc_fail = 3;

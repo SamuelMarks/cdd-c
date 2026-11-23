@@ -86,6 +86,78 @@ def has_emscripten():
         return False
 
 
+def resolve_c_ci_script(script_name):
+    """Locate a `c-ci` helper script across local, parent, and standard checkout paths."""
+    candidates = [script_name]
+    mod_file = globals().get("__file__")
+    if mod_file:
+        candidates.append(
+            os.path.join(os.path.dirname(os.path.abspath(mod_file)), script_name)
+        )
+    candidates.extend(
+        [
+            os.path.join("..", "c-ci", script_name),
+            os.path.join("..", "..", "c-ci", script_name),
+            os.path.expanduser(os.path.join("~", "repos", "c-ci", script_name)),
+        ]
+    )
+    for cand in candidates:
+        if os.path.isfile(cand):
+            return cand
+    return None
+
+
+def is_msdos_opted_in(repo_dir="."):
+    """Determine whether the repository in `repo_dir` explicitly opts into MS-DOS testing."""
+    env_val = os.environ.get("MSDOS_TESTING", "").strip().lower()
+    if env_val in ("1", "true", "yes", "on"):
+        return True
+    if env_val in ("0", "false", "no", "off"):
+        return False
+
+    wf_dir = os.path.join(repo_dir, ".github", "workflows")
+    if not os.path.isdir(wf_dir):
+        return False
+
+    pattern = re.compile(
+        r"^\s*msdos_testing\s*:\s*(?:true|'true'|\"true\")\s*(?:#.*)?$",
+        re.IGNORECASE,
+    )
+    for fname in sorted(os.listdir(wf_dir)):
+        if not fname.endswith((".yml", ".yaml")):
+            continue
+        fpath = os.path.join(wf_dir, fname)
+        if not os.path.isfile(fpath):
+            continue
+        with open(fpath, "r", encoding="utf-8", errors="ignore") as fh:
+            for line in fh:
+                if pattern.match(line):
+                    return True
+    return False
+
+
+def has_msdos_watcom():
+    """Check whether host prerequisites for standalone OpenWatcom + QEMU MS-DOS testing exist."""
+    if not (is_tool("sh") and is_tool("ruby") and is_tool("cmake")):
+        return False
+    if not (is_tool("qemu-system-i386") or is_tool("qemu-system-x86_64")):
+        return False
+    matrix_sh = resolve_c_ci_script("run_dos_watcom_matrix.sh")
+    if not matrix_sh:
+        return False
+    bento_candidates = [
+        os.environ.get("BENTO_DIR", ""),
+        os.path.join("..", "bento"),
+        os.path.join("..", "..", "bento"),
+        os.path.join(os.path.dirname(os.path.abspath(matrix_sh)), "..", "bento"),
+        os.path.expanduser(os.path.join("~", "repos", "bento")),
+    ]
+    return any(
+        cand and os.path.isfile(os.path.join(cand, "msdos-builder.sh"))
+        for cand in bento_candidates
+    )
+
+
 def main():
     if len(sys.argv) < 2:
         print(
@@ -295,6 +367,19 @@ def main():
                 env=env,
             )
             run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
+        elif toolchain == "msdos":
+            if not is_msdos_opted_in("."):
+                print(
+                    "MS-DOS testing not opted in (set msdos_testing: true in workflow or MSDOS_TESTING=1). Skipping."
+                )
+                sys.exit(0)
+            build_sh = resolve_c_ci_script("build_dos_watcom.sh")
+            if build_sh and is_tool("sh") and is_tool("cmake"):
+                run_cmd(["sh", build_sh])
+            else:
+                print(
+                    "OpenWatcom DOS build script or prerequisites not found on this host. Skipping."
+                )
         else:
             print(
                 f"Toolchain {toolchain} not found or not supported on this OS. Skipping build."
@@ -302,7 +387,36 @@ def main():
         sys.exit(0)
 
     elif job == "test":
-        if toolchain == "emscripten" and not has_emscripten():
+        if toolchain == "msdos":
+            if not is_msdos_opted_in("."):
+                print(
+                    "MS-DOS testing not opted in (set msdos_testing: true in workflow or MSDOS_TESTING=1). Skipping."
+                )
+                sys.exit(0)
+            if not has_msdos_watcom():
+                print(
+                    "MS-DOS QEMU/Bento/OpenWatcom prerequisites not available on this host. Skipping."
+                )
+                sys.exit(0)
+            matrix_sh = resolve_c_ci_script("run_dos_watcom_matrix.sh")
+            os_targets = os.environ.get("MSDOS_VERSIONS", "msdos")
+            arch_targets = os.environ.get("MSDOS_ARCHS", "I86,I386")
+            run_cmd(
+                [
+                    "sh",
+                    matrix_sh,
+                    "--mode",
+                    "standalone",
+                    "--os",
+                    os_targets,
+                    "--arch",
+                    arch_targets,
+                    "--project",
+                    ".",
+                ]
+            )
+            sys.exit(0)
+        elif toolchain == "emscripten" and not has_emscripten():
             print("Emscripten not found. Skipping test.")
             sys.exit(0)
         elif toolchain == "gcc" and not has_gcc():

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15...4.0)
 
 if(NOT DEFINED TRANSFORM_BIN OR NOT EXISTS "${TRANSFORM_BIN}")
     message(FATAL_ERROR "TRANSFORM_BIN not found: ${TRANSFORM_BIN}")

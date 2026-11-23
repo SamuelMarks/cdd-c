@@ -208,10 +208,9 @@ cdd_c_error_t safe_crt_generate_strcpy_patch(const struct TokenList *tokens,
                dest, dest, src, dest, src);
 #endif
 
-  rc_crt = safe_crt_add_patch(out, call_start, call_end, replacement);
   C_CDD_FREE(dest);
   C_CDD_FREE(src);
-  return rc_crt;
+  return safe_crt_add_patch(out, call_start, call_end, replacement);
 }
 
 /*
@@ -319,11 +318,10 @@ cdd_c_error_t safe_crt_generate_fopen_patch(const struct TokenList *tokens,
                "#endif\n",
                dest, path, mode, dest, path, mode);
 #endif
-  rc_crt = safe_crt_add_patch(out, assign_idx - 1, call_end, replacement);
   C_CDD_FREE(path);
   C_CDD_FREE(mode);
   C_CDD_FREE(dest);
-  return rc_crt;
+  return safe_crt_add_patch(out, assign_idx - 1, call_end, replacement);
 }
 
 /*
@@ -405,11 +403,10 @@ cdd_c_error_t safe_crt_generate_strncpy_patch(const struct TokenList *tokens,
                "#endif\n",
                dest, dest, src, count, dest, src, count);
 #endif
-  rc_crt = safe_crt_add_patch(out, call_start, call_end, replacement);
   C_CDD_FREE(dest);
   C_CDD_FREE(src);
   C_CDD_FREE(count);
-  return rc_crt;
+  return safe_crt_add_patch(out, call_start, call_end, replacement);
 }
 
 /*
@@ -481,10 +478,9 @@ cdd_c_error_t safe_crt_generate_sprintf_patch(const struct TokenList *tokens,
                "#endif",
                dest, dest, args, dest, args);
 #endif
-  rc_crt = safe_crt_add_patch(out, call_start, call_end, replacement);
   C_CDD_FREE(dest);
   C_CDD_FREE(args);
-  return rc_crt;
+  return safe_crt_add_patch(out, call_start, call_end, replacement);
 }
 
 /*
@@ -658,21 +654,17 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                        tokens->tokens[end_stmt].kind != TOKEN_SEMICOLON) {
                   end_stmt++;
                 }
+                C_CDD_FREE(type_name);
+                C_CDD_FREE(var_name);
+                C_CDD_FREE(expr);
                 if (end_stmt < n->end_token) {
                   rc_crt = safe_crt_add_patch(out_patches, j, end_stmt + 1,
                                               replacement);
-                  C_CDD_FREE(type_name);
-                  C_CDD_FREE(var_name);
-                  C_CDD_FREE(expr);
                   if (rc_crt != CDD_C_SUCCESS)
                     return rc_crt;
                   /* Only skip to end_bracket, so we don't skip the rest of the
                    * node loop processing */
                   j = end_bracket;
-                } else {
-                  C_CDD_FREE(type_name);
-                  C_CDD_FREE(var_name);
-                  C_CDD_FREE(expr);
                 }
               }
             }

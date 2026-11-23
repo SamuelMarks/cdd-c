@@ -117,6 +117,14 @@ extern C_CDD_EXPORT cdd_c_error_t cst_list_add(struct CstNodeList *list,
 extern C_CDD_EXPORT cdd_c_error_t free_cst_node_list(struct CstNodeList *list);
 
 /**
+ * @brief Frees internal memory of a `CstNodeList` (`*_free` destructor alias).
+ *
+ * @param[in,out] list The list to clean.
+ * @return `CDD_C_SUCCESS`.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cst_node_list_free(struct CstNodeList *list);
+
+/**
  * @brief Find the first node of a specific kind in the list.
  *
  * @param[in] list The list to search.

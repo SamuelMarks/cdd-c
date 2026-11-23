@@ -24,7 +24,7 @@ cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
                                         size_t skip_count, char **out_json) {
   JSON_Value *extras_val = NULL;
   JSON_Object *extras_obj = NULL;
-  size_t i, count = 0, extras_count = 0;
+  size_t i, k, count;
   char *serialized = NULL;
   cdd_c_error_t rc;
 
@@ -34,50 +34,53 @@ cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = cdd_json_value_init_object(&extras_val);
-  if (rc != CDD_C_SUCCESS) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
-  rc = cdd_json_value_get_object(extras_val, &extras_obj);
-  rc = cdd_json_object_get_count(obj, &count);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  extras_obj = extras_val->object_val;
+  count = obj->count;
   for (i = 0; i < count; ++i) {
-    const char *key = NULL;
-    JSON_Value *val = NULL;
+    const char *key = obj->names[i];
+    JSON_Value *val = obj->values[i];
     JSON_Value *copy = NULL;
     int is_skip = 0;
 
-    rc = cdd_json_object_get_name(obj, i, &key);
-    rc = c2s_key_in_list(key, skip_keys, skip_count, &is_skip);
-    if (is_skip)
-      continue;
-    rc = cdd_json_object_get_value(obj, key, &val);
-    {
-      cdd_c_error_t rc_c2s = c2s_clone_json_value(val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc_c2s |
-                               (int)cdd_json_value_free(extras_val));
+    for (k = 0; k < skip_count; ++k) {
+      if (strcmp(key, skip_keys[k]) == 0) {
+        is_skip = 1;
+        break;
       }
     }
-    if (cdd_json_object_set_value(extras_obj, key, copy) != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                             (int)cdd_json_value_free(copy) |
-                             (int)cdd_json_value_free(extras_val));
+    if (is_skip)
+      continue;
+
+    rc = c2s_clone_json_value(val, &copy);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
+    }
+    rc = cdd_json_object_set_value(extras_obj, key, copy);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc,
+                            cdd_c_keep_err(cdd_json_value_free(copy),
+                                           cdd_json_value_free(extras_val)));
     }
   }
 
-  rc = cdd_json_object_get_count(extras_obj, &extras_count);
-  if (extras_count == 0) {
+  if (extras_obj->count == 0) {
     return cdd_json_value_free(extras_val);
   }
 
-  if (cdd_json_serialize_to_string(extras_val, &serialized) != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                           (int)cdd_json_value_free(extras_val));
+  rc = cdd_json_serialize_to_string(extras_val, &serialized);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
   }
   rc = c_cdd_strdup(serialized, out_json);
-  return (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_free_serialized_string(serialized) |
-                         (int)cdd_json_value_free(extras_val));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(
+        rc, cdd_c_keep_err(cdd_json_free_serialized_string(serialized),
+                           cdd_json_value_free(extras_val)));
+  }
+  return cdd_c_keep_err(cdd_json_free_serialized_string(serialized),
+                        cdd_json_value_free(extras_val));
 }
 
 /*
@@ -97,70 +100,69 @@ cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
                                              const char *extras_json) {
   JSON_Value *extras_val = NULL;
   JSON_Object *extras_obj = NULL;
-  size_t i, count = 0;
+  size_t i, k, count;
   cdd_c_error_t rc;
-  if (!target || !extras_json || extras_json[0] == '\0')
+
+  if (!target || !extras_json || !*extras_json)
     return CDD_C_SUCCESS;
 
-  if (cdd_json_parse_string(extras_json, &extras_val) != CDD_C_SUCCESS)
-    return CDD_C_SUCCESS;
-  if (cdd_json_value_get_object(extras_val, &extras_obj) != CDD_C_SUCCESS) {
-    return cdd_json_value_free(extras_val);
-  }
-
-  rc = cdd_json_object_get_count(extras_obj, &count);
-  for (i = 0; i < count; ++i) {
-    const char *key = NULL;
-    JSON_Value *val = NULL;
-    JSON_Value *copy = NULL;
-    int has_val = 0;
-
-    rc = cdd_json_object_get_name(extras_obj, i, &key);
-    rc = cdd_json_object_has_value(target, key, &has_val);
-    if (has_val)
-      continue;
-    rc = cdd_json_object_get_value(extras_obj, key, &val);
-    {
-      cdd_c_error_t rc_c2s = c2s_clone_json_value(val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc_c2s |
-                               (int)cdd_json_value_free(extras_val));
-      }
+  rc = cdd_json_parse_string(extras_json, &extras_val);
+  if (extras_val) {
+    extras_obj =
+        (extras_val->type == JSONObject) ? extras_val->object_val : NULL;
+    if (!extras_obj) {
+      return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
     }
-    {
-      cdd_c_error_t rc_set;
+
+    count = extras_obj->count;
+    for (i = 0; i < count; ++i) {
+      const char *key = extras_obj->names[i];
+      JSON_Value *val = extras_obj->values[i];
+      JSON_Value *copy = NULL;
+      int has_val = 0;
+      cdd_c_error_t rc_c2s, rc_set;
+
+      for (k = 0; k < target->count; ++k) {
+        if (strcmp(target->names[k], key) == 0) {
+          has_val = 1;
+          break;
+        }
+      }
+      if (has_val)
+        continue;
+
+      rc_c2s = c2s_clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc_c2s, cdd_json_value_free(extras_val));
+      }
+
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_fail_json_set_value) {
         g_cdd_fail_json_set_value = 0;
-        rc_set = CDD_C_ERROR_MEMORY;
-      } else
-#endif
-      {
-        rc_set = cdd_json_object_set_value(target, key, copy);
+        return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                              cdd_c_keep_err(cdd_json_value_free(copy),
+                                             cdd_json_value_free(extras_val)));
       }
+#endif
+      rc_set = cdd_json_object_set_value(target, key, copy);
       if (rc_set != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                               (int)cdd_json_value_free(copy) |
-                               (int)cdd_json_value_free(extras_val));
+        return cdd_c_keep_err(rc_set,
+                              cdd_c_keep_err(cdd_json_value_free(copy),
+                                             cdd_json_value_free(extras_val)));
       }
     }
-  }
 
-  return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(extras_val));
+    return cdd_c_keep_err(rc, cdd_json_value_free(extras_val));
+  }
+  return CDD_C_SUCCESS;
 }
 
 /*
- * @brief Merges two serialized JSON objects containing extra schemas
- * together.
+ * @brief Merges extra attributes from `src_json` into `*dest_json`.
  *
- * Parses `dest_json` and `src_json`. Clones the properties from the
- * `src` object into `dest`, serializing the result back out into
- * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
- * duplicated into it.
- *
- * @param[in,out] dest_json Pointer to destination JSON string pointer to
- * update.
- * @param[in] src_json Source serialized JSON object string to merge in.
+ * @param[in,out] dest_json Pointer to destination serialized JSON extras
+ * string.
+ * @param[in] src_json Source serialized JSON extras string to merge in.
  * @return CDD_C_SUCCESS on success, or an error code.
  */
 cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
@@ -169,107 +171,100 @@ cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
   JSON_Value *src_val = NULL;
   JSON_Object *dest_obj = NULL;
   JSON_Object *src_obj = NULL;
-  size_t i, count = 0;
+  size_t i, count;
   char *serialized = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc_d, rc_s, rc;
 
-  if (!dest_json || !src_json || src_json[0] == '\0')
+  if (!dest_json || !src_json || !*src_json)
     return CDD_C_SUCCESS;
+
   if (!*dest_json) {
     return c_cdd_strdup(src_json, dest_json);
   }
 
-  if (cdd_json_parse_string(*dest_json, &dest_val) != CDD_C_SUCCESS)
-    dest_val = NULL;
-  if (cdd_json_parse_string(src_json, &src_val) != CDD_C_SUCCESS)
-    src_val = NULL;
-  if (!dest_val || !src_val) {
-    rc = CDD_C_SUCCESS;
-    if (dest_val)
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(dest_val));
-    if (src_val)
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(src_val));
-    return rc;
-  }
-  if (cdd_json_value_get_object(dest_val, &dest_obj) != CDD_C_SUCCESS)
-    dest_obj = NULL;
-  if (cdd_json_value_get_object(src_val, &src_obj) != CDD_C_SUCCESS)
-    src_obj = NULL;
-  if (!dest_obj || !src_obj) {
-    return (cdd_c_error_t)((int)cdd_json_value_free(dest_val) |
-                           (int)cdd_json_value_free(src_val));
-  }
-
-  rc = cdd_json_object_get_count(src_obj, &count);
-  for (i = 0; i < count; ++i) {
-    const char *key = NULL;
-    JSON_Value *val = NULL;
-    JSON_Value *copy = NULL;
-    int has_val = 0;
-
-    rc = cdd_json_object_get_name(src_obj, i, &key);
-    rc = cdd_json_object_has_value(dest_obj, key, &has_val);
-    if (has_val) {
-      rc = cdd_json_object_remove(dest_obj, key);
-    }
-    rc = cdd_json_object_get_value(src_obj, key, &val);
-    {
-      cdd_c_error_t rc_c2s = c2s_clone_json_value(val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc_c2s |
-                               (int)cdd_json_value_free(dest_val) |
-                               (int)cdd_json_value_free(src_val));
+  rc_d = cdd_json_parse_string(*dest_json, &dest_val);
+  if (dest_val) {
+    rc_s = cdd_json_parse_string(src_json, &src_val);
+    if (src_val) {
+      dest_obj = (dest_val->type == JSONObject) ? dest_val->object_val : NULL;
+      src_obj = (src_val->type == JSONObject) ? src_val->object_val : NULL;
+      if (!dest_obj || !src_obj) {
+        return cdd_c_keep_err(
+            rc_d,
+            cdd_c_keep_err(rc_s, cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                                cdd_json_value_free(src_val))));
       }
-    }
-    {
-      cdd_c_error_t rc_set;
+
+      count = src_obj->count;
+      for (i = 0; i < count; ++i) {
+        const char *key = src_obj->names[i];
+        JSON_Value *val = src_obj->values[i];
+        JSON_Value *copy = NULL;
+        cdd_c_error_t rc_c2s, rc_set;
+
+        rc_c2s = c2s_clone_json_value(val, &copy);
+        if (rc_c2s != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(rc_c2s,
+                                cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                               cdd_json_value_free(src_val)));
+        }
+
 #ifdef CDD_BUILD_TESTS
-      if (g_cdd_fail_json_set_value) {
-        g_cdd_fail_json_set_value = 0;
-        rc_set = CDD_C_ERROR_MEMORY;
-      } else
+        if (g_cdd_fail_json_set_value) {
+          g_cdd_fail_json_set_value = 0;
+          return cdd_c_keep_err(
+              CDD_C_ERROR_MEMORY,
+              cdd_c_keep_err(cdd_json_value_free(copy),
+                             cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                            cdd_json_value_free(src_val))));
+        }
 #endif
-      {
         rc_set = cdd_json_object_set_value(dest_obj, key, copy);
+        if (rc_set != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(
+              rc_set,
+              cdd_c_keep_err(cdd_json_value_free(copy),
+                             cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                            cdd_json_value_free(src_val))));
+        }
       }
-      if (rc_set != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                               (int)cdd_json_value_free(copy) |
-                               (int)cdd_json_value_free(dest_val) |
-                               (int)cdd_json_value_free(src_val));
-      }
-    }
-  }
 
-  rc = cdd_json_serialize_to_string(dest_val, &serialized);
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_fail_json_serialize) {
-    g_cdd_fail_json_serialize = 0;
-    rc = cdd_json_free_serialized_string(serialized);
-    serialized = NULL;
-  }
+      if (g_cdd_fail_json_serialize) {
+        g_cdd_fail_json_serialize = 0;
+        return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                              cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                             cdd_json_value_free(src_val)));
+      }
 #endif
-  if (!serialized) {
-    return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                           (int)cdd_json_value_free(dest_val) |
-                           (int)cdd_json_value_free(src_val));
-  }
-  {
-    char *dup = NULL;
-    rc = c_cdd_strdup(serialized, &dup);
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_free_serialized_string(serialized));
-    if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                             (int)cdd_json_value_free(dest_val) |
-                             (int)cdd_json_value_free(src_val));
-    }
-    C_CDD_FREE(*dest_json);
-    *dest_json = dup;
-  }
+      rc = cdd_json_serialize_to_string(dest_val, &serialized);
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                                 cdd_json_value_free(src_val)));
+      }
+      {
+        char *dup = NULL;
+        rc = c_cdd_strdup(serialized, &dup);
+        if (rc != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(
+              rc, cdd_c_keep_err(cdd_json_free_serialized_string(serialized),
+                                 cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                                cdd_json_value_free(src_val))));
+        }
+        C_CDD_FREE(*dest_json);
+        *dest_json = dup;
+      }
 
-  return (cdd_c_error_t)((int)cdd_json_value_free(dest_val) |
-                         (int)cdd_json_value_free(src_val));
+      return cdd_c_keep_err(
+          rc_d, cdd_c_keep_err(
+                    rc_s, cdd_c_keep_err(
+                              cdd_json_free_serialized_string(serialized),
+                              cdd_c_keep_err(cdd_json_value_free(dest_val),
+                                             cdd_json_value_free(src_val)))));
+    }
+    return cdd_c_keep_err(rc_d, cdd_json_value_free(dest_val));
+  }
+  return CDD_C_SUCCESS;
 }
 
 /*

@@ -458,6 +458,43 @@ free_param_fields(struct OpenAPI_Parameter *p);
 extern C_CDD_EXPORT cdd_c_error_t
 free_encoding_fields(struct OpenAPI_Encoding *enc);
 
+/**
+ * @brief Frees members of an OpenAPI Any value structure (`*_free` alias).
+ *
+ * @param[in,out] val Pointer to OpenAPI_Any whose contents should be freed.
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t any_value_local_free(struct OpenAPI_Any *val);
+
+/**
+ * @brief Cleans up dynamically allocated fields of an OpenAPI Link (`*_free`
+ * alias).
+ *
+ * @param[in,out] link Pointer to OpenAPI Link structure.
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t link_fields_free(struct OpenAPI_Link *link);
+
+/**
+ * @brief Frees dynamically allocated fields of an OpenAPI Parameter (`*_free`
+ * alias).
+ *
+ * @param[in,out] p Pointer to OpenAPI Parameter structure.
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+param_fields_free(struct OpenAPI_Parameter *p);
+
+/**
+ * @brief Frees dynamically allocated fields of an OpenAPI Encoding (`*_free`
+ * alias).
+ *
+ * @param[in,out] enc Pointer to OpenAPI Encoding structure.
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+encoding_fields_free(struct OpenAPI_Encoding *enc);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

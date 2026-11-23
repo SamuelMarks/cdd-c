@@ -30,6 +30,7 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                                   const char *prefix,
                                   const struct OpenAPI_Spec *spec) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_esc = CDD_C_SUCCESS;
   size_t i, j;
 
   /* --- Write MCP Adapters --- */
@@ -297,16 +298,19 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
                        spec->defined_schema_names[i]) == 0) {
               /* MATCHED! */
               char *escaped = NULL;
-              cdd_c_error_t rc_esc =
+              rc_esc =
                   escape_c_string_literal(spec->raw_schema_json[k], &escaped);
               if (escaped) {
                 if (fprintf(cfile,
                             "    cdd_json_object_set_string(res_obj, \"text\", "
                             "\"%s\");\n",
-                            escaped) < 0)
+                            escaped) < 0) {
+                  C_CDD_FREE(escaped);
                   rc = CDD_C_ERROR_MEMORY;
+                  goto cleanup;
+                }
                 C_CDD_FREE(escaped);
-                found_raw = 1 + (int)rc_esc;
+                found_raw = 1;
               }
               break;
             }
@@ -806,5 +810,8 @@ cdd_c_error_t client_gen_emit_mcp(FILE *hfile, FILE *cfile, const char *guard,
   }
 
 cleanup:
-  return rc;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, rc_esc);
+  }
+  return CDD_C_SUCCESS;
 }

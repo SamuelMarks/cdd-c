@@ -32,6 +32,10 @@
  */
 static cdd_c_error_t is_global_wrapper(cdd_cst_node_t *node,
                                        int *out_is_global) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (node != NULL) {
     switch (node->kind) {
     case CDD_CST_DECLARATION:
@@ -63,6 +67,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_has_decl = 0;
   if (!node)
     return CDD_C_SUCCESS;
@@ -97,8 +105,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
         break;
       }
       rc = cdd_tree_has_decl(child, out_has_decl);
-      if (*out_has_decl)
+      if (rc != CDD_C_SUCCESS)
         return rc;
+      if (*out_has_decl)
+        return CDD_C_SUCCESS;
     }
   }
   return CDD_C_SUCCESS;
@@ -116,6 +126,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
   cdd_token_t *tok;
   size_t k;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_cpp = 0;
   if (!dir)
     return CDD_C_SUCCESS;
@@ -147,6 +161,59 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Synthesizes a CST node containing an `extern "C"` opening or closing
+ * guard.
+ *
+ * @param[in,out] tree Owning CST tree.
+ * @param[in] is_open Non-zero for opening guard, 0 for closing guard.
+ * @param[out] out_node Output pointer receiving the newly synthesized CST node.
+ * @return CDD_C_SUCCESS on success, or an error code.
+ */
+static cdd_c_error_t build_extern_c_guard_node(cdd_cst_tree_t *tree,
+                                               int is_open,
+                                               cdd_cst_node_t **out_node) {
+  cdd_cst_builder_t bld;
+  cdd_cst_node_t *node =
+      (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+  cdd_c_error_t rc;
+
+  *out_node = NULL;
+  if (!node)
+    return CDD_C_ERROR_MEMORY;
+  node->kind = CDD_CST_UNKNOWN;
+
+  rc = cdd_cst_builder_init(&bld, tree, node);
+  if (rc != CDD_C_SUCCESS) {
+    cdd_c_error_t rc_f = cdd_cst_node_free(node);
+    return cdd_c_keep_err(rc, rc_f);
+  }
+
+  rc = cdd_cst_bld_newline(&bld);
+  if (rc != CDD_C_SUCCESS) {
+    goto fail;
+  }
+
+  if (is_open) {
+    rc = cdd_cst_bld_extern_c_open(&bld);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
+  } else {
+    rc = cdd_cst_bld_extern_c_close(&bld);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
+  }
+
+  *out_node = node;
+  return cdd_cst_builder_free(&bld);
+
+fail: {
+  cdd_c_error_t rc_f1 = cdd_cst_node_free(node);
+  cdd_c_error_t rc_f2 = cdd_cst_builder_free(&bld);
+  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_f1, rc_f2));
+}
+}
+
 /*
  * @brief Adds extern "C" wrapping to the parsed syntax tree.
  *
@@ -170,8 +237,10 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
   /* Verify there are actual C declarations to wrap */
   rc = cdd_tree_has_decl(tree->root, &has_decl);
-  if (!has_decl)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (!has_decl)
+    return CDD_C_SUCCESS;
 
   /* 1. Check if __cplusplus is already checked globally */
   rc =
@@ -183,8 +252,16 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     int is_global = 0;
     cdd_cst_node_t *dir = res.nodes[i];
     rc = is_global_wrapper(dir, &is_global);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(res.nodes);
+      return rc;
+    }
     if (is_global) {
       rc = cdd_check_node_is_cpp_guard(dir, &found_cpp);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(res.nodes);
+        return rc;
+      }
       if (found_cpp)
         break;
     }
@@ -201,8 +278,16 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       int is_global = 0;
       cdd_cst_node_t *dir = res.nodes[i];
       rc = is_global_wrapper(dir, &is_global);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(res.nodes);
+        return rc;
+      }
       if (is_global) {
         rc = cdd_check_node_is_cpp_guard(dir, &found_cpp);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(res.nodes);
+          return rc;
+        }
         if (found_cpp)
           break;
       }
@@ -300,40 +385,26 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
   /* 3. Synthesize Top Nodes and process late includes */
   {
-    cdd_cst_builder_t bld;
-    int in_extern_c = 0;
     size_t j;
-    cdd_cst_node_t *top_node =
-        (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-    if (!top_node)
-      return CDD_C_ERROR_MEMORY;
+    cdd_cst_node_t *top_node = NULL;
 
-    top_node->kind = CDD_CST_UNKNOWN;
-    bld.error_state = cdd_cst_builder_init(&bld, tree, top_node);
-    bld.error_state = cdd_cst_bld_newline(&bld);
-    bld.error_state = cdd_cst_bld_extern_c_open(&bld);
-    if (bld.error_state == 0) {
-      /* Transplant leading trivia from the first token to our top_node so
-       * comments stay at the top */
-      if (insert_idx == 0 && first_token_of_file) {
-        cdd_token_t *top_first_tok = top_node->children[0].val.token;
-        top_first_tok->leading_trivia = first_token_of_file->leading_trivia;
-        first_token_of_file->leading_trivia = NULL;
-      }
+    rc = build_extern_c_guard_node(tree, 1, &top_node);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
-      rc = cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
-      if (rc != CDD_C_SUCCESS) {
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(top_node));
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-        return rc;
-      }
-      in_extern_c = 1;
-    } else {
-      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_free_node(top_node));
+    /* Transplant leading trivia from the first token to our top_node so
+     * comments stay at the top */
+    if (insert_idx == 0 && first_token_of_file) {
+      cdd_token_t *top_first_tok = top_node->children[0].val.token;
+      top_first_tok->leading_trivia = first_token_of_file->leading_trivia;
+      first_token_of_file->leading_trivia = NULL;
     }
-    bld.error_state =
-        (cdd_c_error_t)((int)bld.error_state | (int)cdd_cst_builder_free(&bld));
+
+    rc = cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
+    if (rc != CDD_C_SUCCESS) {
+      cdd_c_error_t rc_f = cdd_cst_node_free(top_node);
+      return cdd_c_keep_err(rc, rc_f);
+    }
 
     /* Process children to find late includes that need to be excluded from
      * extern "C" */
@@ -344,58 +415,37 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
           if (child->num_children > 0 &&
               child->children[0].kind == CDD_CST_CHILD_TOKEN) {
             cdd_token_t *tok = child->children[0].val.token;
-            if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE && in_extern_c) {
+            if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
               /* Late include found! Close before it, open after it. */
-              cdd_cst_node_t *close_node;
-              cdd_cst_node_t *reopen_node;
+              cdd_cst_node_t *close_node = NULL;
+              cdd_cst_node_t *reopen_node = NULL;
 
-              close_node =
-                  (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-              if (!close_node)
-                return CDD_C_ERROR_MEMORY;
+              rc = build_extern_c_guard_node(tree, 0, &close_node);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
 
-              reopen_node =
-                  (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-              if (!reopen_node) {
-                return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                       (int)cdd_cst_free_node(close_node));
+              rc = build_extern_c_guard_node(tree, 1, &reopen_node);
+              if (rc != CDD_C_SUCCESS) {
+                cdd_c_error_t rc_f = cdd_cst_node_free(close_node);
+                return cdd_c_keep_err(rc, rc_f);
               }
 
-              close_node->kind = CDD_CST_UNKNOWN;
-              bld.error_state = cdd_cst_builder_init(&bld, tree, close_node);
-              bld.error_state = cdd_cst_bld_newline(&bld);
-              bld.error_state = cdd_cst_bld_extern_c_close(&bld);
               rc = cdd_cst_insert_child_node_at(target_parent, j, close_node);
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_builder_free(&bld));
               if (rc != CDD_C_SUCCESS) {
-                rc = (cdd_c_error_t)((int)rc |
-                                     (int)cdd_cst_free_node(close_node));
-                rc = (cdd_c_error_t)((int)rc |
-                                     (int)cdd_cst_free_node(reopen_node));
-                return rc;
+                cdd_c_error_t rc_f1 = cdd_cst_node_free(close_node);
+                cdd_c_error_t rc_f2 = cdd_cst_node_free(reopen_node);
+                return cdd_c_keep_err(rc, cdd_c_keep_err(rc_f1, rc_f2));
               }
               j++; /* skip the close node we just inserted */
-              in_extern_c = 0;
 
-              reopen_node->kind = CDD_CST_UNKNOWN;
-              bld.error_state = cdd_cst_builder_init(&bld, tree, reopen_node);
-              bld.error_state = cdd_cst_bld_newline(&bld);
-              bld.error_state = cdd_cst_bld_extern_c_open(&bld);
               rc = cdd_cst_insert_child_node_at(target_parent, j + 1,
                                                 reopen_node);
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_builder_free(&bld));
               if (rc != CDD_C_SUCCESS) {
-                rc = (cdd_c_error_t)((int)rc |
-                                     (int)cdd_cst_free_node(reopen_node));
-                return rc;
+                cdd_c_error_t rc_f = cdd_cst_node_free(reopen_node);
+                return cdd_c_keep_err(rc, rc_f);
               }
               j += 2; /* skip the include node AND the reopen node we just
                          inserted */
-              in_extern_c = 1;
             }
           }
         }
@@ -405,45 +455,33 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
   /* 4. Synthesize Bottom Nodes */
   {
-    cdd_cst_builder_t bld;
-    cdd_cst_node_t *bot_node =
-        (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-    if (!bot_node)
-      return CDD_C_ERROR_MEMORY;
+    cdd_cst_node_t *bot_node = NULL;
+    size_t bot_insert_idx;
 
-    bot_node->kind = CDD_CST_UNKNOWN;
-    bld.error_state = cdd_cst_builder_init(&bld, tree, bot_node);
-    bld.error_state = cdd_cst_bld_newline(&bld);
-    bld.error_state = cdd_cst_bld_extern_c_close(&bld);
-    if (bld.error_state == 0) {
-      size_t bot_insert_idx = target_parent->num_children;
-      if (target_parent->num_children > 0) {
-        cdd_cst_child_t last_child =
-            target_parent->children[target_parent->num_children - 1];
-        if (last_child.kind == CDD_CST_CHILD_TOKEN) {
-          switch (last_child.val.token->kind) {
-          case CDD_TOKEN_EOF:
-          case CDD_TOKEN_PREPROC_ENDIF:
-            bot_insert_idx--;
-            break;
-          default:
-            break;
-          }
+    rc = build_extern_c_guard_node(tree, 0, &bot_node);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+
+    bot_insert_idx = target_parent->num_children;
+    {
+      cdd_cst_child_t last_child =
+          target_parent->children[target_parent->num_children - 1];
+      if (last_child.kind == CDD_CST_CHILD_TOKEN) {
+        switch (last_child.val.token->kind) {
+        case CDD_TOKEN_EOF:
+        case CDD_TOKEN_PREPROC_ENDIF:
+          bot_insert_idx--;
+          break;
+        default:
+          break;
         }
       }
-      rc =
-          cdd_cst_insert_child_node_at(target_parent, bot_insert_idx, bot_node);
-      if (rc != CDD_C_SUCCESS) {
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(bot_node));
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-        return rc;
-      }
-    } else {
-      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_free_node(bot_node));
     }
-    bld.error_state =
-        (cdd_c_error_t)((int)bld.error_state | (int)cdd_cst_builder_free(&bld));
+    rc = cdd_cst_insert_child_node_at(target_parent, bot_insert_idx, bot_node);
+    if (rc != CDD_C_SUCCESS) {
+      cdd_c_error_t rc_f = cdd_cst_node_free(bot_node);
+      return cdd_c_keep_err(rc, rc_f);
+    }
   }
 
   return CDD_C_SUCCESS;

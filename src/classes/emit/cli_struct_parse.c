@@ -516,8 +516,12 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         f->cli_positional)
       continue;
     rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (lname[0] != '\0') {
       rc = cdd_escape_json_c_str(lname, esc_l, sizeof(esc_l));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       CHECK_IO(FPRINTF_HOOK(fp, "    \"--%s\",\n", esc_l));
       if (f->cli_negatable) {
         CHECK_IO(FPRINTF_HOOK(fp, "    \"--no-%s\",\n", esc_l));
@@ -555,12 +559,16 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     if (f->serde_skip || f->cli_skip || f->cli_skip_from_cli)
       continue;
     rc = cdd_cli_effective_action(f, &act);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (act == CDD_CLI_ACTION_SET_FALSE) {
       CHECK_IO(FPRINTF_HOOK(fp, "  ret->%s = 1;\n", f->name));
     }
     if (f->serde_flatten) {
       const char *ref_t = NULL;
       rc = get_type_from_ref(f->ref, &ref_t);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       CHECK_IO(FPRINTF_HOOK(fp,
                             "  if (!ret->%s) {\n"
                             "    _rc = %s_default(&ret->%s);\n"
@@ -580,9 +588,13 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         f->cli_subcommand || f->serde_flatten)
       continue;
     rc = cdd_cli_resolve_field_env(sf, f, env_name, sizeof(env_name));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (env_name[0] == '\0')
       continue;
     rc = cdd_escape_json_c_str(env_name, esc_env, sizeof(esc_env));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     CHECK_IO(FPRINTF_HOOK(
         fp,
         "  if (_cdd_cli_env_get(\"%s\", &_env_val) != CDD_C_SUCCESS)\n"
@@ -634,11 +646,15 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
       const struct StructField *f = &sf->fields[i];
       char lname[64];
       enum CddCliAction act = CDD_CLI_ACTION_SET;
-      rc = cdd_cli_effective_action(f, &act);
       if (f->serde_skip || f->cli_skip || f->cli_skip_from_cli ||
           f->cli_positional || f->cli_subcommand || f->serde_flatten)
         continue;
+      rc = cdd_cli_effective_action(f, &act);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (lname[0] == '\0')
         continue;
       CHECK_IO(FPRINTF_HOOK(
@@ -737,14 +753,18 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
                              ? "0 == _cdd_cli_str_icmp"
                              : "0 == strcmp";
 
-    rc = cdd_cli_effective_action(f, &act);
     if (f->serde_skip || f->cli_skip || f->cli_skip_from_cli ||
         f->cli_positional || f->cli_subcommand)
       continue;
+    rc = cdd_cli_effective_action(f, &act);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     if (f->serde_flatten) {
       const char *ref_t = NULL;
       rc = get_type_from_ref(f->ref, &ref_t);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       CHECK_IO(FPRINTF_HOOK(
           fp,
           "      {\n"
@@ -766,9 +786,13 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     }
 
     rc = cdd_cli_resolve_field_long(sf, f, lname, sizeof(lname));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (lname[0] == '\0')
       continue;
     rc = cdd_escape_json_c_str(lname, esc_l, sizeof(esc_l));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     if (f->cli_negatable && strcmp(f->type, "boolean") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
@@ -786,6 +810,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     for (j = 0; j < f->n_serde_aliases; ++j) {
       char esc_al[128];
       rc = cdd_escape_json_c_str(f->serde_aliases[j], esc_al, sizeof(esc_al));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       CHECK_IO(FPRINTF_HOOK(fp, " || %s(_kbuf, \"%s\")", cmp_fn, esc_al));
     }
     CHECK_IO(FPRINTF_HOOK(fp, ") {\n"));
@@ -839,6 +865,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
       char esc_def_miss[128];
       rc = cdd_escape_json_c_str(f->cli_default_missing_val, esc_def_miss,
                                  sizeof(esc_def_miss));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       CHECK_IO(
           FPRINTF_HOOK(fp, "        const char *_val_str = _inline_val;\n"));
       if (f->cli_require_equals) {
@@ -941,12 +969,14 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
     enum CddCliAction act = CDD_CLI_ACTION_SET;
-    rc = cdd_cli_effective_action(f, &act);
     if (f->serde_skip || f->cli_skip || f->cli_skip_from_cli ||
         f->cli_positional || f->cli_subcommand || f->serde_flatten)
       continue;
     if (f->cli_short == '\0' && f->cli_short_aliases[0] == '\0')
       continue;
+    rc = cdd_cli_effective_action(f, &act);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     CHECK_IO(FPRINTF_HOOK(fp, "        if ("));
     if (f->cli_short != '\0') {
@@ -1025,8 +1055,12 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
     const char *ref_t = NULL;
     const struct TypeDefinition *udef = NULL;
     rc = get_type_from_ref(subcmd_f->ref, &ref_t);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_cli_find_type_def(config ? config->type_registry : NULL, ref_t,
                                KIND_STRUCT, &udef);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (udef) {
       const struct StructFields *usf = udef->details.struct_fields;
       if (!sf->cli_disable_help_subcommand) {
@@ -1039,11 +1073,17 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
           if (vf->serde_skip || vf->cli_skip || vf->cli_skip_from_cli)
             continue;
           rc = get_type_from_ref(vf->ref, &vref);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (vf->serde_rename[0] != '\0') {
             rc = cdd_cli_copy_str(cmd_name, sizeof(cmd_name), vf->serde_rename);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           } else {
             rc = cdd_serde_transform_case(vf->name, CDD_SERDE_CASE_KEBABCASE,
                                           cmd_name, sizeof(cmd_name));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
           CHECK_IO(FPRINTF_HOOK(
               fp,
@@ -1064,11 +1104,17 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         if (vf->serde_skip || vf->cli_skip || vf->cli_skip_from_cli)
           continue;
         rc = get_type_from_ref(vf->ref, &vref);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (vf->serde_rename[0] != '\0') {
           rc = cdd_cli_copy_str(cmd_name, sizeof(cmd_name), vf->serde_rename);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
           rc = cdd_serde_transform_case(vf->name, CDD_SERDE_CASE_KEBABCASE,
                                         cmd_name, sizeof(cmd_name));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
         CHECK_IO(
             FPRINTF_HOOK(fp, "    if (strcmp(_arg, \"%s\") == 0", cmd_name));
@@ -1227,6 +1273,8 @@ write_struct_cli_parse_into_func(FILE *fp, const char *struct_name,
         char esc_rv[128];
         rc = cdd_escape_json_c_str(f->cli_required_if_val, esc_rv,
                                    sizeof(esc_rv));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         CHECK_IO(FPRINTF_HOOK(
             fp,
             "  if (_seen_%s && ret->%s && strcmp(ret->%s, \"%s\") == 0 && "

@@ -50,6 +50,10 @@ static cdd_c_error_t to_camel_case(const char *snake, char *out,
                                    size_t out_size) {
   size_t i, j = 0;
   int up = 1;
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   for (i = 0; i < strlen(snake) && j < out_size - 1; i++) {
     if (snake[i] == '_') {
       up = 1;
@@ -84,9 +88,10 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char class_name[256];
   cdd_c_error_t rc_emit = CDD_C_SUCCESS;
 
-  rc_emit =
-      (cdd_c_error_t)((int)rc_emit | (int)to_camel_case(lib_name, class_name,
-                                                        sizeof(class_name)));
+  rc_emit = to_camel_case(lib_name, class_name, sizeof(class_name));
+  if (rc_emit != CDD_C_SUCCESS) {
+    return rc_emit;
+  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.java", config->output_dir,
@@ -171,8 +176,11 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         }
       }
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "        /**\n         * %s\n         */\n", node->doc);
       fprintf(f, "        public interface %s {\n", node->name);
@@ -198,8 +206,11 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       int has_derived = 0;
       size_t k, b;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       for (k = 0; k < ir->nodes_count; k++) {
         if (ir->nodes[k].kind == CDD_FFI_NODE_STRUCT) {
           for (b = 0; b < ir->nodes[k].base_classes_count; b++) {
@@ -224,8 +235,11 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "        /**\n         * %s\n         */\n", node->doc);
 
@@ -254,9 +268,11 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)get_java_primitive(
-                                               node->fields[j].type, &ftype));
+        rc_emit = get_java_primitive(node->fields[j].type, &ftype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "            public %s %s;\n", ftype, fname);
       }
 
@@ -293,11 +309,16 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_jt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_java_primitive(
-                                    node->return_or_base_type, &ret_jt));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
+      rc_emit = get_java_primitive(node->return_or_base_type, &ret_jt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "        %s %s(", ret_jt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
@@ -308,9 +329,11 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         if (strcmp(arg_name, "interface") == 0)
           arg_name = "iface";
 
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_java_primitive(node->fields[j].type, &jt));
+        rc_emit = get_java_primitive(node->fields[j].type, &jt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s %s", jt, arg_name);
         if (j < node->fields_count - 1 || node->is_variadic)
           fprintf(f, ", ");
@@ -332,13 +355,18 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_jt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "    /**\n     * %s\n     */\n", node->doc);
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_java_primitive(
-                                    node->return_or_base_type, &ret_jt));
+      rc_emit = get_java_primitive(node->return_or_base_type, &ret_jt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "    public static %s %s(", ret_jt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *arg_name =
@@ -366,9 +394,11 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
             fprintf(f, "com.sun.jna.ptr.PointerByReference %s", arg_name);
         } else {
           const char *jt = NULL;
-          rc_emit =
-              (cdd_c_error_t)((int)rc_emit | (int)get_java_primitive(
-                                                 node->fields[j].type, &jt));
+          rc_emit = get_java_primitive(node->fields[j].type, &jt);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, "%s %s", jt, arg_name);
         }
         if (j < node->fields_count - 1 || node->is_variadic)

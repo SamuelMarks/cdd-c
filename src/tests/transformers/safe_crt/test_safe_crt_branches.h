@@ -515,9 +515,9 @@ TEST test_cdd_transform_safe_crt_oom_all(void) {
       "wcstok(wbuf, L\"a\"); p = _mbstok(buf, \"a\"); _splitpath(\"a\", NULL, "
       "buf, 0, buf); _wsplitpath(L\"a\", NULL, wbuf, 0, wbuf); strncpy(buf, "
       "(p), 5); }",
-      "void f10() { FILE *f; FILE *f2; FILE *f3; f = fopen(\"a\", \"b\"); f2 = "
-      "_wfopen(L\"a\", L\"b\"); f3 = freopen(\"a\", \"b\", f); f = tmpfile(); "
-      "}",
+      "void f10() { FILE *f; FILE *f2; FILE *f3; f = // tr\n fopen(\"a\", "
+      "\"b\"); f2 = _wfopen(L\"a\", L\"b\"); f3 = freopen(\"a\", \"b\", f); f "
+      "= tmpfile(); }",
       "void f11() { char buf[10]; _splitpath(\"a\", buf, buf, buf, buf, "
       "\"extra\"); _makepath(buf, \"a\", \"a\", \"a\", \"a\", \"extra\"); }",
       "void f12() { char buf[10]; _itoa(1, buf, 10); }",
@@ -572,7 +572,144 @@ TEST test_cdd_transform_safe_crt_mock_fails(void) {
   ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
   g_mock_check_unsupported_calls_fail = 0;
 
+  g_mock_find_and_mark_fopen_fail = 2;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_find_and_mark_fopen_fail = 0;
+
+  g_mock_check_unsupported_calls_fail = 2;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_check_unsupported_calls_fail = 0;
+
+  g_mock_find_and_mark_fopen_fail = 3;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_find_and_mark_fopen_fail = 0;
+
+  g_mock_check_unsupported_calls_fail = 3;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_check_unsupported_calls_fail = 0;
+
+  g_mock_check_unsupported_calls_fail = 4;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_check_unsupported_calls_fail = 0;
+
   g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str("void f() { int x = (1); }"),
+                          &tree));
+  g_mock_check_unsupported_calls_fail = 2;
+  ASSERT_NEQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &config));
+  g_mock_check_unsupported_calls_fail = 0;
+  g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  PASS();
+}
+
+/**
+ * @brief Sweeps step-faults and token/pool OOM across all 9 Safe CRT scratch
+ * variable emitters and builder steps in `cdd_transform_safe_crt`.
+ * @return Greatest test result.
+ */
+TEST test_cdd_transform_safe_crt_percolation_sweeps(void) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+  static const char *const src_all9 =
+      "void f(char *b, wchar_t *wb, double d, int *ip) {\n"
+      "  (strerror(1), _wcserror(1), strtok(b, \"a\"), wcstok(wb, L\"a\"), "
+      "_mbstok(b, \"a\"), _ecvt(d, 1, ip, ip), _fcvt(d, 1, ip, ip), "
+      "getenv(\"A\"), _wgetenv(L\"A\"));\n"
+      "}\n";
+  static const char *const src_1call = "void f(void) { strerror(1); }\n";
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_tree_t empty_tr;
+  cdd_transform_config_t cfg;
+  int total_steps = 0;
+  int s;
+
+  memset(&cfg, 0, sizeof(cfg));
+  memset(&empty_tr, 0, sizeof(empty_tr));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_safe_crt(&empty_tr, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_safe_crt(NULL, &cfg));
+  {
+    cdd_cst_node_t root_n, unk_n, inner_n;
+    cdd_cst_child_t rc0, uc0;
+    memset(&root_n, 0, sizeof(root_n));
+    memset(&unk_n, 0, sizeof(unk_n));
+    memset(&inner_n, 0, sizeof(inner_n));
+    root_n.kind = CDD_CST_TRANSLATION_UNIT;
+    unk_n.kind = CDD_CST_UNKNOWN;
+    inner_n.kind = CDD_CST_BLOCK;
+    uc0.kind = CDD_CST_CHILD_NODE;
+    uc0.val.node = &inner_n;
+    unk_n.children = &uc0;
+    unk_n.num_children = 1;
+    rc0.kind = CDD_CST_CHILD_NODE;
+    rc0.val.node = &unk_n;
+    root_n.children = &rc0;
+    root_n.num_children = 1;
+    empty_tr.root = &root_n;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_safe_crt(&empty_tr, &cfg));
+  }
+
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cst_parse(az_span_create_from_str(src_all9), &tree));
+  g_cdd_step_fail = 100000;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_safe_crt(tree, &cfg));
+  total_steps = 100000 - g_cdd_step_fail;
+  g_cdd_step_fail = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+  for (s = 1; s <= total_steps + 5; ++s) {
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src_all9), &tree));
+    g_cdd_step_fail = s;
+    g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &cfg);
+    g_cdd_step_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+  }
+  for (s = 1; s <= 350; ++s) {
+    cdd_c_error_t r1, r2, r3;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src_all9), &tree));
+    g_cdd_cst_alloc_token_fail = s;
+    r1 = cdd_transform_safe_crt(tree, &cfg);
+    g_cdd_cst_alloc_token_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src_all9), &tree));
+    g_safe_crt_malloc_fail = s;
+    r2 = cdd_transform_safe_crt(tree, &cfg);
+    g_safe_crt_malloc_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src_all9), &tree));
+    g_cdd_cst_realloc_fail = s;
+    r3 = cdd_transform_safe_crt(tree, &cfg);
+    g_cdd_cst_realloc_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+    if (r1 == CDD_C_SUCCESS && r2 == CDD_C_SUCCESS && r3 == CDD_C_SUCCESS)
+      break;
+  }
+  for (s = 1; s <= 80; ++s) {
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src_1call), &tree));
+    g_cdd_cst_alloc_token_fail = s;
+    g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &cfg);
+    g_cdd_cst_alloc_token_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(src_1call), &tree));
+    g_cdd_cst_realloc_fail = s;
+    g_cdd_last_alloc_err = cdd_transform_safe_crt(tree, &cfg);
+    g_cdd_cst_realloc_fail = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+  }
+#endif
   PASS();
 }
 
@@ -587,6 +724,7 @@ SUITE(transformer_safe_crt_branches_suite) {
   RUN_TEST(test_cdd_transform_safe_crt_needs_buffers);
   RUN_TEST(test_cdd_transform_safe_crt_more_cases);
   RUN_TEST(test_cdd_transform_safe_crt_mock_fails);
+  RUN_TEST(test_cdd_transform_safe_crt_percolation_sweeps);
 }
 
 #ifdef __cplusplus

@@ -285,7 +285,10 @@ extern C_CDD_EXPORT cdd_c_error_t collect_extensions(const JSON_Object *obj,
  * @param[in,out] val The OpenAPI_Any value to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_any_value(struct OpenAPI_Any *val);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_any_value_free(struct OpenAPI_Any *val);
+/** @brief Compatibility alias for `openapi_any_value_free`. */
+#define free_any_value openapi_any_value_free
 
 /**
  * @brief Frees the memory associated with example.
@@ -293,7 +296,10 @@ extern C_CDD_EXPORT cdd_c_error_t free_any_value(struct OpenAPI_Any *val);
  * @param[in,out] ex The OpenAPI_Example structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_example(struct OpenAPI_Example *ex);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_example_free(struct OpenAPI_Example *ex);
+/** @brief Compatibility alias for `openapi_example_free`. */
+#define free_example openapi_example_free
 
 /**
  * @brief Frees the memory associated with link.
@@ -301,7 +307,9 @@ extern C_CDD_EXPORT cdd_c_error_t free_example(struct OpenAPI_Example *ex);
  * @param[in,out] link The OpenAPI_Link structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_link(struct OpenAPI_Link *link);
+extern C_CDD_EXPORT cdd_c_error_t openapi_link_free(struct OpenAPI_Link *link);
+/** @brief Compatibility alias for `openapi_link_free`. */
+#define free_link openapi_link_free
 
 /**
  * @brief Frees the memory associated with security requirement.
@@ -310,7 +318,9 @@ extern C_CDD_EXPORT cdd_c_error_t free_link(struct OpenAPI_Link *link);
  * @return CDD_C_SUCCESS.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-free_security_requirement(struct OpenAPI_SecurityRequirement *req);
+openapi_security_requirement_free(struct OpenAPI_SecurityRequirement *req);
+/** @brief Compatibility alias for `openapi_security_requirement_free`. */
+#define free_security_requirement openapi_security_requirement_free
 
 /**
  * @brief Frees the memory associated with security requirement set.
@@ -318,8 +328,10 @@ free_security_requirement(struct OpenAPI_SecurityRequirement *req);
  * @param[in,out] set The OpenAPI_SecurityRequirementSet structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set);
+extern C_CDD_EXPORT cdd_c_error_t openapi_security_requirement_set_free(
+    struct OpenAPI_SecurityRequirementSet *set);
+/** @brief Compatibility alias for `openapi_security_requirement_set_free`. */
+#define free_security_requirement_set openapi_security_requirement_set_free
 
 /**
  * @brief Frees the memory associated with schema ref content.
@@ -328,7 +340,9 @@ free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set);
  * @return CDD_C_SUCCESS.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-free_schema_ref_content(struct OpenAPI_SchemaRef *ref);
+openapi_schema_ref_content_free(struct OpenAPI_SchemaRef *ref);
+/** @brief Compatibility alias for `openapi_schema_ref_content_free`. */
+#define free_schema_ref_content openapi_schema_ref_content_free
 
 /**
  * @brief Frees the memory associated with header.
@@ -336,7 +350,10 @@ free_schema_ref_content(struct OpenAPI_SchemaRef *ref);
  * @param[in,out] hdr The OpenAPI_Header structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_header(struct OpenAPI_Header *hdr);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_header_free(struct OpenAPI_Header *hdr);
+/** @brief Compatibility alias for `openapi_header_free`. */
+#define free_header openapi_header_free
 
 /**
  * @brief Frees the memory associated with encoding.
@@ -344,7 +361,10 @@ extern C_CDD_EXPORT cdd_c_error_t free_header(struct OpenAPI_Header *hdr);
  * @param[in,out] enc The OpenAPI_Encoding structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_encoding(struct OpenAPI_Encoding *enc);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_encoding_free(struct OpenAPI_Encoding *enc);
+/** @brief Compatibility alias for `openapi_encoding_free`. */
+#define free_encoding openapi_encoding_free
 
 /**
  * @brief Frees the memory associated with media type.
@@ -352,7 +372,10 @@ extern C_CDD_EXPORT cdd_c_error_t free_encoding(struct OpenAPI_Encoding *enc);
  * @param[in,out] mt The OpenAPI_MediaType structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_media_type(struct OpenAPI_MediaType *mt);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_media_type_free(struct OpenAPI_MediaType *mt);
+/** @brief Compatibility alias for `openapi_media_type_free`. */
+#define free_media_type openapi_media_type_free
 
 /**
  * @brief Frees the memory associated with parameter.
@@ -361,7 +384,9 @@ extern C_CDD_EXPORT cdd_c_error_t free_media_type(struct OpenAPI_MediaType *mt);
  * @return CDD_C_SUCCESS.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-free_parameter(struct OpenAPI_Parameter *param);
+openapi_parameter_free(struct OpenAPI_Parameter *param);
+/** @brief Compatibility alias for `openapi_parameter_free`. */
+#define free_parameter openapi_parameter_free
 
 /**
  * @brief Frees the memory associated with response.
@@ -369,7 +394,10 @@ free_parameter(struct OpenAPI_Parameter *param);
  * @param[in,out] resp The OpenAPI_Response structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_response(struct OpenAPI_Response *resp);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_response_free(struct OpenAPI_Response *resp);
+/** @brief Compatibility alias for `openapi_response_free`. */
+#define free_response openapi_response_free
 
 /**
  * @brief Frees the memory associated with request body.
@@ -378,7 +406,9 @@ extern C_CDD_EXPORT cdd_c_error_t free_response(struct OpenAPI_Response *resp);
  * @return CDD_C_SUCCESS.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-free_request_body(struct OpenAPI_RequestBody *rb);
+openapi_request_body_free(struct OpenAPI_RequestBody *rb);
+/** @brief Compatibility alias for `openapi_request_body_free`. */
+#define free_request_body openapi_request_body_free
 
 /**
  * @brief Frees the memory associated with path item.
@@ -386,7 +416,10 @@ free_request_body(struct OpenAPI_RequestBody *rb);
  * @param[in,out] p The OpenAPI_Path structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_path_item(struct OpenAPI_Path *p);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_path_item_free(struct OpenAPI_Path *p);
+/** @brief Compatibility alias for `openapi_path_item_free`. */
+#define free_path_item openapi_path_item_free
 
 /**
  * @brief Frees the memory associated with callback.
@@ -394,7 +427,10 @@ extern C_CDD_EXPORT cdd_c_error_t free_path_item(struct OpenAPI_Path *p);
  * @param[in,out] cb The OpenAPI_Callback structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_callback(struct OpenAPI_Callback *cb);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_callback_free(struct OpenAPI_Callback *cb);
+/** @brief Compatibility alias for `openapi_callback_free`. */
+#define free_callback openapi_callback_free
 
 /**
  * @brief Frees the memory associated with operation.
@@ -402,7 +438,10 @@ extern C_CDD_EXPORT cdd_c_error_t free_callback(struct OpenAPI_Callback *cb);
  * @param[in,out] op The OpenAPI_Operation structure to free.
  * @return CDD_C_SUCCESS.
  */
-extern C_CDD_EXPORT cdd_c_error_t free_operation(struct OpenAPI_Operation *op);
+extern C_CDD_EXPORT cdd_c_error_t
+openapi_operation_free(struct OpenAPI_Operation *op);
+/** @brief Compatibility alias for `openapi_operation_free`. */
+#define free_operation openapi_operation_free
 
 /**
  * @brief Creates a deep copy of any value.
@@ -687,6 +726,181 @@ find_component_callback(const struct OpenAPI_Spec *spec, const char *ref,
 extern C_CDD_EXPORT cdd_c_error_t
 find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
                          struct OpenAPI_Path **_out_val);
+
+/**
+ * @brief Looks up an optional string property on a JSON_Object, setting
+ * `*out_str` to NULL when absent or non-string.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_str Output pointer receiving the string or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_opt_string(const JSON_Object *obj,
+                                                     const char *key,
+                                                     const char **out_str);
+
+/**
+ * @brief Looks up an optional object property on a JSON_Object, setting
+ * `*out_obj` to NULL when absent or non-object.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_obj Output pointer receiving the child JSON_Object or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_opt_object(const JSON_Object *obj,
+                                                     const char *key,
+                                                     JSON_Object **out_obj);
+
+/**
+ * @brief Looks up an optional array property on a JSON_Object, setting
+ * `*out_arr` to NULL when absent or non-array.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_arr Output pointer receiving the child JSON_Array or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_opt_array(const JSON_Object *obj,
+                                                    const char *key,
+                                                    JSON_Array **out_arr);
+
+/**
+ * @brief Looks up an optional boolean property on a JSON_Object, setting
+ * `*out_present` to 1 when the key exists and `*out_val` to 1 if true.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_present Output pointer receiving 1 if key exists, 0
+ * otherwise.
+ * @param[out] out_val Output pointer receiving 1 if boolean true, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_opt_bool(const JSON_Object *obj,
+                                                   const char *key,
+                                                   int *out_present,
+                                                   int *out_val);
+
+/**
+ * @brief Checks if `key` exists on `obj` with step-level fault injection
+ * support.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_has Output pointer receiving 1 if key exists, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_has_value(const JSON_Object *obj,
+                                                    const char *key,
+                                                    int *out_has);
+
+/**
+ * @brief Retrieves entry count of `obj` with step-level fault injection
+ * support.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[out] out_count Output pointer receiving entry count.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_object_count(const JSON_Object *obj,
+                                                       size_t *out_count);
+
+/**
+ * @brief Retrieves property name at `idx` of `obj` with step-level fault
+ * injection support.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] idx Entry index.
+ * @param[out] out_name Output pointer receiving property name or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_object_name(const JSON_Object *obj,
+                                                      size_t idx,
+                                                      const char **out_name);
+
+/**
+ * @brief Retrieves value at `idx` of `obj` with step-level fault injection
+ * support.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] idx Entry index.
+ * @param[out] out_val Output pointer receiving JSON_Value or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_object_value_at(
+    const JSON_Object *obj, size_t idx, JSON_Value **out_val);
+
+/**
+ * @brief Looks up an optional value property on `obj`, setting `*out_val` to
+ * NULL when absent.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_val Output pointer receiving the JSON_Value or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_opt_value(const JSON_Object *obj,
+                                                    const char *key,
+                                                    JSON_Value **out_val);
+
+/**
+ * @brief Frees a JSON serialized string buffer.
+ *
+ * @param[in,out] s Serialized string buffer to release.
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_serialized_free(char *s);
+
+/**
+ * @brief Looks up an optional numeric property on `obj`, setting `*out_present`
+ * to 1 and `*out_val` when `obj[key]` is a JSON number.
+ *
+ * @param[in] obj JSON_Object to inspect.
+ * @param[in] key Property name.
+ * @param[out] out_present Set to 1 if `obj[key]` is a number, 0 otherwise.
+ * @param[out] out_val Numeric value (or 0.0 when absent/non-number).
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_opt_number(const JSON_Object *obj,
+                                                     const char *key,
+                                                     int *out_present,
+                                                     double *out_val);
+
+/**
+ * @brief Looks up an optional string element at `idx` in `arr`, setting
+ * `*out_str` to NULL when out-of-range or non-string.
+ *
+ * @param[in] arr JSON_Array to inspect.
+ * @param[in] idx Element index.
+ * @param[out] out_str Output string pointer or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_array_opt_string(
+    const JSON_Array *arr, size_t idx, const char **out_str);
+
+/**
+ * @brief Looks up an optional object element at `idx` in `arr`, setting
+ * `*out_obj` to NULL when out-of-range or non-object.
+ *
+ * @param[in] arr JSON_Array to inspect.
+ * @param[in] idx Element index.
+ * @param[out] out_obj Output JSON_Object pointer or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_array_opt_object(
+    const JSON_Array *arr, size_t idx, JSON_Object **out_obj);
+
+/**
+ * @brief Extracts an optional `JSON_Object` from `val`, setting `*out_obj` to
+ * NULL when `val` is NULL or non-object while percolating fault injection.
+ *
+ * @param[in] val JSON_Value to inspect.
+ * @param[out] out_obj Output JSON_Object pointer or NULL.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t oa_json_val_opt_object(const JSON_Value *val,
+                                                         JSON_Object **out_obj);
 
 #ifdef __cplusplus
 }

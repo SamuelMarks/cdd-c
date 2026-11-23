@@ -338,6 +338,38 @@ TEST test_ffi_abi_layout_calculator(void) {
   ASSERT_EQ(0u, nodes[7].size_bytes);
   ASSERT_EQ(1u, nodes[7].align_bytes);
 
+  {
+    int sf;
+    for (sf = 1; sf <= 35; ++sf) {
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = cdd_ffi_ir_compute_layout(&ir, NULL);
+      g_cdd_step_fail = 0;
+    }
+    for (sf = 1; sf <= 35; ++sf) {
+      cdd_ffi_ir_t sort_ir;
+      cdd_ffi_ir_node_t *snodes =
+          (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+      cdd_ffi_field_t sfield;
+      memset(&sort_ir, 0, sizeof(sort_ir));
+      memset(&sfield, 0, sizeof(sfield));
+      snodes[0].kind = CDD_FFI_NODE_STRUCT;
+      snodes[0].name = cdd_test_mut_str("S0");
+      sfield.name = cdd_test_mut_str("f");
+      sfield.type.kind = CDD_FFI_KIND_STRUCT_REF;
+      sfield.type.ref_name = cdd_test_mut_str("S1");
+      snodes[0].fields = &sfield;
+      snodes[0].fields_count = 1;
+      snodes[1].kind = CDD_FFI_NODE_STRUCT;
+      snodes[1].name = cdd_test_mut_str("S1");
+      sort_ir.nodes = snodes;
+      sort_ir.nodes_count = 2;
+      g_cdd_step_fail = sf;
+      g_cdd_last_alloc_err = cdd_ffi_ir_topological_sort(&sort_ir);
+      g_cdd_step_fail = 0;
+      C_CDD_FREE(sort_ir.nodes);
+    }
+  }
+
   PASS();
 }
 
@@ -1560,7 +1592,7 @@ TEST test_ffi_batch2_branch_and_oom_edges(void) {
   ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_write_bytes(fp, NULL, 0));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_write_fmt(fp, NULL));
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_write_fmt(fp, "%5000s", "x"));
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   {
     cdd_c_error_t close_rc = cdd_ffi_close_output_file(&fp);
     ASSERT(close_rc == CDD_C_SUCCESS || close_rc == CDD_C_ERROR_IO);
@@ -1569,7 +1601,7 @@ TEST test_ffi_batch2_branch_and_oom_edges(void) {
   ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_close_output_file(&fp));
 #endif
 
-#if !defined(_MSC_VER)
+#if !defined(_WIN32)
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_ffi_open_output_file("test_ofc_out/b2", "badclose.txt", &fp));
   fputc('z', fp);
@@ -2604,17 +2636,17 @@ TEST test_ffi_batch3_100_percent_edges(void) {
    * branches + full I/O & OOM fault sweeps */
   {
     cdd_ffi_ir_t ir;
-    cdd_ffi_ir_node_t nodes[53];
+    cdd_ffi_ir_node_t nodes[56];
     cdd_ffi_trivia_t triv_top;
     cdd_ffi_trivia_t triv_fn;
     cdd_ffi_enum_variant_t m_var_null[1];
     cdd_ffi_enum_variant_t m_var_val[1];
     cdd_ffi_number_t num_null_spell;
-    cdd_ffi_enum_variant_t evars[11];
+    cdd_ffi_enum_variant_t evars[12];
     cdd_ffi_field_t err_fields[2];
     cdd_ffi_field_t anon_s_fields[1];
     cdd_ffi_field_t zero_sz_fields[1];
-    cdd_ffi_field_t rich_s_fields[22];
+    cdd_ffi_field_t rich_s_fields[25];
     cdd_ffi_field_t u_fields[7];
     cdd_ffi_type_t cb0_ret;
     cdd_ffi_type_t cb_voidp_ret;
@@ -2622,7 +2654,7 @@ TEST test_ffi_batch3_100_percent_edges(void) {
     cdd_ffi_field_t cb2_params[2];
     cdd_ffi_field_t fn_outs_fields[24];
     cdd_ffi_field_t fn_wrap_fields[5];
-    cdd_ffi_field_t fn_farr_fields[16];
+    cdd_ffi_field_t fn_farr_fields[17];
     cdd_ffi_field_t fn_cstr_ptr_fields[1];
     cdd_ffi_field_t fn_u_byval_fields[2];
     cdd_generate_bindings_config_t cfg;
@@ -2829,10 +2861,12 @@ TEST test_ffi_batch3_100_percent_edges(void) {
     evars[9].number_details = &num_null_spell;
     evars[10].name = cdd_test_mut_str("EV_NEG_OCT");
     evars[10].value = cdd_test_mut_str("-077");
+    evars[11].name = cdd_test_mut_str("EV_AUTO");
+    evars[11].value = NULL;
     nodes[23].kind = CDD_FFI_NODE_ENUM;
     nodes[23].name = cdd_test_mut_str("EdgeEnum");
     nodes[23].variants = evars;
-    nodes[23].variants_count = 11;
+    nodes[23].variants_count = 12;
 
     /* 24: Unnamed non-empty enum */
     nodes[24].kind = CDD_FFI_NODE_ENUM;
@@ -2964,12 +2998,19 @@ TEST test_ffi_batch3_100_percent_edges(void) {
     rich_s_fields[20].name = cdd_test_mut_str("null_ref_st");
     rich_s_fields[20].type.kind = CDD_FFI_KIND_STRUCT_REF;
     rich_s_fields[20].type.ref_name = NULL;
-    rich_s_fields[21].name = cdd_test_mut_str("tail_b");
-    rich_s_fields[21].type.kind = CDD_FFI_KIND_INT8;
+    rich_s_fields[21].name = cdd_test_mut_str("f32_v");
+    rich_s_fields[21].type.kind = CDD_FFI_KIND_FLOAT32;
+    rich_s_fields[22].name = cdd_test_mut_str("f64_v");
+    rich_s_fields[22].type.kind = CDD_FFI_KIND_FLOAT64;
+    rich_s_fields[23].name = cdd_test_mut_str("fixed_cstr");
+    rich_s_fields[23].type.kind = CDD_FFI_KIND_INT8;
+    rich_s_fields[23].type.array_size = 8;
+    rich_s_fields[24].name = cdd_test_mut_str("tail_b");
+    rich_s_fields[24].type.kind = CDD_FFI_KIND_INT8;
     nodes[33].kind = CDD_FFI_NODE_STRUCT;
     nodes[33].name = cdd_test_mut_str("MyDupType");
     nodes[33].fields = rich_s_fields;
-    nodes[33].fields_count = 22;
+    nodes[33].fields_count = 25;
 
     /* 34: Union "RichUnion" with zero-sz array, normal array, ptr, opaque_ptr,
      * funptr, opaque struct, and MyDupType (triggers MyDupType lookup!) */
@@ -3257,11 +3298,13 @@ TEST test_ffi_batch3_100_percent_edges(void) {
     fn_farr_fields[15].type.ref_name = cdd_test_mut_str("OpaqueRec");
     fn_farr_fields[15].type.pointer_depth = 1;
     fn_farr_fields[15].intent = CDD_FFI_INTENT_OUT;
+    fn_farr_fields[16].name = cdd_test_mut_str("fp_byval");
+    fn_farr_fields[16].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
     nodes[44].kind = CDD_FFI_NODE_FUNCTION;
     nodes[44].name = cdd_test_mut_str("arr_and_ptr_fn");
     nodes[44].return_or_base_type.kind = CDD_FFI_KIND_OPAQUE_PTR;
     nodes[44].fields = fn_farr_fields;
-    nodes[44].fields_count = 16;
+    nodes[44].fields_count = 17;
 
     /* 45..51: cstr-arg & shim-routed functions */
     fn_cstr_ptr_fields[0].name = cdd_test_mut_str("s");
@@ -3328,8 +3371,28 @@ TEST test_ffi_batch3_100_percent_edges(void) {
     nodes[52].kind = CDD_FFI_NODE_ENUM;
     nodes[52].name = cdd_test_mut_str("EmptyEnum");
 
+    /* 53: Quoted string macro */
+    nodes[53].kind = CDD_FFI_NODE_MACRO;
+    nodes[53].name = cdd_test_mut_str("M_STR_QUOTED");
+    nodes[53].inferred_type = CDD_FFI_MACRO_TYPE_STRING;
+    nodes[53].evaluated_value = cdd_test_mut_str("\"quoted_str\"");
+
+    /* 54: Shim-routed function returning void */
+    nodes[54].kind = CDD_FFI_NODE_FUNCTION;
+    nodes[54].name = cdd_test_mut_str("shim_ret_void");
+    nodes[54].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+    nodes[54].fields = fn_u_byval_fields;
+    nodes[54].fields_count = 1;
+
+    /* 55: C-string-arg function returning void */
+    nodes[55].kind = CDD_FFI_NODE_FUNCTION;
+    nodes[55].name = cdd_test_mut_str("cstr_arg_void");
+    nodes[55].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+    nodes[55].fields = fn_cstr_ptr_fields;
+    nodes[55].fields_count = 1;
+
     ir.nodes = nodes;
-    ir.nodes_count = 53;
+    ir.nodes_count = 56;
     ir.module_name = cdd_test_mut_str("My--Edge--Mod--");
 
     /* Run with library_name == NULL while ir.module_name != NULL! */
@@ -3337,6 +3400,30 @@ TEST test_ffi_batch3_100_percent_edges(void) {
     cfg.library_name = NULL;
     cfg.module_name = "---";
     cfg.generate_tests = 1;
+
+    /* Test relaxed ABI layout fallback failures on Fortran & COBOL */
+    for (k = 1; k <= 80; k++) {
+      g_cdd_step_fail = k;
+      rc = cdd_ffi_emit_fortran(&ir, &cfg);
+      g_cdd_step_fail = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    }
+    for (k = 1; k <= 80; k++) {
+      g_cdd_step_fail = k;
+      rc = cdd_ffi_emit_cobol(&ir, &cfg);
+      g_cdd_step_fail = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    }
+
+    g_cdd_alloc_fail = 2;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_emit_fortran(&ir, &cfg));
+    g_cdd_alloc_fail = 2;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_emit_cobol(&ir, &cfg));
+    g_cdd_alloc_fail = 0;
 
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_emit_ocaml(&ir, &cfg));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_emit_fortran(&ir, &cfg));
@@ -3370,6 +3457,30 @@ TEST test_ffi_batch3_100_percent_edges(void) {
       if (rc == CDD_C_SUCCESS)
         break;
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+    for (k = 1; k <= 4000; k++) {
+      g_ffi_emit_fail_step = k;
+      rc = cdd_ffi_emit_ocaml(&ir, &cfg);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    }
+    for (k = 1; k <= 4000; k++) {
+      g_ffi_emit_fail_step = k;
+      rc = cdd_ffi_emit_fortran(&ir, &cfg);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    }
+    for (k = 1; k <= 4000; k++) {
+      g_ffi_emit_fail_step = k;
+      rc = cdd_ffi_emit_cobol(&ir, &cfg);
+      g_ffi_emit_fail_step = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_NEQ(CDD_C_SUCCESS, rc);
     }
 
     /* Also test ir.module_name == NULL, library_name == NULL, non-variadic

@@ -35,12 +35,12 @@ TEST test_orchestrator_coverage_fix_code_main(void) {
 
   /* Will fail to walk directory */
   rc_2_argv_missing = fix_code_main(2, argv_missing);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_2_argv_missing);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc_2_argv_missing);
 
   /* Missing input file */
   {
     int rc_2_argv_missing2 = fix_code_main(2, argv_missing2);
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_2_argv_missing2);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc_2_argv_missing2);
 
     PASS();
   }

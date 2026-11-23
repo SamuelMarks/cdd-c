@@ -49,6 +49,10 @@ typedef struct {
 static cdd_c_error_t unroll_tok_eq(const cdd_token_t *tok, const char *kw,
                                    int *out_eq) {
   size_t l = strlen(kw);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_eq = 0;
   if (tok->length == l && memcmp(tok->start, kw, l) == 0)
     *out_eq = 1;
@@ -81,6 +85,8 @@ unroll_classify_final_stmt(struct gnu_standardizer_ctx_t *gctx,
       "double", "signed",   "unsigned", "const",  "volatile"};
   size_t w;
   int is_tn = 0;
+  int ev_ok = 0;
+  cdd_c_error_t rc;
 
   *out_is_void = 1;
   out_type[0] = '\0';
@@ -96,9 +102,11 @@ unroll_classify_final_stmt(struct gnu_standardizer_ctx_t *gctx,
   }
   for (w = 0; w < sizeof(k_non_expr) / sizeof(k_non_expr[0]); w++) {
     int m = 0;
-    cdd_c_error_t rc_eq = unroll_tok_eq(&tokens[start], k_non_expr[w], &m);
+    rc = unroll_tok_eq(&tokens[start], k_non_expr[w], &m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (m) {
-      return rc_eq;
+      return CDD_C_SUCCESS;
     }
   }
   /* Label `lbl:` with nothing after `:` */
@@ -112,32 +120,95 @@ unroll_classify_final_stmt(struct gnu_standardizer_ctx_t *gctx,
        tokens[start + 1].kind == CDD_TOKEN_STAR) &&
       gctx->sem_env && tokens[start].length < 120) {
     char tname[128];
-    cdd_cst_scope_t *sc = NULL;
+    cdd_cst_scope_t *sc = gctx->sem_env->global_scope;
     cdd_cst_symbol_t *tsym = NULL;
     memcpy(tname, tokens[start].start, tokens[start].length);
     tname[tokens[start].length] = '\0';
-    {
-      cdd_c_error_t rc_sc =
-          cdd_cst_scope_find_for_node(gctx->sem_env, scope_node, &sc);
-      if (cdd_cst_scope_lookup_in_scope(sc, tname, CDD_CST_SYMBOL_TYPEDEF,
-                                        &tsym) == CDD_C_SUCCESS &&
-          tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
-        return rc_sc;
-      }
+    rc = gnu_opt_scope_for_node(gctx->sem_env, scope_node, &sc);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = gnu_opt_scope_lookup(sc, tname, CDD_CST_SYMBOL_TYPEDEF, &tsym);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (tsym && tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
+      return CDD_C_SUCCESS;
     }
   }
 
-  {
-    cdd_c_error_t rc_ev = cdd_eval_expr_type_scoped(
-        gctx, scope_node, &tokens[start], end - start, CDD_CST_TYPE_MODE_RVALUE,
-        out_type, type_cap, &is_tn);
-    if (strcmp(out_type, "void") == 0) {
-      *out_is_void = 1;
-      return rc_ev;
-    }
-    *out_is_void = 0;
-    return rc_ev;
+  CDD_SNPRINTF(out_type, type_cap, "int");
+  rc = gnu_opt_eval_type_scoped(gctx, scope_node, &tokens[start], end - start,
+                                CDD_CST_TYPE_MODE_RVALUE, out_type, type_cap,
+                                &is_tn, &ev_ok);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (strcmp(out_type, "void") == 0) {
+    *out_is_void = 1;
+    return CDD_C_SUCCESS;
   }
+  *out_is_void = 0;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Wraps a detached `inner_block` between an optional header snippet and
+ * trailing whitespace/newline token, splicing the resulting children into
+ * `*enc_container` at `enc_stmt_idx`.
+ *
+ * @param[in,out] tree Target CST tree.
+ * @param[in] wrap_kind CST node kind for the temporary wrapper.
+ * @param[in] hdr_snip Optional C prefix snippet (may be NULL).
+ * @param[in,out] inner_block Detached inner `CDD_CST_BLOCK` node (consumed).
+ * @param[in] is_newline 1 to emit trailing newline, 0 to emit trailing space.
+ * @param[in,out] enc_container Enclosing block or translation unit pointer.
+ * @param[in] enc_stmt_idx Child index at which to splice.
+ * @return CDD_C_SUCCESS on success, or error code on OOM/fault injection.
+ */
+static cdd_c_error_t unroll_splice_wrapped_block(
+    cdd_cst_tree_t *tree, enum cdd_cst_node_kind_t wrap_kind,
+    const char *hdr_snip, cdd_cst_node_t *inner_block, int is_newline,
+    cdd_cst_node_t **enc_container, size_t enc_stmt_idx) {
+  cdd_cst_node_t *wrap = NULL;
+  cdd_cst_builder_t bld;
+  cdd_c_error_t rc;
+
+  rc = gnu_alloc_node(wrap_kind, &wrap);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_cst_free_node(inner_block));
+  }
+  rc = cdd_cst_builder_init(&bld, tree, wrap);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_cst_free_node_only(wrap),
+                                             cdd_cst_free_node(inner_block)));
+  }
+  if (hdr_snip) {
+    rc = cdd_cst_bld_snippet(&bld, hdr_snip);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(
+          rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                             cdd_c_keep_err(cdd_cst_free_node(wrap),
+                                            cdd_cst_free_node(inner_block))));
+    }
+  }
+  rc = cdd_cst_append_child_node(wrap, inner_block);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(
+        rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                           cdd_c_keep_err(cdd_cst_free_node(wrap),
+                                          cdd_cst_free_node(inner_block))));
+  }
+  rc = is_newline ? cdd_cst_bld_newline(&bld) : cdd_cst_bld_space(&bld);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                                             cdd_cst_free_node(wrap)));
+  }
+  rc = cdd_cst_splice_children(tree, enc_container, enc_stmt_idx, 0,
+                               wrap->children, wrap->num_children);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                                             cdd_cst_free_node(wrap)));
+  }
+  return cdd_c_keep_err(cdd_cst_builder_free(&bld),
+                        cdd_cst_free_node_only(wrap));
 }
 
 /**
@@ -252,17 +323,16 @@ static cdd_c_error_t unroll_hoist_stmt_expr(cdd_cst_tree_t *tree,
   }
 
   if (has_last_semi) {
-    rc = (cdd_c_error_t)((int)rc | (int)unroll_classify_final_stmt(
-                                       gctx, inner_block, tokens,
-                                       last_stmt_start, last_semi,
-                                       &is_void_final, val_type,
-                                       sizeof(val_type)));
+    rc = unroll_classify_final_stmt(gctx, inner_block, tokens, last_stmt_start,
+                                    last_semi, &is_void_final, val_type,
+                                    sizeof(val_type));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (enc_container->kind == CDD_CST_BLOCK) {
     char tmp_name[64];
-    cdd_cst_node_t *hoist_wrap = NULL;
-    cdd_cst_builder_t bld;
+    char decl_hdr[256];
     int se_idx = gctx->stmt_expr_idx++;
 
     CDD_SNPRINTF(tmp_name, sizeof(tmp_name), "__cdd_stmt_expr_%d", se_idx);
@@ -270,81 +340,31 @@ static cdd_c_error_t unroll_hoist_stmt_expr(cdd_cst_tree_t *tree,
     if (!is_void_final) {
       size_t expr_cidx = 0;
       cdd_cst_node_t *expr_owner = NULL;
+      char assign_snip[96];
       rc = gnu_find_node(inner_block, &tokens[last_stmt_start], &expr_cidx,
                          &expr_owner);
-      if (rc == CDD_C_SUCCESS) {
-        cdd_cst_node_t *assign_pre = NULL;
-        cdd_cst_builder_t abld;
-        char assign_snip[96];
-        CDD_SNPRINTF(assign_snip, sizeof(assign_snip), "%s = (", tmp_name);
-        rc = gnu_alloc_node(CDD_CST_UNKNOWN, &assign_pre);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        abld.error_state = cdd_cst_builder_init(&abld, tree, assign_pre);
-        abld.error_state =
-            (cdd_c_error_t)((int)abld.error_state |
-                            (int)cdd_cst_bld_snippet(&abld, assign_snip));
-        if (abld.error_state != CDD_C_SUCCESS) {
-          rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                               (int)cdd_cst_builder_free(&abld) |
-                               (int)cdd_cst_free_node_only(assign_pre));
-          return rc;
-        }
-        rc = cdd_cst_splice_children(tree, &expr_owner, expr_cidx, 0,
-                                     assign_pre->children,
-                                     assign_pre->num_children);
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&abld) |
-                             (int)cdd_cst_free_node_only(assign_pre));
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = replace_token_with_text(tree, &tokens[last_semi],
-                                     CDD_TOKEN_SEMICOLON, ");", 2);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-      }
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      CDD_SNPRINTF(assign_snip, sizeof(assign_snip), "%s = (", tmp_name);
+      rc = gnu_splice_snippet_at(tree, &expr_owner, expr_cidx, 0, assign_snip);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = replace_token_with_text(tree, &tokens[last_semi],
+                                   CDD_TOKEN_SEMICOLON, ");", 2);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
 
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_cst_remove_child(lp_parent, blk_pos_in_lp));
-
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)gnu_alloc_node(CDD_CST_UNKNOWN, &hoist_wrap));
-    if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(inner_block));
+    rc = cdd_cst_remove_child(lp_parent, blk_pos_in_lp);
+    if (rc != CDD_C_SUCCESS)
       return rc;
-    }
-    bld.error_state = cdd_cst_builder_init(&bld, tree, hoist_wrap);
+
     if (!is_void_final) {
-      char decl_hdr[256];
       CDD_SNPRINTF(decl_hdr, sizeof(decl_hdr), "%s %s; ", val_type, tmp_name);
-      bld.error_state =
-          (cdd_c_error_t)((int)bld.error_state |
-                          (int)cdd_cst_bld_snippet(&bld, decl_hdr));
     }
-    if (bld.error_state == CDD_C_SUCCESS) {
-      bld.error_state = cdd_cst_append_child_node(hoist_wrap, inner_block);
-      if (bld.error_state != CDD_C_SUCCESS) {
-        bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                          (int)cdd_cst_free_node(inner_block));
-      }
-    } else {
-      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_free_node(inner_block));
-    }
-    bld.error_state =
-        (cdd_c_error_t)((int)bld.error_state | (int)cdd_cst_bld_space(&bld));
-    if (bld.error_state != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                           (int)cdd_cst_builder_free(&bld) |
-                           (int)cdd_cst_free_node(hoist_wrap));
-      return rc;
-    }
-
-    rc =
-        cdd_cst_splice_children(tree, &enc_container, enc_stmt_idx, 0,
-                                hoist_wrap->children, hoist_wrap->num_children);
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(hoist_wrap));
+    rc = unroll_splice_wrapped_block(
+        tree, CDD_CST_UNKNOWN, !is_void_final ? decl_hdr : NULL, inner_block, 0,
+        &enc_container, enc_stmt_idx);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
@@ -373,8 +393,6 @@ static cdd_c_error_t unroll_hoist_stmt_expr(cdd_cst_tree_t *tree,
     char call_open[72];
     char fn_hdr[256];
     const char *pooled_call = NULL;
-    cdd_cst_node_t *hoist_fn = NULL;
-    cdd_cst_builder_t bld;
     int se_idx = gctx->stmt_expr_idx++;
 
     CDD_SNPRINTF(fn_name, sizeof(fn_name), "__cdd_stmt_fn_%d", se_idx);
@@ -385,73 +403,28 @@ static cdd_c_error_t unroll_hoist_stmt_expr(cdd_cst_tree_t *tree,
     if (!is_void_final) {
       size_t expr_cidx = 0;
       cdd_cst_node_t *expr_owner = NULL;
-      if (gnu_find_node(inner_block, &tokens[last_stmt_start], &expr_cidx,
-                        &expr_owner) == CDD_C_SUCCESS) {
-        cdd_cst_node_t *ret_pre = NULL;
-        cdd_cst_builder_t rbld;
-        rc = gnu_alloc_node(CDD_CST_UNKNOWN, &ret_pre);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rbld.error_state = cdd_cst_builder_init(&rbld, tree, ret_pre);
-        rbld.error_state =
-            (cdd_c_error_t)((int)rbld.error_state |
-                            (int)cdd_cst_bld_snippet(&rbld, "return ("));
-        if (rbld.error_state != CDD_C_SUCCESS) {
-          rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                               (int)cdd_cst_builder_free(&rbld) |
-                               (int)cdd_cst_free_node_only(ret_pre));
-          return rc;
-        }
-        rc = cdd_cst_splice_children(tree, &expr_owner, expr_cidx, 0,
-                                     ret_pre->children, ret_pre->num_children);
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&rbld) |
-                             (int)cdd_cst_free_node_only(ret_pre));
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-        rc = replace_token_with_text(tree, &tokens[last_semi],
-                                     CDD_TOKEN_SEMICOLON, ");", 2);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
-      }
+      rc = gnu_find_node(inner_block, &tokens[last_stmt_start], &expr_cidx,
+                         &expr_owner);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = gnu_splice_snippet_at(tree, &expr_owner, expr_cidx, 0, "return (");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = replace_token_with_text(tree, &tokens[last_semi],
+                                   CDD_TOKEN_SEMICOLON, ");", 2);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
 
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_cst_remove_child(lp_parent, blk_pos_in_lp));
-
-    rc = (cdd_c_error_t)((int)rc | (int)gnu_alloc_node(
-                                       CDD_CST_FUNCTION_DEFINITION, &hoist_fn));
-    if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(inner_block));
-      return rc;
-    }
-    bld.error_state = cdd_cst_builder_init(&bld, tree, hoist_fn);
-    bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_bld_snippet(&bld, fn_hdr));
-    if (bld.error_state == CDD_C_SUCCESS) {
-      bld.error_state = cdd_cst_append_child_node(hoist_fn, inner_block);
-      if (bld.error_state != CDD_C_SUCCESS) {
-        bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                          (int)cdd_cst_free_node(inner_block));
-      }
-    } else {
-      bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_free_node(inner_block));
-    }
-    bld.error_state =
-        (cdd_c_error_t)((int)bld.error_state | (int)cdd_cst_bld_newline(&bld));
-    if (bld.error_state != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                           (int)cdd_cst_builder_free(&bld) |
-                           (int)cdd_cst_free_node(hoist_fn));
-      return rc;
-    }
-    rc = cdd_cst_splice_children(tree, &enc_container, enc_stmt_idx, 0,
-                                 hoist_fn->children, hoist_fn->num_children);
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld) |
-                         (int)cdd_cst_free_node_only(hoist_fn));
+    rc = cdd_cst_remove_child(lp_parent, blk_pos_in_lp);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
+    rc = unroll_splice_wrapped_block(tree, CDD_CST_FUNCTION_DEFINITION, fn_hdr,
+                                     inner_block, 1, &enc_container,
+                                     enc_stmt_idx);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_pool_string_safe(tree, call_open, &pooled_call);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -558,10 +531,11 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
                 memcpy(fn_id, tree->base_tokens->tokens[back - 1].start,
                        tree->base_tokens->tokens[back - 1].length);
                 fn_id[tree->base_tokens->tokens[back - 1].length] = '\0';
-                if (cdd_cst_scope_lookup_in_scope(
-                        ctx_p->sem_env->global_scope, fn_id,
-                        CDD_CST_SYMBOL_FUNCTION, &fsym) == CDD_C_SUCCESS &&
-                    fsym->type_str) {
+                rc = gnu_opt_scope_lookup(ctx_p->sem_env->global_scope, fn_id,
+                                          CDD_CST_SYMBOL_FUNCTION, &fsym);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+                if (fsym && fsym->type_str) {
                   CDD_SNPRINTF(enclosing_fn_ret, sizeof(enclosing_fn_ret), "%s",
                                fsym->type_str);
                 }
@@ -672,91 +646,28 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
         /* Run cleanups in reverse order */
         while (num_cleanups > 0 &&
                cleanups[num_cleanups - 1].depth == current_depth) {
-          cdd_cst_node_t *temp = NULL;
-          cdd_cst_builder_t bld;
-          const char *pooled_fn = NULL;
-          const char *pooled_var = NULL;
-          rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
+          char snip[256];
+          CDD_SNPRINTF(snip, sizeof(snip), "%.*s(&%.*s);",
+                       (int)cleanups[num_cleanups - 1].func_length,
+                       (const char *)cleanups[num_cleanups - 1].func_name,
+                       (int)cleanups[num_cleanups - 1].var_length,
+                       (const char *)cleanups[num_cleanups - 1].var_name);
+          rc = gnu_splice_snippet_at(tree, &owning_node, child_idx, 0, snip);
           if (rc != CDD_C_SUCCESS)
             return rc;
-          bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-          bld.error_state =
-              (cdd_c_error_t)((int)bld.error_state |
-                              (int)cdd_pool_string_safe_len(
-                                  tree,
-                                  (const char *)cleanups[num_cleanups - 1]
-                                      .func_name,
-                                  cleanups[num_cleanups - 1].func_length,
-                                  &pooled_fn));
-          bld.error_state = cdd_cst_bld_ident(&bld, pooled_fn);
-          bld.error_state = cdd_cst_bld_punct(&bld, "(");
-          bld.error_state = cdd_cst_bld_punct(&bld, "&");
-          bld.error_state =
-              (cdd_c_error_t)((int)bld.error_state |
-                              (int)cdd_pool_string_safe_len(
-                                  tree,
-                                  (const char *)cleanups[num_cleanups - 1]
-                                      .var_name,
-                                  cleanups[num_cleanups - 1].var_length,
-                                  &pooled_var));
-          bld.error_state = cdd_cst_bld_ident(&bld, pooled_var);
-          bld.error_state = cdd_cst_bld_punct(&bld, ")");
-          bld.error_state = cdd_cst_bld_punct(&bld, ";");
-          if (bld.error_state != 0) {
-            bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                              (int)cdd_cst_builder_free(&bld));
-            bld.error_state =
-                (cdd_c_error_t)((int)bld.error_state |
-                                (int)cdd_cst_free_node_only(temp));
-            return CDD_C_ERROR_MEMORY;
-          }
-          bld.error_state =
-              cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                      temp->children, temp->num_children);
-          bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                            (int)cdd_cst_builder_free(&bld));
-          bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                            (int)cdd_cst_free_node_only(temp));
           num_cleanups--;
           appended = 1;
         }
 
         if (config && config->fallback_vla_to_malloc) {
           while (num_vlas > 0 && vlas[num_vlas - 1].depth == current_depth) {
-            cdd_cst_node_t *temp = NULL;
-            cdd_cst_builder_t bld;
-            const char *pooled_vla = NULL;
-            rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
+            char snip[192];
+            CDD_SNPRINTF(snip, sizeof(snip), "free(%.*s);",
+                         (int)vlas[num_vlas - 1].length,
+                         (const char *)vlas[num_vlas - 1].name);
+            rc = gnu_splice_snippet_at(tree, &owning_node, child_idx, 0, snip);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-            bld.error_state = cdd_cst_bld_ident(&bld, "free");
-            bld.error_state = cdd_cst_bld_punct(&bld, "(");
-            bld.error_state =
-                (cdd_c_error_t)((int)bld.error_state |
-                                (int)cdd_pool_string_safe_len(
-                                    tree, (const char *)vlas[num_vlas - 1].name,
-                                    vlas[num_vlas - 1].length, &pooled_vla));
-            bld.error_state = cdd_cst_bld_ident(&bld, pooled_vla);
-            bld.error_state = cdd_cst_bld_punct(&bld, ")");
-            bld.error_state = cdd_cst_bld_punct(&bld, ";");
-            if (bld.error_state != 0) {
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_builder_free(&bld));
-              bld.error_state =
-                  (cdd_c_error_t)((int)bld.error_state |
-                                  (int)cdd_cst_free_node_only(temp));
-              return CDD_C_ERROR_MEMORY;
-            }
-            bld.error_state =
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                        temp->children, temp->num_children);
-            bld.error_state = (cdd_c_error_t)((int)bld.error_state |
-                                              (int)cdd_cst_builder_free(&bld));
-            bld.error_state =
-                (cdd_c_error_t)((int)bld.error_state |
-                                (int)cdd_cst_free_node_only(temp));
             num_vlas--;
             appended = 1;
           }
@@ -765,16 +676,18 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
         if (appended) {
           char *heap_buf;
           const char *pooled = NULL;
+          size_t hlen;
 #if defined(_MSC_VER)
           strcat_s(p, sizeof(buf) - (size_t)(p - buf), " }");
 #else
           strcat(p, " }");
 #endif
-          rc = gnu_malloc(strlen(buf) + 1, (void **)&heap_buf);
+          hlen = strlen(buf);
+          rc = gnu_malloc(hlen + 1, (void **)&heap_buf);
           if (rc != CDD_C_SUCCESS)
             return rc;
 #if defined(_MSC_VER)
-          strcpy_s(heap_buf, strlen(buf) + 1, buf);
+          strcpy_s(heap_buf, hlen + 1, buf);
 #else
           strcpy(heap_buf, buf);
 #endif
@@ -783,9 +696,8 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
             C_CDD_FREE(heap_buf);
             return rc;
           }
-          rc = replace_token_with_text(tree, t, t->kind, pooled,
-                                       strlen(heap_buf));
           C_CDD_FREE(heap_buf);
+          rc = replace_token_with_text(tree, t, t->kind, pooled, hlen);
           if (rc != CDD_C_SUCCESS) {
             return rc;
           }
@@ -880,15 +792,17 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
               } else {
                 size_t rc_cidx = 0;
                 cdd_cst_node_t *ret_owner = NULL;
-                if (gnu_find_node(tree->root, t, &rc_cidx, &ret_owner) !=
-                    CDD_C_SUCCESS) {
-                  ret_owner = NULL;
-                }
-                if (cdd_eval_expr_type_scoped(
-                        ctx_p, ret_owner, &tree->base_tokens->tokens[i + 1],
-                        k - (i + 1), CDD_CST_TYPE_MODE_RVALUE, rtype,
-                        sizeof(rtype), NULL) != CDD_C_SUCCESS ||
-                    rtype[0] == '\0' || strcmp(rtype, "void") == 0) {
+                int ev_ok = 0;
+                rc = gnu_opt_find_node(tree->root, t, &rc_cidx, &ret_owner);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+                rc = gnu_opt_eval_type_scoped(
+                    ctx_p, ret_owner, &tree->base_tokens->tokens[i + 1],
+                    k - (i + 1), CDD_CST_TYPE_MODE_RVALUE, rtype, sizeof(rtype),
+                    NULL, &ev_ok);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
+                if (!ev_ok || rtype[0] == '\0' || strcmp(rtype, "void") == 0) {
                   CDD_SNPRINTF(rtype, sizeof(rtype), "int");
                 }
               }
@@ -957,9 +871,11 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
               strcpy(dup, buf);
 #endif
               rc = cdd_pool_string_safe(tree, dup, &pooled);
-              C_CDD_FREE(dup);
-              if (rc != CDD_C_SUCCESS)
+              if (rc != CDD_C_SUCCESS) {
+                C_CDD_FREE(dup);
                 return rc;
+              }
+              C_CDD_FREE(dup);
               rc = replace_token_with_text(tree, &tree->base_tokens->tokens[k],
                                            tree->base_tokens->tokens[k].kind,
                                            pooled, strlen(buf));
@@ -1027,8 +943,9 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
               memcpy(p, nt->start, nt->length);
               p += nt->length;
               *p++ = '_';
-              rc = (cdd_c_error_t)((int)rc |
-                                   (int)cdd_append_int(p, ++label_counter, &p));
+              rc = cdd_append_int(p, ++label_counter, &p);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
             }
             num_local_labels++;
           }
@@ -1080,9 +997,11 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
             strcpy(dup, local_labels[j].rename);
 #endif
             rc = cdd_pool_string_safe(tree, dup, &pooled);
-            C_CDD_FREE(dup);
-            if (rc != CDD_C_SUCCESS)
+            if (rc != CDD_C_SUCCESS) {
+              C_CDD_FREE(dup);
               return rc;
+            }
+            C_CDD_FREE(dup);
             rc = replace_token_with_text(tree, t, t->kind, pooled,
                                          strlen(local_labels[j].rename));
             if (rc != CDD_C_SUCCESS)
@@ -1123,158 +1042,33 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
         if (dims > 0 && k < tree->base_tokens->size) {
           cdd_token_t *end_tok = &tree->base_tokens->tokens[k];
           if (end_tok->kind == CDD_TOKEN_SEMICOLON) {
-            if (config && config->fallback_vla_to_malloc) {
-              {
-                size_t child_idx;
-                cdd_cst_node_t *owning_node = NULL;
-                rc = gnu_find_node(tree->root, prev, &child_idx, &owning_node);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
-                {
-                  cdd_cst_node_t *temp = NULL;
-                  cdd_cst_builder_t bld;
-                  const char *pooled_prev1 = NULL;
-                  const char *pooled_prev2 = NULL;
-                  rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
-                  if (rc != CDD_C_SUCCESS)
-                    return rc;
-                  bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-                  bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_pool_string_safe_len(
-                                          tree, (const char *)prev->start,
-                                          prev->length, &pooled_prev1));
-                  bld.error_state = cdd_cst_bld_ident(&bld, pooled_prev1);
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_punct(&bld, "=");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_ident(&bld, "malloc");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "(");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "(");
-                  bld.error_state = cdd_cst_bld_snippet(&bld, size_expr);
-                  bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_ident(&bld, "sizeof");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "(");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_pool_string_safe_len(
-                                          tree, (const char *)prev->start,
-                                          prev->length, &pooled_prev2));
-                  bld.error_state = cdd_cst_bld_ident(&bld, pooled_prev2);
-                  bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                  bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                  bld.error_state = cdd_cst_bld_punct(&bld, ";");
-                  if (bld.error_state != 0) {
-                    bld.error_state =
-                        (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_builder_free(&bld));
-                    bld.error_state =
-                        (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_free_node_only(temp));
-                    return CDD_C_ERROR_MEMORY;
-                  }
-                  bld.error_state = cdd_cst_splice_children(
-                      tree, &owning_node, child_idx, 0, temp->children,
-                      temp->num_children);
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_builder_free(&bld));
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_free_node_only(temp));
-                }
-              }
-              if (num_vlas < MAX_VLAS) {
-                vlas[num_vlas].name = prev->start;
-                vlas[num_vlas].length = prev->length;
-                vlas[num_vlas].depth = current_depth;
-                num_vlas++;
-              }
-              rc = replace_token_with_text(tree, prev, prev->kind, "", 0);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-              rc = replace_token_with_text(tree, end_tok, end_tok->kind, "", 0);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
-            } else {
-              {
-                size_t child_idx;
-                cdd_cst_node_t *owning_node = NULL;
-                rc = gnu_find_node(tree->root, prev, &child_idx, &owning_node);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
-                {
-                  cdd_cst_node_t *temp = NULL;
-                  cdd_cst_builder_t bld;
-                  const char *pooled_prev1 = NULL;
-                  const char *pooled_prev2 = NULL;
-                  rc = gnu_alloc_node(CDD_CST_UNKNOWN, &temp);
-                  if (rc != CDD_C_SUCCESS)
-                    return rc;
-                  bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-                  bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_pool_string_safe_len(
-                                          tree, (const char *)prev->start,
-                                          prev->length, &pooled_prev1));
-                  bld.error_state = cdd_cst_bld_ident(&bld, pooled_prev1);
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_punct(&bld, "=");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_ident(&bld, "alloca");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "(");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "(");
-                  bld.error_state = cdd_cst_bld_snippet(&bld, size_expr);
-                  bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                  bld.error_state = cdd_cst_bld_ident(&bld, "sizeof");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "(");
-                  bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_pool_string_safe_len(
-                                          tree, (const char *)prev->start,
-                                          prev->length, &pooled_prev2));
-                  bld.error_state = cdd_cst_bld_ident(&bld, pooled_prev2);
-                  bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                  bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                  bld.error_state = cdd_cst_bld_punct(&bld, ";");
-                  if (bld.error_state != 0) {
-                    bld.error_state =
-                        (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_builder_free(&bld));
-                    bld.error_state =
-                        (cdd_c_error_t)((int)bld.error_state |
-                                        (int)cdd_cst_free_node_only(temp));
-                    return CDD_C_ERROR_MEMORY;
-                  }
-                  bld.error_state = cdd_cst_splice_children(
-                      tree, &owning_node, child_idx, 0, temp->children,
-                      temp->num_children);
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_builder_free(&bld));
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_free_node_only(temp));
-                }
-                rc = replace_token_with_text(tree, prev, prev->kind, "", 0);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
-                rc = replace_token_with_text(tree, end_tok, end_tok->kind, "",
-                                             0);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
-              }
+            size_t child_idx;
+            cdd_cst_node_t *owning_node = NULL;
+            int use_malloc = (config && config->fallback_vla_to_malloc) ? 1 : 0;
+            char snip[640];
+            rc = gnu_find_node(tree->root, prev, &child_idx, &owning_node);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            CDD_SNPRINTF(snip, sizeof(snip),
+                         "*%.*s = %s((%s) * sizeof(*%.*s));", (int)prev->length,
+                         (const char *)prev->start,
+                         use_malloc ? "malloc" : "alloca", size_expr,
+                         (int)prev->length, (const char *)prev->start);
+            rc = gnu_splice_snippet_at(tree, &owning_node, child_idx, 0, snip);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            if (use_malloc && num_vlas < MAX_VLAS) {
+              vlas[num_vlas].name = prev->start;
+              vlas[num_vlas].length = prev->length;
+              vlas[num_vlas].depth = current_depth;
+              num_vlas++;
             }
+            rc = replace_token_with_text(tree, prev, prev->kind, "", 0);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            rc = replace_token_with_text(tree, end_tok, end_tok->kind, "", 0);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             {
               size_t wipe;
               for (wipe = i; wipe < k; wipe++) {
@@ -1520,9 +1314,11 @@ cdd_c_error_t gnu_standardize_unroll_ctx(cdd_cst_tree_t *tree,
                 (int)tree->base_tokens->tokens[fn_rb].length,
                 (const char *)tree->base_tokens->tokens[fn_rb].start);
             rc = cdd_pool_string_safe(tree, sw_buf, &pooled_rb);
-            C_CDD_FREE(sw_buf);
-            if (rc != CDD_C_SUCCESS)
+            if (rc != CDD_C_SUCCESS) {
+              C_CDD_FREE(sw_buf);
               return rc;
+            }
+            C_CDD_FREE(sw_buf);
             rc = replace_token_with_text(
                 tree, &tree->base_tokens->tokens[fn_rb], CDD_TOKEN_RBRACE,
                 pooled_rb, strlen(pooled_rb));

@@ -648,7 +648,7 @@ TEST test_preprocessor_abort(void) {
 
   rc = pp_scan_includes(test_file, &ctx, abort_cb, &called);
   printf("called=%d\n", called);
-  ASSERT_EQ(0, rc);     /* It just stops scanning, rc is still 0 */
+  ASSERT_EQ(1, rc);
   ASSERT_EQ(1, called); /* It should have stopped after the first include */
 
   g_cdd_last_alloc_err = pp_context_free(&ctx);

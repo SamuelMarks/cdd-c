@@ -47,14 +47,20 @@ def main():
         run_cmd(["cmake", "--build", ".", "--config", "Release"], cwd="build_cmake")
         os.makedirs("bin", exist_ok=True)
 
-        if os.path.exists("build_cmake/bin/cdd-c"):
+        if os.path.exists("build_cmake/src/cdd-c"):
+            shutil.copy("build_cmake/src/cdd-c", "bin/cdd-c")
+        elif os.path.exists("build_cmake/bin/cdd-c"):
             shutil.copy("build_cmake/bin/cdd-c", "bin/cdd-c")
         elif os.path.exists("build_cmake/cdd-c"):
             shutil.copy("build_cmake/cdd-c", "bin/cdd-c")
+        elif os.path.exists("build_cmake/src/Release/cdd-c.exe"):
+            shutil.copy("build_cmake/src/Release/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/bin/Release/cdd-c.exe"):
             shutil.copy("build_cmake/bin/Release/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/Release/cdd-c.exe"):
             shutil.copy("build_cmake/Release/cdd-c.exe", "bin/cdd-c.exe")
+        elif os.path.exists("build_cmake/src/cdd-c.exe"):
+            shutil.copy("build_cmake/src/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/bin/cdd-c.exe"):
             shutil.copy("build_cmake/bin/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/cdd-c.exe"):
@@ -187,7 +193,11 @@ def main():
             run_cmd(["cmake", ".."], cwd="build_cmake")
             run_cmd(["cmake", "--build", ".", "--config", "Debug"], cwd="build_cmake")
 
-            cdd_c_bin = os.path.join("build_cmake", "bin", "cdd-c")
+            cdd_c_bin = (
+                os.path.join("build_cmake", "src", "cdd-c")
+                if os.path.exists(os.path.join("build_cmake", "src", "cdd-c"))
+                else os.path.join("build_cmake", "bin", "cdd-c")
+            )
             if not os.path.exists(cdd_c_bin):
                 print("Warning: cdd-c binary not found for valgrind.")
             else:

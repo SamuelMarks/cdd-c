@@ -300,6 +300,86 @@ C_CDD_EXPORT cdd_c_error_t gnu_is_strict_iso_c89(
     const cdd_transform_config_t *config, int *out_is_iso_c89);
 
 /**
+ * @brief Locates the owning CST node for `tok` when still attached to `root`,
+ * setting `*out_node` to NULL when detached while percolating fault injection.
+ *
+ * @param[in] root Root CST node.
+ * @param[in] tok Target token.
+ * @param[out] out_idx Child index in `*out_node`.
+ * @param[out] out_node Owning CST node or NULL.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_opt_find_node(cdd_cst_node_t *root,
+                                             cdd_token_t *tok, size_t *out_idx,
+                                             cdd_cst_node_t **out_node);
+
+/**
+ * @brief Resolves the innermost lexical scope enclosing `node` if present,
+ * preserving `*io_scope` when unmapped while percolating fault injection.
+ *
+ * @param[in] env Semantic scope environment.
+ * @param[in] node Context CST node.
+ * @param[in,out] io_scope Default/fallback scope updated if a narrower scope is
+ * found.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+C_CDD_EXPORT cdd_c_error_t
+gnu_opt_scope_for_node(const cdd_cst_scope_env_t *env,
+                       const cdd_cst_node_t *node, cdd_cst_scope_t **io_scope);
+
+/**
+ * @brief Looks up an optional symbol in `scope` outward, setting `*out_sym` to
+ * NULL when absent while percolating fault injection.
+ *
+ * @param[in] scope Starting lexical scope.
+ * @param[in] name Identifier name.
+ * @param[in] kind Symbol namespace/kind.
+ * @param[out] out_sym Resolved symbol or NULL.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_opt_scope_lookup(const cdd_cst_scope_t *scope,
+                                                const char *name,
+                                                enum cdd_cst_symbol_kind_t kind,
+                                                cdd_cst_symbol_t **out_sym);
+
+/**
+ * @brief Evaluates an optional expression/type token slice, setting `*out_ok`
+ * to 1 on successful type resolution or 0 when unresolved.
+ *
+ * @param[in] gctx Optional GNU standardizer context.
+ * @param[in] context_node Context CST node.
+ * @param[in] tokens Token slice start.
+ * @param[in] num_tokens Number of tokens in slice.
+ * @param[in] mode Evaluation mode.
+ * @param[out] out_buf Destination C type buffer.
+ * @param[in] out_cap Buffer capacity.
+ * @param[out] out_is_type_expr Optional type-expression flag.
+ * @param[out] out_ok Receives 1 on success, 0 when unresolved.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_opt_eval_type_scoped(
+    struct gnu_standardizer_ctx_t *gctx, cdd_cst_node_t *context_node,
+    const cdd_token_t *tokens, size_t num_tokens, int mode, char *out_buf,
+    size_t out_cap, int *out_is_type_expr, int *out_ok);
+
+/**
+ * @brief Pools `snippet`, parses its lexical tokens via `cdd_cst_bld_snippet`,
+ * and splices the resulting children into `*target_parent` at `insert_idx`.
+ *
+ * @param[in,out] tree Target CST tree.
+ * @param[in,out] target_parent Address of parent CST node pointer.
+ * @param[in] insert_idx Child index at which to splice.
+ * @param[in] delete_cnt Number of existing children to replace.
+ * @param[in] snippet Null-terminated C source snippet.
+ * @return CDD_C_SUCCESS on success, or error code on OOM/fault injection.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_splice_snippet_at(cdd_cst_tree_t *tree,
+                                                 cdd_cst_node_t **target_parent,
+                                                 size_t insert_idx,
+                                                 size_t delete_cnt,
+                                                 const char *snippet);
+
+/**
  * @brief Standardizes GNU function attributes and nested functions in a CST
  * tree with semantic/CFG context.
  * @param[in,out] tree Target CST tree.

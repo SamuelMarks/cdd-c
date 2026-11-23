@@ -27,6 +27,10 @@
  */
 static cdd_c_error_t map_delphi_type(cdd_ffi_type_t *t, char *out_type,
                                      size_t out_sz) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
@@ -166,17 +170,22 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
         /* Real variant records would require mapping C unions closely */
       } else {
         for (j = 0; j < node->fields_count; j++) {
-          rc_emit =
-              (cdd_c_error_t)((int)rc_emit |
-                              (int)map_delphi_type(&node->fields[j].type,
-                                                   type_str, sizeof(type_str)));
+          rc_emit = map_delphi_type(&node->fields[j].type, type_str,
+                                    sizeof(type_str));
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, "    %s: %s;\n", node->fields[j].name, type_str);
         }
       }
       fprintf(f, "  end;\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  %s = (\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -185,9 +194,12 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
       }
       fprintf(f, "  );\n\n");
     } else if (node->kind == CDD_FFI_NODE_TYPEDEF) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)map_delphi_type(
-                                                   &node->return_or_base_type,
-                                                   type_str, sizeof(type_str)));
+      rc_emit = map_delphi_type(&node->return_or_base_type, type_str,
+                                sizeof(type_str));
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  %s = %s;\n\n", node->name, type_str);
     }
   }
@@ -196,8 +208,11 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
       if (is_void) {
@@ -207,19 +222,23 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
       }
       for (j = 0; j < node->fields_count; j++) {
         rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_delphi_type(&node->fields[j].type,
-                                                 type_str, sizeof(type_str)));
+            map_delphi_type(&node->fields[j].type, type_str, sizeof(type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s: %s", j > 0 ? "; " : "", node->fields[j].name,
                 type_str);
       }
       if (is_void) {
         fprintf(f, "); cdecl; external LIB_NAME;\n");
       } else {
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_delphi_type(
-                                      &node->return_or_base_type, ret_type_str,
-                                      sizeof(ret_type_str)));
+        rc_emit = map_delphi_type(&node->return_or_base_type, ret_type_str,
+                                  sizeof(ret_type_str));
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "): %s; cdecl; external LIB_NAME;\n", ret_type_str);
       }
     }
@@ -229,5 +248,5 @@ cdd_ffi_emit_delphi(cdd_ffi_ir_t *ir,
   fprintf(f, "end.\n");
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

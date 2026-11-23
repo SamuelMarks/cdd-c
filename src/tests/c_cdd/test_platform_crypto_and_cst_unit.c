@@ -607,8 +607,21 @@ TEST test_legacy_cst_transform_exhaustive(void) {
     ASSERT_EQ(
         CDD_C_SUCCESS,
         cdd_cst_parse(az_span_create_from_str("int x;\nint y;\n"), &tree));
+    tree->root->children[0].val.node->parent = NULL;
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_legacy_transform_extern_c(tree, &cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        cdd_cst_parse(az_span_create_from_str("int x;\nint y;\n"), &tree));
     tree->root->children[1].val.node->parent = NULL;
     ASSERT_NEQ(CDD_C_SUCCESS, cdd_legacy_transform_extern_c(tree, &cfg));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_parse(az_span_create_from_str(
+                                               "#ifdef A\n#endif\nint x;\n"),
+                                           &tree));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_legacy_transform_extern_c(tree, &cfg));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
   }
 

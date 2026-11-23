@@ -121,15 +121,17 @@ static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
     return CDD_C_SUCCESS;
 
   for (i = 0; i < node->num_children; i++) {
-    cdd_c_error_t rc = CDD_C_SUCCESS;
+    cdd_c_error_t rc;
     cdd_cst_child_t *child = &node->children[i];
     if (child->kind == CDD_CST_CHILD_TOKEN) {
       rc = emit_token(ctx, child->val.token);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else if (child->kind == CDD_CST_CHILD_NODE) {
       rc = emit_node(ctx, child->val.node);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
-    if (rc != CDD_C_SUCCESS)
-      return rc;
   }
   return CDD_C_SUCCESS;
 }

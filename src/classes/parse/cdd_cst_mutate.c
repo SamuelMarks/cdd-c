@@ -46,6 +46,11 @@ cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,
 cdd_c_error_t find_first_token_mutate(cdd_cst_node_t *node,
                                       cdd_token_t **out_token) {
   size_t i;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_token = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -53,7 +58,10 @@ cdd_c_error_t find_first_token_mutate(cdd_cst_node_t *node,
       return CDD_C_SUCCESS;
     } else {
       cdd_token_t *t = NULL;
-      if (find_first_token_mutate(node->children[i].val.node, &t) == 0) {
+      rc = find_first_token_mutate(node->children[i].val.node, &t);
+      if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+        return rc;
+      if (rc == CDD_C_SUCCESS) {
         *out_token = t;
         return CDD_C_SUCCESS;
       }
@@ -72,6 +80,11 @@ cdd_c_error_t find_first_token_mutate(cdd_cst_node_t *node,
 static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
                                             cdd_token_t **out_tok) {
   size_t i;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_tok = NULL;
   for (i = node->num_children; i > 0; i--) {
     size_t idx = i - 1;
@@ -80,7 +93,10 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
       return CDD_C_SUCCESS;
     } else {
       cdd_token_t *t = NULL;
-      if (find_last_token_mutate(node->children[idx].val.node, &t) == 0) {
+      rc = find_last_token_mutate(node->children[idx].val.node, &t);
+      if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+        return rc;
+      if (rc == CDD_C_SUCCESS) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }
@@ -95,7 +111,7 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
  * @param[in] t Head of the trivia list to free.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t free_trivia_list_mutate(cdd_trivia_t *t) {
+static cdd_c_error_t trivia_list_mutate_free(cdd_trivia_t *t) {
   while (t) {
     cdd_trivia_t *next = t->next;
     C_CDD_FREE(t);
@@ -188,6 +204,10 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
   cdd_c_error_t rc;
   cdd_token_t *old_first, *old_last, *new_first, *new_last;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!tree || !old_node || !new_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   parent = old_node->parent;
@@ -199,19 +219,23 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
     return rc;
 
   /* Swap trivia */
-  if (find_first_token_mutate(old_node, &old_first) != 0)
-    old_first = NULL;
-  if (find_first_token_mutate(new_node, &new_first) != 0)
-    new_first = NULL;
+  rc = find_first_token_mutate(old_node, &old_first);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
+  rc = find_first_token_mutate(new_node, &new_first);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
+  rc = find_last_token_mutate(old_node, &old_last);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
+  rc = find_last_token_mutate(new_node, &new_last);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
+
   if (old_first && new_first && !new_first->leading_trivia) {
     new_first->leading_trivia = old_first->leading_trivia;
     old_first->leading_trivia = NULL;
   }
-
-  if (find_last_token_mutate(old_node, &old_last) != 0)
-    old_last = NULL;
-  if (find_last_token_mutate(new_node, &new_last) != 0)
-    new_last = NULL;
   if (old_last && new_last && !new_last->trailing_trivia) {
     new_last->trailing_trivia = old_last->trailing_trivia;
     old_last->trailing_trivia = NULL;
@@ -235,6 +259,10 @@ cdd_c_error_t cdd_cst_replace_node(cdd_cst_tree_t *tree,
  */
 cdd_c_error_t cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
                                            cdd_cst_node_t *new_node) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!parent || !new_node || idx > parent->num_children)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -329,14 +357,16 @@ cdd_c_error_t cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (find_first_token_mutate(node, &first_tok) != CDD_C_SUCCESS)
-    first_tok = NULL;
+  rc = find_first_token_mutate(node, &first_tok);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
   if (first_tok && first_tok->leading_trivia) {
     first_tok->leading_trivia = NULL;
   }
 
-  if (find_last_token_mutate(node, &last_tok) != CDD_C_SUCCESS)
-    last_tok = NULL;
+  rc = find_last_token_mutate(node, &last_tok);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
   if (last_tok && last_tok->trailing_trivia) {
     last_tok->trailing_trivia = NULL;
   }
@@ -366,6 +396,7 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   cdd_cst_node_t *clone;
   size_t i;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (!tree || !root || !out_clone)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -406,18 +437,21 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         rc = clone_trivia_list_mutate(orig_tok->trailing_trivia,
                                       &new_tok->trailing_trivia);
         if (rc != CDD_C_SUCCESS) {
-          rc = (cdd_c_error_t)((int)rc | (int)free_trivia_list_mutate(
-                                             new_tok->leading_trivia));
+          rc_free =
+              (cdd_c_error_t)((int)rc_free | (int)trivia_list_mutate_free(
+                                                 new_tok->leading_trivia));
           C_CDD_FREE(new_tok);
           goto err;
         }
 
         rc = track_synthesized_token_mutate(tree, new_tok);
         if (rc != CDD_C_SUCCESS) {
-          rc = (cdd_c_error_t)((int)rc | (int)free_trivia_list_mutate(
-                                             new_tok->leading_trivia));
-          rc = (cdd_c_error_t)((int)rc | (int)free_trivia_list_mutate(
-                                             new_tok->trailing_trivia));
+          rc_free =
+              (cdd_c_error_t)((int)rc_free | (int)trivia_list_mutate_free(
+                                                 new_tok->leading_trivia));
+          rc_free =
+              (cdd_c_error_t)((int)rc_free | (int)trivia_list_mutate_free(
+                                                 new_tok->trailing_trivia));
           C_CDD_FREE(new_tok);
           goto err;
         }
@@ -440,10 +474,12 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   }
 
   *out_clone = clone;
-  return CDD_C_SUCCESS;
+  return rc_free;
 
-err:
-  return (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(clone));
+err: {
+  cdd_c_error_t rc_f = cdd_cst_node_free(clone);
+  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_free, rc_f));
+}
 }
 
 /*
@@ -457,6 +493,10 @@ err:
  */
 cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!node || idx >= node->num_children)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = idx; i + 1 < node->num_children; i++) {
@@ -476,6 +516,10 @@ cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
  */
 cdd_c_error_t cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
                                           cdd_token_t *new_tok) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!node || idx >= node->num_children || !new_tok)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (node->children[idx].kind != CDD_CST_CHILD_TOKEN)

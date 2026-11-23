@@ -34,36 +34,32 @@ typedef struct {
 } layout_ctx_t;
 
 /**
- * @brief Preserves the first non-success error code encountered.
- *
- * @param[in] cur_rc Current sticky error code.
- * @param[in] step_rc Error code returned by the latest step.
- * @return `cur_rc` if already non-success, otherwise `step_rc`.
- */
-static NO_DISCARD cdd_c_error_t keep_first_error(cdd_c_error_t cur_rc,
-                                                 cdd_c_error_t step_rc) {
-  return cdd_c_keep_err(cur_rc, step_rc);
-}
-
-/**
  * @brief Finds the index of a node by name.
  *
  * @param[in] ir The IR to search.
  * @param[in] name The node name to find.
  * @param[out] out_idx Pointer to receive the matched node index.
- * @return CDD_C_SUCCESS if found, CDD_C_ERROR_NOT_FOUND if not found.
+ * @param[out] out_found Pointer to receive 1 if found, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 static NO_DISCARD cdd_c_error_t find_node_index(const cdd_ffi_ir_t *ir,
                                                 const char *name,
-                                                size_t *out_idx) {
+                                                size_t *out_idx,
+                                                int *out_found) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_found = 0;
   for (i = 0; i < ir->nodes_count; i++) {
     if (ir->nodes[i].name && strcmp(ir->nodes[i].name, name) == 0) {
       *out_idx = i;
+      *out_found = 1;
       return CDD_C_SUCCESS;
     }
   }
-  return CDD_C_ERROR_NOT_FOUND;
+  return CDD_C_SUCCESS;
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -93,7 +89,11 @@ toposort_visit_type(toposort_ctx_t *ctx, const cdd_ffi_type_t *type) {
 
   if (type->ref_name) {
     size_t dep_idx = 0;
-    if (find_node_index(ctx->ir, type->ref_name, &dep_idx) == CDD_C_SUCCESS) {
+    int found = 0;
+    rc = find_node_index(ctx->ir, type->ref_name, &dep_idx, &found);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (found) {
       rc = toposort_dfs(ctx, dep_idx);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -254,6 +254,10 @@ NO_DISCARD cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
 NO_DISCARD cdd_c_error_t cdd_ffi_abi_profile_init(
     cdd_ffi_abi_kind_t kind, cdd_ffi_abi_profile_t *out_profile) {
   cdd_ffi_abi_kind_t eff_kind;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!out_profile)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -368,11 +372,17 @@ static NO_DISCARD cdd_c_error_t compute_node_layout(layout_ctx_t *ctx,
  * @param[in] name Typedef identifier string.
  * @param[out] out_size Receives resolved byte size.
  * @param[out] out_align Receives resolved byte alignment.
- * @return CDD_C_SUCCESS if matched, or CDD_C_ERROR_NOT_FOUND otherwise.
+ * @param[out] out_found Receives 1 if matched, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, or error code.
  */
 static NO_DISCARD cdd_c_error_t
 resolve_builtin_typedef(const cdd_ffi_abi_profile_t *abi, const char *name,
-                        size_t *out_size, size_t *out_align) {
+                        size_t *out_size, size_t *out_align, int *out_found) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_found = 1;
   if (strcmp(name, "size_t") == 0 || strcmp(name, "ssize_t") == 0 ||
       strcmp(name, "ptrdiff_t") == 0 || strcmp(name, "intptr_t") == 0 ||
       strcmp(name, "uintptr_t") == 0) {
@@ -420,7 +430,8 @@ resolve_builtin_typedef(const cdd_ffi_abi_profile_t *abi, const char *name,
     *out_align = abi->double_align;
     return CDD_C_SUCCESS;
   }
-  return CDD_C_ERROR_NOT_FOUND;
+  *out_found = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -438,7 +449,7 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
                                                     size_t *out_align) {
   size_t elem_size;
   size_t elem_align;
-  size_t dep_idx;
+  size_t dep_idx = 0;
   cdd_c_error_t rc;
 
   elem_size = 0;
@@ -487,9 +498,14 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
       elem_size = 3 * ctx->abi.pointer_size;
       elem_align = ctx->abi.pointer_align;
       break;
-    case CDD_FFI_KIND_ENUM_REF:
-      if (type->ref_name &&
-          find_node_index(ctx->ir, type->ref_name, &dep_idx) == CDD_C_SUCCESS) {
+    case CDD_FFI_KIND_ENUM_REF: {
+      int found_node = 0;
+      if (type->ref_name) {
+        rc = find_node_index(ctx->ir, type->ref_name, &dep_idx, &found_node);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
+      if (found_node) {
         rc = compute_node_layout(ctx, dep_idx);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -504,7 +520,10 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
         return CDD_C_ERROR_NOT_FOUND;
       }
       break;
-    case CDD_FFI_KIND_TYPEDEF_REF:
+    }
+    case CDD_FFI_KIND_TYPEDEF_REF: {
+      int found_bi = 0;
+      int found_node = 0;
       if (!type->ref_name) {
         if (ctx->abi.allow_unresolved_refs) {
           elem_size = ctx->abi.pointer_size;
@@ -513,11 +532,17 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
         }
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
-      if (resolve_builtin_typedef(&ctx->abi, type->ref_name, &elem_size,
-                                  &elem_align) == CDD_C_SUCCESS) {
+      rc = resolve_builtin_typedef(&ctx->abi, type->ref_name, &elem_size,
+                                   &elem_align, &found_bi);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (found_bi) {
         break;
       }
-      if (find_node_index(ctx->ir, type->ref_name, &dep_idx) == CDD_C_SUCCESS) {
+      rc = find_node_index(ctx->ir, type->ref_name, &dep_idx, &found_node);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (found_node) {
         rc = compute_node_layout(ctx, dep_idx);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -530,8 +555,10 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
         return CDD_C_ERROR_NOT_FOUND;
       }
       break;
+    }
     case CDD_FFI_KIND_STRUCT_REF:
-    case CDD_FFI_KIND_TEMPLATE_STRUCT_REF:
+    case CDD_FFI_KIND_TEMPLATE_STRUCT_REF: {
+      int found_node = 0;
       if (!type->ref_name) {
         if (ctx->abi.allow_unresolved_refs) {
           elem_size = ctx->abi.pointer_size;
@@ -540,7 +567,10 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
         }
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
-      if (find_node_index(ctx->ir, type->ref_name, &dep_idx) == CDD_C_SUCCESS) {
+      rc = find_node_index(ctx->ir, type->ref_name, &dep_idx, &found_node);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (found_node) {
         rc = compute_node_layout(ctx, dep_idx);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -553,6 +583,7 @@ static NO_DISCARD cdd_c_error_t compute_type_layout(layout_ctx_t *ctx,
         return CDD_C_ERROR_NOT_FOUND;
       }
       break;
+    }
     default:
       if (ctx->abi.allow_unresolved_refs) {
         elem_size = ctx->abi.pointer_size;
@@ -606,13 +637,14 @@ static NO_DISCARD cdd_c_error_t compute_node_layout(layout_ctx_t *ctx,
     node->trailing_pad_bytes = 0;
     break;
 
-  case CDD_FFI_NODE_TYPEDEF:
+  case CDD_FFI_NODE_TYPEDEF: {
     rc = compute_type_layout(ctx, &node->return_or_base_type, &node->size_bytes,
                              &node->align_bytes);
     if (rc != CDD_C_SUCCESS)
       return rc;
     node->trailing_pad_bytes = 0;
     break;
+  }
 
   case CDD_FFI_NODE_STRUCT: {
     size_t cur_offset;
@@ -831,6 +863,8 @@ cdd_ffi_ir_compute_layout(cdd_ffi_ir_t *ir, const cdd_ffi_abi_profile_t *abi) {
   rc = CDD_C_SUCCESS;
   if (!abi) {
     rc = cdd_ffi_abi_profile_init(CDD_FFI_ABI_HOST, &ctx.abi);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     ctx.abi = *abi;
     if (ctx.abi.pointer_size == 0) {
@@ -876,7 +910,7 @@ cdd_ffi_ir_compute_layout(cdd_ffi_ir_t *ir, const cdd_ffi_abi_profile_t *abi) {
  * @param[in,out] trivia Head of the trivia chain to free (may be NULL).
  * @return CDD_C_SUCCESS.
  */
-static NO_DISCARD cdd_c_error_t free_trivia_chain(cdd_ffi_trivia_t *trivia) {
+static NO_DISCARD cdd_c_error_t trivia_chain_free(cdd_ffi_trivia_t *trivia) {
   while (trivia) {
     cdd_ffi_trivia_t *next = trivia->next;
     if (trivia->text)
@@ -887,7 +921,7 @@ static NO_DISCARD cdd_c_error_t free_trivia_chain(cdd_ffi_trivia_t *trivia) {
   return CDD_C_SUCCESS;
 }
 
-static NO_DISCARD cdd_c_error_t free_field_members(cdd_ffi_field_t *field);
+static NO_DISCARD cdd_c_error_t field_members_free(cdd_ffi_field_t *field);
 
 /**
  * @brief Recursively frees dynamically allocated fields of a `cdd_ffi_type_t`.
@@ -896,9 +930,8 @@ static NO_DISCARD cdd_c_error_t free_field_members(cdd_ffi_field_t *field);
  * freed.
  * @return CDD_C_SUCCESS.
  */
-static NO_DISCARD cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
+static NO_DISCARD cdd_c_error_t type_recursive_free(cdd_ffi_type_t *type) {
   cdd_c_error_t rc;
-  cdd_c_error_t step_rc;
 
   rc = CDD_C_SUCCESS;
 
@@ -911,19 +944,17 @@ static NO_DISCARD cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
     type->raw_spelling = NULL;
   }
 
-  step_rc = free_trivia_chain(type->leading_trivia);
-  rc = keep_first_error(rc, step_rc);
+  rc = (cdd_c_error_t)((int)rc | (int)trivia_chain_free(type->leading_trivia));
   type->leading_trivia = NULL;
 
-  step_rc = free_trivia_chain(type->trailing_trivia);
-  rc = keep_first_error(rc, step_rc);
+  rc = (cdd_c_error_t)((int)rc | (int)trivia_chain_free(type->trailing_trivia));
   type->trailing_trivia = NULL;
 
   if (type->template_args) {
     size_t i;
     for (i = 0; i < type->template_args_count; i++) {
-      step_rc = free_type_recursive(&type->template_args[i]);
-      rc = keep_first_error(rc, step_rc);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)type_recursive_free(&type->template_args[i]));
     }
     C_CDD_FREE(type->template_args);
     type->template_args = NULL;
@@ -931,8 +962,8 @@ static NO_DISCARD cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
   }
 
   if (type->fn_return_type) {
-    step_rc = free_type_recursive(type->fn_return_type);
-    rc = keep_first_error(rc, step_rc);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)type_recursive_free(type->fn_return_type));
     C_CDD_FREE(type->fn_return_type);
     type->fn_return_type = NULL;
   }
@@ -940,8 +971,8 @@ static NO_DISCARD cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
   if (type->fn_params) {
     size_t i;
     for (i = 0; i < type->fn_params_count; i++) {
-      step_rc = free_field_members(&type->fn_params[i]);
-      rc = keep_first_error(rc, step_rc);
+      rc = (cdd_c_error_t)((int)rc |
+                           (int)field_members_free(&type->fn_params[i]));
     }
     C_CDD_FREE(type->fn_params);
     type->fn_params = NULL;
@@ -957,9 +988,8 @@ static NO_DISCARD cdd_c_error_t free_type_recursive(cdd_ffi_type_t *type) {
  * @param[in,out] field Field or parameter descriptor to clean up.
  * @return CDD_C_SUCCESS.
  */
-static NO_DISCARD cdd_c_error_t free_field_members(cdd_ffi_field_t *field) {
+static NO_DISCARD cdd_c_error_t field_members_free(cdd_ffi_field_t *field) {
   cdd_c_error_t rc;
-  cdd_c_error_t step_rc;
 
   rc = CDD_C_SUCCESS;
 
@@ -976,16 +1006,14 @@ static NO_DISCARD cdd_c_error_t free_field_members(cdd_ffi_field_t *field) {
     field->array_length_ref = NULL;
   }
 
-  step_rc = free_trivia_chain(field->leading_trivia);
-  rc = keep_first_error(rc, step_rc);
+  rc = (cdd_c_error_t)((int)rc | (int)trivia_chain_free(field->leading_trivia));
   field->leading_trivia = NULL;
 
-  step_rc = free_trivia_chain(field->trailing_trivia);
-  rc = keep_first_error(rc, step_rc);
+  rc =
+      (cdd_c_error_t)((int)rc | (int)trivia_chain_free(field->trailing_trivia));
   field->trailing_trivia = NULL;
 
-  step_rc = free_type_recursive(&field->type);
-  rc = keep_first_error(rc, step_rc);
+  rc = (cdd_c_error_t)((int)rc | (int)type_recursive_free(&field->type));
 
   return rc;
 }
@@ -1000,7 +1028,6 @@ NO_DISCARD cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
   size_t i;
   size_t j;
   cdd_c_error_t rc;
-  cdd_c_error_t step_rc;
 
   rc = CDD_C_SUCCESS;
 
@@ -1024,19 +1051,19 @@ NO_DISCARD cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
       C_CDD_FREE(node->raw_body);
     }
 
-    step_rc = free_trivia_chain(node->leading_trivia);
-    rc = keep_first_error(rc, step_rc);
+    rc =
+        (cdd_c_error_t)((int)rc | (int)trivia_chain_free(node->leading_trivia));
 
-    step_rc = free_trivia_chain(node->trailing_trivia);
-    rc = keep_first_error(rc, step_rc);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)trivia_chain_free(node->trailing_trivia));
 
-    step_rc = free_type_recursive(&node->return_or_base_type);
-    rc = keep_first_error(rc, step_rc);
+    rc = (cdd_c_error_t)((int)rc |
+                         (int)type_recursive_free(&node->return_or_base_type));
 
     if (node->fields) {
       for (j = 0; j < node->fields_count; j++) {
-        step_rc = free_field_members(&node->fields[j]);
-        rc = keep_first_error(rc, step_rc);
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)field_members_free(&node->fields[j]));
       }
       C_CDD_FREE(node->fields);
     }
@@ -1059,12 +1086,14 @@ NO_DISCARD cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         if (node->virtual_methods[j].name) {
           C_CDD_FREE(node->virtual_methods[j].name);
         }
-        step_rc = free_type_recursive(&node->virtual_methods[j].return_type);
-        rc = keep_first_error(rc, step_rc);
+        rc = (cdd_c_error_t)((int)rc |
+                             (int)type_recursive_free(
+                                 &node->virtual_methods[j].return_type));
         if (node->virtual_methods[j].args) {
           for (a = 0; a < node->virtual_methods[j].args_count; a++) {
-            step_rc = free_field_members(&node->virtual_methods[j].args[a]);
-            rc = keep_first_error(rc, step_rc);
+            rc = (cdd_c_error_t)((int)rc |
+                                 (int)field_members_free(
+                                     &node->virtual_methods[j].args[a]));
           }
           C_CDD_FREE(node->virtual_methods[j].args);
         }
@@ -1092,10 +1121,10 @@ NO_DISCARD cdd_c_error_t cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
           }
           C_CDD_FREE(node->variants[j].number_details);
         }
-        step_rc = free_trivia_chain(node->variants[j].leading_trivia);
-        rc = keep_first_error(rc, step_rc);
-        step_rc = free_trivia_chain(node->variants[j].trailing_trivia);
-        rc = keep_first_error(rc, step_rc);
+        rc = (cdd_c_error_t)((int)rc | (int)trivia_chain_free(
+                                           node->variants[j].leading_trivia));
+        rc = (cdd_c_error_t)((int)rc | (int)trivia_chain_free(
+                                           node->variants[j].trailing_trivia));
       }
       C_CDD_FREE(node->variants);
     }

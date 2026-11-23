@@ -48,7 +48,7 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = (char *)VLA_MALLOC(n + 1);
   if (!d) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
   memcpy(d, s, n);
   d[n] = '\0';
@@ -311,22 +311,21 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                   const char *t_end =
                       (const char *)tokens->tokens[type_end_idx - 1].start +
                       tokens->tokens[type_end_idx - 1].length;
-                  rc_dup =
-                      (cdd_c_error_t)((int)rc_dup |
-                                      (int)c_cdd_strndup(
-                                          t_start, (size_t)(t_end - t_start),
-                                          &s->type_str));
+                  rc_dup = c_cdd_strndup(t_start, (size_t)(t_end - t_start),
+                                         &s->type_str);
+                  if (rc_dup != CDD_C_SUCCESS)
+                    return rc_dup;
                 }
 
                 /* Extract var name */
-                rc_dup =
-                    (cdd_c_error_t)((int)rc_dup |
-                                    (int)c_cdd_strndup(
-                                        (const char *)tokens
-                                            ->tokens[var_name_idx]
-                                            .start,
-                                        tokens->tokens[var_name_idx].length,
-                                        &s->var_name));
+                rc_dup = c_cdd_strndup(
+                    (const char *)tokens->tokens[var_name_idx].start,
+                    tokens->tokens[var_name_idx].length, &s->var_name);
+                if (rc_dup != CDD_C_SUCCESS) {
+                  C_CDD_FREE(s->type_str);
+                  s->type_str = NULL;
+                  return rc_dup;
+                }
 
                 /* Extract size expression */
                 {
@@ -335,14 +334,18 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
                   const char *sz_end =
                       (const char *)tokens->tokens[size_expr_end - 1].start +
                       tokens->tokens[size_expr_end - 1].length;
-                  rc_dup =
-                      (cdd_c_error_t)((int)rc_dup |
-                                      (int)c_cdd_strndup(
-                                          sz_start, (size_t)(sz_end - sz_start),
-                                          &s->size_expr));
+                  rc_dup = c_cdd_strndup(sz_start, (size_t)(sz_end - sz_start),
+                                         &s->size_expr);
+                  if (rc_dup != CDD_C_SUCCESS) {
+                    C_CDD_FREE(s->type_str);
+                    C_CDD_FREE(s->var_name);
+                    s->type_str = NULL;
+                    s->var_name = NULL;
+                    return rc_dup;
+                  }
                 }
 
-                list->count += 1u + (size_t)rc_dup * 0u;
+                list->count++;
               }
             }
             i++;      /* Skip past semicolon */

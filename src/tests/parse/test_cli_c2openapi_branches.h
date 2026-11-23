@@ -407,7 +407,8 @@ TEST test_c2openapi_final_branches(void) {
     argv[7] = cdd_test_mut_str("-n");
     argv[8] = cdd_test_mut_str("lib");
     argv[9] = cdd_test_mut_str("-m");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(10, argv));
 
     /* long flags */
     argv[1] = cdd_test_mut_str("--input");
@@ -419,7 +420,8 @@ TEST test_c2openapi_final_branches(void) {
     argv[7] = cdd_test_mut_str("--lib-name");
     argv[8] = cdd_test_mut_str("lib");
     argv[9] = cdd_test_mut_str("--module-name");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(10, argv));
 
     /* all short valid flags */
     argv[1] = cdd_test_mut_str("-i");
@@ -432,7 +434,7 @@ TEST test_c2openapi_final_branches(void) {
     argv[8] = cdd_test_mut_str("lib");
     argv[9] = cdd_test_mut_str("-m");
     /* valid 7 args */
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(7, argv));
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, generate_bindings_cli_main(7, argv));
 
     memset(&types, 0, sizeof(types));
     types.items =
@@ -538,7 +540,7 @@ TEST test_c2openapi_final_branches(void) {
       fputs("/**\n * @route GET /bad_csig\n */\nint (int a) {}\n", fp);
       fclose(fp);
       memset(&spec, 0, sizeof(spec));
-      ASSERT_EQ(CDD_C_SUCCESS, process_file(fpath, &spec));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, process_file(fpath, &spec));
       g_cdd_last_alloc_err = openapi_spec_free(&spec);
       remove(fpath);
     }
@@ -622,10 +624,11 @@ TEST test_c2openapi_final_branches(void) {
     argv[7] = cdd_test_mut_str("-n");
     argv[8] = cdd_test_mut_str("lib");
     argv[9] = cdd_test_mut_str("-m");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(10, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(10, argv));
     /* All required options present (-i in -o out -l py) -> tests line 2184
      * false branch */
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(7, argv));
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, generate_bindings_cli_main(7, argv));
   }
 
   /* 25. apply_all_doc_meta tag and sec scheme failures */
@@ -681,25 +684,35 @@ TEST test_c2openapi_final_branches(void) {
   {
     argv[0] = cdd_test_mut_str("bind");
     argv[1] = cdd_test_mut_str("-i");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("--input");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("-o");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("--output-dir");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("-l");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("--lang");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("-n");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("--lib-name");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("-m");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("--module-name");
-    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(2, argv));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              generate_bindings_cli_main(2, argv));
 
     /* to_docs_json -i and --input missing */
     argv[0] = cdd_test_mut_str("to_docs_json");
@@ -710,6 +723,9 @@ TEST test_c2openapi_final_branches(void) {
 
     /* c2openapi options missing args */
     argv[0] = cdd_test_mut_str("c2openapi");
+    argv[1] = cdd_test_mut_str("src");
+    argv[2] = cdd_test_mut_str("--base");
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c2openapi_cli_main(3, argv));
     argv[1] = cdd_test_mut_str("--base");
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(2, argv));
     argv[1] = cdd_test_mut_str("-b");
@@ -744,7 +760,7 @@ TEST test_c2openapi_final_branches(void) {
       memset(&spec, 0, sizeof(spec));
       g_cdd_strdup_fail = 1;
       rc_proc = process_file(fpath, &spec);
-      ASSERT_EQ(CDD_C_SUCCESS, rc_proc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_proc);
       g_cdd_strdup_fail = 0;
       g_cdd_last_alloc_err = openapi_spec_free(&spec);
       remove(fpath);
@@ -1217,7 +1233,7 @@ TEST test_c2openapi_infer_routes_and_views(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   rc = process_file("test_c2openapi_infer4.c", &spec);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   rc = process_file("test_c2openapi_infer5.c", &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -1229,8 +1245,7 @@ TEST test_c2openapi_infer_routes_and_views(void) {
   g_cdd_strdup_fail = 1;
   rc = process_file("test_c2openapi_oom_build.c", &spec);
   g_cdd_strdup_fail = 0;
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
   rc = process_file("test_c2openapi_eof.c", &spec);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -1700,6 +1715,120 @@ TEST test_cli_c2openapi_aggregator_errors(void) {
         g_cdd_strdup_fail = 0;
         g_cdd_last_alloc_err = openapi_spec_free(&spec);
       }
+
+#ifdef CDD_BUILD_TESTS
+      {
+        FILE *fp_step = fopen("test_c2openapi_step_all.c", "w");
+        FILE *fp_mcp = fopen("test_c2openapi_step_mcp.c", "w");
+        int step;
+        if (fp_step) {
+          fputs("/** @title T */\n"
+                "/** @route GET /hook\n * @webhook\n */\n"
+                "int wh_fn(int a) { return a; }\n"
+                "int inf_fn(int b) { HTTP_PATCH; \"/inf\"; return b; }\n"
+                "void reg(void) { c_rest_router_add(r, \"GET\", \"/srv\", "
+                "handle_srv); render_home_view(); }\n",
+                fp_step);
+          fclose(fp_step);
+        }
+        if (fp_mcp) {
+          fputs("void m(void) { x(tool_obj, \"name\", \"my_tool\"); }\n",
+                fp_mcp);
+          fclose(fp_mcp);
+        }
+
+        for (step = 1; step <= 800; ++step) {
+          memset(&spec, 0, sizeof(spec));
+          if (openapi_spec_init(&spec) == CDD_C_SUCCESS) {
+            g_cdd_step_fail = step;
+            rc = process_file("test_c2openapi_step_all.c", &spec);
+            if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+              g_cdd_step_fail = 0;
+              g_cdd_last_alloc_err = openapi_spec_free(&spec);
+              break;
+            }
+            g_cdd_step_fail = 0;
+            g_cdd_last_alloc_err = openapi_spec_free(&spec);
+          }
+        }
+
+        for (step = 1; step <= 300; ++step) {
+          memset(&spec, 0, sizeof(spec));
+          if (openapi_spec_init(&spec) == CDD_C_SUCCESS) {
+            g_cdd_step_fail = step;
+            rc = process_file("test_c2openapi_step_mcp.c", &spec);
+            if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+              g_cdd_step_fail = 0;
+              g_cdd_last_alloc_err = openapi_spec_free(&spec);
+              break;
+            }
+            g_cdd_step_fail = 0;
+            g_cdd_last_alloc_err = openapi_spec_free(&spec);
+          }
+        }
+
+        {
+          char *argv_cli[3];
+          argv_cli[0] = cdd_test_mut_str("c2openapi");
+          argv_cli[1] = cdd_test_mut_str("test_c2openapi_step_mcp.c");
+          argv_cli[2] = cdd_test_mut_str("build/test_step_out.json");
+          for (step = 1; step <= 400; ++step) {
+            g_cdd_step_fail = step;
+            rc = c2openapi_cli_main(3, argv_cli);
+            if (rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+              g_cdd_step_fail = 0;
+              break;
+            }
+            g_cdd_step_fail = 0;
+          }
+          remove("build/test_step_out.json");
+        }
+
+        remove("test_c2openapi_step_all.c");
+        remove("test_c2openapi_step_mcp.c");
+
+        {
+          FILE *fp_emp = fopen("test_c2openapi_empty.c", "w");
+          FILE *fp_wh = fopen("test_c2openapi_wh_oom.c", "w");
+          if (fp_emp) {
+            fclose(fp_emp);
+          }
+          if (fp_wh) {
+            fputs("/** @route POST /hook\n * @webhook\n */\nvoid wh(void) {}\n",
+                  fp_wh);
+            fclose(fp_wh);
+          }
+          memset(&spec, 0, sizeof(spec));
+          ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    process_file("test_c2openapi_empty.c", &spec));
+          g_cdd_last_alloc_err = openapi_spec_free(&spec);
+
+          for (step = 1; step <= 30; ++step) {
+            memset(&spec, 0, sizeof(spec));
+            ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
+            g_cdd_alloc_fail = step;
+            rc = process_file("test_c2openapi_wh_oom.c", &spec);
+            g_cdd_alloc_fail = 0;
+            g_cdd_last_alloc_err = openapi_spec_free(&spec);
+            if (rc == CDD_C_SUCCESS)
+              break;
+          }
+          for (step = 1; step <= 20; ++step) {
+            memset(&spec, 0, sizeof(spec));
+            ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
+            g_cdd_strdup_fail = step;
+            rc = process_file("test_c2openapi_wh_oom.c", &spec);
+            g_cdd_strdup_fail = 0;
+            g_cdd_last_alloc_err = openapi_spec_free(&spec);
+            if (rc == CDD_C_SUCCESS)
+              break;
+          }
+          remove("test_c2openapi_empty.c");
+          remove("test_c2openapi_wh_oom.c");
+        }
+      }
+#endif
       remove("test_c2openapi_colfmt.c");
     }
   }

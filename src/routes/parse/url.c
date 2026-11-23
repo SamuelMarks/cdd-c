@@ -37,6 +37,10 @@
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t is_unreserved(unsigned char c, int *out_is_unreserved) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~') {
     *out_is_unreserved = 1;
     return CDD_C_SUCCESS;
@@ -53,6 +57,10 @@ static cdd_c_error_t is_unreserved(unsigned char c, int *out_is_unreserved) {
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t is_reserved(unsigned char c, int *out_is_reserved) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   switch (c) {
   case ':':
   case '/':
@@ -88,6 +96,10 @@ static cdd_c_error_t is_reserved(unsigned char c, int *out_is_reserved) {
  * @return CDD_C_SUCCESS on success.
  */
 static cdd_c_error_t is_hex(unsigned char c, int *out_is_hex) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_hex = isxdigit(c) ? 1 : 0;
   return CDD_C_SUCCESS;
 }
@@ -103,7 +115,7 @@ static cdd_c_error_t is_hex(unsigned char c, int *out_is_hex) {
 static cdd_c_error_t is_pct_encoded(const char *p, int *out_is_pct) {
   int h1 = 0;
   int h2 = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!p) {
     *out_is_pct = 0;
     return CDD_C_SUCCESS;
@@ -113,13 +125,17 @@ static cdd_c_error_t is_pct_encoded(const char *p, int *out_is_pct) {
     return CDD_C_SUCCESS;
   }
   rc = is_hex((unsigned char)p[1], &h1);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!h1) {
     *out_is_pct = 0;
-    return rc;
+    return CDD_C_SUCCESS;
   }
   rc = is_hex((unsigned char)p[2], &h2);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   *out_is_pct = h2 ? 1 : 0;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -131,10 +147,36 @@ static cdd_c_error_t is_pct_encoded(const char *p, int *out_is_pct) {
  */
 static cdd_c_error_t to_hex(char code, char *_out_val) {
   static const char hex[] = "0123456789ABCDEF";
-  {
-    *_out_val = hex[code & 15];
-    return CDD_C_SUCCESS;
-  }
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *_out_val = hex[code & 15];
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Writes a 3-byte `%HH` percent-encoded sequence and advances
+ * `*out_ptr`.
+ *
+ * @param[in] c Byte to percent-encode.
+ * @param[in,out] out_ptr Output cursor pointer advanced by 3 bytes on success.
+ * @return CDD_C_SUCCESS on success, or error code on failure.
+ */
+static cdd_c_error_t write_pct_hex(unsigned char c, char **out_ptr) {
+  char hex_hi;
+  char hex_lo;
+  cdd_c_error_t rc;
+  rc = to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  *(*out_ptr)++ = '%';
+  *(*out_ptr)++ = hex_hi;
+  *(*out_ptr)++ = hex_lo;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -148,6 +190,10 @@ static cdd_c_error_t to_hex(char code, char *_out_val) {
  */
 static cdd_c_error_t is_unreserved_form(unsigned char c,
                                         int *out_is_unreserved) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (isalnum(c) || c == '-' || c == '.' || c == '_' || c == '*') {
     *out_is_unreserved = 1;
     return CDD_C_SUCCESS;
@@ -168,13 +214,11 @@ static cdd_c_error_t is_unreserved_form(unsigned char c,
  * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode(const char *str, char **_out_val) {
-  char hex_hi;
-  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
   size_t needed_len = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!str) {
     *_out_val = NULL;
@@ -185,6 +229,10 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   for (p = str; *p; p++) {
     int unres = 0;
     rc = is_unreserved((unsigned char)*p, &unres);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     if (unres) {
       needed_len++;
     } else {
@@ -205,22 +253,25 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
     unsigned char c = (unsigned char)*p;
     int unres = 0;
     rc = is_unreserved(c, &unres);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     if (unres) {
       *e++ = *p;
     } else {
-      *e++ = '%';
-      rc = to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
-      *e++ = hex_hi;
-      rc = to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
-      *e++ = hex_lo;
+      rc = write_pct_hex(c, &e);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(enc);
+        *_out_val = NULL;
+        return rc;
+      }
     }
   }
   *e = '\0';
-
-  {
-    *_out_val = enc;
-    return rc;
-  }
+  *_out_val = enc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -235,13 +286,11 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
  * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
-  char hex_hi;
-  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
   size_t needed_len = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!str) {
     *_out_val = NULL;
@@ -255,6 +304,10 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
     int res = 0;
     if (*p == '%') {
       rc = is_pct_encoded(p, &pct);
+      if (rc != CDD_C_SUCCESS) {
+        *_out_val = NULL;
+        return rc;
+      }
       if (pct) {
         needed_len += 3;
         p += 2;
@@ -262,7 +315,15 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
       }
     }
     rc = is_unreserved((unsigned char)*p, &unres);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     rc = is_reserved((unsigned char)*p, &res);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     if (unres || res) {
       needed_len++;
     } else {
@@ -284,6 +345,11 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
     int res = 0;
     if (*p == '%') {
       rc = is_pct_encoded(p, &pct);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(enc);
+        *_out_val = NULL;
+        return rc;
+      }
       if (pct) {
         *e++ = *p++;
         *e++ = *p++;
@@ -292,22 +358,31 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
       }
     }
     rc = is_unreserved(c, &unres);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     rc = is_reserved(c, &res);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     if (unres || res) {
       *e++ = *p;
     } else {
-      *e++ = '%';
-      rc = to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
-      *e++ = hex_hi;
-      rc = to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
-      *e++ = hex_lo;
+      rc = write_pct_hex(c, &e);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(enc);
+        *_out_val = NULL;
+        return rc;
+      }
     }
   }
   *e = '\0';
-  {
-    *_out_val = enc;
-    return rc;
-  }
+  *_out_val = enc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -321,13 +396,11 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
  * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
-  char hex_hi;
-  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
   size_t needed_len = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!str) {
     *_out_val = NULL;
@@ -338,9 +411,11 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
     unsigned char c = (unsigned char)*p;
     int unres_f = 0;
     rc = is_unreserved_form(c, &unres_f);
-    if (c == ' ') {
-      needed_len++;
-    } else if (unres_f) {
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
+    if (c == ' ' || unres_f) {
       needed_len++;
     } else {
       needed_len += 3;
@@ -358,23 +433,27 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
     unsigned char c = (unsigned char)*p;
     int unres_f = 0;
     rc = is_unreserved_form(c, &unres_f);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     if (c == ' ') {
       *e++ = '+';
     } else if (unres_f) {
       *e++ = *p;
     } else {
-      *e++ = '%';
-      rc = to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
-      *e++ = hex_hi;
-      rc = to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
-      *e++ = hex_lo;
+      rc = write_pct_hex(c, &e);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(enc);
+        *_out_val = NULL;
+        return rc;
+      }
     }
   }
   *e = '\0';
-  {
-    *_out_val = enc;
-    return rc;
-  }
+  *_out_val = enc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -390,13 +469,11 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
  * @return CDD_C_SUCCESS on success, error code on allocation failure.
  */
 cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
-  char hex_hi;
-  char hex_lo;
   const char *p;
   char *enc = NULL;
   char *e;
   size_t needed_len = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!str) {
     *_out_val = NULL;
@@ -409,19 +486,27 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     int unres_f = 0;
     int res = 0;
     rc = is_pct_encoded(p, &pct);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     rc = is_unreserved_form(c, &unres_f);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     rc = is_reserved(c, &res);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
+    }
     if (c == ' ') {
       needed_len++;
     } else if (pct) {
       needed_len += 3;
       p += 2;
-    } else if (unres_f || res) {
-      if (c == '&' || c == '=' || c == '+') {
-        needed_len += 3;
-      } else {
-        needed_len++;
-      }
+    } else if ((unres_f || res) && c != '&' && c != '=' && c != '+') {
+      needed_len++;
     } else {
       needed_len += 3;
     }
@@ -440,37 +525,43 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     int unres_f = 0;
     int res = 0;
     rc = is_pct_encoded(p, &pct);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     rc = is_unreserved_form(c, &unres_f);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     rc = is_reserved(c, &res);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(enc);
+      *_out_val = NULL;
+      return rc;
+    }
     if (c == ' ') {
       *e++ = '+';
     } else if (pct) {
       *e++ = *p++;
       *e++ = *p++;
       *e++ = *p;
-    } else if (unres_f || res) {
-      if (c == '&' || c == '=' || c == '+') {
-        *e++ = '%';
-        rc = to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
-        *e++ = hex_hi;
-        rc = to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
-        *e++ = hex_lo;
-      } else {
-        *e++ = *p;
-      }
+    } else if ((unres_f || res) && c != '&' && c != '=' && c != '+') {
+      *e++ = *p;
     } else {
-      *e++ = '%';
-      rc = to_hex((char)(unsigned char)((unsigned char)c >> 4), &hex_hi);
-      *e++ = hex_hi;
-      rc = to_hex((char)(unsigned char)((unsigned char)c & 15), &hex_lo);
-      *e++ = hex_lo;
+      rc = write_pct_hex(c, &e);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(enc);
+        *_out_val = NULL;
+        return rc;
+      }
     }
   }
   *e = '\0';
-  {
-    *_out_val = enc;
-    return rc;
-  }
+  *_out_val = enc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -542,12 +633,12 @@ cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
 
   rc = c_cdd_strdup(key, &qp->params[qp->count].key);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
+    return rc;
 
   rc = c_cdd_strdup(value, &qp->params[qp->count].value);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(qp->params[qp->count].key);
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
   qp->params[qp->count].value_is_encoded = 0;
 
@@ -587,12 +678,12 @@ cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
 
   rc = c_cdd_strdup(key, &qp->params[qp->count].key);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
+    return rc;
 
   rc = c_cdd_strdup(value, &qp->params[qp->count].value);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(qp->params[qp->count].key);
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
   qp->params[qp->count].value_is_encoded = 1;
 
@@ -638,18 +729,20 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     const char *raw_val = qp->params[i].value;
 
     rc = url_encode(qp->params[i].key, &e_key);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (qp->params[i].value_is_encoded) {
       rc = c_cdd_strdup(raw_val, &e_val);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(e_key);
+        return rc;
+      }
     } else {
       rc = url_encode(raw_val, &e_val);
-    }
-
-    if (!e_key || !e_val) {
-      if (e_key)
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(e_key);
-      if (e_val)
-        C_CDD_FREE(e_val);
-      return CDD_C_ERROR_MEMORY;
+        return rc;
+      }
     }
 
     total_len += strlen(e_key) + 1; /* key= */
@@ -679,19 +772,24 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     const char *raw_val = qp->params[i].value;
 
     rc = url_encode(qp->params[i].key, &e_key);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(buf);
+      return rc;
+    }
     if (qp->params[i].value_is_encoded) {
       rc = c_cdd_strdup(raw_val, &e_val);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(e_key);
+        C_CDD_FREE(buf);
+        return rc;
+      }
     } else {
       rc = url_encode(raw_val, &e_val);
-    }
-
-    if (!e_key || !e_val) {
-      if (e_key)
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(e_key);
-      if (e_val)
-        C_CDD_FREE(e_val);
-      C_CDD_FREE(buf);
-      return CDD_C_ERROR_MEMORY;
+        C_CDD_FREE(buf);
+        return rc;
+      }
     }
 
     /* Copy Key */
@@ -738,7 +836,7 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
   size_t total_len = 0;
   char *buf;
   char *ptr;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   if (!qp || !out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -755,18 +853,22 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     char *e_val = NULL;
     size_t kl, vl;
     rc = url_encode_form(qp->params[i].key, &e_key);
-    if (!e_key) {
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
     if (qp->params[i].value_is_encoded) {
       rc = c_cdd_strdup(qp->params[i].value, &e_val);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(e_key);
+        return rc;
+      }
     } else {
       rc = url_encode_form(qp->params[i].value, &e_val);
-    }
-    if (!e_val) {
-      C_CDD_FREE(e_key);
-      return CDD_C_ERROR_MEMORY;
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(e_key);
+        return rc;
+      }
     }
     kl = strlen(e_key);
     vl = strlen(e_val);
@@ -789,19 +891,24 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     char *e_val = NULL;
     size_t kl, vl;
     rc = url_encode_form(qp->params[i].key, &e_key);
-    if (!e_key) {
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(buf);
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
     if (qp->params[i].value_is_encoded) {
       rc = c_cdd_strdup(qp->params[i].value, &e_val);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(e_key);
+        C_CDD_FREE(buf);
+        return rc;
+      }
     } else {
       rc = url_encode_form(qp->params[i].value, &e_val);
-    }
-    if (!e_val) {
-      C_CDD_FREE(e_key);
-      C_CDD_FREE(buf);
-      return CDD_C_ERROR_MEMORY;
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(e_key);
+        C_CDD_FREE(buf);
+        return rc;
+      }
     }
     kl = strlen(e_key);
     vl = strlen(e_val);
@@ -817,7 +924,7 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
   }
   *ptr = '\0';
   *out_str = buf;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -836,6 +943,10 @@ static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
   size_t need;
   char *tmp;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!buf || !len || !cap || !s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -870,6 +981,10 @@ static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
  */
 static cdd_c_error_t kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
                                         size_t buf_len, const char **_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!kv) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -946,10 +1061,8 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     buf = (char *)C_CDD_CALLOC(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
-    {
-      *_out_val = buf;
-      return CDD_C_SUCCESS;
-    }
+    *_out_val = buf;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < n; ++i) {
@@ -957,24 +1070,30 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     if (!kvs[i].key)
       continue;
     rc = kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf), &raw_val);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
     if (!raw_val)
       continue;
     rc = enc_fn(kvs[i].key, &enc_key);
     if (rc != CDD_C_SUCCESS)
-      goto oom;
+      goto fail;
     rc = enc_fn(raw_val, &enc_val);
     if (rc != CDD_C_SUCCESS)
-      goto oom;
+      goto fail;
     if (len > 0) {
-      if (append_str(&buf, &len, &cap, delim) != 0)
-        goto oom;
+      rc = append_str(&buf, &len, &cap, delim);
+      if (rc != CDD_C_SUCCESS)
+        goto fail;
     }
-    if (append_str(&buf, &len, &cap, enc_key) != 0)
-      goto oom;
-    if (append_str(&buf, &len, &cap, delim) != 0)
-      goto oom;
-    if (append_str(&buf, &len, &cap, enc_val) != 0)
-      goto oom;
+    rc = append_str(&buf, &len, &cap, enc_key);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
+    rc = append_str(&buf, &len, &cap, delim);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
+    rc = append_str(&buf, &len, &cap, enc_val);
+    if (rc != CDD_C_SUCCESS)
+      goto fail;
     C_CDD_FREE(enc_key);
     C_CDD_FREE(enc_val);
     enc_key = NULL;
@@ -986,12 +1105,10 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     if (!buf)
       return CDD_C_ERROR_MEMORY;
   }
-  {
-    *_out_val = buf;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = buf;
+  return CDD_C_SUCCESS;
 
-oom:
+fail:
   if (enc_key)
     C_CDD_FREE(enc_key);
   if (enc_val)
@@ -999,7 +1116,7 @@ oom:
   if (buf)
     C_CDD_FREE(buf);
   *_out_val = NULL;
-  return CDD_C_ERROR_MEMORY;
+  return rc;
 }
 
 #ifdef CDD_BUILD_TESTS

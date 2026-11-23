@@ -7,6 +7,7 @@
 
 #include "cdd_ffi_emit_typescript.h"
 #include "c_cdd/safe_crt.h"
+#include "cdd_ffi_emit_common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,10 @@
  */
 static cdd_c_error_t get_deno_ffi_type(cdd_ffi_type_t type,
                                        const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
       *out_type = "\"buffer\""; /* Commonly used for char / uint8_t ptr */
@@ -99,6 +104,10 @@ static cdd_c_error_t get_deno_ffi_type(cdd_ffi_type_t type,
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t get_ts_type(cdd_ffi_type_t type, const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
       *out_type = "Uint8Array";
@@ -229,9 +238,11 @@ emit_deno_module(cdd_ffi_ir_t *ir,
       fprintf(f, "    parameters: [\n");
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_deno_ffi_type(node->fields[j].type, &dt));
+        rc_emit = get_deno_ffi_type(node->fields[j].type, &dt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "      %s", dt);
         if (j < node->fields_count - 1)
           fprintf(f, ",");
@@ -239,9 +250,11 @@ emit_deno_module(cdd_ffi_ir_t *ir,
                 node->fields[j].name ? node->fields[j].name : "arg");
       }
       fprintf(f, "    ],\n");
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_deno_ffi_type(
-                                    node->return_or_base_type, &ret_dt));
+      rc_emit = get_deno_ffi_type(node->return_or_base_type, &ret_dt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "    result: %s\n", ret_dt);
       fprintf(f, "  },\n");
     }
@@ -267,9 +280,11 @@ emit_deno_module(cdd_ffi_ir_t *ir,
             arg_name = "func";
           if (!first_arg)
             fprintf(f, ", ");
-          rc_emit =
-              (cdd_c_error_t)((int)rc_emit |
-                              (int)get_ts_type(node->fields[j].type, &tt));
+          rc_emit = get_ts_type(node->fields[j].type, &tt);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, "%s: %s", arg_name, tt);
           first_arg = 0;
         }
@@ -283,9 +298,11 @@ emit_deno_module(cdd_ffi_ir_t *ir,
       {
         int out_count = 0;
         const char *ret_tt = NULL;
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)get_ts_type(node->return_or_base_type,
-                                                   &ret_tt));
+        rc_emit = get_ts_type(node->return_or_base_type, &ret_tt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         for (j = 0; j < node->fields_count; j++) {
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT)

@@ -217,6 +217,8 @@ static cdd_c_error_t apply_query_sync(const struct OpenAPI_Operation *op,
         int matched = 0;
         rc = token_matches_string(&tokens->tokens[k], "url_query_init",
                                   &matched);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (matched)
           init_idx = k;
       }
@@ -224,6 +226,8 @@ static cdd_c_error_t apply_query_sync(const struct OpenAPI_Operation *op,
         int matched = 0;
         rc = token_matches_string(&tokens->tokens[k], "url_query_build",
                                   &matched);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (matched)
           build_idx = k;
       }
@@ -305,6 +309,8 @@ static cdd_c_error_t apply_header_sync(const struct OpenAPI_Operation *op,
         if (tokens->tokens[k].kind == TOKEN_COMMENT) {
           int matched = 0;
           rc = token_matches_string(&tokens->tokens[k], comment_text, &matched);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (matched) {
             found_idx = k;
             break;
@@ -370,8 +376,9 @@ static cdd_c_error_t apply_updates(const char *filename,
   if (!filename || !tokens || !cst || !spec || !cfg)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (patch_list_init(&patches) != 0)
-    return CDD_C_ERROR_MEMORY;
+  rc = patch_list_init(&patches);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   for (i = 0; i < spec->n_paths; ++i) {
     const struct OpenAPI_Path *p = &spec->paths[i];
@@ -393,7 +400,7 @@ static cdd_c_error_t apply_updates(const char *filename,
 
       rc = find_function_node(cst, tokens, func_name, &node);
       if (rc != CDD_C_SUCCESS) {
-        return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+        return cdd_c_keep_err(rc, patch_list_free(&patches));
       }
 
       if (node) {
@@ -414,13 +421,13 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = generate_expected_sig(op, cfg, &expected_sig);
         if (rc != CDD_C_SUCCESS) {
-          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+          return cdd_c_keep_err(rc, patch_list_free(&patches));
         }
 
         rc = extract_current_sig(tokens, node, &sig_end_idx, &actual_sig);
         if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(expected_sig);
-          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+          return cdd_c_keep_err(rc, patch_list_free(&patches));
         }
 
         if (actual_sig) {
@@ -430,14 +437,14 @@ static cdd_c_error_t apply_updates(const char *filename,
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(expected_sig);
               C_CDD_FREE(actual_sig);
-              return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+              return cdd_c_keep_err(rc, patch_list_free(&patches));
             }
             rc = patch_list_add(&patches, node->start_token, sig_end_idx,
                                 sig_copy);
             if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(expected_sig);
               C_CDD_FREE(actual_sig);
-              return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+              return cdd_c_keep_err(rc, patch_list_free(&patches));
             }
           }
           C_CDD_FREE(actual_sig);
@@ -446,12 +453,12 @@ static cdd_c_error_t apply_updates(const char *filename,
 
         rc = apply_query_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
-          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+          return cdd_c_keep_err(rc, patch_list_free(&patches));
         }
 
         rc = apply_header_sync(op, tokens, node, &patches);
         if (rc != CDD_C_SUCCESS) {
-          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+          return cdd_c_keep_err(rc, patch_list_free(&patches));
         }
 
         /* 4. Sync URL Builder */
@@ -466,8 +473,14 @@ static cdd_c_error_t apply_updates(const char *filename,
               int match_snprintf = 0;
               rc = token_matches_string(&tokens->tokens[k], "asprintf",
                                         &match_asprintf);
+              if (rc != CDD_C_SUCCESS) {
+                return cdd_c_keep_err(rc, patch_list_free(&patches));
+              }
               rc = token_matches_string(&tokens->tokens[k], "snprintf",
                                         &match_snprintf);
+              if (rc != CDD_C_SUCCESS) {
+                return cdd_c_keep_err(rc, patch_list_free(&patches));
+              }
               if (match_asprintf || match_snprintf) {
                 asprintf_idx = k;
                 while (k < node->end_token &&
@@ -485,6 +498,9 @@ static cdd_c_error_t apply_updates(const char *filename,
             for (m = asprintf_idx; m < stmt_end_idx; ++m) {
               int matched = 0;
               rc = token_matches_string(&tokens->tokens[m], var, &matched);
+              if (rc != CDD_C_SUCCESS) {
+                return cdd_c_keep_err(rc, patch_list_free(&patches));
+              }
               if (matched) {
                 matches_var = 1;
                 break;
@@ -494,14 +510,12 @@ static cdd_c_error_t apply_updates(const char *filename,
               char *new_block = NULL;
               rc = generate_expected_url(p->route, op, cfg, &new_block);
               if (rc != CDD_C_SUCCESS) {
-                return (cdd_c_error_t)((int)rc |
-                                       (int)patch_list_free(&patches));
+                return cdd_c_keep_err(rc, patch_list_free(&patches));
               }
               rc = patch_list_add(&patches, asprintf_idx, stmt_end_idx,
                                   new_block);
               if (rc != CDD_C_SUCCESS) {
-                return (cdd_c_error_t)((int)rc |
-                                       (int)patch_list_free(&patches));
+                return cdd_c_keep_err(rc, patch_list_free(&patches));
               }
             }
           }
@@ -511,9 +525,12 @@ static cdd_c_error_t apply_updates(const char *filename,
   }
 
   rc = patch_list_apply(&patches, tokens, &result);
-  rc = (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, patch_list_free(&patches));
+  }
+  rc = patch_list_free(&patches);
 
-  if (rc == CDD_C_SUCCESS) {
+  {
     FILE *f = NULL;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&f, filename, "w") == 0 && f) {
@@ -586,18 +603,19 @@ cdd_c_error_t api_sync_file(const char *filename,
 
   rc = parse_tokens(tokens, &cst);
   if (rc != CDD_C_SUCCESS) {
-    rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
     C_CDD_FREE(content);
-    return rc;
+    return cdd_c_keep_err(rc, token_list_free(tokens));
   }
 
   rc = apply_updates(filename, tokens, &cst, spec, cfg);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(content);
+    return cdd_c_keep_err(
+        rc, cdd_c_keep_err(cst_node_list_free(&cst), token_list_free(tokens)));
+  }
 
-  rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(&cst));
-  rc = (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
   C_CDD_FREE(content);
-
-  return rc;
+  return cdd_c_keep_err(cst_node_list_free(&cst), token_list_free(tokens));
 }
 
 #ifdef CDD_BUILD_TESTS

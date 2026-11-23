@@ -46,41 +46,81 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
   if (!arazzo_spec || !base_name || !out_server_src || !out_test_hdr) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
+  memset(&ws, 0, sizeof(ws));
+  memset(&wt, 0, sizeof(wt));
+  *out_server_src = NULL;
+  *out_test_hdr = NULL;
 
   rc = cdd_code_writer_init_buffer(&ws);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_init_buffer(&wt);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   /* 1. Server Orchestrator File */
   rc = cdd_code_writer_printf(&ws, "/**\n * @file %s_workflow_server.c\n",
                               base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(
       &ws, " * @brief Generated Arazzo v%s Server Workflow Orchestrator.\n",
       arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&ws, " * @arazzo %s\n",
                               arazzo_spec->arazzo ? arazzo_spec->arazzo
                                                   : "1.1.0");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   if (arazzo_spec->info.title) {
     rc = cdd_code_writer_printf(&ws, " * @infoTitle %s\n",
                                 arazzo_spec->info.title);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   if (arazzo_spec->info.version) {
     rc = cdd_code_writer_printf(&ws, " * @infoVersion %s\n",
                                 arazzo_spec->info.version);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   rc = cdd_code_writer_write(&ws, " */\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   rc = cdd_code_writer_write(&ws, "/* clang-format "
                                   "off */\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include <stdio.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include <stdlib.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include <string.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include \"cdd_c_error.h\"\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include <c_rest_request.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include <c_rest_response.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "#include <c_rest_router.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&ws, "#include \"%s_workflows.h\"\n", base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&ws, "/* clang-format "
                                   "on */\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
@@ -93,13 +133,19 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         " * @route POST /workflows/%s\n"
         " * @workflow %s %s\n",
         wf_id, wf_id, wf_id, wf->description ? wf->description : "");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     for (j = 0; j < wf->n_steps; ++j) {
       const struct Arazzo_Step *st = &wf->steps[j];
       rc = cdd_code_writer_printf(&ws, " * @step %s [operationId:%s]\n",
                                   st->step_id ? st->step_id : "step_1",
                                   st->operation_id ? st->operation_id : "op");
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     }
     rc = cdd_code_writer_write(&ws, " */\n");
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     rc = cdd_code_writer_printf(
         &ws,
         "cdd_c_error_t handle_workflow_%s(struct c_rest_request *req,\n"
@@ -110,6 +156,8 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         "  struct %sWorkflow_%s_Outputs out_s;\n"
         "  cdd_c_error_t rc;\n",
         wf_id, pfx, pfx, wf_id, pfx, wf_id);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
     rc = cdd_code_writer_printf(
         &ws,
         "  if (!req && !res && !user_data) {}\n"
@@ -120,6 +168,8 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         "  return rc;\n"
         "}\n\n",
         pfx, wf_id);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
   rc = cdd_code_writer_write(
@@ -130,6 +180,8 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
            "cdd_c_error_t register_arazzo_workflow_routes(struct c_rest_router "
            "*router) {\n"
            "  if (!router) return CDD_C_ERROR_INVALID_ARGUMENT;\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
     const char *wf_id = wf->workflow_id ? wf->workflow_id : "default_workflow";
@@ -138,33 +190,61 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         "  /* c_rest_router_add(router, \"POST\", "
         "\"/workflows/%s\", handle_workflow_%s, NULL); */\n",
         wf_id, wf_id);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   rc = cdd_code_writer_write(&ws, "  return CDD_C_SUCCESS;\n}\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   /* 2. E2E `greatest.h` Test Header */
   rc = cdd_code_writer_printf(&wt, "/**\n * @file %s_workflow_tests.h\n",
                               base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(
       &wt, " * @brief Generated Arazzo v%s E2E `greatest.h` Workflow Tests.\n",
       arazzo_spec->arazzo ? arazzo_spec->arazzo : "1.1.0");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&wt, " * @arazzo %s\n",
                               arazzo_spec->arazzo ? arazzo_spec->arazzo
                                                   : "1.1.0");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&wt, " */\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&wt, "#ifndef C_CDD_%s_WORKFLOW_TESTS_H\n",
                               base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&wt, "#define C_CDD_%s_WORKFLOW_TESTS_H\n\n",
                               base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&wt, "/* clang-format "
                                   "off */\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&wt, "#include <greatest.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&wt, "#include <string.h>\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&wt, "#include \"%s_workflows.h\"\n", base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&wt, "/* clang-format "
                                   "on */\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(&wt,
                              "#ifdef __cplusplus\nextern \"C\" {\n#endif /* "
                              "__cplusplus */\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
@@ -188,34 +268,49 @@ arazzo_server_render_to_strings(const struct Arazzo_Spec *arazzo_spec,
         "}\n\n",
         wf_id, wf_id, wf->description ? wf->description : "", wf_id, pfx, pfx,
         wf_id, pfx, wf_id, pfx, wf_id);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
 
   rc = cdd_code_writer_printf(&wt, "SUITE(%s_arazzo_workflows_suite) {\n",
                               base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   for (i = 0; i < arazzo_spec->n_workflows; ++i) {
     const struct Arazzo_Workflow *wf = &arazzo_spec->workflows[i];
     const char *wf_id = wf->workflow_id ? wf->workflow_id : "default_workflow";
     rc = cdd_code_writer_printf(&wt, "  RUN_TEST(test_workflow_%s);\n", wf_id);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
   }
   rc = cdd_code_writer_write(&wt, "}\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_write(
       &wt, "#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n\n");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_printf(&wt, "#endif /* C_CDD_%s_WORKFLOW_TESTS_H */\n",
                               base_name);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   rc = cdd_code_writer_take_string(&ws, out_server_src);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_code_writer_free(&ws));
-  if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)cdd_code_writer_free(&wt));
-  }
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
   rc = cdd_code_writer_take_string(&wt, out_test_hdr);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_code_writer_free(&wt));
-  if (rc != CDD_C_SUCCESS) {
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
+
+cleanup: {
+  cdd_c_error_t f1 = cdd_code_writer_free(&ws);
+  cdd_c_error_t f2 = cdd_code_writer_free(&wt);
+  if (rc != CDD_C_SUCCESS && *out_server_src) {
     C_CDD_FREE(*out_server_src);
     *out_server_src = NULL;
-    return rc;
   }
-  return CDD_C_SUCCESS;
+  return cdd_c_keep_err(rc, (cdd_c_error_t)((int)f1 | (int)f2));
+}
 }
 
 /**
@@ -287,15 +382,19 @@ cdd_c_error_t arazzo_server_generate(const struct Arazzo_Spec *arazzo_spec,
   rc = arazzo_server_render_to_strings(
       arazzo_spec, base_name, config->func_prefix ? config->func_prefix : "",
       &srv_content, &tst_content);
-  if (rc == CDD_C_SUCCESS) {
-    rc = fs_write_to_file(srv_path, srv_content);
-  }
-  if (rc == CDD_C_SUCCESS) {
-    rc = fs_write_to_file(tst_path, tst_content);
-  }
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_srv;
+  rc = fs_write_to_file(srv_path, srv_content);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_srv;
+  rc = fs_write_to_file(tst_path, tst_content);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup_srv;
+  rc = CDD_C_SUCCESS;
+
+cleanup_srv:
   C_CDD_FREE(srv_content);
   C_CDD_FREE(tst_content);
-
   C_CDD_FREE(srv_path);
   C_CDD_FREE(tst_path);
   C_CDD_FREE(dir_name);

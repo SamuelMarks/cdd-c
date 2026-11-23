@@ -38,6 +38,10 @@ emit_ctx_t *g_msc_ctx = NULL;
  */
 cdd_c_error_t arena_free_all(void) {
   safe_crt_arena_t *node = global_arena;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (node) {
     safe_crt_arena_t *next = node->next;
     C_CDD_FREE(node);
@@ -164,13 +168,18 @@ C_CDD_EXPORT cdd_c_error_t clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
   rc = cdd_cst_create_token_len(tree, tok->kind, (const char *)tok->start,
                                 tok->length, &ct);
   if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
-  if (clone_trivia(tok->leading_trivia, &ct->leading_trivia) != CDD_C_SUCCESS ||
-      clone_trivia(tok->trailing_trivia, &ct->trailing_trivia) !=
-          CDD_C_SUCCESS) {
-    C_CDD_FREE(ct->leading_trivia);
-    ct->leading_trivia = NULL;
-    return CDD_C_ERROR_MEMORY;
+    return rc;
+  rc = clone_trivia(tok->leading_trivia, &ct->leading_trivia);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = clone_trivia(tok->trailing_trivia, &ct->trailing_trivia);
+  if (rc != CDD_C_SUCCESS) {
+    while (ct->leading_trivia) {
+      cdd_trivia_t *n = ct->leading_trivia->next;
+      C_CDD_FREE(ct->leading_trivia);
+      ct->leading_trivia = n;
+    }
+    return rc;
   }
   *out_token = ct;
   return CDD_C_SUCCESS;
@@ -188,6 +197,10 @@ C_CDD_EXPORT cdd_c_error_t get_indent_string(cdd_token_t *tok,
                                              char *out_indent) {
   cdd_trivia_t *tr;
   cdd_trivia_t *last_ws = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   out_indent[0] = '\0';
   if (!tok) {
@@ -225,6 +238,86 @@ C_CDD_EXPORT cdd_c_error_t get_indent_string(cdd_token_t *tok,
 }
 
 /**
+ * @brief Appends an indented auxiliary Safe CRT scratch declaration line onto
+ * `bld`.
+ *
+ * @param[in,out] tree Target CST tree owning pooled indentation strings.
+ * @param[in,out] bld Target CST builder.
+ * @param[in] indent Indentation prefix string.
+ * @param[in] decl_line Scratch variable declaration ending in `\n`.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+static cdd_c_error_t safe_crt_emit_ctx_decl(cdd_cst_tree_t *tree,
+                                            cdd_cst_builder_t *bld,
+                                            const char *indent,
+                                            const char *decl_line) {
+  const char *pooled_ind = NULL;
+  cdd_c_error_t rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cst_bld_token(bld, CDD_TOKEN_OTHER, pooled_ind);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return cdd_cst_bld_token(bld, CDD_TOKEN_OTHER, decl_line);
+}
+
+/**
+ * @brief Queries whether `ast` requires a Safe CRT rewrite while absorbing
+ * advisory buffer-inference diagnostics into `*out_needs = 1`.
+ *
+ * @param[in] ast Parsed statement expression AST.
+ * @param[out] out_needs Receives 1 when rewrite/diagnostic is needed, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+static cdd_c_error_t safe_crt_query_needs_transform(expr_t *ast,
+                                                    int *out_needs) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_needs = 0;
+  rc = check_needs_transform(ast, out_needs);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Releases scratch CST nodes and builders used by a single Safe CRT
+ * statement rewrite pass.
+ *
+ * @param[in,out] replaced_stmt Previous replaced CST statement node.
+ * @param[in,out] new_node Unattached conditional node (or NULL if attached).
+ * @param[in,out] msc_node Scratch MSVC branch node.
+ * @param[in,out] else_node Scratch fallback branch node.
+ * @param[in,out] msc_bld MSVC CST builder.
+ * @param[in,out] else_bld Fallback CST builder.
+ * @param[in,out] bld Outer conditional CST builder.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t safe_crt_stmt_scratch_free(cdd_cst_node_t *replaced_stmt,
+                                                cdd_cst_node_t *new_node,
+                                                cdd_cst_node_t *msc_node,
+                                                cdd_cst_node_t *else_node,
+                                                cdd_cst_builder_t *msc_bld,
+                                                cdd_cst_builder_t *else_bld,
+                                                cdd_cst_builder_t *bld) {
+  return cdd_c_keep_err(
+      cdd_cst_node_free(replaced_stmt),
+      cdd_c_keep_err(
+          cdd_cst_node_free(new_node),
+          cdd_c_keep_err(
+              cdd_cst_node_free(msc_node),
+              cdd_c_keep_err(
+                  cdd_cst_node_free(else_node),
+                  cdd_c_keep_err(cdd_cst_builder_free(else_bld),
+                                 cdd_c_keep_err(cdd_cst_builder_free(msc_bld),
+                                                cdd_cst_builder_free(bld)))))));
+}
+
+/**
  * @brief Migrates standard C functions to MSVC Safe CRT functions.
  *
  * @param[in,out] tree The CST tree.
@@ -242,8 +335,14 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   cdd_cst_node_t *msc_node = NULL, *else_node = NULL, *new_node = NULL;
   int msc_changes = 0;
   int dummy_found = 0;
+  cdd_token_t *active_first_tok = NULL;
   cdd_trivia_t *saved_trivia = NULL;
   emit_ctx_t msc_ctx;
+
+  memset(&res, 0, sizeof(res));
+  memset(&bld, 0, sizeof(bld));
+  memset(&msc_bld, 0, sizeof(msc_bld));
+  memset(&else_bld, 0, sizeof(else_bld));
 
   if (!tree || !tree->root)
     return (cdd_c_error_t)(CDD_C_ERROR_INVALID_ARGUMENT +
@@ -251,6 +350,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
   if (current_tree != tree) {
     rc = arena_free_all();
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     current_tree = tree;
   }
 
@@ -258,17 +359,16 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     replaced_any = 0;
     rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res);
     if (rc != CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)rc | (int)arena_free_all());
       current_tree = NULL;
-      return (cdd_c_error_t)rc;
+      return cdd_c_keep_err(rc, arena_free_all());
     }
 
     for (i = 0; i < res.size; i++) {
       cdd_cst_node_t *stmt = res.nodes[i];
       size_t idx = 0;
-      expr_t *ast;
+      expr_t *ast = NULL;
       cdd_token_t *first_tok = NULL;
-      cdd_c_error_t chk_rc = CDD_C_SUCCESS;
+      int needs_transform = 0;
 
       if (stmt->num_children > 0 &&
           stmt->children[0].kind == CDD_CST_CHILD_TOKEN) {
@@ -289,7 +389,9 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         if (skip)
           continue;
       }
-      chk_rc = parse_expr_ast(stmt, &idx, 0, &ast);
+      rc = parse_expr_ast(stmt, &idx, 0, &ast);
+      if (rc != CDD_C_SUCCESS)
+        goto loop_err;
       dummy_found = 0;
       rc = find_and_mark_fopen(ast, &dummy_found);
       if (rc != CDD_C_SUCCESS)
@@ -297,13 +399,11 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       rc = check_unsupported_calls(ast);
       if (rc != CDD_C_SUCCESS)
         goto loop_err;
+      rc = safe_crt_query_needs_transform(ast, &needs_transform);
+      if (rc != CDD_C_SUCCESS)
+        goto loop_err;
 
-      {
-        int needs_transform = 0;
-        chk_rc = check_needs_transform(ast, &needs_transform);
-        chk_rc = (cdd_c_error_t)needs_transform;
-      }
-      if (chk_rc) {
+      if (needs_transform) {
         msc_node = NULL;
         else_node = NULL;
         new_node = NULL;
@@ -312,266 +412,191 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         memset(&msc_bld, 0, sizeof(msc_bld));
         memset(&else_bld, 0, sizeof(else_bld));
 
+        active_first_tok = first_tok;
         saved_trivia = first_tok->leading_trivia;
         memset(&msc_ctx, 0, sizeof(msc_ctx));
         msc_ctx.is_msc = 1;
 
-        chk_rc = get_indent_string(first_tok, indent);
+        rc = get_indent_string(first_tok, indent);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
 
         first_tok->leading_trivia = NULL;
 
         rc = cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL, &new_node);
-        if (rc != CDD_C_SUCCESS) {
-          first_tok->leading_trivia = saved_trivia;
-          goto loop_err;
-        }
-        chk_rc = cdd_cst_builder_init(&bld, tree, new_node);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
+        rc = cdd_cst_builder_init(&bld, tree, new_node);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
         if (!config || config->safe_crt_mode != CDD_SAFE_CRT_MSVC_ONLY) {
-          chk_rc = cdd_cst_bld_newline(&bld);
-          chk_rc = cdd_cst_bld_ifdef(&bld, "_MSC_VER");
+          rc = cdd_cst_bld_newline(&bld);
+          if (rc != CDD_C_SUCCESS)
+            goto stmt_err;
+          rc = cdd_cst_bld_ifdef(&bld, "_MSC_VER");
+          if (rc != CDD_C_SUCCESS)
+            goto stmt_err;
         }
-        chk_rc = cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
-        chk_rc = cdd_cst_bld_space(&bld);
+        rc = cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
+        rc = cdd_cst_bld_space(&bld);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
 
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &msc_node);
-        if (rc != CDD_C_SUCCESS) {
-          first_tok->leading_trivia = saved_trivia;
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(new_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-          goto loop_err;
-        }
-        chk_rc = cdd_cst_builder_init(&msc_bld, tree, msc_node);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
+        rc = cdd_cst_builder_init(&msc_bld, tree, msc_node);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
         g_msc_ctx = &msc_ctx;
         msc_changes = 0;
         rc = emit_ast_bld(ast, &msc_bld, 1, &msc_changes);
-        if (rc != CDD_C_SUCCESS) {
-          g_msc_ctx = NULL;
-          first_tok->leading_trivia = saved_trivia;
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(new_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(msc_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&msc_bld));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-          goto loop_err;
-        }
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
         g_msc_ctx = NULL;
 
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
-        if (rc != CDD_C_SUCCESS) {
-          first_tok->leading_trivia = saved_trivia;
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(new_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(msc_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&msc_bld));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-          goto loop_err;
-        }
-        chk_rc = cdd_cst_builder_init(&else_bld, tree, else_node);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
+        rc = cdd_cst_builder_init(&else_bld, tree, else_node);
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
         rc = emit_ast_bld(ast, &else_bld, 0, NULL);
-        if (rc != CDD_C_SUCCESS) {
-          first_tok->leading_trivia = saved_trivia;
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(new_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(msc_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node(else_node));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&else_bld));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&msc_bld));
-          rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_builder_free(&bld));
-          goto loop_err;
-        }
+        if (rc != CDD_C_SUCCESS)
+          goto stmt_err;
 
         first_tok->leading_trivia = saved_trivia;
+        saved_trivia = NULL;
 
         if (msc_changes > 0) {
           size_t _ci;
-          const char *pooled_ind = NULL;
-          if (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
-              msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
-              msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
-              msc_ctx.needs_fcvtbuf || msc_ctx.needs_getenv_ptr ||
-              msc_ctx.needs_wgetenv_ptr) {
-            chk_rc = cdd_cst_bld_punct(&bld, "{");
-            chk_rc = cdd_cst_bld_newline(&bld);
+          int has_ctx_decls =
+              (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
+               msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
+               msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
+               msc_ctx.needs_fcvtbuf || msc_ctx.needs_getenv_ptr ||
+               msc_ctx.needs_wgetenv_ptr);
+          if (has_ctx_decls) {
+            rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, "{\n");
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
             if (msc_ctx.needs_errbuf) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "char");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "__errbuf");
-              chk_rc = cdd_cst_bld_punct(&bld, "[");
-              chk_rc = cdd_cst_bld_int(&bld, 94);
-              chk_rc = cdd_cst_bld_punct(&bld, "]");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "char __errbuf[94];\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_wcserrbuf) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "wchar_t");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "__wcserrbuf");
-              chk_rc = cdd_cst_bld_punct(&bld, "[");
-              chk_rc = cdd_cst_bld_int(&bld, 94);
-              chk_rc = cdd_cst_bld_punct(&bld, "]");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "wchar_t __wcserrbuf[94];\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_strtokctx) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "char");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "*");
-              chk_rc = cdd_cst_bld_ident(&bld, "__strtokctx");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "=");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "NULL");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "char *__strtokctx = NULL;\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_wcstokctx) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "wchar_t");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "*");
-              chk_rc = cdd_cst_bld_ident(&bld, "__wcstokctx");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "=");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "NULL");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "wchar_t *__wcstokctx = NULL;\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_mbstokctx) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "unsigned");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "char");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "*");
-              chk_rc = cdd_cst_bld_ident(&bld, "__mbstokctx");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "=");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "NULL");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(
+                  tree, &bld, indent, "unsigned char *__mbstokctx = NULL;\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_ecvtbuf) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "char");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "__ecvtbuf");
-              chk_rc = cdd_cst_bld_punct(&bld, "[");
-              chk_rc = cdd_cst_bld_int(&bld, 128);
-              chk_rc = cdd_cst_bld_punct(&bld, "]");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "char __ecvtbuf[128];\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_fcvtbuf) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "char");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_ident(&bld, "__fcvtbuf");
-              chk_rc = cdd_cst_bld_punct(&bld, "[");
-              chk_rc = cdd_cst_bld_int(&bld, 128);
-              chk_rc = cdd_cst_bld_punct(&bld, "]");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "char __fcvtbuf[128];\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
-
             if (msc_ctx.needs_getenv_ptr) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "char");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "*");
-              chk_rc = cdd_cst_bld_ident(&bld, "__getenv_ptr");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "char *__getenv_ptr;\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
             if (msc_ctx.needs_wgetenv_ptr) {
-              chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-              chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-              chk_rc = cdd_cst_bld_ident(&bld, "wchar_t");
-              chk_rc = cdd_cst_bld_space(&bld);
-              chk_rc = cdd_cst_bld_punct(&bld, "*");
-              chk_rc = cdd_cst_bld_ident(&bld, "__wgetenv_ptr");
-              chk_rc = cdd_cst_bld_punct(&bld, ";");
-              chk_rc = cdd_cst_bld_newline(&bld);
+              rc = safe_crt_emit_ctx_decl(tree, &bld, indent,
+                                          "wchar_t *__wgetenv_ptr;\n");
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
-            chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-            chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-            chk_rc = cdd_cst_bld_space(&bld);
+            rc = safe_crt_emit_ctx_decl(tree, &bld, indent, " ");
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
           }
 
           for (_ci = 0; _ci < msc_node->num_children; _ci++) {
-            chk_rc = cdd_cst_append_child_token(
-                bld.target_node, msc_node->children[_ci].val.token);
+            rc = cdd_cst_append_child_token(bld.target_node,
+                                            msc_node->children[_ci].val.token);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
           }
 
-          if (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
-              msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
-              msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
-              msc_ctx.needs_fcvtbuf || msc_ctx.needs_getenv_ptr ||
-              msc_ctx.needs_wgetenv_ptr) {
-            chk_rc = cdd_cst_bld_newline(&bld);
-            chk_rc = safe_crt_pool_string_safe(tree, indent, &pooled_ind);
-            chk_rc = cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER, pooled_ind);
-            chk_rc = cdd_cst_bld_punct(&bld, "}");
+          if (has_ctx_decls) {
+            rc = cdd_cst_bld_newline(&bld);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
+            rc = safe_crt_emit_ctx_decl(tree, &bld, indent, "}");
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
           }
           if (!config || config->safe_crt_mode != CDD_SAFE_CRT_MSVC_ONLY) {
-            chk_rc = cdd_cst_bld_newline(&bld);
-            chk_rc = cdd_cst_bld_else(&bld);
-            chk_rc = cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
-            chk_rc = cdd_cst_bld_space(&bld);
+            rc = cdd_cst_bld_newline(&bld);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
+            rc = cdd_cst_bld_else(&bld);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
+            rc = cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
+            rc = cdd_cst_bld_space(&bld);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
 
             for (_ci = 0; _ci < else_node->num_children; _ci++) {
-              chk_rc = cdd_cst_append_child_token(
+              rc = cdd_cst_append_child_token(
                   bld.target_node, else_node->children[_ci].val.token);
+              if (rc != CDD_C_SUCCESS)
+                goto stmt_err;
             }
-            chk_rc = cdd_cst_bld_newline(&bld);
-            chk_rc = cdd_cst_bld_endif(&bld);
+            rc = cdd_cst_bld_newline(&bld);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
+            rc = cdd_cst_bld_endif(&bld);
+            if (rc != CDD_C_SUCCESS)
+              goto stmt_err;
           }
 
-          if (bld.error_state == 0) {
-            chk_rc = cdd_cst_replace_node(tree, stmt, new_node);
-            chk_rc =
-                (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_free_node(stmt));
-            replaced_any = 1;
-            chk_rc = (cdd_c_error_t)((int)chk_rc |
-                                     (int)cdd_cst_free_node_only(msc_node));
-            if (config && config->safe_crt_mode == CDD_SAFE_CRT_MSVC_ONLY) {
-              chk_rc = (cdd_c_error_t)((int)chk_rc |
-                                       (int)cdd_cst_free_node(else_node));
-            } else {
-              chk_rc = (cdd_c_error_t)((int)chk_rc |
-                                       (int)cdd_cst_free_node_only(else_node));
-            }
-          } else {
-            chk_rc =
-                (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_free_node(new_node));
-            chk_rc =
-                (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_free_node(msc_node));
-            chk_rc = (cdd_c_error_t)((int)chk_rc |
-                                     (int)cdd_cst_free_node(else_node));
-          }
-        } else {
-          chk_rc =
-              (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_free_node(new_node));
-          chk_rc =
-              (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_free_node(msc_node));
-          chk_rc =
-              (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_free_node(else_node));
+          rc = cdd_cst_replace_node(tree, stmt, new_node);
+          if (rc != CDD_C_SUCCESS)
+            goto stmt_err;
+          new_node = NULL;
+          replaced_any = 1;
         }
 
-        chk_rc =
-            (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_builder_free(&msc_bld));
-        chk_rc =
-            (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_builder_free(&else_bld));
-        chk_rc = (cdd_c_error_t)((int)chk_rc | (int)cdd_cst_builder_free(&bld));
+        rc = safe_crt_stmt_scratch_free(replaced_any ? stmt : NULL, new_node,
+                                        msc_node, else_node, &msc_bld,
+                                        &else_bld, &bld);
+        new_node = NULL;
+        msc_node = NULL;
+        else_node = NULL;
 
         if (replaced_any) {
           break;
@@ -580,15 +605,23 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     }
 
     C_CDD_FREE(res.nodes);
+    res.nodes = NULL;
   } while (replaced_any);
 
-  rc = arena_free_all();
   current_tree = NULL;
-  return rc;
+  return arena_free_all();
 
+stmt_err:
+  g_msc_ctx = NULL;
+  if (saved_trivia) {
+    active_first_tok->leading_trivia = saved_trivia;
+  }
 loop_err:
   C_CDD_FREE(res.nodes);
-  rc = (cdd_c_error_t)((int)rc | (int)arena_free_all());
   current_tree = NULL;
-  return (cdd_c_error_t)rc;
+  return cdd_c_keep_err(
+      rc, cdd_c_keep_err(safe_crt_stmt_scratch_free(NULL, new_node, msc_node,
+                                                    else_node, &msc_bld,
+                                                    &else_bld, &bld),
+                         arena_free_all()));
 }

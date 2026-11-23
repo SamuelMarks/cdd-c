@@ -72,19 +72,17 @@ extern "C" {
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 /** @brief Type-level nodiscard attribute for C23+. */
 #define NO_DISCARD_TYPE [[nodiscard]]
+#elif defined(__clang__)
+/** @brief Enum/struct tag warn_unused_result attribute for Clang. */
+#define NO_DISCARD_TYPE __attribute__((warn_unused_result))
 #else
-/** @brief Empty enum-tag nodiscard attribute for C89/C99/C11 and MSVC. */
+/** @brief Empty enum-tag nodiscard attribute for C89/C99/C11 GCC and MSVC. */
 #define NO_DISCARD_TYPE
 #endif
 
-#if !defined(__cplusplus) && defined(__clang__)
-/** @brief Typedef-level warn_unused_result attribute for Clang in C mode. */
-#define NO_DISCARD_TYPEDEF __attribute__((warn_unused_result))
-#else
 /** @brief Empty typedef-level nodiscard attribute when handled by
  * NO_DISCARD_TYPE or unsupported. */
 #define NO_DISCARD_TYPEDEF
-#endif
 
 #ifdef __cplusplus
 }

@@ -126,7 +126,12 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   /* 3. Rewrite Body */
   rc = rewrite_body(tokens, &allocs, ctx->funcs, ctx->func_count, NULL,
                     out_code);
-
-  rc = (cdd_c_error_t)((int)rc | (int)allocation_site_list_free(&allocs));
-  return (cdd_c_error_t)((int)rc | (int)free_token_list(tokens));
+  if (rc != CDD_C_SUCCESS) {
+    cdd_c_error_t rc_a = allocation_site_list_free(&allocs);
+    return cdd_c_keep_err(rc, cdd_c_keep_err(rc_a, free_token_list(tokens)));
+  }
+  {
+    cdd_c_error_t rc_a = allocation_site_list_free(&allocs);
+    return cdd_c_keep_err(rc_a, free_token_list(tokens));
+  }
 }

@@ -251,12 +251,17 @@ static CDD_INT128_INLINE cdd_c_error_t cdd_int128_shr(cdd_int128_t a,
   shift &= 127;
   if (shift == 0) {
     *out = a;
-  } else if (shift < 64) {
-    out->low = (a.low >> shift) | ((uint64_t)a.high << (64 - shift));
-    out->high = a.high >> shift;
   } else {
-    out->low = (uint64_t)(a.high >> (shift - 64));
-    out->high = a.high < 0 ? ((int64_t)-1) : ((int64_t)0);
+    uint64_t sign_fill = (uint64_t)0 - ((uint64_t)a.high >> 63);
+    if (shift < 64) {
+      out->low = (a.low >> shift) | ((uint64_t)a.high << (64 - shift));
+      out->high =
+          (int64_t)((((uint64_t)a.high ^ sign_fill) >> shift) ^ sign_fill);
+    } else {
+      unsigned int s = shift - 64;
+      out->low = (((uint64_t)a.high ^ sign_fill) >> s) ^ sign_fill;
+      out->high = (int64_t)sign_fill;
+    }
   }
   return CDD_C_SUCCESS;
 }

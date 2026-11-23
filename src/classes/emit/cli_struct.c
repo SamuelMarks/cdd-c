@@ -26,7 +26,12 @@
  * @brief Copies `src` into `dst` with bounds checking.
  */
 cdd_c_error_t cdd_cli_copy_str(char *dst, size_t dst_sz, const char *src) {
-  size_t len = strlen(src);
+  size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  len = strlen(src);
   if (len >= dst_sz)
     len = dst_sz - 1;
   memcpy(dst, src, len);
@@ -39,6 +44,10 @@ cdd_c_error_t cdd_cli_copy_str(char *dst, size_t dst_sz, const char *src) {
  */
 cdd_c_error_t cdd_cli_effective_action(const struct StructField *f,
                                        enum CddCliAction *out_action) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (f->cli_action != CDD_CLI_ACTION_AUTO)
     *out_action = f->cli_action;
   else if (strcmp(f->type, "boolean") == 0 && !f->cli_positional)
@@ -58,6 +67,10 @@ cdd_c_error_t cdd_cli_find_type_def(const struct TypeDefList *reg,
                                     enum TypeDefinitionKind kind,
                                     const struct TypeDefinition **out_def) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_def = NULL;
   if (!reg)
     return CDD_C_SUCCESS;
@@ -78,6 +91,10 @@ cdd_c_error_t cdd_cli_resolve_field_long(const struct StructFields *sf,
                                          const struct StructField *f,
                                          char *out_long, size_t out_sz) {
   enum CddSerdeCaseRule rule = CDD_SERDE_CASE_KEBABCASE;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!f || !out_long || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   out_long[0] = '\0';
@@ -108,6 +125,10 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
   char base_env[64];
   enum CddSerdeCaseRule env_rule = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!f || !out_env || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -121,8 +142,12 @@ cdd_c_error_t cdd_cli_resolve_field_env(const struct StructFields *sf,
   if (strcmp(f->cli_env, "1") == 0 || strcmp(f->cli_env, "true") == 0) {
     rc =
         cdd_serde_transform_case(f->name, env_rule, base_env, sizeof(base_env));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     rc = cdd_cli_copy_str(base_env, sizeof(base_env), f->cli_env);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (sf && sf->cli_env_prefix[0] != '\0') {
@@ -164,10 +189,16 @@ cdd_c_error_t cdd_cli_resolve_value_name(const struct StructField *f,
  */
 static cdd_c_error_t cli_edit_distance(const char *s1, const char *s2,
                                        size_t *out_dist) {
-  size_t len1 = strlen(s1);
-  size_t len2 = strlen(s2);
+  size_t len1;
+  size_t len2;
   size_t dp[65];
   size_t i, j;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  len1 = strlen(s1);
+  len2 = strlen(s2);
 
   if (len1 > 64)
     len1 = 64;
@@ -216,6 +247,10 @@ cdd_c_error_t cdd_cli_suggest_closest(const char *unknown_arg,
   const char *query = unknown_arg;
   char clean_query[64];
   cdd_c_error_t rc = CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!unknown_arg || !out_best || (n_candidates > 0 && !candidates))
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -249,6 +284,8 @@ cdd_c_error_t cdd_cli_suggest_closest(const char *unknown_arg,
     else if (cand_len >= 10)
       max_allowed = 3;
     rc = cli_edit_distance(query, candidates[i], &d);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (d <= max_allowed && d < best_dist) {
       best_dist = d;
       best = candidates[i];
@@ -465,6 +502,10 @@ cdd_c_error_t cdd_cli_parse_reflected_argv(int argc, char **argv, int start_idx,
                                            void *target, int *out_help,
                                            int *out_first_unknown) {
   int i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (out_help)
     *out_help = 0;
   if (out_first_unknown)
@@ -521,7 +562,13 @@ cdd_c_error_t cdd_cli_parse_reflected_argv(int argc, char **argv, int start_idx,
       }
     }
 
-    if (cdd_reflect_find_field(ti, flag, &f) == CDD_C_SUCCESS) {
+    {
+      cdd_c_error_t rc_find = cdd_reflect_find_field(ti, flag, &f);
+      if (rc_find != CDD_C_SUCCESS && rc_find != CDD_C_ERROR_NOT_FOUND)
+        return rc_find;
+    }
+
+    if (f) {
       if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
         int bval = 1;
         if (eq_val &&
@@ -630,13 +677,21 @@ write_struct_print_version_func(FILE *fp, const char *struct_name,
 
   if (sf->cli_name[0] != '\0') {
     rc = cdd_cli_copy_str(default_prog, sizeof(default_prog), sf->cli_name);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     rc = cdd_serde_transform_case(struct_name, CDD_SERDE_CASE_KEBABCASE,
                                   default_prog, sizeof(default_prog));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
   ver_str = (sf->cli_version[0] != '\0') ? sf->cli_version : "0.1.0";
   rc = cdd_escape_json_c_str(default_prog, esc_prog, sizeof(esc_prog));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = cdd_escape_json_c_str(ver_str, esc_ver, sizeof(esc_ver));
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));

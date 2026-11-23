@@ -9,8 +9,32 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Resolves `ref` in `spec` and checks if all its fields are primitive.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Schema reference name.
+ * @param[out] out_sf Resolved StructFields pointer (or NULL).
+ * @param[out] out_all_prim Receives 1 if all fields are primitive, 0 otherwise.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t find_primitive_form_schema(const struct OpenAPI_Spec *spec,
+                                                const char *ref,
+                                                struct StructFields **out_sf,
+                                                int *out_all_prim) {
+  cdd_c_error_t rc;
+  *out_all_prim = 0;
+  rc = openapi_spec_find_schema(spec, ref, out_sf);
+  if (*out_sf) {
+    return cdd_c_keep_err(struct_fields_all_primitive(*out_sf, out_all_prim),
+                          rc);
+  }
+  return CDD_C_SUCCESS;
+}
+
 /*
- * @brief Emits C source code for form urlencoded body.
+ * @brief Emits C code building an `application/x-www-form-urlencoded` request
+ * body.
  *
  * @param[in,out] fp Output file stream.
  * @param[in] op OpenAPI operation descriptor.
@@ -26,22 +50,23 @@ client_body_write_form_urlencoded_body(FILE *fp,
   size_t i;
   cdd_c_error_t rc_fn = CDD_C_SUCCESS;
   cdd_c_error_t rc_opt = CDD_C_SUCCESS;
+  cdd_c_error_t rc_mt = CDD_C_SUCCESS;
 
   if (!fp || !op || !spec)
 
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc_opt = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                           "application/x-www-form-urlencoded", &mt);
-
-  rc_opt = (cdd_c_error_t)((int)rc_opt | (int)openapi_spec_find_schema_for_ref(
-                                             spec, &op->req_body, &sf));
+  rc_mt = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                          "application/x-www-form-urlencoded", &mt);
+  rc_opt = openapi_spec_find_schema_for_ref(spec, &op->req_body, &sf);
   if (!sf) {
-    CHECK_IO(fprintf(
-        fp,
-        "  /* Warning: Schema %s definition not found, skipping form body */\n",
-        op->req_body.ref_name));
-    return (cdd_c_error_t)((int)rc_fn + (int)rc_opt * 0);
+    if (fprintf(fp,
+                "  /* Warning: Schema %s definition not found, skipping form "
+                "body */\n",
+                op->req_body.ref_name) < 0) {
+      return cdd_c_keep_err(CDD_C_ERROR_IO, cdd_c_keep_err(rc_mt, rc_opt));
+    }
+    return cdd_c_keep_err(rc_fn, cdd_c_keep_err(rc_mt, rc_opt));
   }
 
   CHECK_IO(fprintf(fp, "  /* Form URL-Encoded Body Construction */\n"));
@@ -68,9 +93,6 @@ client_body_write_form_urlencoded_body(FILE *fp,
       int add_encoded = 0;
       int items_is_object = 0;
 
-      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)client_body_is_object_ref_type(
-                                               items_type, &items_is_object));
-
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
 #else
@@ -82,10 +104,13 @@ client_body_write_form_urlencoded_body(FILE *fp,
         encode_fn = "url_encode_form_allow_reserved";
       }
 
+      rc_fn = client_body_is_object_ref_type(items_type, &items_is_object);
       if (style == OA_STYLE_FORM && explode && items_is_object) {
         const char *enc_fn = allow_reserved ? "url_encode_form_allow_reserved"
                                             : "url_encode_form";
-        CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
+        if (fprintf(fp, "  {\n    size_t i;\n") < 0) {
+          return cdd_c_keep_err(CDD_C_ERROR_IO, rc_fn);
+        }
         CHECK_IO(
             fprintf(fp, "    for(i=0; i < req_body->%s; ++i) {\n", len_field));
         CHECK_IO(
@@ -284,13 +309,7 @@ client_body_write_form_urlencoded_body(FILE *fp,
             obj_enc && (obj_enc->style_set || obj_enc->explode_set ||
                         obj_enc->allow_reserved_set);
 
-        rc_opt = (cdd_c_error_t)((int)rc_opt | (int)openapi_spec_find_schema(
-                                                   spec, f->ref, &obj_sf));
-        if (obj_sf) {
-          rc_fn = (cdd_c_error_t)((int)rc_fn | (int)struct_fields_all_primitive(
-                                                   obj_sf, &all_prim));
-        }
-
+        rc_opt = find_primitive_form_schema(spec, f->ref, &obj_sf, &all_prim);
         if (style_based && obj_sf && all_prim && obj_sf->size > 0) {
           enum OpenAPI_Style obj_style =
               obj_enc->style_set ? obj_enc->style : OA_STYLE_FORM;
@@ -302,7 +321,9 @@ client_body_write_form_urlencoded_body(FILE *fp,
 
           if (obj_style == OA_STYLE_FORM && obj_explode) {
             size_t pf_idx;
-            CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));
+            if (fprintf(fp, "  if (req_body->%s) {\n", f->name) < 0) {
+              return cdd_c_keep_err(CDD_C_ERROR_IO, rc_opt);
+            }
             for (pf_idx = 0; pf_idx < obj_sf->size; ++pf_idx) {
               const struct StructField *pf = &obj_sf->fields[pf_idx];
               if (strcmp(pf->type, "string") == 0) {

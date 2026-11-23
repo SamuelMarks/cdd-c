@@ -68,7 +68,10 @@ extern C_CDD_EXPORT cdd_c_error_t openapi_spec_free(struct OpenAPI_Spec *spec);
  * @return CDD_C_SUCCESS.
  */
 extern C_CDD_EXPORT cdd_c_error_t
-openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
+openapi_servers_array_free(struct OpenAPI_Server *servers, size_t n_servers);
+
+/** @brief Compatibility alias for `openapi_servers_array_free`. */
+#define openapi_free_servers_array openapi_servers_array_free
 
 /**
  * @brief Deserializes an `OpenAPI_Contact` structure from a `JSON_Object`.

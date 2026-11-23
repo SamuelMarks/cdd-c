@@ -1,37 +1,52 @@
-#########################
-# Dependencies download #
-#########################
+########################
+# Test framework setup #
+########################
 
 set(DOWNLOAD_DIR "${PROJECT_BINARY_DIR}/test_downloads")
-
-file(TO_NATIVE_PATH "${DOWNLOAD_DIR}" DOWNLOAD_DIR)
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
-    string(REPLACE "\\" "\\\\" DOWNLOAD_DIR "${DOWNLOAD_DIR}")
-endif (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
-
 file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
-set(GREATEST_BASEFILENAME "greatest.h")
-set(GREATEST_FILE "${DOWNLOAD_DIR}/${GREATEST_BASEFILENAME}")
-file(TO_NATIVE_PATH "${GREATEST_FILE}" GREATEST_FILE)
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
-    string(REPLACE "\\" "\\\\" GREATEST_FILE "${GREATEST_FILE}")
-endif ()
-
 file(COPY "${greatest_SOURCE_DIR}/greatest.h" DESTINATION "${DOWNLOAD_DIR}")
 
-# Patch greatest.h to prevent C4702 unreachable code warnings from do { return; } while(cond)
+# Patch greatest.h to prevent MSVC C4702 unreachable code warnings from do { return; } while(cond)
 file(READ "${DOWNLOAD_DIR}/greatest.h" GREATEST_CONTENT)
 string(REPLACE "} while (greatest_info.fail_line == 0)" "} while (0)" GREATEST_CONTENT "${GREATEST_CONTENT}")
 file(WRITE "${DOWNLOAD_DIR}/greatest.h" "${GREATEST_CONTENT}")
+
+add_library(c_cdd_greatest INTERFACE)
+target_include_directories(c_cdd_greatest SYSTEM INTERFACE
+    "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+)
+
+if(CDD_C_TRANSFORMER_ONLY)
+    add_executable(test_tf "test_cdd_transform.c")
+    c_cdd_apply_target_settings(test_tf)
+    target_include_directories(test_tf PRIVATE
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
+    )
+    if(CMAKE_SYSTEM_NAME STREQUAL "DOS" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "I86")
+        target_compile_definitions(test_tf PRIVATE CDD_DOS_I86_LEAN=1)
+    endif()
+    target_link_libraries(test_tf PRIVATE c_cdd_transform c_cdd_greatest)
+    add_test(NAME test_tf COMMAND test_tf)
+
+    if(TARGET cdd-c-transform)
+        if(NOT (CMAKE_SYSTEM_NAME STREQUAL "DOS" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "I86"))
+            add_test(NAME test_cdd_c_transform_help COMMAND cdd-c-transform --help)
+        endif()
+        if(NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
+            add_test(NAME test_cdd_c_transform_fail COMMAND cdd-c-transform non_existent_command)
+            set_tests_properties(test_cdd_c_transform_fail PROPERTIES WILL_FAIL TRUE)
+        endif()
+    endif()
+    return()
+endif()
+
 ################
 # Test library #
 ################
 
-
-
-include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/mocks")
-include_directories(SYSTEM "$ENV{HOME}/repos/c-orm/include")
-include_directories(SYSTEM "$ENV{HOME}/repos/c-rest-framework/include")
 set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files
@@ -221,35 +236,39 @@ set(Header_Files
         "emit/test_arazzo_server_gen.h"
         "ffi/test_ffi_ocaml_fortran_cobol.h"
 )
-source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
+source_group("${LIBRARY_NAME} Header Files" FILES ${Header_Files})
 
 add_library("${LIBRARY_NAME}" INTERFACE)
-add_custom_target("${LIBRARY_NAME}-target" SOURCES "${Header_Files}")
+add_custom_target("${LIBRARY_NAME}-target" SOURCES ${Header_Files})
 set_property(TARGET "${LIBRARY_NAME}-target" PROPERTY FOLDER "${CMAKE_CURRENT_SOURCE_DIR}")
 
-target_include_directories(
-        "${LIBRARY_NAME}"
-        INTERFACE
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/mocks>"
-        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+target_include_directories("${LIBRARY_NAME}" INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/mocks>"
+)
+target_include_directories("${LIBRARY_NAME}" SYSTEM INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
 )
 
 add_subdirectory("cdd_test_helpers")
-target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
+target_link_libraries("${LIBRARY_NAME}" INTERFACE
+    cdd_test_helpers
+    c_cdd_greatest
+)
 
 ##################
 # Top-level test #
 ##################
 
 set(CDD_PLATFORM_COV_SOURCES
-    "${CMAKE_SOURCE_DIR}/src/functions/parse/crypto_wasm.c"
-    "${CMAKE_SOURCE_DIR}/src/functions/parse/crypto_openssl.c"
-    "${CMAKE_SOURCE_DIR}/src/functions/parse/crypto_wincrypt.c"
-    "${CMAKE_SOURCE_DIR}/src/classes/parse/cdd_cst_transform.c"
+    "${PROJECT_SOURCE_DIR}/src/functions/parse/crypto_wasm.c"
+    "${PROJECT_SOURCE_DIR}/src/functions/parse/crypto_openssl.c"
+    "${PROJECT_SOURCE_DIR}/src/functions/parse/crypto_wincrypt.c"
+    "${PROJECT_SOURCE_DIR}/src/classes/parse/cdd_cst_transform.c"
 )
 add_library(cdd_platform_cov_units STATIC ${CDD_PLATFORM_COV_SOURCES})
+c_cdd_apply_target_settings(cdd_platform_cov_units)
 target_compile_definitions(cdd_platform_cov_units PRIVATE
     CDD_CRYPTO_WASM_STANDALONE_TEST
     CDD_CRYPTO_OPENSSL_STANDALONE_TEST
@@ -258,14 +277,14 @@ target_compile_definitions(cdd_platform_cov_units PRIVATE
     CDD_BUILD_TESTS
 )
 target_include_directories(cdd_platform_cov_units PRIVATE
-    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
-    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
 )
-target_link_libraries(cdd_platform_cov_units PUBLIC "${PROJECT_NAME}" "${PROJECT_NAME}_compiler_flags")
-if(DEFINED STRICT_COMPILER_FLAGS)
-    target_compile_options(cdd_platform_cov_units PRIVATE ${STRICT_COMPILER_FLAGS})
-endif()
+target_link_libraries(cdd_platform_cov_units PUBLIC
+    "${PROJECT_NAME}"
+    "${PROJECT_NAME}_compiler_flags"
+)
 
 if(NOT WIN32 AND NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
     if(APPLE AND NOT OPENSSL_ROOT_DIR)
@@ -284,75 +303,67 @@ if(NOT WIN32 AND NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI" AND NO
 else()
     target_compile_definitions(cdd_platform_cov_units PUBLIC CDD_NO_OPENSSL CDD_TEST_NO_OPENSSL)
 endif()
+
 if(WIN32)
-    target_link_libraries(cdd_platform_cov_units PRIVATE crypt32)
+    target_link_libraries(cdd_platform_cov_units PRIVATE crypt32 advapi32)
 endif()
 
 set(EXEC_NAME "test_c_cdd")
-
 set(Source_Files
     "test_c_cdd.c"
     "c_cdd/test_safe_crt_msvc_unit.c"
     "c_cdd/test_crt_bridge_unit.c"
     "c_cdd/test_platform_crypto_and_cst_unit.c"
 )
-source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
+source_group("${EXEC_NAME} Source Files" FILES ${Source_Files})
 
-add_executable("${EXEC_NAME}" "${Source_Files}")
+add_executable("${EXEC_NAME}" ${Source_Files})
+c_cdd_apply_target_settings("${EXEC_NAME}")
 
-target_include_directories(
-        "${EXEC_NAME}"
-        PRIVATE
-        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
-        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
+target_include_directories("${EXEC_NAME}" PRIVATE
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
 )
-set_target_properties(
-        "${EXEC_NAME}"
-        PROPERTIES
-        LINKER_LANGUAGE
-        C
+
+add_subdirectory("mocks")
+target_link_libraries("${LIBRARY_NAME}" INTERFACE simple_mocks)
+
+target_link_libraries("${EXEC_NAME}" PRIVATE
+    "${LIBRARY_NAME}"
+    cdd_platform_cov_units
 )
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" cdd_platform_cov_units)
 if(MSVC)
-    set_property(TARGET "${EXEC_NAME}" APPEND_STRING PROPERTY LINK_FLAGS " /STACK:8388608")
+    target_link_options("${EXEC_NAME}" PRIVATE "/STACK:8388608")
 endif()
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+if(_C_CDD_ENABLE_TESTS)
     target_compile_definitions("${EXEC_NAME}" PRIVATE CDD_BUILD_TESTS)
 endif()
 
-add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}" WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "CDD_C_BIN=$<TARGET_FILE:cdd-c>")
-if (C_CDD_USE_ASAN)
+if(C_CDD_USE_ASAN)
     set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1;CDD_C_BIN=$<TARGET_FILE:cdd-c>")
 endif()
 
-# ... (Previous Mock targets remain unchanged) ...
-add_subdirectory("mocks")
-target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks")
-# ...
-set(EXEC_NAME "test_simple_json")
-set(Header_Files "parse/${EXEC_NAME}.h")
-source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
-set(Source_Files "parse/${EXEC_NAME}.c")
-source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
-add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
-target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>")
-set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
-add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-if (C_CDD_USE_ASAN)
-    set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
+set(SIMPLE_JSON_EXEC "test_simple_json")
+add_executable("${SIMPLE_JSON_EXEC}"
+    "parse/${SIMPLE_JSON_EXEC}.h"
+    "parse/${SIMPLE_JSON_EXEC}.c"
+)
+c_cdd_apply_target_settings("${SIMPLE_JSON_EXEC}")
+target_include_directories("${SIMPLE_JSON_EXEC}" PRIVATE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
+)
+target_link_libraries("${SIMPLE_JSON_EXEC}" PRIVATE simple_mocks c_cdd_greatest)
+add_test(NAME "${SIMPLE_JSON_EXEC}" COMMAND "${SIMPLE_JSON_EXEC}" WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+if(C_CDD_USE_ASAN)
+    set_tests_properties("${SIMPLE_JSON_EXEC}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
 endif()
 
-target_include_directories(
-        test_simple_json
-        PRIVATE
-        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
-        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
-)
 add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
 add_test(NAME test_cdd_c_fail COMMAND cdd-c non_existent_command)
 set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
@@ -366,62 +377,47 @@ if(TARGET cdd-c-transform)
         COMMAND "${CMAKE_COMMAND}"
                 "-DTRANSFORM_BIN=$<TARGET_FILE:cdd-c-transform>"
                 "-DTORTURE_INPUT=${CMAKE_CURRENT_SOURCE_DIR}/transformers/torture_gnu_c23.c.in"
-                "-DWORK_DIR=${CMAKE_BINARY_DIR}/torture_test_work"
-                "-DINCLUDE_DIR=${CMAKE_SOURCE_DIR}/include"
+                "-DWORK_DIR=${PROJECT_BINARY_DIR}/torture_test_work"
+                "-DINCLUDE_DIR=${PROJECT_SOURCE_DIR}/include"
                 "-DC_COMPILER=${CMAKE_C_COMPILER}"
                 "-DCOMPILER_ID=${CMAKE_C_COMPILER_ID}"
                 "-DTARGET_WIN32=${WIN32}"
                 "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}"
-                -P "${CMAKE_SOURCE_DIR}/cmake/modules/RunTransformTortureTest.cmake"
+                -P "${PROJECT_SOURCE_DIR}/cmake/modules/RunTransformTortureTest.cmake"
     )
 endif()
 
-add_test(NAME test_mocks COMMAND mocks WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-add_test(NAME test_mocks_arg COMMAND mocks --foo WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-add_test(NAME test_mocks_fail COMMAND mocks --fail-alloc WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME test_mocks COMMAND mocks WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+add_test(NAME test_mocks_arg COMMAND mocks --foo WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+add_test(NAME test_mocks_fail COMMAND mocks --fail-alloc WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set_tests_properties(test_mocks_fail PROPERTIES WILL_FAIL TRUE)
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/src/mocks" "${CMAKE_CURRENT_BINARY_DIR}/src_mocks_build")
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/mocks" "${CMAKE_CURRENT_BINARY_DIR}/src_mocks_build")
 
 add_executable(test_src_mocks_unit "mocks/test_src_mocks_unit.c")
-target_include_directories(
-    test_src_mocks_unit
-    PRIVATE
-    "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
-    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/mocks>"
+c_cdd_apply_target_settings(test_src_mocks_unit)
+target_include_directories(test_src_mocks_unit PRIVATE
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/mocks>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src_mocks_build>"
-    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
 )
-set_target_properties(test_src_mocks_unit PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries(test_src_mocks_unit PUBLIC cdd_src_mocks "${PROJECT_NAME}" "${PROJECT_NAME}_compiler_flags")
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+target_link_libraries(test_src_mocks_unit PRIVATE
+    cdd_src_mocks
+    "${PROJECT_NAME}"
+    "${PROJECT_NAME}_compiler_flags"
+    c_cdd_greatest
+)
+if(_C_CDD_ENABLE_TESTS)
     target_compile_definitions(test_src_mocks_unit PRIVATE CDD_BUILD_TESTS)
 endif()
-add_test(NAME test_src_mocks_unit COMMAND test_src_mocks_unit WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-if (C_CDD_USE_ASAN)
+add_test(NAME test_src_mocks_unit COMMAND test_src_mocks_unit WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+if(C_CDD_USE_ASAN)
     set_tests_properties(test_src_mocks_unit PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
 endif()
 
-add_test(NAME test_src_mocks COMMAND src_mocks WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-add_test(NAME test_src_mocks_arg COMMAND src_mocks --foo WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-add_test(NAME test_src_mocks_fail COMMAND src_mocks --fail-alloc WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME test_src_mocks COMMAND src_mocks WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+add_test(NAME test_src_mocks_arg COMMAND src_mocks --foo WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+add_test(NAME test_src_mocks_fail COMMAND src_mocks --fail-alloc WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set_tests_properties(test_src_mocks_fail PROPERTIES WILL_FAIL TRUE)
-
-if(TARGET test_c_cdd)
-    if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        # Strict compliance mode
-    elseif(MSVC)
-        # Ensure tests use the same strict compiler flags
-    endif()
-endif()
-
-foreach(_tgt IN ITEMS "${LIBRARY_NAME}" cdd-c cdd-c-transform cdd_test_helpers cdd_platform_cov_units simple_mocks mocks cdd_src_mocks src_mocks test_src_mocks_unit test_c_cdd test_simple_json)
-    if(TARGET "${_tgt}")
-        set_target_properties("${_tgt}" PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-        )
-    endif()
-endforeach()

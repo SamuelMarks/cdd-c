@@ -1,6 +1,10 @@
 #ifndef C_CDD_CONFIG_H
 #define C_CDD_CONFIG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define C_CDD_VERSION_MAJOR @c_cdd_VERSION_MAJOR@
 #define C_CDD_VERSION_MINOR @c_cdd_VERSION_MINOR@
 #define C_CDD_VERSION_PATCH @c_cdd_VERSION_PATCH@
@@ -15,9 +19,11 @@
 #define _ARM64_
 #elif defined(_M_ARM) || defined(__arm__)
 #define _ARM_
-#else
-#define _@TARGET_ARCH@_
 #endif
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !C_CDD_CONFIG_H */

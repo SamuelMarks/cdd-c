@@ -38,13 +38,12 @@
  */
 cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   const cdd_context_t *ctx = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = cdd_context_get_global(&ctx);
   if (s == NULL) {
     *out_s = NULL;
-    return CDD_C_SUCCESS;
+    return rc;
   }
-  rc = cdd_context_get_global(&ctx);
-  return (cdd_c_error_t)((int)ctx->allocator.strdup_fn(s, out_s) + (int)rc);
+  return (cdd_c_error_t)ctx->allocator.strdup_fn(s, out_s);
 }
 
 /*
@@ -151,6 +150,8 @@ cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
   const char *last_occurrence;
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
   if (g_cdd_fail_str_after_last && --g_cdd_fail_str_after_last == 0)
     return CDD_C_ERROR_UNKNOWN;
 #endif
@@ -195,6 +196,10 @@ cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
  */
 cdd_c_error_t c_cdd_str_trim_trailing_whitespace(char *str) {
   size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (str == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(str);

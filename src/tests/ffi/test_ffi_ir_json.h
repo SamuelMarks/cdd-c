@@ -331,10 +331,11 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   {
     cdd_ffi_ir_t *triv_ir = NULL;
     rc = cdd_ffi_ir_from_json(
-        "{\"nodes\":[{\"kind\":\"bad\",\"name\":\"f\","
+        "{\"nodes\":[null,{\"kind\":\"bad\",\"name\":\"f\","
         "\"return_or_base_type\":{\"kind\":0,\"template_args\":[null],"
         "\"fn_return_type\":null},"
-        "\"fields\":[{}],"
+        "\"fields\":[null,{}],"
+        "\"variants\":[null],"
         "\"leading_trivia\":[null,{\"kind\":0,\"text\":\"x\"}],"
         "\"base_classes\":[null],"
         "\"macro_expansions\":[null]}]}",
@@ -362,6 +363,73 @@ TEST test_cdd_ffi_ir_json_exhaustive_oom(void) {
   /* Also test non-object root JSON for cdd_ffi_ir_from_json */
   out_ir = NULL;
   ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_ffi_ir_from_json("[]", &out_ir));
+
+  /* Empty arrays (count == 0 branches) and cdd_json_array_get_count NULL out */
+  {
+    cdd_ffi_ir_t *emp_ir = NULL;
+    JSON_Value *arr_v = NULL;
+    JSON_Array *arr_p = NULL;
+    size_t dummy_cnt = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_init_array(&arr_v));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_get_array(arr_v, &arr_p));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_array_get_count(NULL, &dummy_cnt));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_json_array_get_count(arr_p, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_value_free(arr_v));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_from_json("{\"nodes\":[]}", &emp_ir));
+    if (emp_ir) {
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(emp_ir);
+      free(emp_ir);
+      emp_ir = NULL;
+    }
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_ir_from_json(
+                  "{\"nodes\":[{\"kind\":1,\"name\":\"EmptyArrays\","
+                  "\"return_or_base_type\":{\"kind\":0,\"template_args\":[],"
+                  "\"fn_params\":[]},"
+                  "\"fields\":[],\"base_classes\":[],\"variants\":[],"
+                  "\"macro_expansions\":[]}]}",
+                  &emp_ir));
+    if (emp_ir) {
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(emp_ir);
+      free(emp_ir);
+    }
+  }
+
+  /* Step-fail and strdup-fail sweeps on cdd_ffi_ir_to_json / from_json */
+  for (i = 1; i <= 650; ++i) {
+    char *tmp_j = NULL;
+    g_cdd_step_fail = i;
+    rc = cdd_ffi_ir_to_json(&ir, &tmp_j);
+    g_cdd_step_fail = 0;
+    if (tmp_j) {
+      free(tmp_j);
+    }
+  }
+  for (i = 1; i <= 650; ++i) {
+    out_ir = NULL;
+    g_cdd_step_fail = i;
+    rc = cdd_ffi_ir_from_json(json_str, &out_ir);
+    g_cdd_step_fail = 0;
+    if (out_ir) {
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(out_ir);
+      free(out_ir);
+      out_ir = NULL;
+    }
+  }
+  for (i = 1; i <= 120; ++i) {
+    out_ir = NULL;
+    g_cdd_strdup_fail = i;
+    rc = cdd_ffi_ir_from_json(json_str, &out_ir);
+    g_cdd_strdup_fail = 0;
+    if (out_ir) {
+      g_cdd_last_alloc_err = cdd_ffi_ir_free(out_ir);
+      free(out_ir);
+      out_ir = NULL;
+    }
+  }
 
   free(json_str);
   g_cdd_last_alloc_err = cdd_ffi_ir_free(&ir);

@@ -79,14 +79,19 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
     cdd_c_error_t rc_qs;
     rc_qs = querystring_param_json_array_item_type(querystring_param,
                                                    &qs_json_item);
+    if (rc_qs != CDD_C_SUCCESS)
+      return rc_qs;
     rc_qs =
-        (cdd_c_error_t)((int)rc_qs | (int)querystring_param_json_array_item_ref(
-                                         querystring_param, &qs_json_obj));
+        querystring_param_json_array_item_ref(querystring_param, &qs_json_obj);
+    if (rc_qs != CDD_C_SUCCESS)
+      return rc_qs;
     rc_qs =
-        (cdd_c_error_t)((int)rc_qs | (int)querystring_param_json_primitive_type(
-                                         querystring_param, &qs_json_prim));
-    rc_qs = (cdd_c_error_t)((int)rc_qs | (int)querystring_param_is_form_object(
-                                             querystring_param, &is_form_obj));
+        querystring_param_json_primitive_type(querystring_param, &qs_json_prim);
+    if (rc_qs != CDD_C_SUCCESS)
+      return rc_qs;
+    rc_qs = querystring_param_is_form_object(querystring_param, &is_form_obj);
+    if (rc_qs != CDD_C_SUCCESS)
+      return rc_qs;
     if (is_form_obj) {
       CHECK_IO(fprintf(fp, "  /* Querystring Parameter (form object): %s */\n",
                        qs_name));
@@ -333,6 +338,8 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       return CDD_C_SUCCESS;
     }
     rc_qs = querystring_param_is_json_ref(querystring_param, &is_json_ref);
+    if (rc_qs != CDD_C_SUCCESS)
+      return rc_qs;
     if (is_json_ref) {
       CHECK_IO(
           fprintf(fp, "  /* Querystring Parameter (json): %s */\n", qs_name));
@@ -356,11 +363,13 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
           fp,
           "    if (!query_str) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "  }\n\n"));
-      return rc_qs;
+      return CDD_C_SUCCESS;
     }
     {
       const char *qs_raw = NULL;
       rc_qs = querystring_param_raw_primitive_type(querystring_param, &qs_raw);
+      if (rc_qs != CDD_C_SUCCESS)
+        return rc_qs;
       if (qs_raw) {
         CHECK_IO(
             fprintf(fp, "  /* Querystring Parameter (raw): %s */\n", qs_name));
@@ -488,9 +497,9 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
         int is_json = 0;
         int is_kv = 0;
         if (p->content_type) {
-          rc_top =
-              (cdd_c_error_t)((int)rc_top | (int)media_type_is_json_url(
-                                                p->content_type, &is_json));
+          rc_top = media_type_is_json_url(p->content_type, &is_json);
+          if (rc_top != CDD_C_SUCCESS)
+            return rc_top;
         }
         if (p->content_type && is_json) {
           cdd_c_error_t rc2 = write_query_json_param(fp, p);
@@ -499,8 +508,9 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
           continue;
         }
 
-        rc_top = (cdd_c_error_t)((int)rc_top |
-                                 (int)param_is_object_kv_url(p, &is_kv));
+        rc_top = param_is_object_kv_url(p, &is_kv);
+        if (rc_top != CDD_C_SUCCESS)
+          return rc_top;
         if (is_kv) {
           cdd_c_error_t rc2 = write_query_object_param(fp, p);
           if (rc2 != 0)

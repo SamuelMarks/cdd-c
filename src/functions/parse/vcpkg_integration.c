@@ -204,6 +204,9 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_inc = 0;
         res = token_matches_string(&tokens->tokens[j], "include", &is_inc);
+        if (res != CDD_C_SUCCESS) {
+          return cdd_c_keep_err(res, token_list_free(tokens));
+        }
         if (is_inc) {
           size_t k = j + 1;
           while (k < tokens->size && tokens->tokens[k].kind == TOKEN_WHITESPACE)
@@ -226,8 +229,8 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
               size_t inc_len = (size_t)(inc_end - inc_start);
               char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
               if (!inc_str) {
-                return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                                       (int)free_token_list(tokens));
+                return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                                      token_list_free(tokens));
               }
               memcpy(inc_str, inc_start, inc_len);
               inc_str[inc_len] = '\0';
@@ -236,24 +239,21 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                 cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "pthreads");
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(inc_str);
-                  return (cdd_c_error_t)((int)rc |
-                                         (int)free_token_list(tokens));
+                  return cdd_c_keep_err(rc, token_list_free(tokens));
                 }
               }
               if (strstr(inc_str, "dirent.h")) {
                 cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "dirent");
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(inc_str);
-                  return (cdd_c_error_t)((int)rc |
-                                         (int)free_token_list(tokens));
+                  return cdd_c_keep_err(rc, token_list_free(tokens));
                 }
               }
               if (strstr(inc_str, "zlib.h")) {
                 cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "zlib");
                 if (rc != CDD_C_SUCCESS) {
                   C_CDD_FREE(inc_str);
-                  return (cdd_c_error_t)((int)rc |
-                                         (int)free_token_list(tokens));
+                  return cdd_c_keep_err(rc, token_list_free(tokens));
                 }
               }
 
@@ -264,7 +264,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
       }
     }
   }
-  return free_token_list(tokens);
+  return token_list_free(tokens);
 }
 
 /*
@@ -290,25 +290,26 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   rc = cdd_json_value_init_object(&root_val);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
-  rc = (cdd_c_error_t)((int)rc |
-                       (int)cdd_json_value_get_object(root_val, &root_obj));
-
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_object_set_string(
-                                     root_obj, "name", builder->project_name));
+  rc = cdd_json_value_get_object(root_val, &root_obj);
   if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
+  }
+
+  rc = cdd_json_object_set_string(root_obj, "name", builder->project_name);
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
   }
   rc = cdd_json_object_set_string(root_obj, "version-string",
                                   builder->version_string);
   if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
   }
   rc =
       cdd_json_object_set_string(root_obj, "description", builder->description);
   if (rc != CDD_C_SUCCESS) {
-    return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
   }
 
   if (builder->deps_count > 0) {
@@ -316,37 +317,40 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
     JSON_Array *deps_arr = NULL;
     rc = cdd_json_value_init_array(&deps_val);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                             (int)cdd_json_value_free(root_val));
+      return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
     }
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)cdd_json_value_get_array(deps_val, &deps_arr));
+    rc = cdd_json_value_get_array(deps_val, &deps_arr);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_json_value_free(deps_val),
+                                               cdd_json_value_free(root_val)));
+    }
     for (i = 0; i < builder->deps_count; i++) {
       rc = cdd_json_array_append_string(deps_arr, builder->deps[i].name);
       if (rc != CDD_C_SUCCESS) {
-        rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(deps_val));
-        return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+        return cdd_c_keep_err(rc,
+                              cdd_c_keep_err(cdd_json_value_free(deps_val),
+                                             cdd_json_value_free(root_val)));
       }
     }
-    if (cdd_json_object_set_value(root_obj, "dependencies", deps_val) !=
-        CDD_C_SUCCESS) {
-      rc = (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                           (int)cdd_json_value_free(deps_val));
-      return (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
+    rc = cdd_json_object_set_value(root_obj, "dependencies", deps_val);
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cdd_c_keep_err(cdd_json_value_free(deps_val),
+                                               cdd_json_value_free(root_val)));
     }
   }
 
   *out_json = NULL;
   rc = cdd_json_serialize_to_string_pretty(root_val, &ser);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_value_free(root_val));
-  if (rc != CDD_C_SUCCESS)
-    return CDD_C_ERROR_MEMORY;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_value_free(root_val));
+  }
+  rc = cdd_json_value_free(root_val);
   rc = my_strdup(ser, &res);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_json_free_serialized_string(ser));
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  if (rc != CDD_C_SUCCESS) {
+    return cdd_c_keep_err(rc, cdd_json_free_serialized_string(ser));
+  }
   *out_json = res;
-  return CDD_C_SUCCESS;
+  return cdd_json_free_serialized_string(ser);
 }
 
 #ifdef CDD_BUILD_TESTS

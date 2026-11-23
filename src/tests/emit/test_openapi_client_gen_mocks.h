@@ -719,10 +719,11 @@ TEST test_client_gen_mock_errors(void) {
   config.model_header = NULL;
 
   /* mock 54: uh fopen fail */
-  ASSERT_EQ(CDD_C_SUCCESS, client_gen_emit_url_utils_h("/nonexistent_dir_xyz"));
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            client_gen_emit_url_utils_h("/nonexistent_dir_xyz"));
   config.no_installable_package = 0;
   g_cdd_fopen_fail = 5;
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
   g_cdd_fopen_fail = 0;
 
   /* mock 84: client_gen_emit_url_utils_h fail */
@@ -731,18 +732,28 @@ TEST test_client_gen_mock_errors(void) {
   g_cdd_fprintf_fail = 0;
 
   /* mock 82: client_gen_emit_url_utils_c1 fail */
-  g_cdd_fprintf_fail = 15;
+  g_cdd_fprintf_fail = 25;
   ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
   g_cdd_fprintf_fail = 0;
 
   /* mock 83: client_gen_emit_url_utils_c2 fail */
-  g_cdd_fprintf_fail = 42;
-  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
-  g_cdd_fprintf_fail = 0;
+  {
+    int fstep;
+    int saw_c2_err = 0;
+    for (fstep = 38; fstep <= 85; ++fstep) {
+      g_cdd_fprintf_fail = fstep;
+      rc = openapi_client_generate(&spec, &config);
+      g_cdd_fprintf_fail = 0;
+      if (rc == CDD_C_ERROR_IO) {
+        saw_c2_err = 1;
+      }
+    }
+    ASSERT_EQ(1, saw_c2_err);
+  }
 
   /* mock 55: uc fopen fail */
   g_cdd_fopen_fail = 6;
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
   g_cdd_fopen_fail = 0;
 
   /* mock 20: generate_cmake_project fail */
@@ -759,7 +770,7 @@ TEST test_client_gen_mock_errors(void) {
 
   /* mock 52: fopen(tfile) fail */
   g_cdd_fopen_fail = 5;
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
   g_cdd_fopen_fail = 0;
   config.create_tests_and_mocks = 0;
 

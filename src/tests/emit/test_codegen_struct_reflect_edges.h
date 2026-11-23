@@ -553,7 +553,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
         int j_oom;
         struct AdvChild c_ser;
         memset(&c_ser, 0, sizeof(c_ser));
-        for (j_oom = 0; j_oom <= 30; ++j_oom) {
+        for (j_oom = 0; j_oom <= 45; ++j_oom) {
           g_reflect_json_alloc_fail = j_oom;
           if (cdd_reflect_to_json(&c_ser, &child_ti, &oom_str) == CDD_C_SUCCESS)
             C_CDD_FREE(oom_str);
@@ -564,6 +564,50 @@ TEST test_reflection_edge_cases_and_oom(void) {
           g_reflect_json_alloc_fail = j_oom;
           if (cdd_reflect_to_json_schema(&child_ti, &oom_str) == CDD_C_SUCCESS)
             C_CDD_FREE(oom_str);
+        }
+        {
+          struct cdd_field_info saved_f0 = parent_fields[0];
+          struct cdd_field_info saved_f10 = parent_fields[10];
+          struct cdd_field_info saved_f18 = parent_fields[18];
+          parent_fields[0].has_min = 1;
+          parent_fields[0].min_val = 0.0;
+          parent_fields[0].has_max = 1;
+          parent_fields[0].max_val = 100.0;
+          parent_fields[0].required = 1;
+          parent_fields[10].has_min_len = 1;
+          parent_fields[10].min_len = 1;
+          parent_fields[10].has_max_len = 1;
+          parent_fields[10].max_len = 32;
+          parent_fields[10].pattern = "^a+$";
+          parent_fields[10].format = "email";
+          parent_fields[10].doc = "doc";
+          parent_fields[10].deprecated = 1;
+          parent_fields[10].read_only = 1;
+          parent_fields[10].write_only = 1;
+          parent_fields[10].required = 1;
+          parent_fields[18].has_min_len = 1;
+          parent_fields[18].min_len = 1;
+          parent_fields[18].has_max_len = 1;
+          parent_fields[18].max_len = 10;
+          parent_fields[18].unique_items = 1;
+          for (j_oom = 0; j_oom <= 500; ++j_oom) {
+            g_reflect_json_alloc_fail = j_oom;
+            if (cdd_reflect_to_json_schema(&parent_ti, &oom_str) ==
+                CDD_C_SUCCESS)
+              C_CDD_FREE(oom_str);
+          }
+          /* Also cover root_obj "properties" set OOM when req_val is NULL */
+          parent_fields[0].required = 0;
+          parent_fields[10].required = 0;
+          for (j_oom = 0; j_oom <= 500; ++j_oom) {
+            g_reflect_json_alloc_fail = j_oom;
+            if (cdd_reflect_to_json_schema(&parent_ti, &oom_str) ==
+                CDD_C_SUCCESS)
+              C_CDD_FREE(oom_str);
+          }
+          parent_fields[0] = saved_f0;
+          parent_fields[10] = saved_f10;
+          parent_fields[18] = saved_f18;
         }
         g_reflect_json_alloc_fail = -1;
       }
@@ -1518,6 +1562,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
 
           /* Nested child error during serialize_field_to_json /
            * build_merge_patch_obj / apply_merge_patch_obj */
+          ASSERT_EQ(CDD_C_SUCCESS,
+                    cdd_reflect_array_resize(p_def, &parent_fields[18], 0));
           ASSERT_EQ(CDD_C_SUCCESS,
                     cdd_reflect_array_resize(p_def, &parent_fields[18], 1));
           child_fields[2].kind = CDD_FIELD_KIND_OBJECT;
@@ -2780,6 +2826,8 @@ TEST test_reflection_edge_cases_and_oom(void) {
             parent_fields[13].elem_size = sizeof(int);
 
             ASSERT_EQ(CDD_C_SUCCESS,
+                      cdd_reflect_array_resize(p_def, &parent_fields[19], 0));
+            ASSERT_EQ(CDD_C_SUCCESS,
                       cdd_reflect_array_resize(p_def, &parent_fields[19], 1));
             p_def->ptr_obj_arr[0] =
                 (struct AdvChild *)C_CDD_CALLOC(1, sizeof(struct AdvChild));
@@ -3336,6 +3384,12 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 ASSERT_EQ(CDD_C_SUCCESS,
                           cdd_reflect_struct_cleanup(j_obj, &parent_ti));
                 C_CDD_FREE(j_obj);
+                big_cli[140] = 'b';
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_from_cli(
+                                             2, cli_args, &parent_ti, &j_obj));
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_cleanup(j_obj, &parent_ti));
+                C_CDD_FREE(j_obj);
               }
 
               /* JSON Patch edge cases */
@@ -3366,6 +3420,686 @@ TEST test_reflection_edge_cases_and_oom(void) {
                             "[{\"op\":\"test\",\"path\":\"/str~0name~11\","
                             "\"value\":\"ok_s\"},{\"op\":\"copy\",\"from\":"
                             "\"/i64\",\"path\":\"/i16\"}]"));
+            }
+
+            /* Step-failure percolation sweeps across reflection modules */
+            {
+              int step;
+              int vcnt;
+              int eq_tmp = 0;
+              unsigned int bw_tmp = 0U;
+              FILE *fp_st = cdd_test_tmpfile_global();
+              struct StructFields sf_st;
+              struct FuncSignature fs_st;
+              struct FuncParamReflection fp_param;
+              char fn_st_name[16];
+              ASSERT(fp_st != NULL);
+
+              /* 1. Bitwidth expression parser + struct/func reflect emitters */
+              for (step = 1; step <= 100; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_struct_eval_bitwidth_str(
+                        "((+1 + -2 + ~0 + 'a') * 2 / 1 % 7 << 1 >> 1) & 0xF ^ "
+                        "0b1 | 1",
+                        &bw_tmp) == CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+
+              ASSERT_EQ(CDD_C_SUCCESS, struct_fields_init(&sf_st));
+              ASSERT_EQ(
+                  CDD_C_SUCCESS,
+                  struct_fields_add(&sf_st, "bf1", "integer", NULL, NULL, "4"));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        struct_field_add_alias(&sf_st.fields[0], "al1"));
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        struct_fields_add(&sf_st, "sub", "object",
+                                          "#/components/schemas/AdvChild", "d",
+                                          NULL));
+              for (step = 1; step <= 40; ++step) {
+                g_cdd_step_fail = step;
+                if (write_struct_reflect_func(fp_st, "StepRefl", &sf_st,
+                                              NULL) == CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+              g_cdd_last_alloc_err = struct_fields_free(&sf_st);
+
+              memset(&fs_st, 0, sizeof(fs_st));
+              memset(&fp_param, 0, sizeof(fp_param));
+              CDD_STRCPY(fn_st_name, sizeof(fn_st_name), "step_fn");
+              fs_st.name = fn_st_name;
+              CDD_STRCPY(fs_st.return_type, sizeof(fs_st.return_type), "int");
+              fs_st.doc = cdd_test_mut_str("doc");
+              fs_st.route_method = cdd_test_mut_str("GET");
+              fs_st.route_path = cdd_test_mut_str("/x");
+              fs_st.summary = cdd_test_mut_str("sum");
+              CDD_STRCPY(fp_param.name, sizeof(fp_param.name), "p1");
+              CDD_STRCPY(fp_param.type, sizeof(fp_param.type), "int");
+              fp_param.doc = cdd_test_mut_str("pdoc");
+              fs_st.params = &fp_param;
+              fs_st.n_params = 1;
+              for (step = 1; step <= 25; ++step) {
+                g_cdd_step_fail = step;
+                if (write_func_reflect_func(fp_st, &fs_st, NULL) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+              fclose(fp_st);
+
+              /* 2. Scalar accessors, bitfield accessors, u64 > INT64_MAX */
+              for (step = 1; step <= 10; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_get_int64(p_def, &parent_fields[0], &v_i64) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              {
+                struct cdd_field_info bf_st;
+                memset(&bf_st, 0, sizeof(bf_st));
+                bf_st.name = "bf_st";
+                bf_st.c_type = "unsigned int";
+                bf_st.kind = CDD_FIELD_KIND_INTEGER;
+                bf_st.bit_width = 32;
+                bf_st.get_bitfield = test_bf_get;
+                for (step = 1; step <= 10; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_get_int64(p_def, &bf_st, &v_i64) ==
+                      CDD_C_SUCCESS)
+                    break;
+                }
+                g_cdd_step_fail = 0;
+              }
+              for (step = 1; step <= 10; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_set_int64(p_def, &parent_fields[0], 999) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              for (step = 1; step <= 10; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_get_uint64(p_def, &parent_fields[1], &v_u64) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              for (step = 1; step <= 10; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_set_uint64(p_def, &parent_fields[1],
+                                           ((uint64_t)1U << 63) + 5U) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_set_uint64(p_def, &parent_fields[1], 10U));
+              for (step = 1; step <= 10; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_get_double(p_def, &parent_fields[7], &v_dbl) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              for (step = 1; step <= 10; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_set_double(p_def, &parent_fields[7], 2.5) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+
+              /* Ensure ptr_child, val_obj_arr, and ptr_obj_arr are populated
+               * and ref_name is "AdvChild" on p_def for deep visitor, cleanup,
+               * array shrink, and validation step-failure sweeps */
+              parent_fields[11].ref_name = "AdvChild";
+              parent_fields[12].ref_name = "AdvChild";
+              parent_fields[18].ref_name = "AdvChild";
+              parent_fields[19].ref_name = "AdvChild";
+              if (!p_def->ptr_child) {
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_default(
+                              &child_ti, (void **)&p_def->ptr_child));
+                p_def->ptr_child->id = 555;
+              }
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_array_resize(p_def, &parent_fields[18], 2));
+              p_def->val_obj_arr[0].id = 311;
+              p_def->val_obj_arr[1].id = 312;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_array_resize(p_def, &parent_fields[19], 2));
+              if (!p_def->ptr_obj_arr[0]) {
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_default(
+                              &child_ti, (void **)&p_def->ptr_obj_arr[0]));
+                p_def->ptr_obj_arr[0]->id = 411;
+              }
+              if (!p_def->ptr_obj_arr[1]) {
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_default(
+                              &child_ti, (void **)&p_def->ptr_obj_arr[1]));
+                p_def->ptr_obj_arr[1]->id = 412;
+              }
+
+              /* 3. Deep visitors */
+              child_fields[0].kind = CDD_FIELD_KIND_OBJECT;
+              child_fields[0].ref_name = "MissingNested";
+              for (step = 1; step <= 250; ++step) {
+                vcnt = 0;
+                g_cdd_step_fail = step;
+                g_cdd_last_alloc_err = cdd_reflect_visit_deep(
+                    p_def, &parent_ti, test_reflect_visitor_cb, &vcnt);
+                if (g_cdd_step_fail > 0) {
+                  g_cdd_step_fail = 0;
+                  break;
+                }
+              }
+              for (step = 1; step <= 250; ++step) {
+                vcnt = 0;
+                g_cdd_step_fail = step;
+                g_cdd_last_alloc_err = cdd_reflect_visit_deep_mut(
+                    p_def, &parent_ti, test_reflect_mut_visitor_cb, &vcnt);
+                if (g_cdd_step_fail > 0) {
+                  g_cdd_step_fail = 0;
+                  break;
+                }
+              }
+              g_cdd_step_fail = 0;
+              child_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+              child_fields[0].ref_name = NULL;
+
+              /* 4. Lifecycle: default, deepcopy, eq, cleanup, array shrink */
+              parent_fields[7].default_val = "1.5";
+              parent_fields[8].default_val = "true";
+              parent_fields[9].default_val = "ADV_V1";
+              for (step = 1; step <= 60; ++step) {
+                void *d_tmp = NULL;
+                g_cdd_step_fail = step;
+                if (cdd_reflect_struct_default(&parent_ti, &d_tmp) ==
+                    CDD_C_SUCCESS) {
+                  g_cdd_step_fail = 0;
+                  ASSERT_EQ(CDD_C_SUCCESS,
+                            cdd_reflect_struct_cleanup(d_tmp, &parent_ti));
+                  C_CDD_FREE(d_tmp);
+                  break;
+                }
+              }
+              g_cdd_step_fail = 0;
+              parent_fields[7].default_val = NULL;
+              parent_fields[8].default_val = NULL;
+              parent_fields[9].default_val = NULL;
+
+              {
+                int sc_val = 42;
+                p_def->opt_int = &sc_val;
+                for (step = 1; step <= 120; ++step) {
+                  void *c_tmp = NULL;
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_struct_deepcopy(p_def, &c_tmp, &parent_ti) ==
+                      CDD_C_SUCCESS) {
+                    g_cdd_step_fail = 0;
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_struct_cleanup(c_tmp, &parent_ti));
+                    C_CDD_FREE(c_tmp);
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+                p_def->opt_int = NULL;
+              }
+
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_struct_cleanup(p_copy, &parent_ti));
+              C_CDD_FREE(p_copy);
+              p_copy = NULL;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_struct_deepcopy(p_def, (void **)&p_copy,
+                                                    &parent_ti));
+              for (step = 1; step <= 140; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_struct_eq(p_def, p_copy, &parent_ti, &eq_tmp) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+
+              /* Cleanup + shrunk array elements + child object failure sweeps
+               */
+              child_fields[0].kind = CDD_FIELD_KIND_OBJECT;
+              child_fields[0].ref_name = "MissingNested";
+              for (step = 1; step <= 100; ++step) {
+                struct AdvParent *p_cln = NULL;
+                cdd_c_error_t rc_cln;
+                child_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+                child_fields[0].ref_name = NULL;
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_deepcopy(p_def, (void **)&p_cln,
+                                                      &parent_ti));
+                child_fields[0].kind = CDD_FIELD_KIND_OBJECT;
+                child_fields[0].ref_name = "MissingNested";
+                g_cdd_step_fail = step;
+                rc_cln = cdd_reflect_struct_cleanup(p_cln, &parent_ti);
+                if (g_cdd_step_fail > 0) {
+                  g_cdd_step_fail = 0;
+                  C_CDD_FREE(p_cln);
+                  break;
+                }
+                g_cdd_step_fail = 0;
+                if (rc_cln != CDD_C_SUCCESS) {
+                  ASSERT_EQ(CDD_C_SUCCESS,
+                            cdd_reflect_struct_cleanup(p_cln, &parent_ti));
+                }
+                C_CDD_FREE(p_cln);
+              }
+              /* Also test val_obj_arr deepcopy failure when child_fields[0]
+               * is an unregistered object ref */
+              {
+                void *c_bad = NULL;
+                ASSERT_EQ(
+                    CDD_C_ERROR_NOT_FOUND,
+                    cdd_reflect_struct_deepcopy(p_def, &c_bad, &parent_ti));
+              }
+
+              /* Also test array shrink failure on val_obj_arr and ptr_obj_arr
+               */
+              for (step = 1; step <= 60; ++step) {
+                struct AdvParent *p_sh = NULL;
+                int done_sh = 0;
+                child_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+                child_fields[0].ref_name = NULL;
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_deepcopy(p_def, (void **)&p_sh,
+                                                      &parent_ti));
+                child_fields[0].kind = CDD_FIELD_KIND_OBJECT;
+                child_fields[0].ref_name = "MissingNested";
+                g_cdd_step_fail = step;
+                g_cdd_last_alloc_err =
+                    cdd_reflect_array_resize(p_sh, &parent_fields[18], 1);
+                if (g_cdd_step_fail > 0)
+                  done_sh = 1;
+                g_cdd_step_fail = 0;
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_cleanup(p_sh, &parent_ti));
+                C_CDD_FREE(p_sh);
+                if (done_sh)
+                  break;
+              }
+              for (step = 1; step <= 60; ++step) {
+                struct AdvParent *p_sh = NULL;
+                int done_sh = 0;
+                child_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+                child_fields[0].ref_name = NULL;
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_deepcopy(p_def, (void **)&p_sh,
+                                                      &parent_ti));
+                child_fields[0].kind = CDD_FIELD_KIND_OBJECT;
+                child_fields[0].ref_name = "MissingNested";
+                g_cdd_step_fail = step;
+                g_cdd_last_alloc_err =
+                    cdd_reflect_array_resize(p_sh, &parent_fields[19], 1);
+                if (g_cdd_step_fail > 0)
+                  done_sh = 1;
+                g_cdd_step_fail = 0;
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_struct_cleanup(p_sh, &parent_ti));
+                C_CDD_FREE(p_sh);
+                if (done_sh)
+                  break;
+              }
+
+              /* Also test fixed_array_len cleanup failure */
+              {
+                struct FixedObjWrap {
+                  struct AdvChild items[1];
+                } fw;
+                struct cdd_field_info fw_f;
+                struct cdd_type_info fw_ti;
+                memset(&fw, 0, sizeof(fw));
+                memset(&fw_f, 0, sizeof(fw_f));
+                memset(&fw_ti, 0, sizeof(fw_ti));
+                fw_f.name = "items";
+                fw_f.kind = CDD_FIELD_KIND_ARRAY;
+                fw_f.fixed_array_len = 1;
+                fw_f.elem_kind = CDD_FIELD_KIND_OBJECT;
+                fw_f.elem_size = sizeof(struct AdvChild);
+                fw_f.ref_name = "AdvChild";
+                fw_f.size = sizeof(fw.items);
+                fw_ti.name = "FixedObjWrap";
+                fw_ti.size = sizeof(fw);
+                fw_ti.fields = &fw_f;
+                fw_ti.n_fields = 1;
+                for (step = 1; step <= 25; ++step) {
+                  g_cdd_step_fail = step;
+                  g_cdd_last_alloc_err =
+                      cdd_reflect_struct_cleanup(&fw, &fw_ti);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+              }
+              child_fields[0].kind = CDD_FIELD_KIND_INTEGER;
+              child_fields[0].ref_name = NULL;
+
+              /* 5. Regex & validation step-fail sweeps */
+              ASSERT_EQ(
+                  CDD_C_SUCCESS,
+                  cdd_reflect_set_string(p_def, &parent_fields[10], "ababcd"));
+              parent_fields[10].pattern = "^(ab)+c*d$";
+              for (step = 1; step <= 40; ++step) {
+                g_cdd_step_fail = step;
+                if (cdd_reflect_validate_field(p_def, &parent_fields[10]) ==
+                    CDD_C_SUCCESS)
+                  break;
+              }
+              g_cdd_step_fail = 0;
+              ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_set_string(
+                                           p_def, &parent_fields[10], "ok_s"));
+              parent_fields[18].unique_items = 1;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_array_resize(p_def, &parent_fields[18], 2));
+              p_def->val_obj_arr[1].id = 312;
+              parent_fields[10].pattern = "^[a-z_0-9]+$";
+              for (step = 1; step <= 400; ++step) {
+                g_cdd_step_fail = step;
+                g_cdd_last_alloc_err = cdd_reflect_validate(p_def, &parent_ti);
+                if (g_cdd_step_fail > 0) {
+                  g_cdd_step_fail = 0;
+                  break;
+                }
+              }
+              g_cdd_step_fail = 0;
+              parent_fields[18].unique_items = 0;
+              parent_fields[10].pattern = NULL;
+              ASSERT_EQ(CDD_C_SUCCESS,
+                        cdd_reflect_array_resize(p_def, &parent_fields[18], 1));
+
+              /* 6. JSON / Merge Patch / Schema / Form / CLI / RFC6902 OOM &
+               * step-fail sweeps */
+              {
+                char *full_json = NULL;
+                char *out_s = NULL;
+                void *out_o = NULL;
+                int jo;
+                static const char *const jp_ops1 =
+                    "[{\"op\":\"replace\",\"path\":\"/i64\",\"value\":9},"
+                    "{\"op\":\"replace\",\"path\":\"/num\",\"value\":2.5},"
+                    "{\"op\":\"replace\",\"path\":\"/bval\",\"value\":true},"
+                    "{\"op\":\"replace\",\"path\":\"/str~0name~11\","
+                    "\"value\":\"abc\"},"
+                    "{\"op\":\"test\",\"path\":\"/i64\",\"value\":9},"
+                    "{\"op\":\"test\",\"path\":\"/str~0name~11\","
+                    "\"value\":\"abc\"}]";
+                static const char *const jp_ops2 =
+                    "[{\"op\":\"copy\",\"from\":\"/i64\",\"path\":\"/i16\"},"
+                    "{\"op\":\"copy\",\"from\":\"/str~0name~11\","
+                    "\"path\":\"/inline_child/label\"},"
+                    "{\"op\":\"move\",\"from\":\"/inline_child/label\","
+                    "\"path\":\"/str~0name~11\"},"
+                    "{\"op\":\"move\",\"from\":\"/i16\",\"path\":\"/i64\"},"
+                    "{\"op\":\"remove\",\"path\":\"/inline_child/label\"}]";
+                const char *cli_av[4];
+                cli_av[0] = "--i64=12";
+                cli_av[1] = "--str~name/1";
+                cli_av[2] = "hello";
+                cli_av[3] = "--bval";
+
+                /* Ensure p_def has non-empty arrays, null & non-null elements,
+                 * and differs from &p1 on every field for merge_patch */
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_array_resize(
+                                             p_def, &parent_fields[13], 1));
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_array_resize(
+                                             p_def, &parent_fields[14], 1));
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_array_resize(
+                                             p_def, &parent_fields[15], 1));
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_array_resize(
+                                             p_def, &parent_fields[16], 2));
+                p_def->enum_arr[0] = 10;
+                p_def->enum_arr[1] = 999;
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_array_resize(
+                                             p_def, &parent_fields[17], 2));
+                C_CDD_FREE(p_def->str_arr[0]);
+                g_cdd_last_alloc_err = c_cdd_strdup("s0", &p_def->str_arr[0]);
+                C_CDD_FREE(p_def->str_arr[1]);
+                p_def->str_arr[1] = NULL;
+                ASSERT_EQ(CDD_C_SUCCESS, cdd_reflect_array_resize(
+                                             p_def, &parent_fields[19], 2));
+                if (!p_def->ptr_obj_arr[0]) {
+                  ASSERT_EQ(CDD_C_SUCCESS,
+                            cdd_reflect_struct_default(
+                                &child_ti, (void **)&p_def->ptr_obj_arr[0]));
+                }
+                if (p_def->ptr_obj_arr[1]) {
+                  ASSERT_EQ(CDD_C_SUCCESS,
+                            cdd_reflect_struct_cleanup(p_def->ptr_obj_arr[1],
+                                                       &child_ti));
+                  C_CDD_FREE(p_def->ptr_obj_arr[1]);
+                  p_def->ptr_obj_arr[1] = NULL;
+                }
+                if (!p_def->opt_int) {
+                  p_def->opt_int = (int *)C_CDD_CALLOC(1, sizeof(int));
+                  *p_def->opt_int = 7;
+                }
+                p_def->inline_child.id = 8888;
+                p1.inline_child.id = 1111;
+
+                ASSERT_EQ(CDD_C_SUCCESS,
+                          cdd_reflect_to_json(p_def, &parent_ti, &full_json));
+
+                /* JSON allocator OOM across full parent_ti */
+                ASSERT_EQ(JSONSuccess, json_set_allocation_functions(
+                                           reflect_json_oom_malloc, free));
+                parent_fields[0].required = 1;
+                for (jo = 0; jo <= 300; ++jo) {
+                  g_reflect_json_alloc_fail = jo;
+                  if (cdd_reflect_to_json(p_def, &parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  g_reflect_json_alloc_fail = jo;
+                  if (cdd_reflect_merge_patch(&p1, p_def, &parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  g_reflect_json_alloc_fail = jo;
+                  if (cdd_reflect_merge_patch(p_def, &p1, &parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  g_reflect_json_alloc_fail = jo;
+                  if (cdd_reflect_to_json_schema(&parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                }
+                parent_fields[0].required = 0;
+                g_reflect_json_alloc_fail = -1;
+                ASSERT_EQ(JSONSuccess,
+                          json_set_allocation_functions(NULL, NULL));
+
+                /* Step-fail across to_json, from_json, merge_patch, schema */
+                for (step = 1; step <= 600; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_to_json(p_def, &parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 600; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_from_json(full_json, &parent_ti, &out_o) ==
+                      CDD_C_SUCCESS) {
+                    g_cdd_last_alloc_err =
+                        cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                    C_CDD_FREE(out_o);
+                  }
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                /* Also test numeric enum + de_wire_name + aliases + union in
+                 * from_json step-fail */
+                parent_fields[0].de_wire_name = "de_i64";
+                {
+                  const char *als[1] = {"al_i16"};
+                  parent_fields[1].aliases = als;
+                  parent_fields[1].n_aliases = 1;
+                  for (step = 1; step <= 160; ++step) {
+                    g_cdd_step_fail = step;
+                    if (cdd_reflect_from_json(
+                            "{\"de_i64\":1,\"al_i16\":2,\"eval\":20,"
+                            "\"enum_arr\":[20],\"ptr_child\":null}",
+                            &parent_ti, &out_o) == CDD_C_SUCCESS) {
+                      g_cdd_last_alloc_err =
+                          cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                      C_CDD_FREE(out_o);
+                    }
+                    if (g_cdd_step_fail > 0) {
+                      g_cdd_step_fail = 0;
+                      break;
+                    }
+                  }
+                  g_cdd_step_fail = 0;
+                  parent_fields[0].de_wire_name = NULL;
+                  parent_fields[1].aliases = NULL;
+                  parent_fields[1].n_aliases = 0;
+                }
+
+                for (step = 1; step <= 40; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_from_json("{\"str_branch\":\"u\"}", &union_ti,
+                                            &out_o) == CDD_C_SUCCESS) {
+                    g_cdd_last_alloc_err =
+                        cdd_reflect_struct_cleanup(out_o, &union_ti);
+                    C_CDD_FREE(out_o);
+                  }
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 600; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_merge_patch(&p1, p_def, &parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 250; ++step) {
+                  if (!p_copy->ptr_obj_arr || p_copy->n_ptr_obj_arr < 1) {
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_array_resize(p_copy,
+                                                       &parent_fields[19], 1));
+                  }
+                  if (!p_copy->ptr_obj_arr[0]) {
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_struct_default(
+                                  &child_ti, (void **)&p_copy->ptr_obj_arr[0]));
+                  }
+                  g_cdd_step_fail = step;
+                  g_cdd_last_alloc_err = cdd_reflect_apply_merge_patch(
+                      p_copy, &parent_ti,
+                      "{\"i64\":5,\"inline_child\":{\"id\":2},"
+                      "\"ptr_child\":{\"id\":3},\"ptr_obj_arr\":[null]}");
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                parent_fields[0].required = 1;
+                for (step = 1; step <= 250; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_to_json_schema(&parent_ti, &out_s) ==
+                      CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                parent_fields[0].required = 0;
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 200; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_to_form_urlencoded(p_def, &parent_ti,
+                                                     &out_s) == CDD_C_SUCCESS)
+                    C_CDD_FREE(out_s);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 200; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_from_form_urlencoded(
+                          "i64=1&num=2.5&str~name/1=hi", &parent_ti, &out_o) ==
+                      CDD_C_SUCCESS) {
+                    g_cdd_last_alloc_err =
+                        cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                    C_CDD_FREE(out_o);
+                  }
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 200; ++step) {
+                  g_cdd_step_fail = step;
+                  if (cdd_reflect_from_cli(4, cli_av, &parent_ti, &out_o) ==
+                      CDD_C_SUCCESS) {
+                    g_cdd_last_alloc_err =
+                        cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                    C_CDD_FREE(out_o);
+                  }
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                for (step = 1; step <= 300; ++step) {
+                  g_cdd_step_fail = step;
+                  g_cdd_last_alloc_err =
+                      cdd_reflect_apply_json_patch(p_copy, &parent_ti, jp_ops1);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+                for (step = 1; step <= 300; ++step) {
+                  g_cdd_last_alloc_err = cdd_reflect_set_string_by_path(
+                      p_copy, &parent_ti, "/str~0name~11", "abc");
+                  g_cdd_step_fail = step;
+                  g_cdd_last_alloc_err =
+                      cdd_reflect_apply_json_patch(p_copy, &parent_ti, jp_ops2);
+                  if (g_cdd_step_fail > 0) {
+                    g_cdd_step_fail = 0;
+                    break;
+                  }
+                }
+                g_cdd_step_fail = 0;
+
+                C_CDD_FREE(full_json);
+              }
             }
           }
         }

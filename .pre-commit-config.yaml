@@ -80,6 +80,16 @@ repos:
     entry: python scripts/precommit_matrix.py test emscripten
     language: python
     pass_filenames: false
+  - id: build-msdos
+    name: Build (MS-DOS OpenWatcom)
+    entry: python scripts/precommit_matrix.py build msdos
+    language: python
+    pass_filenames: false
+  - id: test-msdos
+    name: Test (MS-DOS OpenWatcom)
+    entry: python scripts/precommit_matrix.py test msdos
+    language: python
+    pass_filenames: false
   - id: valgrind
     name: Valgrind (GCC)
     entry: python scripts/precommit_matrix.py valgrind gcc
@@ -92,7 +102,7 @@ repos:
     pass_filenames: false
   - id: check-enum-returns
     name: Check Enum Returns
-    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "wasi-sdk/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" --exclude-files "out_server*/*" --exclude-files "out_server/*" --exclude-files "vcpkg/*" --exclude-files "vcpkg*/*" -- -Iinclude -Isrc -I../c-fs/include -I../../c-fs/include -I../c-str-span/include -I../../c-str-span/include -I../c89stringutils/include -I../../c89stringutils/include -I../parson -I../../parson -I../greatest -I../../greatest
+    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "wasi-sdk/*" --exclude-files "test_bindings_out/*" --exclude-files "test_*_out*/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" --exclude-files "out_server*/*" --exclude-files "out_server/*" --exclude-files "vcpkg/*" --exclude-files "vcpkg*/*" -- -Iinclude -Isrc -I../c-fs/include -I../../c-fs/include -I../c-str-span/include -I../../c-str-span/include -I../c89stringutils/include -I../../c89stringutils/include -I../parson -I../../parson -I../greatest -I../../greatest
     language: python
     additional_dependencies: [libclang]
     pass_filenames: false
@@ -104,7 +114,7 @@ repos:
     types: [c]
   - id: check-error-percolation-clang
     name: Check Error Percolation
-    entry: python -c "import os, re, subprocess, sys, urllib.request; pending = set(re.findall(r'^- \[ \] `(src/[^`]+\.c)`', open('TODO_PLAN.md').read(), re.M)) if os.path.exists('TODO_PLAN.md') else set(); files = [f for f in sys.argv[1:] if f.startswith('src/') and f.endswith('.c') and f != 'src/tests/transformers/safe_crt/full_code.c' and f not in pending]; sys.exit(0) if not files else None; cargs = ['-DC_CDD_EXPORT=', '-DSIMPLE_MOCKS_EXPORT=', '-DCDD_SRC_MOCKS_EXPORT=', '-Iinclude', '-Isrc', '-Isrc/mocks', '-Isrc/tests']; [cargs.extend(['-I' + d]) for d in ('build', 'build/include', 'build/src', 'build/_deps/cfs-src/include', 'build/_deps/c_str_span-src', 'build/_deps/c89stringutils-src/c89stringutils', 'build/_deps/greatest-src') if os.path.exists(d)]; sdk = subprocess.check_output(['xcrun', '--show-sdk-path'], text=True).strip() if sys.platform == 'darwin' else ''; rdir = subprocess.check_output(['clang', '-print-resource-dir'], text=True).strip() if sys.platform == 'darwin' else ''; (cargs.append('--isysroot=' + sdk) if sdk else None); (cargs.append('-isystem' + rdir + '/include') if rdir else None); sys.argv = [sys.argv[0]] + files + ['--compile-args'] + cargs; hp = os.path.expanduser('~/repos/c-ci/precommit_hooks/check_error_percolation_clang.py'); src = open(hp).read() if os.path.exists(hp) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/refs/heads/master/precommit_hooks/check_error_percolation_clang.py').read().decode('utf-8'); exec(src)"
+    entry: python -c "import os, re, subprocess, sys, urllib.request; pending = set(re.findall(r'^- \[ \] `(src/[^`]+\.c)`', open('TODO_PLAN.md').read(), re.M)) if os.path.exists('TODO_PLAN.md') else set(); files = [f for f in sys.argv[1:] if f.startswith('src/') and f.endswith('.c') and f != 'src/tests/transformers/safe_crt/full_code.c' and f not in pending]; sys.exit(0) if not files else None; cargs = ['-DC_CDD_EXPORT=', '-DSIMPLE_MOCKS_EXPORT=', '-DCDD_SRC_MOCKS_EXPORT=', '-DCDD_TEST_HELPERS_EXPORT=', '-Iinclude', '-Isrc', '-Isrc/mocks', '-Isrc/tests']; [cargs.extend(['-I' + d]) for d in ('build', 'build/include', 'build/src', 'build/test_downloads', 'build/src/tests/mocks', 'build/src/tests/src_mocks_build', 'build/src/tests/cdd_test_helpers', 'build/_deps/cfs-src/include', 'build/_deps/c_str_span-src', 'build/_deps/c_str_span-src/c_str_span', 'build/_deps/c_str_span-build', 'build/_deps/c_str_span-build/c_str_span', 'build/_deps/c89stringutils-src/c89stringutils', 'build/_deps/c89stringutils-build', 'build/_deps/greatest-src', os.path.expanduser('~/repos/c-fs/include'), os.path.expanduser('~/repos/c-str-span/c_str_span'), os.path.expanduser('~/repos/c89stringutils/c89stringutils'), os.path.expanduser('~/repos/greatest')) if os.path.exists(d)]; sdk = subprocess.check_output(['xcrun', '--show-sdk-path'], text=True).strip() if sys.platform == 'darwin' else ''; rdir = subprocess.check_output(['clang', '-print-resource-dir'], text=True).strip() if sys.platform == 'darwin' else ''; (cargs.extend(['-isysroot', sdk]) if sdk else None); (cargs.append('-isystem' + rdir + '/include') if rdir else None); sys.argv = [sys.argv[0]] + files + ['--compile-args'] + cargs; hp = os.path.expanduser('~/repos/c-ci/precommit_hooks/check_error_percolation_clang.py'); src = open(hp).read() if os.path.exists(hp) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/refs/heads/master/precommit_hooks/check_error_percolation_clang.py').read().decode('utf-8'); exec(src)"
     language: python
     additional_dependencies: [libclang]
     types: [c]

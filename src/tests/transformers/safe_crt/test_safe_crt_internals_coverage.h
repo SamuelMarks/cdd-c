@@ -524,6 +524,8 @@ TEST test_cdd_transform_safe_crt_direct_internals_coverage(void) {
             cdd_cst_builder_init(&dummy_bld, dummy_tree, dummy_node);
         g_cdd_last_alloc_err = emit_ast_bld_strip(&n_type3, &dummy_bld, 1);
         g_cdd_last_alloc_err = emit_ast_bld_strip(&n_type3, &dummy_bld, 0);
+        n_type3.args[0] = &n_type3;
+        g_cdd_last_alloc_err = emit_ast_bld_strip(&n_type3, &dummy_bld, 1);
 
         /* call with name length >= 127 */
         {

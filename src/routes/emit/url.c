@@ -32,6 +32,10 @@
  * @return CDD_C_SUCCESS on success, or error code on invalid argument.
  */
 cdd_c_error_t is_primitive_type_url(const char *type, int *out_is_prim) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_prim)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_prim = 0;
@@ -56,14 +60,23 @@ cdd_c_error_t param_is_object_kv_url(const struct OpenAPI_Parameter *p,
                                      int *out_is_kv) {
   int is_prim = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_kv)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_kv = 0;
   if (!p || p->is_array || p->in != OA_PARAM_IN_QUERY || !p->type)
     return CDD_C_SUCCESS;
   rc = is_primitive_type_url(p->type, &is_prim);
-  *out_is_kv = !is_prim;
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (!is_prim) {
+    *out_is_kv = 1;
+    return CDD_C_SUCCESS;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -108,8 +121,8 @@ cdd_c_error_t media_type_ieq_url(const char *media_type, const char *expected,
   *out_eq = 0;
   if (!media_type || !expected)
     return CDD_C_SUCCESS;
-  rc = media_type_base_len_url(media_type, &len);
   exp_len = strlen(expected);
+  rc = media_type_base_len_url(media_type, &len);
   if (len != exp_len)
     return rc;
   for (i = 0; i < len; ++i) {
@@ -138,6 +151,10 @@ cdd_c_error_t media_type_is_json_url(const char *media_type, int *out_is_json) {
   size_t len = 0;
   int eq = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_json = 0;
@@ -194,6 +211,10 @@ querystring_param_is_form_object(const struct OpenAPI_Parameter *p,
                                  int *out_is_form_obj) {
   int is_form = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_form_obj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_form_obj = 0;
@@ -223,14 +244,20 @@ cdd_c_error_t querystring_param_is_json_ref(const struct OpenAPI_Parameter *p,
                                             int *out_is_json_ref) {
   int is_json = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_json_ref)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_json_ref = 0;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
   rc = media_type_is_json_url(p->content_type, &is_json);
-  if (!is_json)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (!is_json)
+    return CDD_C_SUCCESS;
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
     return CDD_C_SUCCESS;
   *out_is_json_ref = (p->schema.ref_name != NULL) ? 1 : 0;
@@ -251,14 +278,20 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
   const char *type = NULL;
   int is_json = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
   rc = media_type_is_json_url(p->content_type, &is_json);
-  if (!is_json)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (!is_json)
+    return CDD_C_SUCCESS;
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
     return CDD_C_SUCCESS;
   if (p->schema.inline_type)
@@ -288,14 +321,20 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
   const char *item_type = NULL;
   int is_json = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
   rc = media_type_is_json_url(p->content_type, &is_json);
-  if (!is_json)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (!is_json)
+    return CDD_C_SUCCESS;
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
         p->is_array)) {
     return CDD_C_SUCCESS;
@@ -327,14 +366,20 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   const char *item_type = NULL;
   int is_json = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING)
     return CDD_C_SUCCESS;
   rc = media_type_is_json_url(p->content_type, &is_json);
-  if (!is_json)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (!is_json)
+    return CDD_C_SUCCESS;
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
         p->is_array)) {
     return CDD_C_SUCCESS;
@@ -367,14 +412,20 @@ C_CDD_EXPORT cdd_c_error_t querystring_param_raw_primitive_type(
   int is_json = 0;
   int is_form = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = NULL;
   if (!p || p->in != OA_PARAM_IN_QUERYSTRING || !p->content_type)
     return CDD_C_SUCCESS;
   rc = media_type_is_json_url(p->content_type, &is_json);
-  if (is_json)
+  if (rc != CDD_C_SUCCESS)
     return rc;
+  if (is_json)
+    return CDD_C_SUCCESS;
   rc = media_type_is_form_url(p->content_type, &is_form);
   if (is_form)
     return rc;

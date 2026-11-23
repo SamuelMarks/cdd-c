@@ -166,7 +166,7 @@ def discover_system_compile_args(existing_args: list) -> list:
             )
             sdk_path = res.stdout.strip()
             if res.returncode == 0 and sdk_path and os.path.isdir(sdk_path):
-                extra.append(f"--isysroot={sdk_path}")
+                extra.extend(["-isysroot", sdk_path])
         except OSError:
             pass
 

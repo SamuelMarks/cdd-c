@@ -860,6 +860,97 @@ TEST test_cdd_cst_clone_trivia_list_mutate(void) {
   g_cdd_cst_alloc_token_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_trivia_list_mutate(&t1, &out));
   g_cdd_cst_alloc_token_fail = 0;
+
+  {
+    int step;
+    for (step = 1; step <= 40; ++step) {
+      cdd_cst_tree_t tree_s;
+      cdd_cst_node_t *par = NULL;
+      cdd_cst_node_t *old_n = NULL;
+      cdd_cst_node_t *old_sub = NULL;
+      cdd_cst_node_t *new_n = NULL;
+      cdd_cst_node_t *new_sub = NULL;
+      cdd_token_t tok_a;
+      cdd_c_error_t s_rc;
+      memset(&tree_s, 0, sizeof(tree_s));
+      memset(&tok_a, 0, sizeof(tok_a));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &par));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &old_n));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &old_sub));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &new_n));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &new_sub));
+      ASSERT_EQ(0, cdd_cst_append_child_token(old_sub, &tok_a));
+      ASSERT_EQ(0, cdd_cst_append_child_node(old_n, old_sub));
+      ASSERT_EQ(0, cdd_cst_append_child_token(new_sub, &tok_a));
+      ASSERT_EQ(0, cdd_cst_append_child_node(new_n, new_sub));
+      ASSERT_EQ(0, cdd_cst_append_child_node(par, old_n));
+
+      g_cdd_step_fail = step;
+      s_rc = cdd_cst_replace_node(&tree_s, old_n, new_n);
+      if (s_rc == CDD_C_SUCCESS) {
+        s_rc = cdd_cst_detach_node(&tree_s, new_n);
+        if (s_rc == CDD_C_SUCCESS) {
+          s_rc = cdd_cst_insert_child_node_at(par, 0, new_n);
+          if (s_rc == CDD_C_SUCCESS) {
+            s_rc = cdd_cst_replace_token_child(new_sub, 0, &tok_a);
+            if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+              g_cdd_step_fail = 0;
+              g_cdd_last_alloc_err = cdd_cst_free_node(old_n);
+              g_cdd_last_alloc_err = cdd_cst_free_node(par);
+              break;
+            }
+          } else {
+            g_cdd_last_alloc_err = cdd_cst_free_node(new_n);
+          }
+        }
+        g_cdd_last_alloc_err = cdd_cst_free_node(old_n);
+      } else {
+        g_cdd_last_alloc_err = cdd_cst_free_node(new_n);
+      }
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_free_node(par);
+    }
+
+    for (step = 1; step <= 40; ++step) {
+      cdd_cst_tree_t *t_sp = NULL;
+      cdd_cst_scope_env_t *env_sp = NULL;
+      cdd_cst_node_t *fn_n = NULL;
+      cdd_cst_node_t *sub_sp = NULL;
+      cdd_cst_node_t *leaf_sp = NULL;
+      cdd_token_t dummy_t;
+      size_t f_idx = 0;
+      cdd_cst_node_t *f_node = NULL;
+      cdd_c_error_t s_rc;
+      memset(&dummy_t, 0, sizeof(dummy_t));
+      ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("void f(void) {}\n"),
+                                 &t_sp));
+      ASSERT_EQ(0, cdd_cst_scope_env_init(&env_sp));
+      t_sp->active_sem_env = env_sp;
+      fn_n = t_sp->root->children[0].val.node;
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &sub_sp));
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_STATEMENT, &leaf_sp));
+      ASSERT_EQ(0, cdd_cst_append_child_node(sub_sp, leaf_sp));
+      ASSERT_EQ(0, cdd_cst_append_child_node(fn_n, sub_sp));
+
+      g_cdd_step_fail = step;
+      s_rc = cdd_cst_find_node_for_token(t_sp->root, &dummy_t, &f_idx, &f_node);
+      if (s_rc == CDD_C_ERROR_NOT_FOUND) {
+        s_rc = cdd_cst_splice_children(t_sp, &fn_n, fn_n->num_children - 1, 1,
+                                       NULL, 0);
+        if (s_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          t_sp->active_sem_env = NULL;
+          g_cdd_last_alloc_err = cdd_cst_scope_env_free(env_sp);
+          g_cdd_last_alloc_err = cdd_cst_tree_free(t_sp);
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+      t_sp->active_sem_env = NULL;
+      g_cdd_last_alloc_err = cdd_cst_scope_env_free(env_sp);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(t_sp);
+    }
+  }
 #endif
 
   PASS();

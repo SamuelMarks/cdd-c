@@ -27,6 +27,8 @@ extern "C" {
 extern C_CDD_EXPORT int g_cdd_semantic_oom_scope2;
 /** @brief Test definition g_cdd_semantic_oom_scope. */
 extern C_CDD_EXPORT int g_cdd_semantic_oom_scope;
+/** @brief Deterministic fault-injection counter for CST semantic helpers. */
+extern C_CDD_EXPORT int g_cdd_sem_fail_step;
 
 #ifdef CDD_BUILD_TESTS
 /* extern C_CDD_EXPORT int g_cdd_semantic_oom_scope; (moved to global) */
@@ -568,6 +570,8 @@ TEST test_cdd_cst_semantic_c_declarations_and_headers(void) {
       "typedef struct { __int128 big; } anon_struct_t;\n";
   const char *src3 =
       "const char *proto_fn(void);\n"
+      "struct SemRec sv;\n"
+      "int * __attribute__((unused)) attr_ptr;\n"
       "static inline int *compute(sem_int_t x, int arr[4]) {\n"
       "  struct LocalAgg { int lx; } loc_agg;\n"
       "  for (int i = 0; i < 4; i++) { if (i == 2) return &arr[0]; }\n"
@@ -619,7 +623,8 @@ TEST test_cdd_cst_semantic_c_declarations_and_headers(void) {
     int k;
     const char *oom_snippets[] = {
         "struct S { int x; int y; } s;\n", "#include \"sem_test_b.h\"\n",
-        "void fn(void) { struct Inner { int x; }; }\n"};
+        "void fn(void) { struct Inner { int x; }; }\n",
+        "void fn2(void) { for (int i = 0; i < 2; i++) {} }\n"};
     size_t si;
     for (si = 0; si < sizeof(oom_snippets) / sizeof(oom_snippets[0]); si++) {
       cdd_cst_tree_t *otree = NULL;
@@ -745,6 +750,51 @@ TEST test_cdd_cst_semantic_c_declarations_and_headers(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(zenv));
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    int sf;
+    cdd_cst_tree_t *st_rec = NULL;
+    cdd_cst_node_t *tr_decl = NULL;
+    cdd_cst_scope_env_t *e_edge = NULL;
+    const char *edge_c = "void f(struct SemRec sv) {}\n"
+                         "__attribute__ int g_attr_no_paren;\n"
+                         "int proto0();\n"
+                         "int arr_expr[2 + 1];\n"
+                         "long struct LTag { int a; };\n"
+                         "void unbal(int a { }\n"
+                         "struct SNoSemi { int a; }";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str(edge_c), &st_rec));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_DECLARATION, &tr_decl));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_append_child_node(st_rec->root, tr_decl));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_build_semantic_info(st_rec, &e_edge));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(e_edge));
+    for (sf = 1; sf <= 120; sf++) {
+      cdd_cst_scope_env_t *s_env = NULL;
+      cdd_c_error_t s_rc;
+      g_cdd_sem_fail_step = sf;
+      s_rc = cdd_cst_build_semantic_info(st_rec, &s_env);
+      g_cdd_sem_fail_step = 0;
+      if (s_rc == CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(s_env));
+        break;
+      }
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(st_rec));
+
+    for (sf = 1; sf <= 1500; sf++) {
+      cdd_cst_scope_env_t *s_env = NULL;
+      cdd_c_error_t s_rc;
+      g_cdd_sem_fail_step = sf;
+      s_rc = cdd_cst_build_semantic_info_ex(tree, inc_dirs, 2, &s_env);
+      g_cdd_sem_fail_step = 0;
+      if (s_rc == CDD_C_SUCCESS) {
+        ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(s_env));
+        break;
+      }
+    }
+  }
+#endif
   ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
   remove("sem_test_a.h");
   remove("sem_test_b.h");
@@ -1199,6 +1249,62 @@ TEST test_cdd_cst_semantic_remaining_edge_branches(void) {
       tree->root = saved_root;
     }
 
+#ifdef CDD_BUILD_TESTS
+    {
+      int sf;
+      for (sf = 1; sf <= 2000; sf++) {
+        cdd_cst_scope_env_t *s_env = NULL;
+        cdd_c_error_t s_rc;
+        g_cdd_sem_fail_step = sf;
+        s_rc = cdd_cst_build_semantic_info_ex(tree, inc_dirs, 1, &s_env);
+        g_cdd_sem_fail_step = 0;
+        if (s_rc == CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(s_env));
+          break;
+        }
+      }
+      /* Synthetic DECLARATION + TYPE_SPECIFIER + BLOCK step-fail sweep */
+      {
+        cdd_cst_tree_t *st =
+            (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+        cdd_cst_node_t *sr = NULL, *sb = NULL, *sd = NULL, *sts = NULL,
+                       *sid1 = NULL, *sid2 = NULL;
+        cdd_token_t *st1 = NULL, *st2 = NULL;
+        ASSERT(st != NULL);
+        g_cdd_last_alloc_err =
+            cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &sr);
+        st->root = sr;
+        g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_BLOCK, &sb);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(sr, sb);
+        g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_DECLARATION, &sd);
+        g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &sid1);
+        g_cdd_last_alloc_err =
+            cdd_cst_create_token_len(st, CDD_TOKEN_IDENTIFIER, "v1", 2, &st1);
+        g_cdd_last_alloc_err = cdd_cst_append_child_token(sid1, st1);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(sd, sid1);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(sb, sd);
+        g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &sts);
+        g_cdd_last_alloc_err = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &sid2);
+        g_cdd_last_alloc_err =
+            cdd_cst_create_token_len(st, CDD_TOKEN_IDENTIFIER, "S1", 2, &st2);
+        g_cdd_last_alloc_err = cdd_cst_append_child_token(sid2, st2);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(sts, sid2);
+        g_cdd_last_alloc_err = cdd_cst_append_child_node(sb, sts);
+        for (sf = 1; sf <= 20; sf++) {
+          cdd_cst_scope_env_t *s_env = NULL;
+          cdd_c_error_t s_rc;
+          g_cdd_sem_fail_step = sf;
+          s_rc = cdd_cst_build_semantic_info(st, &s_env);
+          g_cdd_sem_fail_step = 0;
+          if (s_rc == CDD_C_SUCCESS) {
+            ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_free(s_env));
+            break;
+          }
+        }
+        g_cdd_last_alloc_err = cdd_cst_tree_free(st);
+      }
+    }
+#endif
     ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_tree_free(tree));
     tree = NULL;
   }

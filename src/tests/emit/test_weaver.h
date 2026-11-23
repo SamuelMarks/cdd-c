@@ -749,6 +749,25 @@ TEST test_weaver_interactive(void) {
     } /* restore roughly */
   }
 
+  {
+    struct PatchList step_patches;
+    struct TokenList *inc_tl = NULL;
+    int step;
+    g_cdd_last_alloc_err = patch_list_init(&step_patches);
+    g_cdd_last_alloc_err = tokenize(
+        az_span_create_from_str("#include <stdio.h>\nint x;"), &inc_tl);
+    for (step = 1; step <= 4; ++step) {
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = step;
+      s_rc = weaver_inject_msvc_headers(&step_patches, inc_tl, 1, 0);
+      g_cdd_step_fail = 0;
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_last_alloc_err = patch_list_free(&step_patches);
+    g_cdd_last_alloc_err = free_token_list(inc_tl);
+  }
+
 #endif
 
   fclose(fake_stdin);

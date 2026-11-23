@@ -20,6 +20,47 @@
 /* clang-format on */
 
 /**
+ * @brief Frees a heap buffer `obj` and returns `err`.
+ *
+ * @param[in,out] obj Heap pointer to free.
+ * @param[in] err Error code to return.
+ * @return `err`.
+ */
+static cdd_c_error_t free_and_return_err(void *obj, cdd_c_error_t err) {
+  C_CDD_FREE(obj);
+  return err;
+}
+
+/**
+ * @brief Zeroes `sz` bytes at `buf` and returns `err`.
+ *
+ * @param[out] buf Buffer to zero.
+ * @param[in] sz Byte count.
+ * @param[in] err Error code to return.
+ * @return `err`.
+ */
+static cdd_c_error_t zero_and_return_err(void *buf, size_t sz,
+                                         cdd_c_error_t err) {
+  memset(buf, 0, sz);
+  return err;
+}
+
+/**
+ * @brief Cleans up field `f` on `dest` after inner element cleanup has
+ * completed, preserving `err`.
+ *
+ * @param[in,out] dest Enclosing struct instance.
+ * @param[in] f Field descriptor to clean up.
+ * @param[in] err Primary error code to preserve.
+ * @return `err` when non-zero, otherwise cleanup status.
+ */
+static cdd_c_error_t
+cleanup_field_and_return_err(void *dest, const struct cdd_field_info *f,
+                             cdd_c_error_t err) {
+  return cdd_c_keep_err(err, cdd_reflect_cleanup_single_field(dest, f));
+}
+
+/**
  * @brief Initializes a pre-allocated struct buffer `obj` with field default
  * values from `ti`.
  *
@@ -30,7 +71,7 @@
 static cdd_c_error_t
 init_struct_defaults_in_place(void *obj, const struct cdd_type_info *ti) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   for (i = 0; i < ti->n_fields; ++i) {
     const struct cdd_field_info *f = &ti->fields[i];
     if (!f->default_val || f->default_val[0] == '\0' ||
@@ -41,22 +82,35 @@ init_struct_defaults_in_place(void *obj, const struct cdd_type_info *ti) {
     if (f->kind == CDD_FIELD_KIND_INTEGER) {
       unsigned int bw_val = 0U;
       rc = cdd_struct_eval_bitwidth_str(f->default_val, &bw_val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cdd_reflect_set_int64(obj, f, (int64_t)bw_val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else if (f->kind == CDD_FIELD_KIND_BOOLEAN) {
       int b = (strcmp(f->default_val, "true") == 0) ? 1 : 0;
       rc = cdd_reflect_set_bool(obj, f, b);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else if (f->kind == CDD_FIELD_KIND_NUMBER) {
       double d = strtod(f->default_val, NULL);
       rc = cdd_reflect_set_double(obj, f, d);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else if (f->kind == CDD_FIELD_KIND_ENUM) {
       int ev_val = 0;
       int resolved = 0;
       if (f->ref_name && f->ref_name[0] != '\0') {
         const struct cdd_enum_info *ei = NULL;
-        if (cdd_reflect_enum_by_name(f->ref_name, &ei) == CDD_C_SUCCESS) {
+        rc = cdd_reflect_lookup_enum_opt(f->ref_name, &ei);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (ei) {
           const struct cdd_enum_variant_info *ev = NULL;
-          if (cdd_reflect_find_enum_variant(ei, f->default_val, &ev) ==
-              CDD_C_SUCCESS) {
+          rc = cdd_reflect_lookup_enum_variant_opt(ei, f->default_val, &ev);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+          if (ev) {
             ev_val = ev->value;
             resolved = 1;
           }
@@ -67,13 +121,15 @@ init_struct_defaults_in_place(void *obj, const struct cdd_type_info *ti) {
         ev_val = (int)strtol(f->default_val, NULL, 0);
       }
       rc = cdd_reflect_set_int64(obj, f, (int64_t)ev_val);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else if (f->kind == CDD_FIELD_KIND_STRING) {
       rc = cdd_reflect_set_string(obj, f, f->default_val);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -89,7 +145,6 @@ cdd_c_error_t cdd_reflect_struct_default(const struct cdd_type_info *ti,
                                          void **out_obj) {
   void *obj;
   cdd_c_error_t rc;
-  cdd_c_error_t rc_clean;
   if (!ti || !out_obj || ti->size == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_obj = NULL;
@@ -98,12 +153,11 @@ cdd_c_error_t cdd_reflect_struct_default(const struct cdd_type_info *ti,
     return CDD_C_ERROR_MEMORY;
   rc = init_struct_defaults_in_place(obj, ti);
   if (rc != CDD_C_SUCCESS) {
-    rc_clean = cdd_reflect_struct_cleanup(obj, ti);
-    C_CDD_FREE(obj);
-    return rc;
+    return free_and_return_err(
+        obj, cdd_c_keep_err(rc, cdd_reflect_struct_cleanup(obj, ti)));
   }
   *out_obj = obj;
-  return rc_clean = CDD_C_SUCCESS;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -116,7 +170,11 @@ cdd_c_error_t cdd_reflect_struct_default(const struct cdd_type_info *ti,
  */
 cdd_c_error_t cdd_reflect_cleanup_single_field(void *obj,
                                                const struct cdd_field_info *f) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (f->bit_width > 0)
     return CDD_C_SUCCESS;
 
@@ -131,13 +189,20 @@ cdd_c_error_t cdd_reflect_cleanup_single_field(void *obj,
   } else if (f->kind == CDD_FIELD_KIND_OBJECT) {
     const struct cdd_type_info *child_ti = NULL;
     if (f->ref_name && f->ref_name[0] != '\0') {
-      rc = cdd_reflect_type_by_name(f->ref_name, &child_ti);
+      rc = cdd_reflect_lookup_type_opt(f->ref_name, &child_ti);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     if (f->is_pointer) {
       void **pptr = (void **)((void *)((unsigned char *)obj + f->offset));
       if (*pptr) {
         if (child_ti) {
           rc = cdd_reflect_struct_cleanup(*pptr, child_ti);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(*pptr);
+            *pptr = NULL;
+            return rc;
+          }
         }
         C_CDD_FREE(*pptr);
         *pptr = NULL;
@@ -145,14 +210,20 @@ cdd_c_error_t cdd_reflect_cleanup_single_field(void *obj,
     } else if (child_ti) {
       void *child_ptr = (void *)((unsigned char *)obj + f->offset);
       rc = cdd_reflect_struct_cleanup(child_ptr, child_ti);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   } else if (f->kind == CDD_FIELD_KIND_ARRAY) {
     if (f->is_pointer) {
       rc = cdd_reflect_array_resize(obj, f, 0);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else if (f->fixed_array_len > 0) {
       void *base = (void *)((unsigned char *)obj + f->offset);
       rc = cdd_reflect_cleanup_shrunk_array_elements(base, f, 0,
                                                      f->fixed_array_len);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   } else if (f->is_pointer) {
     void **pptr = (void **)((void *)((unsigned char *)obj + f->offset));
@@ -161,7 +232,7 @@ cdd_c_error_t cdd_reflect_cleanup_single_field(void *obj,
       *pptr = NULL;
     }
   }
-  return rc == CDD_C_ERROR_NOT_FOUND ? CDD_C_SUCCESS : rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -177,7 +248,7 @@ cdd_c_error_t cdd_reflect_cleanup_single_field(void *obj,
 cdd_c_error_t cdd_reflect_struct_cleanup(void *obj,
                                          const struct cdd_type_info *ti) {
   size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   if (!ti)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!obj)
@@ -193,8 +264,10 @@ cdd_c_error_t cdd_reflect_struct_cleanup(void *obj,
   }
   for (i = 0; i < ti->n_fields; ++i) {
     rc = cdd_reflect_cleanup_single_field(obj, &ti->fields[i]);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t deepcopy_struct_in_place(const void *src, void *dest,
@@ -257,7 +330,11 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
   if (f->kind == CDD_FIELD_KIND_ARRAY) {
     size_t alen = 0;
     size_t k;
+    if (f->is_flexible_array)
+      return CDD_C_SUCCESS;
     rc = cdd_reflect_array_len(src, f, &alen);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (f->is_pointer) {
       void **dst_p = (void **)((void *)((unsigned char *)dest + f->offset));
       size_t *dst_len =
@@ -265,20 +342,23 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
       *dst_p = NULL;
       *dst_len = 0;
       if (alen == 0)
-        return rc;
+        return CDD_C_SUCCESS;
       rc = cdd_reflect_array_resize(dest, f, alen);
       if (rc != CDD_C_SUCCESS)
         return rc;
-    } else if (f->fixed_array_len > 0 &&
-               (f->elem_kind == CDD_FIELD_KIND_STRING ||
-                f->elem_kind == CDD_FIELD_KIND_OBJECT)) {
+    } else if (f->elem_kind == CDD_FIELD_KIND_STRING ||
+               f->elem_kind == CDD_FIELD_KIND_OBJECT) {
       memset((unsigned char *)dest + f->offset, 0, f->size);
     }
     for (k = 0; k < alen; ++k) {
       const void *src_elem = NULL;
       void *dst_elem = NULL;
       rc = cdd_reflect_array_at(src, f, k, &src_elem);
+      if (rc != CDD_C_SUCCESS)
+        goto array_err;
       rc = cdd_reflect_array_at_mut(dest, f, k, &dst_elem);
+      if (rc != CDD_C_SUCCESS)
+        goto array_err;
       if (f->elem_kind == CDD_FIELD_KIND_STRING) {
         const char *se = *(const char *const *)src_elem;
         char **de = (char **)dst_elem;
@@ -286,8 +366,10 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
         if (se) {
           size_t sl = strlen(se);
           *de = (char *)C_CDD_MALLOC(sl + 1);
-          if (!*de)
-            return CDD_C_ERROR_MEMORY;
+          if (!*de) {
+            rc = CDD_C_ERROR_MEMORY;
+            goto array_err;
+          }
           memcpy(*de, se, sl + 1);
         }
       } else if (f->elem_kind == CDD_FIELD_KIND_OBJECT) {
@@ -295,8 +377,10 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
         int is_ptr = 0;
         rc = cdd_reflect_type_by_name(f->ref_name, &elem_ti);
         if (rc != CDD_C_SUCCESS)
-          return rc;
+          goto array_err;
         rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_ptr);
+        if (rc != CDD_C_SUCCESS)
+          goto array_err;
         if (is_ptr) {
           const void *so = *(const void *const *)src_elem;
           void **do_ptr = (void **)dst_elem;
@@ -304,18 +388,26 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
           if (so) {
             rc = cdd_reflect_struct_deepcopy(so, do_ptr, elem_ti);
             if (rc != CDD_C_SUCCESS)
-              return rc;
+              goto array_err;
           }
         } else {
           rc = deepcopy_struct_in_place(src_elem, dst_elem, elem_ti);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          if (rc != CDD_C_SUCCESS) {
+            return cleanup_field_and_return_err(
+                dest, f,
+                zero_and_return_err(
+                    dst_elem, f->elem_size,
+                    cdd_c_keep_err(
+                        rc, cdd_reflect_struct_cleanup(dst_elem, elem_ti))));
+          }
         }
       } else {
         memcpy(dst_elem, src_elem, f->elem_size);
       }
     }
     return CDD_C_SUCCESS;
+  array_err:;
+    return cdd_c_keep_err(rc, cdd_reflect_cleanup_single_field(dest, f));
   }
 
   if (f->is_pointer) {
@@ -327,13 +419,15 @@ static cdd_c_error_t deepcopy_single_field(const void *src, void *dest,
     *dst_p = NULL;
     if (src_p) {
       rc = cdd_reflect_resolve_field_scalar_width(f, &width, &is_u);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       *dst_p = C_CDD_MALLOC(width);
       if (!*dst_p)
         return CDD_C_ERROR_MEMORY;
       memcpy(*dst_p, src_p, width);
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -403,7 +497,6 @@ cdd_c_error_t cdd_reflect_struct_deepcopy(const void *src, void **out_dest,
                                           const struct cdd_type_info *ti) {
   void *dest;
   cdd_c_error_t rc;
-  cdd_c_error_t rc_clean;
   if (!src || !out_dest || !ti || ti->size == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_dest = NULL;
@@ -412,12 +505,11 @@ cdd_c_error_t cdd_reflect_struct_deepcopy(const void *src, void **out_dest,
     return CDD_C_ERROR_MEMORY;
   rc = deepcopy_struct_in_place(src, dest, ti);
   if (rc != CDD_C_SUCCESS) {
-    rc_clean = cdd_reflect_struct_cleanup(dest, ti);
-    C_CDD_FREE(dest);
-    return rc;
+    return free_and_return_err(
+        dest, cdd_c_keep_err(rc, cdd_reflect_struct_cleanup(dest, ti)));
   }
   *out_dest = dest;
-  return rc_clean = CDD_C_SUCCESS;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -432,7 +524,7 @@ cdd_c_error_t cdd_reflect_struct_deepcopy(const void *src, void **out_dest,
 cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
                                           const struct cdd_field_info *f,
                                           int *out_eq) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
   *out_eq = 0;
 
   if (f->kind == CDD_FIELD_KIND_INTEGER || f->kind == CDD_FIELD_KIND_BOOLEAN ||
@@ -450,12 +542,18 @@ cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
     if (f->kind == CDD_FIELD_KIND_NUMBER) {
       double da = 0.0, db = 0.0;
       rc = cdd_reflect_get_double(a, f, &da);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cdd_reflect_get_double(b, f, &db);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       *out_eq = (da == db) ? 1 : 0;
     } else {
       size_t width = 0;
       int is_unsigned = 0;
       rc = cdd_reflect_resolve_field_scalar_width(f, &width, &is_unsigned);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (width == 16) {
         const void *aa = (const void *)((const unsigned char *)a + f->offset);
         const void *ab = (const void *)((const unsigned char *)b + f->offset);
@@ -463,25 +561,37 @@ cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
       } else if (width == 8 && is_unsigned) {
         uint64_t ua = 0, ub = 0;
         rc = cdd_reflect_get_uint64(a, f, &ua);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         rc = cdd_reflect_get_uint64(b, f, &ub);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         *out_eq = (ua == ub) ? 1 : 0;
       } else {
         int64_t va = 0, vb = 0;
         rc = cdd_reflect_get_int64(a, f, &va);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         rc = cdd_reflect_get_int64(b, f, &vb);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         *out_eq = (va == vb) ? 1 : 0;
       }
     }
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (f->kind == CDD_FIELD_KIND_STRING) {
     const char *sa = NULL;
     const char *sb = NULL;
     rc = cdd_reflect_get_string(a, f, &sa);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_reflect_get_string(b, f, &sb);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     *out_eq = (sa == sb || (sa && sb && strcmp(sa, sb) == 0)) ? 1 : 0;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (f->kind == CDD_FIELD_KIND_OBJECT) {
@@ -509,16 +619,24 @@ cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
     size_t la = 0, lb = 0;
     size_t k;
     rc = cdd_reflect_array_len(a, f, &la);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_reflect_array_len(b, f, &lb);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (la != lb) {
       *out_eq = 0;
-      return rc;
+      return CDD_C_SUCCESS;
     }
     for (k = 0; k < la && *out_eq; ++k) {
       const void *ea = NULL;
       const void *eb = NULL;
       rc = cdd_reflect_array_at(a, f, k, &ea);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cdd_reflect_array_at(b, f, k, &eb);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (f->elem_kind == CDD_FIELD_KIND_STRING) {
         const char *sa = *(const char *const *)ea;
         const char *sb = *(const char *const *)eb;
@@ -533,15 +651,19 @@ cdd_c_error_t cdd_reflect_eq_single_field(const void *a, const void *b,
         if (rc != CDD_C_SUCCESS)
           return rc;
         rc = cdd_reflect_is_obj_elem_ptr(f, elem_ti, &is_p);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         oa = is_p ? *(const void *const *)ea : ea;
         ob = is_p ? *(const void *const *)eb : eb;
-        rc = cdd_c_keep_err(rc, cdd_reflect_struct_eq(oa, ob, elem_ti, out_eq));
+        rc = cdd_reflect_struct_eq(oa, ob, elem_ti, out_eq);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else {
         *out_eq = (memcmp(ea, eb, f->elem_size) == 0) ? 1 : 0;
       }
     }
   }
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*

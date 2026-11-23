@@ -6,6 +6,7 @@
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_type_eval.h"
+#include "c_cdd_export.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
 #include <errno.h>
@@ -13,6 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+/** @brief Deterministic fault-injection counter for CST type-eval helpers. */
+C_CDD_EXPORT int g_cdd_te_fail_step = 0;
+#endif
 
 /*
  * @brief Evaluates the byte size and alignment of a C primitive type under a
@@ -120,8 +126,91 @@ cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
 }
 
 /**
- * @brief Resolves a type name through `CDD_CST_SYMBOL_TYPEDEF` chains in `env`
- * and evaluates primitive/pointer ABI info.
+ * @brief Non-fatal primitive evaluation helper setting `*out_matched = 1` when
+ * `type_name` is a known C primitive.
+ *
+ * @param[in] type_name Candidate primitive type string.
+ * @param[in] abi Target ABI model.
+ * @param[out] out_info Output size and alignment when matched.
+ * @param[out] out_matched Receives 1 if matched, 0 otherwise.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+static cdd_c_error_t te_try_eval_primitive(const char *type_name,
+                                           enum cdd_cst_abi_model_t abi,
+                                           cdd_cst_type_info_t *out_info,
+                                           int *out_matched) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_matched = 0;
+  rc = cdd_cst_eval_primitive_type(type_name, abi, out_info);
+  if (rc == CDD_C_SUCCESS) {
+    *out_matched = 1;
+    return rc;
+  }
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Non-fatal scope environment lookup setting `*out_sym = NULL` when
+ * absent.
+ *
+ * @param[in] env Scope environment.
+ * @param[in] name Symbol identifier.
+ * @param[in] kind Symbol namespace/kind.
+ * @param[out] out_sym Receives found symbol pointer, or NULL if absent.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+static cdd_c_error_t te_try_lookup_env(cdd_cst_scope_env_t *env,
+                                       const char *name,
+                                       enum cdd_cst_symbol_kind_t kind,
+                                       cdd_cst_symbol_t **out_sym) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_sym = NULL;
+  rc = cdd_cst_scope_lookup_symbol(env, name, kind, out_sym);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  *out_sym = NULL;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Non-fatal lexical scope lookup setting `*out_sym = NULL` when absent.
+ *
+ * @param[in] scope Starting lexical scope (may be NULL).
+ * @param[in] name Symbol identifier.
+ * @param[in] kind Symbol namespace/kind.
+ * @param[out] out_sym Receives found symbol pointer, or NULL if absent.
+ * @return CDD_C_SUCCESS on completion, or error code on fault injection.
+ */
+static cdd_c_error_t te_try_lookup_scope(const cdd_cst_scope_t *scope,
+                                         const char *name,
+                                         enum cdd_cst_symbol_kind_t kind,
+                                         cdd_cst_symbol_t **out_sym) {
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  *out_sym = NULL;
+  if (!scope)
+    return CDD_C_SUCCESS;
+  rc = cdd_cst_scope_lookup_in_scope(scope, name, kind, out_sym);
+  if (rc == CDD_C_SUCCESS)
+    return rc;
+  *out_sym = NULL;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Resolves a type name (or typedef chain) to its primitive/pointer ABI
+ * size and alignment.
  *
  * @param[in] env Non-null active scope environment.
  * @param[in] type_name Non-null type name to evaluate.
@@ -137,6 +226,7 @@ static cdd_c_error_t eval_named_or_typedef(cdd_cst_scope_env_t *env,
                                            cdd_cst_type_info_t *out_info) {
   const char *cur = type_name;
   int hops = 0;
+  cdd_c_error_t rc;
 
   if (is_pointer) {
     return cdd_cst_eval_primitive_type("ptr", abi, out_info);
@@ -144,15 +234,20 @@ static cdd_c_error_t eval_named_or_typedef(cdd_cst_scope_env_t *env,
   while (hops < 8) {
     size_t len = strlen(cur);
     cdd_cst_symbol_t *sym = NULL;
+    int matched = 0;
     if (cur[len - 1] == '*') {
       return cdd_cst_eval_primitive_type("ptr", abi, out_info);
     }
-    if (cdd_cst_eval_primitive_type(cur, abi, out_info) == CDD_C_SUCCESS) {
+    rc = te_try_eval_primitive(cur, abi, out_info, &matched);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (matched)
       return CDD_C_SUCCESS;
-    }
-    if (cdd_cst_scope_lookup_symbol(env, cur, CDD_CST_SYMBOL_TYPEDEF, &sym) ==
-            CDD_C_SUCCESS &&
-        sym->kind == CDD_CST_SYMBOL_TYPEDEF && sym->type_str) {
+
+    rc = te_try_lookup_env(env, cur, CDD_CST_SYMBOL_TYPEDEF, &sym);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (sym && sym->kind == CDD_CST_SYMBOL_TYPEDEF && sym->type_str) {
       cur = sym->type_str;
       hops++;
       continue;
@@ -178,6 +273,10 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
   char buf[256];
   size_t buf_len = 0;
   int ptr_count = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   buf[0] = '\0';
   for (i = 0; i < node->num_children; i++) {
@@ -245,11 +344,12 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
   }
 
   rc = eval_named_or_typedef(env, name, is_pointer, abi, &info);
-  C_CDD_FREE(name);
   if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(name);
     *out_size = 0;
     return rc;
   }
+  C_CDD_FREE(name);
 
   *out_size = info.size;
   return CDD_C_SUCCESS;
@@ -283,11 +383,12 @@ cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
   }
 
   rc = eval_named_or_typedef(env, name, is_pointer, abi, &info);
-  C_CDD_FREE(name);
   if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(name);
     *out_align = 0;
     return rc;
   }
+  C_CDD_FREE(name);
 
   *out_align = info.alignment;
   return CDD_C_SUCCESS;
@@ -300,12 +401,16 @@ cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
  * @param[in] table Array of null-terminated strings.
  * @param[in] count Number of entries in `table`.
  * @param[out] out_eq Receives 1 if matched, 0 otherwise.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_tok_in_table(const cdd_token_t *tok,
                                      const char *const *table, size_t count,
                                      int *out_eq) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_eq = 0;
   for (i = 0; i < count; i++) {
     size_t l = strlen(table[i]);
@@ -323,10 +428,14 @@ static cdd_c_error_t te_tok_in_table(const cdd_token_t *tok,
  * @param[out] dst Non-null destination buffer (`cap > 0`).
  * @param[in] cap Buffer capacity.
  * @param[in] src Non-null source string.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_copy_str(char *dst, size_t cap, const char *src) {
   size_t len = strlen(src);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (len >= cap)
     len = cap - 1;
   memcpy(dst, src, len);
@@ -341,13 +450,17 @@ static cdd_c_error_t te_copy_str(char *dst, size_t cap, const char *src) {
  * @param[in,out] type_buf Buffer containing the C type string to normalize.
  * @param[in] cap Capacity of `type_buf`.
  * @param[in] mode Evaluation mode (`cdd_cst_type_eval_mode_t`).
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_normalize_type_mode(char *type_buf, size_t cap,
                                             int mode) {
   static const char *const k_cvr_pre[] = {"const ", "volatile ", "restrict ",
                                           "__restrict "};
   size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (mode == CDD_CST_TYPE_MODE_EXACT)
     return CDD_C_SUCCESS;
 
@@ -394,7 +507,7 @@ static cdd_c_error_t te_normalize_type_mode(char *type_buf, size_t cap,
  * @param[out] out_type Buffer receiving the formatted type if matched.
  * @param[in] cap Buffer capacity.
  * @param[out] out_matched Receives 1 if `tokens` is a type name, 0 otherwise.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
                                             const cdd_token_t *const *tokens,
@@ -413,7 +526,7 @@ static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
   size_t i = 0;
   int has_noun = 0;
   size_t blen = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
   *out_matched = 0;
   out_type[0] = '\0';
@@ -422,12 +535,12 @@ static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
     const cdd_token_t *t = tokens[i];
     int m = 0;
 
-    rc = (cdd_c_error_t)((int)rc | (int)te_tok_in_table(
-                                       t, k_aggr,
-                                       sizeof(k_aggr) / sizeof(k_aggr[0]), &m));
+    rc = te_tok_in_table(t, k_aggr, sizeof(k_aggr) / sizeof(k_aggr[0]), &m);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (t->kind == CDD_TOKEN_KEYWORD_STRUCT || m) {
       if (i + 1 >= n || tokens[i + 1]->kind != CDD_TOKEN_IDENTIFIER)
-        return rc;
+        return CDD_C_SUCCESS;
       if (blen > 0 && blen + 1 < cap)
         out_type[blen++] = ' ';
       if (blen + t->length + 1 + tokens[i + 1]->length < cap) {
@@ -447,16 +560,16 @@ static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
         t->kind == CDD_TOKEN_KEYWORD___INT128 ||
         t->kind == CDD_TOKEN_IDENTIFIER) {
       int matched_word = 0;
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)te_tok_in_table(
-                               t, k_quals, sizeof(k_quals) / sizeof(k_quals[0]),
-                               &matched_word));
+      rc = te_tok_in_table(t, k_quals, sizeof(k_quals) / sizeof(k_quals[0]),
+                           &matched_word);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (!matched_word) {
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_tok_in_table(t, k_type_words,
-                                                  sizeof(k_type_words) /
-                                                      sizeof(k_type_words[0]),
-                                                  &matched_word));
+        rc = te_tok_in_table(t, k_type_words,
+                             sizeof(k_type_words) / sizeof(k_type_words[0]),
+                             &matched_word);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (matched_word)
           has_noun = 1;
       }
@@ -465,9 +578,10 @@ static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
         cdd_cst_symbol_t *tsym = NULL;
         memcpy(idbuf, t->start, t->length);
         idbuf[t->length] = '\0';
-        if (cdd_cst_scope_lookup_in_scope(scope, idbuf, CDD_CST_SYMBOL_TYPEDEF,
-                                          &tsym) == CDD_C_SUCCESS &&
-            tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
+        rc = te_try_lookup_scope(scope, idbuf, CDD_CST_SYMBOL_TYPEDEF, &tsym);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (tsym && tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
           matched_word = 1;
           has_noun = 1;
         }
@@ -512,12 +626,12 @@ static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
       continue;
     }
 
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (has_noun)
     *out_matched = 1;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -526,7 +640,7 @@ static cdd_c_error_t te_try_parse_type_name(const cdd_cst_scope_t *scope,
  * @param[in] tok Numeric literal token.
  * @param[out] out_type Destination buffer.
  * @param[in] cap Buffer capacity.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_eval_number_literal(const cdd_token_t *tok,
                                             char *out_type, size_t cap) {
@@ -547,10 +661,12 @@ static cdd_c_error_t te_eval_number_literal(const cdd_token_t *tok,
   }
   if (is_flt) {
     char last = s[len - 1];
-    if (last == 'f' || last == 'F')
+    if (last == 'f' || last == 'F') {
       return te_copy_str(out_type, cap, "float");
-    if (last == 'l' || last == 'L')
+    }
+    if (last == 'l' || last == 'L') {
       return te_copy_str(out_type, cap, "long double");
+    }
     return te_copy_str(out_type, cap, "double");
   }
   for (j = len; j > 0; j--) {
@@ -562,11 +678,13 @@ static cdd_c_error_t te_eval_number_literal(const cdd_token_t *tok,
     else
       break;
   }
-  if (l_cnt >= 2)
+  if (l_cnt >= 2) {
     return te_copy_str(out_type, cap,
                        has_u ? "unsigned long long" : "long long");
-  if (l_cnt == 1)
+  }
+  if (l_cnt == 1) {
     return te_copy_str(out_type, cap, has_u ? "unsigned long" : "long");
+  }
   return te_copy_str(out_type, cap, has_u ? "unsigned int" : "int");
 }
 
@@ -575,7 +693,7 @@ static cdd_c_error_t te_eval_number_literal(const cdd_token_t *tok,
  *
  * @param[in] t Canonical C type string.
  * @param[out] out_rank Numeric conversion rank.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_arith_rank(const char *t, int *out_rank) {
   static const struct {
@@ -588,6 +706,10 @@ static cdd_c_error_t te_arith_rank(const char *t, int *out_rank) {
       {"size_t", 55},        {"unsigned long", 55}, {"long", 50},
       {"unsigned int", 45}};
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_rank = 40;
   for (i = 0; i < sizeof(k_ranks) / sizeof(k_ranks[0]); i++) {
     if (strcmp(t, k_ranks[i].name) == 0) {
@@ -608,7 +730,7 @@ static cdd_c_error_t te_arith_rank(const char *t, int *out_rank) {
  * type on match.
  * @param[in] cap Buffer capacity.
  * @param[in] field_tok Identifier token of member field.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_resolve_member(const cdd_cst_scope_env_t *env,
                                        const cdd_cst_scope_t *scope,
@@ -618,16 +740,18 @@ static cdd_c_error_t te_resolve_member(const cdd_cst_scope_env_t *env,
   char fname[128];
   size_t flen;
   int hops = 0;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
-  if (!env || field_tok->length >= 127)
+  if (!env || field_tok->length >= 127) {
     return te_copy_str(cur_type, cap, "int");
+  }
 
   flen = field_tok->length;
   memcpy(fname, field_tok->start, flen);
   fname[flen] = '\0';
-  rc =
-      (cdd_c_error_t)((int)rc | (int)te_copy_str(work, sizeof(work), cur_type));
+  rc = te_copy_str(work, sizeof(work), cur_type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   while (hops < 8) {
     size_t wl = strlen(work);
@@ -642,8 +766,10 @@ static cdd_c_error_t te_resolve_member(const cdd_cst_scope_env_t *env,
       enum cdd_cst_symbol_kind_t tk =
           is_un ? CDD_CST_SYMBOL_UNION_TAG : CDD_CST_SYMBOL_STRUCT_TAG;
       cdd_cst_symbol_t *tsym = NULL;
-      if (cdd_cst_scope_lookup_in_scope(scope, tag, tk, &tsym) ==
-          CDD_C_SUCCESS) {
+      rc = te_try_lookup_scope(scope, tag, tk, &tsym);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (tsym) {
         cdd_cst_field_info_t *fi = tsym->fields;
         while (fi) {
           if (strcmp(fi->name, fname) == 0) {
@@ -655,11 +781,13 @@ static cdd_c_error_t te_resolve_member(const cdd_cst_scope_env_t *env,
       break;
     } else {
       cdd_cst_symbol_t *td = NULL;
-      if (cdd_cst_scope_lookup_in_scope(scope, work, CDD_CST_SYMBOL_TYPEDEF,
-                                        &td) == CDD_C_SUCCESS &&
-          td->kind == CDD_CST_SYMBOL_TYPEDEF && td->type_str) {
-        rc = (cdd_c_error_t)((int)rc | (int)te_copy_str(work, sizeof(work),
-                                                        td->type_str));
+      rc = te_try_lookup_scope(scope, work, CDD_CST_SYMBOL_TYPEDEF, &td);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (td && td->kind == CDD_CST_SYMBOL_TYPEDEF && td->type_str) {
+        rc = te_copy_str(work, sizeof(work), td->type_str);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         hops++;
         continue;
       }
@@ -673,10 +801,14 @@ static cdd_c_error_t te_resolve_member(const cdd_cst_scope_env_t *env,
  * @brief Strips one pointer/array indirection level from `type_buf`.
  *
  * @param[in,out] type_buf Canonical C type buffer.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_deref_type(char *type_buf) {
   size_t len = strlen(type_buf);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_te_fail_step > 0 && --g_cdd_te_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (len > 2 && type_buf[len - 1] == ']') {
     char *lb = strrchr(type_buf, '[');
     if (lb)
@@ -700,7 +832,7 @@ static cdd_c_error_t te_deref_type(char *type_buf) {
  * @param[in] n Number of tokens in `tokens`.
  * @param[out] out_type Buffer receiving evaluated C type.
  * @param[in] cap Buffer capacity.
- * @return CDD_C_SUCCESS.
+ * @return CDD_C_SUCCESS on success, or error code on fault injection.
  */
 static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
                                       const cdd_cst_scope_t *scope,
@@ -715,10 +847,11 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
                                             "strrchr", "strstr",  "getenv"};
   size_t i;
   int depth;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc;
 
-  if (n == 0)
+  if (n == 0) {
     return te_copy_str(out_type, cap, "void");
+  }
 
   /* 1. Unwrap balanced outer parentheses `( expr )` or C cast `(Type)expr` */
   if (tokens[0]->kind == CDD_TOKEN_LPAREN) {
@@ -741,11 +874,13 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
     if (match_rp < n - 1 && match_rp > 1) {
       char cast_t[160];
       int is_tn = 0;
-      rc = (cdd_c_error_t)((int)rc | (int)te_try_parse_type_name(
-                                         scope, tokens + 1, match_rp - 1,
-                                         cast_t, sizeof(cast_t), &is_tn));
-      if (is_tn)
+      rc = te_try_parse_type_name(scope, tokens + 1, match_rp - 1, cast_t,
+                                  sizeof(cast_t), &is_tn);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (is_tn) {
         return te_copy_str(out_type, cap, cast_t);
+      }
     }
   }
 
@@ -839,24 +974,32 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
       int rl = 0, rr = 0;
       size_t l_start = (colon_idx > q_idx + 1) ? (q_idx + 1) : 0;
       size_t l_len = (colon_idx > q_idx + 1) ? (colon_idx - q_idx - 1) : q_idx;
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)te_eval_expr_rec(env, scope, tokens + l_start,
-                                                 l_len, lt, sizeof(lt)));
-      rc = (cdd_c_error_t)((int)rc | (int)te_eval_expr_rec(
-                                         env, scope, tokens + colon_idx + 1,
-                                         n - colon_idx - 1, rt, sizeof(rt)));
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)te_normalize_type_mode(
-                               lt, sizeof(lt), CDD_CST_TYPE_MODE_RVALUE));
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)te_normalize_type_mode(
-                               rt, sizeof(rt), CDD_CST_TYPE_MODE_RVALUE));
-      if (strchr(lt, '*') != NULL && strcmp(lt, "void *") != 0)
+      rc =
+          te_eval_expr_rec(env, scope, tokens + l_start, l_len, lt, sizeof(lt));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = te_eval_expr_rec(env, scope, tokens + colon_idx + 1,
+                            n - colon_idx - 1, rt, sizeof(rt));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = te_normalize_type_mode(lt, sizeof(lt), CDD_CST_TYPE_MODE_RVALUE);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = te_normalize_type_mode(rt, sizeof(rt), CDD_CST_TYPE_MODE_RVALUE);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (strchr(lt, '*') != NULL && strcmp(lt, "void *") != 0) {
         return te_copy_str(out_type, cap, lt);
-      if (strchr(rt, '*') != NULL)
+      }
+      if (strchr(rt, '*') != NULL) {
         return te_copy_str(out_type, cap, rt);
-      rc = (cdd_c_error_t)((int)rc | (int)te_arith_rank(lt, &rl));
-      rc = (cdd_c_error_t)((int)rc | (int)te_arith_rank(rt, &rr));
+      }
+      rc = te_arith_rank(lt, &rl);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      rc = te_arith_rank(rt, &rr);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       return te_copy_str(out_type, cap, rl >= rr ? lt : rt);
     }
     if (logic_idx < n) {
@@ -869,31 +1012,39 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
         char lt[160];
         char rt[160];
         int l_ptr, r_ptr, rl = 0, rr = 0;
-        rc = (cdd_c_error_t)((int)rc | (int)te_eval_expr_rec(env, scope, tokens,
-                                                             bin_idx, lt,
-                                                             sizeof(lt)));
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_eval_expr_rec(
-                                 env, scope, tokens + bin_idx + rhs_off,
-                                 n - bin_idx - rhs_off, rt, sizeof(rt)));
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_normalize_type_mode(
-                                 lt, sizeof(lt), CDD_CST_TYPE_MODE_RVALUE));
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_normalize_type_mode(
-                                 rt, sizeof(rt), CDD_CST_TYPE_MODE_RVALUE));
+        rc = te_eval_expr_rec(env, scope, tokens, bin_idx, lt, sizeof(lt));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = te_eval_expr_rec(env, scope, tokens + bin_idx + rhs_off,
+                              n - bin_idx - rhs_off, rt, sizeof(rt));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = te_normalize_type_mode(lt, sizeof(lt), CDD_CST_TYPE_MODE_RVALUE);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = te_normalize_type_mode(rt, sizeof(rt), CDD_CST_TYPE_MODE_RVALUE);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         l_ptr = (strchr(lt, '*') != NULL);
         r_ptr = (strchr(rt, '*') != NULL);
-        if (l_ptr && r_ptr && bin_op == CDD_TOKEN_MINUS)
+        if (l_ptr && r_ptr && bin_op == CDD_TOKEN_MINUS) {
           return te_copy_str(out_type, cap, "long");
-        if (l_ptr)
+        }
+        if (l_ptr) {
           return te_copy_str(out_type, cap, lt);
-        if (r_ptr && bin_op == CDD_TOKEN_PLUS)
+        }
+        if (r_ptr && bin_op == CDD_TOKEN_PLUS) {
           return te_copy_str(out_type, cap, rt);
-        if (bin_op == CDD_TOKEN_LSHIFT || bin_op == CDD_TOKEN_RSHIFT)
+        }
+        if (bin_op == CDD_TOKEN_LSHIFT || bin_op == CDD_TOKEN_RSHIFT) {
           return te_copy_str(out_type, cap, lt);
-        rc = (cdd_c_error_t)((int)rc | (int)te_arith_rank(lt, &rl));
-        rc = (cdd_c_error_t)((int)rc | (int)te_arith_rank(rt, &rr));
+        }
+        rc = te_arith_rank(lt, &rl);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = te_arith_rank(rt, &rr);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         return te_copy_str(out_type, cap, rl >= rr ? lt : rt);
       }
     }
@@ -905,16 +1056,18 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
   }
   {
     int is_sz = 0;
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)te_tok_in_table(tokens[0], k_sizeof_ops,
-                                              sizeof(k_sizeof_ops) /
-                                                  sizeof(k_sizeof_ops[0]),
-                                              &is_sz));
+    rc =
+        te_tok_in_table(tokens[0], k_sizeof_ops,
+                        sizeof(k_sizeof_ops) / sizeof(k_sizeof_ops[0]), &is_sz);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (is_sz) {
       cdd_cst_symbol_t *sz_sym = NULL;
-      if (scope &&
-          cdd_cst_scope_lookup_in_scope(scope, "size_t", CDD_CST_SYMBOL_TYPEDEF,
-                                        &sz_sym) == CDD_C_SUCCESS) {
+      rc =
+          te_try_lookup_scope(scope, "size_t", CDD_CST_SYMBOL_TYPEDEF, &sz_sym);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (sz_sym) {
         return te_copy_str(out_type, cap, "size_t");
       }
       return te_copy_str(out_type, cap, "unsigned long");
@@ -922,21 +1075,23 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
   }
   if (n >= 2 && tokens[0]->kind == CDD_TOKEN_STAR) {
     char sub[160];
-    rc = (cdd_c_error_t)((int)rc | (int)te_eval_expr_rec(env, scope, tokens + 1,
-                                                         n - 1, sub,
-                                                         sizeof(sub)));
-    rc = (cdd_c_error_t)((int)rc | (int)te_deref_type(sub));
+    rc = te_eval_expr_rec(env, scope, tokens + 1, n - 1, sub, sizeof(sub));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = te_deref_type(sub);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     return te_copy_str(out_type, cap, sub);
   }
   if (n >= 2 && tokens[0]->length == 1 && tokens[0]->start[0] == '&') {
     char sub[168];
     size_t sl;
-    rc = (cdd_c_error_t)((int)rc | (int)te_eval_expr_rec(env, scope, tokens + 1,
-                                                         n - 1, sub,
-                                                         sizeof(sub) - 4));
-    rc = (cdd_c_error_t)((int)rc |
-                         (int)te_normalize_type_mode(sub, sizeof(sub) - 4,
-                                                     CDD_CST_TYPE_MODE_UNQUAL));
+    rc = te_eval_expr_rec(env, scope, tokens + 1, n - 1, sub, sizeof(sub) - 4);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = te_normalize_type_mode(sub, sizeof(sub) - 4, CDD_CST_TYPE_MODE_UNQUAL);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     sl = strlen(sub);
     if (sl > 2 && sub[sl - 1] == ']') {
       char *lb = strchr(sub, '[');
@@ -982,25 +1137,29 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
         }
       }
       if (rp < n && rp > 1) {
-        rc = (cdd_c_error_t)((int)rc | (int)te_eval_expr_rec(env, scope,
-                                                             tokens + 1, rp - 1,
-                                                             cur, sizeof(cur)));
+        rc = te_eval_expr_rec(env, scope, tokens + 1, rp - 1, cur, sizeof(cur));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         pos = rp + 1;
       } else {
         return te_copy_str(out_type, cap, "int");
       }
     } else if (tokens[0]->kind == CDD_TOKEN_STRING) {
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)te_copy_str(cur, sizeof(cur), "const char *"));
+      rc = te_copy_str(cur, sizeof(cur), "const char *");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       pos = 1;
       while (pos < n && tokens[pos]->kind == CDD_TOKEN_STRING)
         pos++;
     } else if (tokens[0]->kind == CDD_TOKEN_CHAR) {
-      rc = (cdd_c_error_t)((int)rc | (int)te_copy_str(cur, sizeof(cur), "int"));
+      rc = te_copy_str(cur, sizeof(cur), "int");
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       pos = 1;
     } else if (tokens[0]->kind == CDD_TOKEN_NUMBER) {
-      rc = (cdd_c_error_t)((int)rc | (int)te_eval_number_literal(tokens[0], cur,
-                                                                 sizeof(cur)));
+      rc = te_eval_number_literal(tokens[0], cur, sizeof(cur));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       pos = 1;
     } else if (tokens[0]->kind == CDD_TOKEN_IDENTIFIER &&
                tokens[0]->length < 127) {
@@ -1023,48 +1182,55 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
             }
           }
         }
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_tok_in_table(tokens[0], k_voidp_fns,
-                                                  sizeof(k_voidp_fns) /
-                                                      sizeof(k_voidp_fns[0]),
-                                                  &m_vp));
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_tok_in_table(tokens[0], k_charp_fns,
-                                                  sizeof(k_charp_fns) /
-                                                      sizeof(k_charp_fns[0]),
-                                                  &m_cp));
-        if (scope &&
-            cdd_cst_scope_lookup_in_scope(scope, idbuf, CDD_CST_SYMBOL_FUNCTION,
-                                          &fsym) == CDD_C_SUCCESS &&
-            fsym->type_str) {
-          rc = (cdd_c_error_t)((int)rc | (int)te_copy_str(cur, sizeof(cur),
-                                                          fsym->type_str));
+        rc = te_tok_in_table(tokens[0], k_voidp_fns,
+                             sizeof(k_voidp_fns) / sizeof(k_voidp_fns[0]),
+                             &m_vp);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = te_tok_in_table(tokens[0], k_charp_fns,
+                             sizeof(k_charp_fns) / sizeof(k_charp_fns[0]),
+                             &m_cp);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        rc = te_try_lookup_scope(scope, idbuf, CDD_CST_SYMBOL_FUNCTION, &fsym);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (fsym && fsym->type_str) {
+          rc = te_copy_str(cur, sizeof(cur), fsym->type_str);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else if (m_vp) {
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)te_copy_str(cur, sizeof(cur), "void *"));
+          rc = te_copy_str(cur, sizeof(cur), "void *");
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else if (m_cp) {
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)te_copy_str(cur, sizeof(cur), "char *"));
+          rc = te_copy_str(cur, sizeof(cur), "char *");
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)te_copy_str(cur, sizeof(cur), "int"));
+          rc = te_copy_str(cur, sizeof(cur), "int");
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       } else {
         cdd_cst_symbol_t *vsym = NULL;
         pos = 1;
-        if (scope &&
-            cdd_cst_scope_lookup_in_scope(scope, idbuf, CDD_CST_SYMBOL_VARIABLE,
-                                          &vsym) == CDD_C_SUCCESS &&
-            vsym->type_str) {
-          rc = (cdd_c_error_t)((int)rc | (int)te_copy_str(cur, sizeof(cur),
-                                                          vsym->type_str));
+        rc = te_try_lookup_scope(scope, idbuf, CDD_CST_SYMBOL_VARIABLE, &vsym);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (vsym && vsym->type_str) {
+          rc = te_copy_str(cur, sizeof(cur), vsym->type_str);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else if (strcmp(idbuf, "NULL") == 0 ||
                    strcmp(idbuf, "nullptr") == 0) {
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)te_copy_str(cur, sizeof(cur), "void *"));
+          rc = te_copy_str(cur, sizeof(cur), "void *");
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
-          rc = (cdd_c_error_t)((int)rc |
-                               (int)te_copy_str(cur, sizeof(cur), "int"));
+          rc = te_copy_str(cur, sizeof(cur), "int");
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     } else {
@@ -1086,21 +1252,23 @@ static cdd_c_error_t te_eval_expr_rec(const cdd_cst_scope_env_t *env,
             }
           }
         }
-        rc = (cdd_c_error_t)((int)rc | (int)te_deref_type(cur));
+        rc = te_deref_type(cur);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       } else if ((tokens[pos]->kind == CDD_TOKEN_DOT ||
                   tokens[pos]->kind == CDD_TOKEN_ARROW) &&
                  pos + 1 < n && tokens[pos + 1]->kind == CDD_TOKEN_IDENTIFIER) {
-        rc = (cdd_c_error_t)((int)rc | (int)te_resolve_member(env, scope, cur,
-                                                              sizeof(cur),
-                                                              tokens[pos + 1]));
+        rc = te_resolve_member(env, scope, cur, sizeof(cur), tokens[pos + 1]);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         pos += 2;
       } else if (pos + 1 < n && ((tokens[pos]->kind == CDD_TOKEN_PLUS &&
                                   tokens[pos + 1]->kind == CDD_TOKEN_PLUS) ||
                                  (tokens[pos]->kind == CDD_TOKEN_MINUS &&
                                   tokens[pos + 1]->kind == CDD_TOKEN_MINUS))) {
-        rc = (cdd_c_error_t)((int)rc |
-                             (int)te_normalize_type_mode(
-                                 cur, sizeof(cur), CDD_CST_TYPE_MODE_RVALUE));
+        rc = te_normalize_type_mode(cur, sizeof(cur), CDD_CST_TYPE_MODE_RVALUE);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         pos += 2;
       } else {
         break;
@@ -1146,18 +1314,18 @@ cdd_c_error_t cdd_cst_eval_token_ptrs_type(const cdd_cst_scope_env_t *env,
 
   rc = te_try_parse_type_name(eff_scope, tokens, num_tokens, out_type, out_cap,
                               &is_type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (is_type) {
     if (out_is_type_expr)
       *out_is_type_expr = 1;
-    return (cdd_c_error_t)((int)rc | (int)te_normalize_type_mode(
-                                         out_type, out_cap, mode));
+    return te_normalize_type_mode(out_type, out_cap, mode);
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)te_eval_expr_rec(env, eff_scope, tokens,
-                                                       num_tokens, out_type,
-                                                       out_cap));
-  return (cdd_c_error_t)((int)rc |
-                         (int)te_normalize_type_mode(out_type, out_cap, mode));
+  rc = te_eval_expr_rec(env, eff_scope, tokens, num_tokens, out_type, out_cap);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return te_normalize_type_mode(out_type, out_cap, mode);
 }
 
 /*
@@ -1182,26 +1350,39 @@ cdd_c_error_t cdd_cst_eval_tokens_type(const cdd_cst_scope_env_t *env,
                                        char *out_type, size_t out_cap,
                                        int *out_is_type_expr) {
   const cdd_token_t *stack_ptrs[64];
-  const cdd_token_t **ptrs = stack_ptrs;
+  const cdd_token_t **ptrs;
   size_t i;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!tokens || num_tokens == 0 || !out_type || out_cap == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (num_tokens > 64) {
-    ptrs = (const cdd_token_t **)C_CDD_MALLOC(num_tokens *
-                                              sizeof(const cdd_token_t *));
-    if (!ptrs)
-      return CDD_C_ERROR_MEMORY;
+  if (num_tokens <= 64) {
+    for (i = 0; i < num_tokens; i++) {
+      stack_ptrs[i] = &tokens[i];
+    }
+    return cdd_cst_eval_token_ptrs_type(env, scope, stack_ptrs, num_tokens,
+                                        mode, out_type, out_cap,
+                                        out_is_type_expr);
   }
+
+  ptrs = (const cdd_token_t **)C_CDD_MALLOC(num_tokens *
+                                            sizeof(const cdd_token_t *));
+  if (!ptrs)
+    return CDD_C_ERROR_MEMORY;
   for (i = 0; i < num_tokens; i++) {
     ptrs[i] = &tokens[i];
   }
   rc = cdd_cst_eval_token_ptrs_type(env, scope, ptrs, num_tokens, mode,
                                     out_type, out_cap, out_is_type_expr);
-  if (ptrs != stack_ptrs) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE((void *)ptrs);
+    return rc;
   }
-  return rc;
+  C_CDD_FREE((void *)ptrs);
+  return CDD_C_SUCCESS;
 }

@@ -667,6 +667,78 @@ TEST test_schema_codegen_main_errors(void) {
   rc = schema2code_main(2, argv_bad4);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
+  {
+    int step;
+    void *root_step = NULL;
+    void *schemas_step = NULL;
+    JSON_Value *jv = NULL;
+    JSON_Object *jo = NULL;
+    JSON_Object *jo2 = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_parse_string(schema_json, &jv));
+    root_step = jv;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_json_object_get_object(json_value_get_object(root_step),
+                                         "components", &jo));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_json_object_get_object(jo, "schemas", &jo2));
+    schemas_step = jo2;
+    for (step = 1; step <= 120; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err =
+          generate_header("test_step_out", "basename", schemas_step, NULL);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    for (step = 1; step <= 120; ++step) {
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err =
+          generate_source("test_step_out", "basename", schemas_step, NULL);
+      if (g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+    }
+    /* Also test Pass 2 OOM on struct_fields_init and parse failure */
+    g_cdd_alloc_fail = 2;
+    rc = generate_header("test_step_out", "basename", schemas_step, NULL);
+    g_cdd_alloc_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_cdd_last_alloc_err = json_value_free(root_step);
+    remove("test_step_out.h");
+    remove("test_step_out.c");
+  }
+
+  /* Test non-object root ("[]") and missing schemas ("{\"components\":{}}") */
+  {
+    char *argv_ok_path[2];
+    argv_ok_path[0] = cdd_test_mut_str("file.json");
+    argv_ok_path[1] = cdd_test_mut_str("test_step_out");
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "file.json", "w") != 0)
+      f = NULL;
+#else
+    f = fopen("file.json", "w");
+#endif
+    if (f) {
+      fputs("[]", f);
+      fclose(f);
+    }
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema2code_main(2, argv_ok_path));
+
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "file.json", "w") != 0)
+      f = NULL;
+#else
+    f = fopen("file.json", "w");
+#endif
+    if (f) {
+      fputs("{\"components\":{}}", f);
+      fclose(f);
+    }
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, schema2code_main(2, argv_ok_path));
+  }
+
   remove("file.json");
   PASS();
 }

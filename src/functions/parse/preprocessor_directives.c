@@ -41,6 +41,8 @@
  */
 cdd_c_error_t pp_expr_skip_ws(struct ExprState *s) {
 #ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
   if (g_cdd_pp_skip_ws_fail && --g_cdd_pp_skip_ws_fail == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #endif
@@ -125,6 +127,8 @@ cdd_c_error_t pp_is_defined_macro(const struct PreprocessorContext *ctx,
   int is_match = 0;
 
 #ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
   if (g_cdd_pp_is_defined_macro_fail && --g_cdd_pp_is_defined_macro_fail == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #endif
@@ -545,6 +549,10 @@ cdd_c_error_t pp_parse_embed_params(const struct TokenList *tokens,
  * NULL.
  */
 cdd_c_error_t pp_stack_push(struct ConditionalStack *st, enum CondState s) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!st)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -562,6 +570,10 @@ cdd_c_error_t pp_stack_push(struct ConditionalStack *st, enum CondState s) {
  * NULL.
  */
 cdd_c_error_t pp_stack_pop(struct ConditionalStack *st) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!st)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -581,6 +593,10 @@ cdd_c_error_t pp_stack_pop(struct ConditionalStack *st) {
  */
 cdd_c_error_t pp_stack_peek(const struct ConditionalStack *st,
                             enum CondState *out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!st || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -604,6 +620,10 @@ cdd_c_error_t pp_stack_peek(const struct ConditionalStack *st,
 cdd_c_error_t pp_is_enabled(const struct ConditionalStack *st, int *out_val) {
   int i;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!st || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

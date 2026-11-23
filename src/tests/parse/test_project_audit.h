@@ -276,7 +276,7 @@ TEST test_audit_json_output(void) {
         mock_audit_parson_malloc, mock_audit_parson_free);
     json_set_allocation_functions(mock_audit_parson_malloc,
                                   mock_audit_parson_free);
-    for (f = 0; f <= 45; ++f) {
+    for (f = 0; f <= 60; ++f) {
       g_audit_parson_oom_at = f;
       if (audit_print_json(&stats, &json) == CDD_C_SUCCESS) {
         free(json);
@@ -288,6 +288,22 @@ TEST test_audit_json_output(void) {
     }
     g_cdd_last_alloc_err = c2openapi_set_json_allocators(malloc, free);
     json_set_allocation_functions(malloc, free);
+#ifdef CDD_BUILD_TESTS
+    for (f = 1; f <= 30; ++f) {
+      cdd_c_error_t step_rc;
+      g_cdd_step_fail = f;
+      step_rc = audit_print_json(&stats, &json);
+      if (step_rc == CDD_C_SUCCESS) {
+        free(json);
+        json = NULL;
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+    }
+#endif
   }
 
   g_cdd_last_alloc_err = audit_stats_free(&stats);
@@ -353,12 +369,6 @@ TEST test_audit_edge_cases(void) {
   g_cdd_last_alloc_err =
       write_to_file(f_strndup, "char* f() { return strndup(\"a\", 1); }");
 
-  /* Unreadable file */
-  if (asprintf(&f_unreadable, "%s%sunreadable.c", root, PATH_SEP)) {
-  }
-  g_cdd_last_alloc_err = write_to_file(f_unreadable, "int unreadable = 1;");
-  chmod(f_unreadable, 0000);
-
   /* Tokenize failure: Unclosed string literal. */
   if (asprintf(&f_bad_token, "%s%sbad.c", root, PATH_SEP)) {
   }
@@ -375,6 +385,13 @@ TEST test_audit_edge_cases(void) {
 
     /* strndup should be counted in functions_returning_alloc */
     ASSERT(stats.functions_returning_alloc >= 1);
+
+    /* Unreadable file */
+    if (asprintf(&f_unreadable, "%s%sunreadable.c", root, PATH_SEP)) {
+    }
+    g_cdd_last_alloc_err = write_to_file(f_unreadable, "int unreadable = 1;");
+    chmod(f_unreadable, 0000);
+    g_cdd_last_alloc_err = audit_project(f_unreadable, &stats);
 
     g_cdd_last_alloc_err = audit_stats_free(&stats);
 
@@ -443,6 +460,16 @@ TEST test_audit_extras(void) {
       g_cdd_alloc_fail = step;
       g_cdd_last_alloc_err = audit_project(root, &stats_tok);
       g_cdd_alloc_fail = 0;
+    }
+    for (step = 1; step <= 400; ++step) {
+      cdd_c_error_t step_rc;
+      g_cdd_step_fail = step;
+      step_rc = audit_project(root, &stats_tok);
+      if (step_rc == CDD_C_SUCCESS && g_cdd_step_fail > 0) {
+        g_cdd_step_fail = 0;
+        break;
+      }
+      g_cdd_step_fail = 0;
     }
 #endif
 

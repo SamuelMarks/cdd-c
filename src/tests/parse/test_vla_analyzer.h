@@ -363,6 +363,27 @@ TEST test_scan_for_vlas_edge_cases(void) {
                   g_cdd_last_alloc_err = free_token_list(tokens);
                   tokens = NULL;
 
+#ifdef CDD_BUILD_TESTS
+                  {
+                    int oom_step;
+                    ASSERT_EQ(0, tokenize(az_span_create_from_str(
+                                              "void f(int n) { int a[n]; }"),
+                                          &tokens));
+                    for (oom_step = 1; oom_step <= 8; ++oom_step) {
+                      cdd_c_error_t s_rc;
+                      ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
+                      g_cdd_alloc_fail = oom_step;
+                      s_rc = scan_for_vlas(tokens, &list);
+                      g_cdd_alloc_fail = 0;
+                      g_cdd_last_alloc_err = vla_site_list_free(&list);
+                      if (s_rc == CDD_C_SUCCESS)
+                        break;
+                    }
+                    g_cdd_last_alloc_err = free_token_list(tokens);
+                    tokens = NULL;
+                  }
+#endif
+
                   PASS();
                 }
               }

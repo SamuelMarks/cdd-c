@@ -37,6 +37,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_is_call(const cdd_cst_node_t *node,
                                              size_t ident_idx,
                                              int *out_is_call) {
   size_t j;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!node || !out_is_call)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -64,6 +68,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_is_function_def(const cdd_cst_node_t *node,
                                                      size_t ident_idx,
                                                      int *out_is_def) {
   size_t j;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!node || !out_is_def)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -113,6 +121,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                                                   size_t num_modified) {
   size_t i;
   cdd_c_error_t rc;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (!tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -140,10 +149,16 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
               cdd_token_t *prev_rparen_tok = NULL;
 
               rc = cdd_check_is_call(node, i, &is_call);
+              if (rc != CDD_C_SUCCESS) {
+                return cdd_c_keep_err(rc, rc_free);
+              }
               if (!is_call)
                 continue;
 
               rc = cdd_check_is_function_def(node, i, &is_def);
+              if (rc != CDD_C_SUCCESS) {
+                return cdd_c_keep_err(rc, rc_free);
+              }
               if (is_def)
                 continue;
 
@@ -180,13 +195,15 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                 cdd_cst_builder_t bld;
                 cdd_cst_node_t *temp;
                 char *dup_id;
+                char snippet_buf[512];
                 cdd_trivia_t *lt;
                 cdd_cst_node_t *parent_ptr;
                 int needs_comma;
 
                 dup_id = (char *)C_CDD_CALLOC(1, 256);
-                if (!dup_id)
-                  return CDD_C_ERROR_MEMORY;
+                if (!dup_id) {
+                  return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_free);
+                }
 
                 CDD_SNPRINTF(dup_id, 256, "out_%.*s", (int)tok->length,
                              tok->start);
@@ -200,7 +217,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                                                     new_cap * sizeof(char *));
                   if (!new_pool) {
                     C_CDD_FREE(dup_id);
-                    return CDD_C_ERROR_MEMORY;
+                    return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_free);
                   }
                   tree->string_pool = new_pool;
                   tree->string_capacity = new_cap;
@@ -210,32 +227,24 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                 /* Prefix builder */
                 temp =
                     (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-                if (!temp)
-                  return CDD_C_ERROR_MEMORY;
+                if (!temp) {
+                  return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_free);
+                }
 
                 temp->kind = CDD_CST_UNKNOWN;
-                bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
-                bld.error_state = cdd_cst_bld_punct(&bld, "{");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_ident(&bld, "void");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_punct(&bld, "*");
-                bld.error_state = cdd_cst_bld_ident(&bld, dup_id);
-                bld.error_state = cdd_cst_bld_punct(&bld, ";");
-                bld.error_state = cdd_cst_bld_newline(&bld);
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_ident(&bld, "if");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_punct(&bld, "(");
-
-                if (bld.error_state != 0) {
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_builder_free(&bld));
+                rc = cdd_cst_builder_init(&bld, tree, temp);
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(temp);
+                  return cdd_c_keep_err(rc, rc_free);
+                }
+                CDD_SNPRINTF(snippet_buf, sizeof(snippet_buf),
+                             "{ void *%s;\n  if (", dup_id);
+                rc = cdd_cst_bld_snippet(&bld, snippet_buf);
+                if (rc != CDD_C_SUCCESS) {
+                  cdd_c_error_t rc_f = cdd_cst_builder_free(&bld);
                   C_CDD_FREE(temp->children);
                   C_CDD_FREE(temp);
-                  return bld.error_state;
+                  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_free, rc_f));
                 }
 
                 lt = tok->leading_trivia;
@@ -247,13 +256,12 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                     cdd_cst_splice_children(tree, &parent_ptr, i, 0,
                                             temp->children, temp->num_children);
                 if (rc != CDD_C_SUCCESS) {
+                  cdd_c_error_t rc_f = cdd_cst_builder_free(&bld);
                   tok->leading_trivia = lt;
                   temp->children[0].val.token->leading_trivia = NULL;
-                  rc = (cdd_c_error_t)((int)rc |
-                                       (int)cdd_cst_builder_free(&bld));
                   C_CDD_FREE(temp->children);
                   C_CDD_FREE(temp);
-                  return rc;
+                  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_free, rc_f));
                 }
                 i += temp->num_children;
                 rparen_idx += temp->num_children;
@@ -261,59 +269,39 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                   semi_idx += temp->num_children;
                 node = parent_ptr;
 
-                bld.error_state =
-                    (cdd_c_error_t)((int)bld.error_state |
-                                    (int)cdd_cst_builder_free(&bld));
+                rc_free = (cdd_c_error_t)((int)rc_free |
+                                          (int)cdd_cst_builder_free(&bld));
                 C_CDD_FREE(temp->children);
                 C_CDD_FREE(temp);
 
                 /* Suffix builder */
                 temp =
                     (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
-                if (!temp)
-                  return CDD_C_ERROR_MEMORY;
+                if (!temp) {
+                  return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_free);
+                }
 
                 temp->kind = CDD_CST_UNKNOWN;
-                bld.error_state = cdd_cst_builder_init(&bld, tree, temp);
+                rc = cdd_cst_builder_init(&bld, tree, temp);
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(temp);
+                  return cdd_c_keep_err(rc, rc_free);
+                }
 
                 needs_comma = 1;
-                if (prev_rparen_tok) {
-                  if (prev_rparen_tok->kind == CDD_TOKEN_LPAREN) {
-                    needs_comma = 0;
-                  }
+                if (prev_rparen_tok &&
+                    prev_rparen_tok->kind == CDD_TOKEN_LPAREN) {
+                  needs_comma = 0;
                 }
-                if (needs_comma) {
-                  bld.error_state = cdd_cst_bld_punct(&bld, ",");
-                  bld.error_state = cdd_cst_bld_space(&bld);
-                }
-
-                bld.error_state = cdd_cst_bld_punct(&bld, "&");
-                bld.error_state = cdd_cst_bld_ident(&bld, dup_id);
-                bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_punct(&bld, "!=");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_int(&bld, 0);
-                bld.error_state = cdd_cst_bld_punct(&bld, ")");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_punct(&bld, "{");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_ident(&bld, "return");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_ident(&bld, "CDD_C_ERROR_MEMORY");
-                bld.error_state = cdd_cst_bld_punct(&bld, ";");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_punct(&bld, "}");
-                bld.error_state = cdd_cst_bld_space(&bld);
-                bld.error_state = cdd_cst_bld_punct(&bld, "}");
-
-                if (bld.error_state != 0) {
-                  bld.error_state =
-                      (cdd_c_error_t)((int)bld.error_state |
-                                      (int)cdd_cst_builder_free(&bld));
+                CDD_SNPRINTF(snippet_buf, sizeof(snippet_buf),
+                             "%s&%s) != 0) { return CDD_C_ERROR_MEMORY; } }",
+                             needs_comma ? ", " : "", dup_id);
+                rc = cdd_cst_bld_snippet(&bld, snippet_buf);
+                if (rc != CDD_C_SUCCESS) {
+                  cdd_c_error_t rc_f = cdd_cst_builder_free(&bld);
                   C_CDD_FREE(temp->children);
                   C_CDD_FREE(temp);
-                  return bld.error_state;
+                  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_free, rc_f));
                 }
 
                 {
@@ -321,11 +309,9 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                   size_t consume_count;
                   if (semi_idx > 0) {
                     cdd_token_t *semi_tok = node->children[semi_idx].val.token;
-                    if (semi_tok->trailing_trivia) {
-                      if (!rt) {
-                        rt = semi_tok->trailing_trivia;
-                        semi_tok->trailing_trivia = NULL;
-                      }
+                    if (semi_tok->trailing_trivia && !rt) {
+                      rt = semi_tok->trailing_trivia;
+                      semi_tok->trailing_trivia = NULL;
                     }
                   }
                   rparen_tok->trailing_trivia = NULL;
@@ -339,21 +325,19 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
                                                consume_count, temp->children,
                                                temp->num_children);
                   if (rc != CDD_C_SUCCESS) {
+                    cdd_c_error_t rc_f = cdd_cst_builder_free(&bld);
                     rparen_tok->trailing_trivia = rt;
                     temp->children[temp->num_children - 1]
                         .val.token->trailing_trivia = NULL;
-                    rc = (cdd_c_error_t)((int)rc |
-                                         (int)cdd_cst_builder_free(&bld));
                     C_CDD_FREE(temp->children);
                     C_CDD_FREE(temp);
-                    return rc;
+                    return cdd_c_keep_err(rc, cdd_c_keep_err(rc_free, rc_f));
                   }
                   node = parent_ptr;
                 }
 
-                bld.error_state =
-                    (cdd_c_error_t)((int)bld.error_state |
-                                    (int)cdd_cst_builder_free(&bld));
+                rc_free = (cdd_c_error_t)((int)rc_free |
+                                          (int)cdd_cst_builder_free(&bld));
                 C_CDD_FREE(temp->children);
                 C_CDD_FREE(temp);
                 break;
@@ -365,9 +349,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
     } else {
       rc = cdd_rewrite_call_sites(tree, node->children[i].val.node,
                                   modified_funcs, num_modified);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      if (rc != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(rc, rc_free);
+      }
     }
   }
-  return CDD_C_SUCCESS;
+  return rc_free;
 }

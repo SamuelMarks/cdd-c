@@ -199,18 +199,6 @@ static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t idx,
 }
 
 /**
- * @brief Checks if a token kind starts a C99 designator (`.` or `[`).
- *
- * @param[in] k Token kind to test.
- * @param[out] out_is_start Output flag (1 if designator start, 0 otherwise).
- * @return CDD_C_SUCCESS on success.
- */
-static cdd_c_error_t is_designator_start(enum TokenKind k, int *out_is_start) {
-  *out_is_start = (k == TOKEN_DOT || k == TOKEN_LBRACKET) ? 1 : 0;
-  return CDD_C_SUCCESS;
-}
-
-/**
  * @brief Parse the designator part: `.x`, `[0]`, `.x[1].y`.
  * Ends at `=` token.
  *
@@ -333,6 +321,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
                                 struct InitList *out, size_t *consumed) {
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc_free = CDD_C_SUCCESS;
 
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -363,21 +352,17 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       i++; /* Consume } */
       if (consumed)
         *consumed = (i - start_idx);
-      return CDD_C_SUCCESS;
+      return rc_free;
     }
 
     /* Check designator: starts with . or [ */
-    {
-      int is_desig = 0;
-      rc = is_designator_start(tokens->tokens[i].kind, &is_desig);
-      if (is_desig) {
-        size_t next_after_desig;
-        rc =
-            parse_designator(tokens, i, end_idx, &desig_str, &next_after_desig);
-        if (rc != CDD_C_SUCCESS)
-          goto error;
-        i = next_after_desig;
-      }
+    if (tokens->tokens[i].kind == TOKEN_DOT ||
+        tokens->tokens[i].kind == TOKEN_LBRACKET) {
+      size_t next_after_desig;
+      rc = parse_designator(tokens, i, end_idx, &desig_str, &next_after_desig);
+      if (rc != CDD_C_SUCCESS)
+        goto error;
+      i = next_after_desig;
     }
 
     rc = skip_ws(tokens, i, end_idx, &i);
@@ -417,7 +402,8 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       rc = parse_initializer(tokens, i, end_idx, nested_list, &sub_consumed);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(val_obj);
-        rc = (cdd_c_error_t)((int)rc | (int)init_list_free(nested_list));
+        rc_free =
+            (cdd_c_error_t)((int)rc_free | (int)init_list_free(nested_list));
         C_CDD_FREE(nested_list);
         if (desig_str)
           C_CDD_FREE(desig_str);
@@ -448,7 +434,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     if ((rc = init_list_add(out, desig_str, val_obj)) != 0) {
       if (desig_str)
         C_CDD_FREE(desig_str);
-      rc = (cdd_c_error_t)((int)rc | (int)init_value_free(val_obj));
+      rc_free = (cdd_c_error_t)((int)rc_free | (int)init_value_free(val_obj));
       C_CDD_FREE(val_obj);
       goto error;
     }
@@ -466,6 +452,8 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
   /* Missing closing brace if we loop out */
   rc = CDD_C_ERROR_INVALID_ARGUMENT;
 
-error:
-  return (cdd_c_error_t)((int)rc | (int)init_list_free(out));
+error: {
+  cdd_c_error_t rc_out = init_list_free(out);
+  return cdd_c_keep_err(rc, cdd_c_keep_err(rc_free, rc_out));
+}
 }

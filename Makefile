@@ -34,13 +34,13 @@ build:
 	mkdir -p build_cmake
 	cd build_cmake && cmake -S .. -B . && cmake --build . --config Release
 	mkdir -p $(BIN_DIR)
-	cp build_cmake/bin/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || echo "Ensure cdd-c is built."
+	cp build_cmake/src/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/bin/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/src/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || echo "Ensure cdd-c is built."
 
 test:
 	mkdir -p build_cmake
 	cd build_cmake && cmake -S .. -B . && cmake --build .
 	mkdir -p $(BIN_DIR)
-	cp build_cmake/bin/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || echo "Ensure cdd-c is built."
+	cp build_cmake/src/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/bin/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/cdd-c $(BIN_DIR)/cdd-c 2>/dev/null || cp build_cmake/src/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || cp build_cmake/Release/cdd-c.exe $(BIN_DIR)/ 2>/dev/null || echo "Ensure cdd-c is built."
 	cd build_cmake && ctest --output-on-failure
 
 run: build
@@ -71,7 +71,7 @@ build_wasm:
 	fi
 	cmake --build build_wasm --target cdd-c --config Release
 	mkdir -p $(BIN_DIR)
-	cp build_wasm/bin/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/bin/cdd-c $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c $(BIN_DIR)/cdd-c.wasm
+	cp build_wasm/src/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/src/cdd-c $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/bin/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/bin/cdd-c $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c.wasm $(BIN_DIR)/cdd-c.wasm 2>/dev/null || cp build_wasm/cdd-c $(BIN_DIR)/cdd-c.wasm
 
 build_docker:
 	docker build -t cdd-c:alpine -f alpine.Dockerfile .

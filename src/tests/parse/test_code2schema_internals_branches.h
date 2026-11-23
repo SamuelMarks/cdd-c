@@ -597,6 +597,12 @@ TEST test_code2schema_json_array_to_enum_members_nonstrings(void) {
   rc = enum_members_init(&em);
   ASSERT_EQ(0, rc);
 
+#ifdef CDD_BUILD_TESTS
+  g_cdd_step_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, json_array_to_enum_members(arr, &em));
+  g_cdd_step_fail = 0;
+#endif
+
   rc = json_array_to_enum_members(arr, &em);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(1, em.size);

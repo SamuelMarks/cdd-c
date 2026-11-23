@@ -140,9 +140,11 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
   /* 1. Find or Create Path */
   rc = find_path_in_list(spec->paths, spec->n_paths, route, &target_path);
   if (!target_path) {
-    rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_c_error_t rc_add =
+        append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
+    if (rc_add != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc_add, rc);
+    }
   }
 
   /* 2. Check for duplicate verbs types?
@@ -191,10 +193,11 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
 
   rc = find_path_in_list(spec->webhooks, spec->n_webhooks, route, &target_path);
   if (!target_path) {
-    rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
-                             &target_path);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    cdd_c_error_t rc_add = append_path_to_list(
+        &spec->webhooks, &spec->n_webhooks, route, &target_path);
+    if (rc_add != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc_add, rc);
+    }
   }
 
   if (op->is_additional) {

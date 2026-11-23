@@ -25,6 +25,10 @@
  */
 static cdd_c_error_t get_dart_ffi_type(cdd_ffi_type_t type,
                                        const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
       *out_type = "Pointer<Utf8>";
@@ -104,6 +108,10 @@ static cdd_c_error_t get_dart_ffi_type(cdd_ffi_type_t type,
  */
 static cdd_c_error_t get_dart_native_type(cdd_ffi_type_t type,
                                           const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
       *out_type = "Pointer<Utf8>";
@@ -199,8 +207,11 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "/// %s\n", node->doc);
       fprintf(f, "final class %s extends Struct {\n", node->name);
@@ -210,12 +221,16 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
         const char *ntype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)get_dart_ffi_type(
-                                               node->fields[j].type, &ftype));
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)get_dart_native_type(
-                                               node->fields[j].type, &ntype));
+        rc_emit = get_dart_ffi_type(node->fields[j].type, &ftype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
+        rc_emit = get_dart_native_type(node->fields[j].type, &ntype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
 
         fprintf(f, "  @%s()\n", ftype);
         fprintf(f, "  external %s %s;\n", ntype, fname);
@@ -234,17 +249,24 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_ftype = NULL;
       const char *ret_ntype = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "  /// %s\n", node->doc);
 
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_dart_ffi_type(
-                                    node->return_or_base_type, &ret_ftype));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_dart_native_type(
-                                    node->return_or_base_type, &ret_ntype));
+      rc_emit = get_dart_ffi_type(node->return_or_base_type, &ret_ftype);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
+      rc_emit = get_dart_native_type(node->return_or_base_type, &ret_ntype);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
 
       /* Typedefs for lookup */
       fprintf(f, "  late final _%sPtr = _dylib.lookup<NativeFunction<\n",
@@ -252,9 +274,11 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "      %s Function(", ret_ftype);
       for (j = 0; j < node->fields_count; j++) {
         const char *ft = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_dart_ffi_type(node->fields[j].type, &ft));
+        rc_emit = get_dart_ffi_type(node->fields[j].type, &ft);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s", ft);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -266,9 +290,11 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "      %s Function(", ret_ntype);
       for (j = 0; j < node->fields_count; j++) {
         const char *nt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)get_dart_native_type(
-                                               node->fields[j].type, &nt));
+        rc_emit = get_dart_native_type(node->fields[j].type, &nt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s", nt);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -285,9 +311,11 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           arg_name = "clazz";
         if (strcmp(arg_name, "in") == 0)
           arg_name = "in_";
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)get_dart_native_type(
-                                               node->fields[j].type, &nt));
+        rc_emit = get_dart_native_type(node->fields[j].type, &nt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s %s", nt, arg_name);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -313,7 +341,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
   fprintf(f, "}\n");
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }
 
 /*

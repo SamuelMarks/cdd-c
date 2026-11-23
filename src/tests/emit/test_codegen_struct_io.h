@@ -342,6 +342,35 @@ TEST test_struct_exhaustive_io(void) {
   g_fail_io_after = -1;
   g_cdd_last_alloc_err = struct_fields_free(NULL);
   g_cdd_last_alloc_err = struct_fields_free(&sf);
+
+  {
+    struct StructFields step_sf;
+    int step;
+    g_cdd_last_alloc_err = struct_fields_init(&step_sf);
+    CDD_SNPRINTF(step_sf.serde_rename, sizeof(step_sf.serde_rename), "Renamed");
+    step_sf.serde_rename_all = CDD_SERDE_CASE_CAMELCASE;
+    CDD_SNPRINTF(step_sf.serde_replace_from, sizeof(step_sf.serde_replace_from),
+                 "a");
+    CDD_SNPRINTF(step_sf.serde_replace_to, sizeof(step_sf.serde_replace_to),
+                 "b");
+    g_cdd_last_alloc_err = struct_fields_add(
+        &step_sf, "arr_obj", "array", "#/components/schemas/Sub", NULL, NULL);
+    step_sf.fields[0].fixed_array_len = 2;
+    step_sf.fields[0].cli_action = CDD_CLI_ACTION_COUNT;
+
+    for (step = 1; step <= 20; ++step) {
+      FILE *tmp = cdd_test_tmpfile_global();
+      cdd_c_error_t s_rc;
+      g_cdd_step_fail = step;
+      s_rc = write_struct_declaration_h(tmp, "StepTest", &step_sf, NULL);
+      g_cdd_step_fail = 0;
+      if (tmp)
+        fclose(tmp);
+      if (s_rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_last_alloc_err = struct_fields_free(&step_sf);
+  }
 #endif
   g_fail_io_after = -1;
   PASS();

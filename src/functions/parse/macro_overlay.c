@@ -55,8 +55,7 @@ cdd_c_error_t macro_overlay_list_free(struct MacroOverlayList *list) {
   if (list->nodes) {
     for (i = 0; i < list->size; ++i) {
       if (list->nodes[i].expanded_ast) {
-        rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(
-                                           list->nodes[i].expanded_ast));
+        rc = cst_node_list_free(list->nodes[i].expanded_ast);
         C_CDD_FREE(list->nodes[i].expanded_ast);
       }
     }
@@ -196,9 +195,9 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
                 expanded->nodes, new_cap * sizeof(struct CstNode));
 #endif
             if (!new_arr) {
-              cdd_c_error_t rc_free = free_cst_node_list(expanded);
+              cdd_c_error_t rc_free = cst_node_list_free(expanded);
               C_CDD_FREE(expanded);
-              return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY | (int)rc_free);
+              return cdd_c_keep_err(CDD_C_ERROR_MEMORY, rc_free);
             }
             expanded->nodes = new_arr;
             expanded->capacity = new_cap;
@@ -208,11 +207,10 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
       }
 
       rc = list_add(overlays, n, expanded);
-      printf("list_add returned %d\n", rc);
       if (rc != CDD_C_SUCCESS) {
-        rc = (cdd_c_error_t)((int)rc | (int)free_cst_node_list(expanded));
+        cdd_c_error_t rc_free = cst_node_list_free(expanded);
         C_CDD_FREE(expanded);
-        return rc;
+        return cdd_c_keep_err(rc, rc_free);
       }
     }
   }

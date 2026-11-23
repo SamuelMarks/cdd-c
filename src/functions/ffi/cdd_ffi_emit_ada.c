@@ -27,6 +27,10 @@ extern volatile int g_fail_io_after;
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t map_ada_type(cdd_ffi_type_t *t, const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
@@ -171,17 +175,20 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
 
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
       fprintf(f, "   type %s is record\n", node->name);
       if (node->fields_count == 0) {
         fprintf(f, "      null;\n");
       }
       for (j = 0; j < node->fields_count; j++) {
         const char *atype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_ada_type(&node->fields[j].type, &atype));
+        rc_emit = map_ada_type(&node->fields[j].type, &atype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
         fprintf(f, "      %s : %s;\n", node->fields[j].name, atype);
       }
       fprintf(f, "   end record;\n");
@@ -196,8 +203,10 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       fprintf(f, "   end record;\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
       fprintf(f, "   type %s is (\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
@@ -207,8 +216,10 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
       fprintf(f, "   );\n");
       fprintf(f, "   pragma Convention (C, %s);\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
       is_void = (node->return_or_base_type.kind == CDD_FFI_KIND_VOID &&
                  node->return_or_base_type.pointer_depth == 0);
 
@@ -220,9 +231,10 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
 
       for (j = 0; j < node->fields_count; j++) {
         const char *atype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_ada_type(&node->fields[j].type, &atype));
+        rc_emit = map_ada_type(&node->fields[j].type, &atype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
         fprintf(f, "      %s : %s%s\n", node->fields[j].name, atype,
                 j + 1 < node->fields_count ? ";" : "");
       }
@@ -238,9 +250,10 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
         }
       } else {
         const char *ret_atype = NULL;
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_ada_type(&node->return_or_base_type,
-                                                    &ret_atype));
+        rc_emit = map_ada_type(&node->return_or_base_type, &ret_atype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          goto cleanup;
+        }
         if (node->fields_count == 0) {
           fprintf(f, "   return %s;\n", ret_atype);
           fprintf(f, "   pragma Import (C, %s, \"%s\");\n\n", node->name,
@@ -255,7 +268,6 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   }
 
   fprintf(f, "end %s;\n", module_name);
-  fclose(f);
 
   fprintf(gpr_f, "project %s is\n", lib_name);
   fprintf(gpr_f, "   for Source_Dirs use (\".\");\n");
@@ -263,7 +275,10 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   fprintf(gpr_f, "   for Exec_Dir use \"bin\";\n");
   fprintf(gpr_f, "   for Main use (\"%s_main.adb\");\n", lib_name);
   fprintf(gpr_f, "end %s;\n", lib_name);
-  fclose(gpr_f);
 
+cleanup: {
+  fclose(f);
+  fclose(gpr_f);
   return rc_emit;
+}
 }

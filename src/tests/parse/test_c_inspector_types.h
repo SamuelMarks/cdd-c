@@ -23,6 +23,7 @@ extern "C" {
 #include <string.h>
 
 #include "cdd_test_helpers/cdd_helpers.h"
+#include "classes/parse/cdd_serde_internal.h"
 #include "classes/parse/inspector.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
@@ -910,6 +911,13 @@ TEST test_inspector_branch_coverage(void) {
       g_cdd_alloc_fail = 0;
       g_cdd_last_alloc_err = type_def_list_free(&types);
     }
+    for (k = 1; k <= 400; ++k) {
+      g_cdd_last_alloc_err = type_def_list_init(&types);
+      g_cdd_step_fail = k;
+      g_cdd_last_alloc_err = c_inspector_scan_file_types(filename, &types);
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = type_def_list_free(&types);
+    }
 
     /* Function with callback parameter (multiple parens) */
     {
@@ -954,6 +962,14 @@ TEST test_inspector_branch_coverage(void) {
           g_cdd_last_alloc_err =
               c_inspector_extract_signatures(many_params_src, &sigs);
           g_cdd_alloc_fail = 0;
+          g_cdd_last_alloc_err = func_sig_list_free(&sigs);
+        }
+        for (k = 1; k <= 80; ++k) {
+          g_cdd_last_alloc_err = func_sig_list_init(&sigs);
+          g_cdd_step_fail = k;
+          g_cdd_last_alloc_err =
+              c_inspector_extract_signatures("int f(int a) {}", &sigs);
+          g_cdd_step_fail = 0;
           g_cdd_last_alloc_err = func_sig_list_free(&sigs);
         }
         /* Also test without docstring when param realloc fails */
@@ -1042,6 +1058,52 @@ TEST test_inspector_branch_coverage(void) {
   }
 
   remove(filename);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int step;
+    const char *tup = "(\"a\" -> \"b\")";
+    const char *keys = " ) key";
+    const char *dox_tags[] = {
+        "/** @brief b\n * @details d\n * @version 1\n * @author a */",
+        ("/** @summary s\n * @description d\n * @infoVersion 2\n * @contact c "
+         "*/"),
+        "/** Plain brief */"};
+    size_t di;
+    for (step = 1; step <= 3; ++step) {
+      const char *p = tup;
+      char fbuf[16], tbuf[16];
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = cdd_serde_parse_replace_tuple(
+          &p, tup + strlen(tup), fbuf, sizeof(fbuf), tbuf, sizeof(tbuf));
+      g_cdd_step_fail = 0;
+    }
+    for (step = 1; step <= 3; ++step) {
+      const char *p = keys;
+      char kbuf[16];
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err =
+          cdd_serde_next_key(&p, keys + strlen(keys), kbuf, sizeof(kbuf));
+      g_cdd_step_fail = 0;
+    }
+    for (step = 1; step <= 4; ++step) {
+      int bval = 0;
+      g_cdd_step_fail = step;
+      g_cdd_last_alloc_err = cdd_serde_parse_bool_val("true", &bval);
+      g_cdd_step_fail = 0;
+    }
+    for (di = 0; di < sizeof(dox_tags) / sizeof(dox_tags[0]); ++di) {
+      for (step = 1; step <= 6; ++step) {
+        char bb[32], db[32], vb[32], ab[32];
+        g_cdd_step_fail = step;
+        g_cdd_last_alloc_err = cdd_serde_extract_doxygen_fallbacks(
+            dox_tags[di], bb, sizeof(bb), db, sizeof(db), vb, sizeof(vb), ab,
+            sizeof(ab));
+        g_cdd_step_fail = 0;
+      }
+    }
+  }
+#endif
   PASS();
 }
 

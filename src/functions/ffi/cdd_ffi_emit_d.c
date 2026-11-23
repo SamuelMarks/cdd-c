@@ -27,6 +27,10 @@ extern volatile int g_fail_io_after;
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t map_d_type(cdd_ffi_type_t *t, const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
@@ -173,13 +177,19 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_d_type(&node->fields[j].type, &dt));
+        rc_emit = map_d_type(&node->fields[j].type, &dt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    %s %s;\n", dt, node->fields[j].name);
       }
       fprintf(f, "}\n\n");
@@ -187,14 +197,20 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
       fprintf(f, "union %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_d_type(&node->fields[j].type, &dt));
+        rc_emit = map_d_type(&node->fields[j].type, &dt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "    %s %s;\n", dt, node->fields[j].name);
       }
       fprintf(f, "}\n\n");
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "enum %s : int {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -213,16 +229,24 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_dt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      rc_emit =
-          (cdd_c_error_t)((int)rc_emit |
-                          (int)map_d_type(&node->return_or_base_type, &ret_dt));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
+      rc_emit = map_d_type(&node->return_or_base_type, &ret_dt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "%s %s(", ret_dt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *dt = NULL;
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_d_type(&node->fields[j].type, &dt));
+        rc_emit = map_d_type(&node->fields[j].type, &dt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s %s", j > 0 ? ", " : "", dt, node->fields[j].name);
       }
       fprintf(f, ");\n");

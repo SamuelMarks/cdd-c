@@ -100,8 +100,11 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  type %s = CInt\n", node->name);
       fprintf(f, "  object %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
@@ -122,17 +125,22 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       /* Scala Native supports up to CStruct22 */
       if (node->fields_count > 0 && node->fields_count <= 22) {
         fprintf(f, "  type %s = CStruct%lu[", node->name,
                 (unsigned long)node->fields_count);
         for (j = 0; j < node->fields_count; j++) {
           const char *st = NULL;
-          rc_emit =
-              (cdd_c_error_t)((int)rc_emit |
-                              (int)map_scala_type(&node->fields[j].type, &st));
+          rc_emit = map_scala_type(&node->fields[j].type, &st);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(f);
+            return rc_emit;
+          }
           fprintf(f, "%s%s", j > 0 ? ", " : "", st);
         }
         fprintf(f, "]\n");
@@ -161,19 +169,26 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_st = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  def %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *st = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)map_scala_type(&node->fields[j].type, &st));
+        rc_emit = map_scala_type(&node->fields[j].type, &st);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s%s: %s", j > 0 ? ", " : "", node->fields[j].name, st);
       }
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_scala_type(&node->return_or_base_type,
-                                                    &ret_st));
+      rc_emit = map_scala_type(&node->return_or_base_type, &ret_st);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "): %s = extern\n", ret_st);
     }
   }
@@ -181,5 +196,5 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   fprintf(f, "}\n");
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

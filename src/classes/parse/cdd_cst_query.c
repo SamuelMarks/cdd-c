@@ -239,8 +239,12 @@ static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
     }
   }
   if (matched) {
-    ctx->err = append_result(ctx->res, node);
-    return ctx->err;
+    cdd_c_error_t rc = append_result(ctx->res, node);
+    if (rc != CDD_C_SUCCESS) {
+      ctx->err = rc;
+      return rc;
+    }
+    return CDD_C_SUCCESS;
   }
   return CDD_C_SUCCESS;
 }

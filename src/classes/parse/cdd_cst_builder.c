@@ -31,8 +31,11 @@
 cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
                                    cdd_cst_tree_t *tree,
                                    cdd_cst_node_t *target_node) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!builder || !tree || !target_node) {
-
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   builder->tree = tree;
@@ -114,11 +117,10 @@ cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
   if (builder->error_state != 0)
     return builder->error_state;
 
-  if (cdd_cst_create_token(builder->tree, kind, text, &tok) != 0)
-    tok = NULL;
-  if (!tok) {
-    builder->error_state = CDD_C_ERROR_MEMORY;
-    return CDD_C_ERROR_MEMORY;
+  rc = cdd_cst_create_token(builder->tree, kind, text, &tok);
+  if (rc != CDD_C_SUCCESS) {
+    builder->error_state = rc;
+    return rc;
   }
 
   rc = cdd_cst_append_child_token(builder->target_node, tok);
@@ -349,18 +351,21 @@ cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
   buf[path_len + 2] = '\0';
 
   pool_rc = cdd_cst_pool_string_len(builder->tree, buf, path_len + 2, &pooled);
-  C_CDD_FREE(buf);
   if (pool_rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return pool_rc;
   }
+  C_CDD_FREE(buf);
   if (is_system) {
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     rc = cdd_cst_bld_string(builder, pooled);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
   rc = cdd_cst_bld_newline(builder);
   if (rc != CDD_C_SUCCESS)
@@ -603,6 +608,16 @@ cdd_c_error_t cdd_cst_pool_string(cdd_cst_tree_t *tree, const char *str,
   return cdd_cst_pool_string_len(tree, str, strlen(str), out_str);
 }
 
+/**
+ * @brief Frees a lexer token list (`*_free` alias).
+ *
+ * @param[in,out] list Token list to free.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t cst_lexer_token_list_free(cdd_token_list_t *list) {
+  return cdd_lexer_free_token_list(list);
+}
+
 /*
  * @brief Lexes a C snippet and appends its tokens and trivia to the builder's
  * current target node.
@@ -634,51 +649,71 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
     cdd_token_t *t = &list->tokens[i];
     if (t->kind != CDD_TOKEN_EOF) {
       const char *pooled = NULL;
-      {
-        cdd_c_error_t pool_rc = cdd_cst_pool_string_len(
-            builder->tree, (const char *)t->start, t->length, &pooled);
-        if (pool_rc != CDD_C_SUCCESS) {
-          rc = CDD_C_ERROR_MEMORY;
-          break;
-        }
+      cdd_token_t *last = NULL;
+      cdd_trivia_t *tr;
+
+      rc = cdd_cst_pool_string_len(builder->tree, (const char *)t->start,
+                                   t->length, &pooled);
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
       }
       rc = cdd_cst_bld_token(builder, t->kind, pooled);
-      if (rc != CDD_C_SUCCESS)
-        break;
-      {
-        cdd_token_t *last = NULL;
-        rc = cdd_cst_get_last_token(builder->target_node, &last);
-        {
-          cdd_trivia_t *tr;
-          last->leading_trivia = t->leading_trivia;
-          last->trailing_trivia = t->trailing_trivia;
-          t->leading_trivia = NULL;
-          t->trailing_trivia = NULL;
-          for (tr = last->leading_trivia; tr; tr = tr->next) {
-            const char *tr_pooled = NULL;
-            if (cdd_cst_pool_string_len(builder->tree, (const char *)tr->start,
-                                        tr->length,
-                                        &tr_pooled) == CDD_C_SUCCESS) {
-              tr->start = (const uint8_t *)tr_pooled;
-            }
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
+      rc = cdd_cst_get_last_token(builder->target_node, &last);
+      if (rc != CDD_C_SUCCESS) {
+        goto cleanup;
+      }
+
+      last->leading_trivia = t->leading_trivia;
+      last->trailing_trivia = t->trailing_trivia;
+      t->leading_trivia = NULL;
+      t->trailing_trivia = NULL;
+      for (tr = last->leading_trivia; tr; tr = tr->next) {
+        const char *tr_pooled = NULL;
+        rc = cdd_cst_pool_string_len(builder->tree, (const char *)tr->start,
+                                     tr->length, &tr_pooled);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_trivia_t *rem;
+          for (rem = tr; rem; rem = rem->next) {
+            rem->start = (const uint8_t *)"";
+            rem->length = 0;
           }
-          for (tr = last->trailing_trivia; tr; tr = tr->next) {
-            const char *tr_pooled = NULL;
-            if (cdd_cst_pool_string_len(builder->tree, (const char *)tr->start,
-                                        tr->length,
-                                        &tr_pooled) == CDD_C_SUCCESS) {
-              tr->start = (const uint8_t *)tr_pooled;
-            }
+          for (rem = last->trailing_trivia; rem; rem = rem->next) {
+            rem->start = (const uint8_t *)"";
+            rem->length = 0;
           }
+          goto cleanup;
         }
+        tr->start = (const uint8_t *)tr_pooled;
+      }
+      for (tr = last->trailing_trivia; tr; tr = tr->next) {
+        const char *tr_pooled = NULL;
+        rc = cdd_cst_pool_string_len(builder->tree, (const char *)tr->start,
+                                     tr->length, &tr_pooled);
+        if (rc != CDD_C_SUCCESS) {
+          cdd_trivia_t *rem;
+          for (rem = tr; rem; rem = rem->next) {
+            rem->start = (const uint8_t *)"";
+            rem->length = 0;
+          }
+          goto cleanup;
+        }
+        tr->start = (const uint8_t *)tr_pooled;
       }
     }
   }
 
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_lexer_free_token_list(list));
-  if (rc != CDD_C_SUCCESS)
+  rc = CDD_C_SUCCESS;
+
+cleanup: {
+  cdd_c_error_t rc_free = cst_lexer_token_list_free(list);
+  if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;
-  return rc;
+  }
+  return cdd_c_keep_err(rc, rc_free);
+}
 }
 
 /*
@@ -718,13 +753,13 @@ cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
         if (snippet_len > 0) {
           snippet_buf[snippet_len] = '\0';
           rc = cdd_cst_bld_snippet(builder, snippet_buf);
-          snippet_len = 0;
           if (rc != CDD_C_SUCCESS) {
             C_CDD_FREE(snippet_buf);
             va_end(args);
             builder->error_state = rc;
             return rc;
           }
+          snippet_len = 0;
         }
 
         if (*p == 's') {
@@ -818,10 +853,11 @@ cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
   /* 0 elements to consume, we are just inserting them */
   rc = cdd_cst_splice_children(builder->tree, &parent, index, 0,
                                children_wrappers, count);
-  C_CDD_FREE(children_wrappers);
-
   if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(children_wrappers);
     builder->error_state = rc;
+    return rc;
   }
-  return rc;
+  C_CDD_FREE(children_wrappers);
+  return CDD_C_SUCCESS;
 }

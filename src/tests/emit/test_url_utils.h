@@ -1110,6 +1110,120 @@ TEST test_url_utils_full_coverage(void) {
     g_cdd_alloc_fail = 0;
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    struct OpenAPI_KV kvs_step[2];
+    int step;
+    memset(kvs_step, 0, sizeof(kvs_step));
+    kvs_step[0].key = cdd_test_mut_str("a b");
+    kvs_step[0].type = OA_KV_STRING;
+    kvs_step[0].value.s = cdd_test_mut_str("c/d");
+    kvs_step[1].key = cdd_test_mut_str("e");
+    kvs_step[1].type = OA_KV_INTEGER;
+    kvs_step[1].value.i = 7;
+
+    for (step = 1; step <= 60; ++step) {
+      res = NULL;
+      g_cdd_step_fail = step;
+      rc = url_encode("a ^", &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    for (step = 1; step <= 80; ++step) {
+      res = NULL;
+      g_cdd_step_fail = step;
+      rc = url_encode_allow_reserved("a/%20/%zz^", &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    for (step = 1; step <= 60; ++step) {
+      res = NULL;
+      g_cdd_step_fail = step;
+      rc = url_encode_form("a *^", &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    for (step = 1; step <= 100; ++step) {
+      res = NULL;
+      g_cdd_step_fail = step;
+      rc = url_encode_form_allow_reserved("a %20/&^", &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    for (step = 1; step <= 100; ++step) {
+      res = NULL;
+      g_cdd_step_fail = step;
+      rc = openapi_kv_join_form(kvs_step, 2, ",", 0, &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        if (g_cdd_step_fail > 0) {
+          g_cdd_step_fail = 0;
+          break;
+        }
+      }
+      g_cdd_step_fail = 0;
+    }
+
+    {
+      extern C_CDD_EXPORT int g_cdd_strdup_fail;
+      struct UrlQueryParams qp_enc;
+      ASSERT_EQ(CDD_C_SUCCESS, url_query_init(&qp_enc));
+      ASSERT_EQ(CDD_C_SUCCESS, url_query_add_encoded(&qp_enc, "k", "v%20"));
+      for (step = 1; step <= 6; ++step) {
+        res = NULL;
+        g_cdd_strdup_fail = step;
+        rc = url_query_build(&qp_enc, &res);
+        if (rc == CDD_C_SUCCESS) {
+          free(res);
+          g_cdd_strdup_fail = 0;
+          break;
+        }
+        g_cdd_strdup_fail = 0;
+      }
+      for (step = 1; step <= 6; ++step) {
+        res = NULL;
+        g_cdd_strdup_fail = step;
+        rc = url_query_build_form(&qp_enc, &res);
+        if (rc == CDD_C_SUCCESS) {
+          free(res);
+          g_cdd_strdup_fail = 0;
+          break;
+        }
+        g_cdd_strdup_fail = 0;
+      }
+      ASSERT_EQ(CDD_C_SUCCESS, url_query_free(&qp_enc));
+    }
+  }
+#endif
+
   PASS();
 }
 

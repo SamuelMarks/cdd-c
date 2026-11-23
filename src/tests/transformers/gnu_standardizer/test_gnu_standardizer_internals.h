@@ -924,6 +924,113 @@ TEST test_gnu_ranges_complete_coverage(void) {
 }
 
 /**
+ * @brief Tests error percolation branches in gnu_standardizer_helpers.c.
+ * @return Greatest test result.
+ */
+TEST test_gnu_helpers_error_percolation(void) {
+#ifdef CDD_BUILD_TESTS
+  /* 1. cdd_magic_visitor -> cdd_cst_replace_token_child failure */
+  {
+    cdd_cst_tree_t *tree = NULL;
+    struct magic_ctx mctx;
+    cdd_cst_node_t mnode;
+    cdd_cst_child_t mch;
+    cdd_token_t mtok;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_parse(az_span_create_from_str("int x;\n"), &tree));
+    memset(&mctx, 0, sizeof(mctx));
+    memset(&mnode, 0, sizeof(mnode));
+    memset(&mch, 0, sizeof(mch));
+    memset(&mtok, 0, sizeof(mtok));
+    mtok.kind = CDD_TOKEN_IDENTIFIER;
+    mtok.start = (const uint8_t *)"__func__";
+    mtok.length = 8;
+    mch.kind = CDD_CST_CHILD_TOKEN;
+    mch.val.token = &mtok;
+    mnode.num_children = 1;
+    mnode.children = &mch;
+    mctx.tree = tree;
+    mctx.func_name = (const uint8_t *)"fn";
+    mctx.func_len = 2;
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_magic_visitor(&mnode, &mctx));
+    g_cdd_step_fail = 0;
+    g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+  }
+
+  /* 2. cdd_infer_type -> cdd_cst_eval_tokens_type OOM (>64 tokens) */
+  {
+    cdd_token_t big_toks[65];
+    const char *inferred = NULL;
+    size_t i;
+    memset(big_toks, 0, sizeof(big_toks));
+    for (i = 0; i < 65; i++) {
+      big_toks[i].kind = CDD_TOKEN_PLUS;
+      big_toks[i].start = (const uint8_t *)"+";
+      big_toks[i].length = 1;
+    }
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_infer_type(big_toks, 65, &inferred));
+    g_cdd_alloc_fail = 0;
+    ASSERT_STR_EQ("int", inferred);
+  }
+
+  /* 3. cdd_eval_expr_type_scoped -> cdd_cst_scope_find_for_node failure */
+  {
+    struct gnu_standardizer_ctx_t gctx;
+    cdd_cst_scope_env_t *env = NULL;
+    cdd_cst_node_t dummy_node;
+    cdd_token_t tok;
+    char eval_buf[32];
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_scope_env_init(&env));
+    memset(&gctx, 0, sizeof(gctx));
+    memset(&dummy_node, 0, sizeof(dummy_node));
+    memset(&tok, 0, sizeof(tok));
+    tok.kind = CDD_TOKEN_NUMBER;
+    tok.start = (const uint8_t *)"1";
+    tok.length = 1;
+    gctx.sem_env = env;
+    g_cdd_step_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+              cdd_eval_expr_type_scoped(&gctx, &dummy_node, &tok, 1, 0,
+                                        eval_buf, sizeof(eval_buf), NULL));
+    g_cdd_step_fail = 0;
+    g_cdd_last_alloc_err = cdd_cst_scope_env_free(env);
+  }
+
+  /* 4. gnu_standardizer_ranges.c step fail sweep */
+  {
+    const char *rsrc =
+        "enum E { A = 1, B = 2 }; int fr(int x) { switch(x) { case A ... B: "
+        "case 'a' ... 'b': case 1 ... 2: case 0b01 ... 0b10: return 1; } "
+        "{ int a[4] = { [0 ... 1] = 5 }; return a[0]; } }\n";
+    int step;
+    for (step = 1; step <= 200; ++step) {
+      cdd_cst_tree_t *tree = NULL;
+      struct gnu_standardizer_ctx_t gctx;
+      cdd_c_error_t s_rc;
+      int rem;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_parse(az_span_create_from_str(rsrc), &tree));
+      memset(&gctx, 0, sizeof(gctx));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_build_semantic_info(tree, &gctx.sem_env));
+      g_cdd_step_fail = step;
+      s_rc = gnu_standardize_ranges_ctx(tree, &gctx);
+      rem = g_cdd_step_fail;
+      g_cdd_step_fail = 0;
+      g_cdd_last_alloc_err = cdd_cst_scope_env_free(gctx.sem_env);
+      g_cdd_last_alloc_err = cdd_cst_tree_free(tree);
+      if (s_rc == CDD_C_SUCCESS && rem > 0) {
+        break;
+      }
+    }
+  }
+#endif
+  PASS();
+}
+
+/**
  * @brief Executes the transformer_gnu_standardizer_internals_suite test suite.
  */
 SUITE(transformer_gnu_standardizer_internals_suite) {
@@ -935,6 +1042,7 @@ SUITE(transformer_gnu_standardizer_internals_suite) {
   RUN_TEST(test_gnu_infer_type);
   RUN_TEST(test_gnu_asm_and_visitors);
   RUN_TEST(test_gnu_ranges_complete_coverage);
+  RUN_TEST(test_gnu_helpers_error_percolation);
 }
 
 #ifdef __cplusplus

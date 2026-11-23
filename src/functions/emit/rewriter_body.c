@@ -230,15 +230,16 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
   }
 
   /* 1. Initialize Patcher */
-  if (patch_list_init(&patches) != 0) {
-    return CDD_C_ERROR_MEMORY;
+  rc = patch_list_init(&patches);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
   }
 
   /* 2. Apply Safety Strategies */
   if (allocs) {
     rc = strategy_inject_safety_checks(tokens, allocs, &patches);
     if (rc != 0) {
-      return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+      return cdd_c_keep_err(rc, patch_list_free(&patches));
     }
   }
 
@@ -251,16 +252,12 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
         const struct RefactoredFunction *rf = NULL;
         rc = extract_token_text(id_tok, &name_str);
         if (rc != CDD_C_SUCCESS) {
-          return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+          return cdd_c_keep_err(rc, patch_list_free(&patches));
         }
-        {
-          cdd_c_error_t rc_rw =
-              find_refactored_func(funcs, func_count, name_str, &rf);
-          if (rc_rw != CDD_C_SUCCESS) {
-            C_CDD_FREE(name_str);
-            rc = rc_rw;
-            goto cleanup;
-          }
+        rc = find_refactored_func(funcs, func_count, name_str, &rf);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(name_str);
+          goto cleanup;
         }
         C_CDD_FREE(name_str);
 
@@ -401,20 +398,15 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       char *tmp_arg = arg_append;
                       arg_append = NULL;
                       rc = patch_list_add(&patches, rparen, rparen, tmp_arg);
+                      if (rc != CDD_C_SUCCESS)
+                        goto cleanup;
                     }
-
-                    if (rc != CDD_C_SUCCESS)
-                      goto cleanup;
                   }
 
                   /* Append check */
-                  {
-                    cdd_c_error_t rc_rw = find_semicolon(tokens, rparen, &semi);
-                    if (rc_rw != CDD_C_SUCCESS) {
-                      rc = rc_rw;
-                      goto cleanup;
-                    }
-                  }
+                  rc = find_semicolon(tokens, rparen, &semi);
+                  if (rc != CDD_C_SUCCESS)
+                    goto cleanup;
                   if (semi < tokens->size) {
                     char *tmp = NULL;
                     rc = c_cdd_strdup(" if (rc != CDD_C_SUCCESS) return rc;",
@@ -448,13 +440,9 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                 if (rc != CDD_C_SUCCESS)
                   goto cleanup;
               };
-              {
-                cdd_c_error_t rc_rw = find_semicolon(tokens, next, &semi);
-                if (rc_rw != CDD_C_SUCCESS) {
-                  rc = rc_rw;
-                  goto cleanup;
-                }
-              }
+              rc = find_semicolon(tokens, next, &semi);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
               if (semi < tokens->size) {
                 {
                   char *tmp = NULL;
@@ -475,13 +463,9 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               /* Hoisting strategy */
               char tmp_var[64];
               size_t stmt_start = 0;
-              {
-                cdd_c_error_t rc_rw = find_stmt_start(tokens, i, &stmt_start);
-                if (rc_rw != CDD_C_SUCCESS) {
-                  rc = rc_rw;
-                  goto cleanup;
-                }
-              }
+              rc = find_stmt_start(tokens, i, &stmt_start);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
@@ -525,10 +509,9 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                 char *tmp_inj = injection;
                 injection = NULL;
                 rc = patch_list_add(&patches, stmt_start, stmt_start, tmp_inj);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
               }
-
-              if (rc != CDD_C_SUCCESS)
-                goto cleanup;
               /* Replace call with var */
               {
                 char *tmp = NULL;
@@ -574,13 +557,9 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
           }
         } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
           size_t semi = 0;
-          {
-            cdd_c_error_t rc_rw = find_semicolon(tokens, i, &semi);
-            if (rc_rw != CDD_C_SUCCESS) {
-              rc = rc_rw;
-              goto cleanup;
-            }
-          }
+          rc = find_semicolon(tokens, i, &semi);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
           if (semi < tokens->size) {
             /* Fix: Check for inline unchecked alloc in return statement */
             int contains_alloc = 0;
@@ -721,11 +700,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 
   /* 6. Execute Patching */
   rc = patch_list_apply(&patches, tokens, out_code);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
 cleanup:
   if (lhs_name)
     C_CDD_FREE(lhs_name);
   if (call_args)
     C_CDD_FREE(call_args);
-  return (cdd_c_error_t)((int)rc | (int)patch_list_free(&patches));
+  return cdd_c_keep_err(rc, patch_list_free(&patches));
 }

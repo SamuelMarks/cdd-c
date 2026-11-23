@@ -174,6 +174,10 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
   const char *start_digits;
   char *end_ptr = NULL;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!str || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -279,26 +283,27 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
 
     if (is_bin) {
       rc_num = parse_binary_str(start_digits, &end_cptr, &val);
-      if (rc_num != CDD_C_SUCCESS)
-        return rc_num;
+      if (rc_num != CDD_C_SUCCESS || errno == ERANGE ||
+          end_cptr == start_digits) {
+        return cdd_c_keep_err(CDD_C_ERROR_PARSE, rc_num);
+      }
       out->data.integer.base = 2;
     } else {
       int base = is_hex ? 16 : (is_oct ? 8 : 10);
-      rc_num = parse_uint64_base(start_digits, base, &end_cptr, &val);
       out->data.integer.base = base;
+      rc_num = parse_uint64_base(start_digits, base, &end_cptr, &val);
+      if (errno == ERANGE || end_cptr == start_digits) {
+        return cdd_c_keep_err(CDD_C_ERROR_PARSE, rc_num);
+      }
     }
-
-    if (errno == ERANGE)
-      return CDD_C_ERROR_PARSE;
-    if (end_cptr == start_digits)
-      return CDD_C_ERROR_PARSE;
 
     out->data.integer.value = val;
 
     /* Suffixes */
     if (*end_cptr != '\0') {
-      if (parse_int_suffixes(end_cptr, &out->data.integer) != 0) {
-        return CDD_C_ERROR_PARSE;
+      cdd_c_error_t rc_suf = parse_int_suffixes(end_cptr, &out->data.integer);
+      if (rc_suf != CDD_C_SUCCESS) {
+        return cdd_c_keep_err(CDD_C_ERROR_PARSE, rc_suf);
       }
     }
     return rc_num;

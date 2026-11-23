@@ -20,6 +20,10 @@
 cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
                                const char **_out_val) {
   size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_c2s_fail_step > 0 && --g_cdd_c2s_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!in || !buf || bufsz == 0) {
     *_out_val = in;
     return CDD_C_SUCCESS;
@@ -54,6 +58,10 @@ cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
  */
 cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
                                      int *out_has_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_c2s_fail_step > 0 && --g_cdd_c2s_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_has_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_has_val = 0;
@@ -86,20 +94,26 @@ cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
 cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
                                        int *out_has_val) {
   struct NumericValue nv;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_c2s_fail_step > 0 && --g_cdd_c2s_fail_step == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_has_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_has_val = 0;
   if (!in || !out)
     return CDD_C_SUCCESS;
-  if (parse_numeric_literal(in, &nv) == 0) {
+  rc = parse_numeric_literal(in, &nv);
+  if (rc == CDD_C_SUCCESS) {
     if (nv.kind == NUMERIC_INTEGER) {
       *out = (double)nv.data.integer.value;
       *out_has_val = 1;
-      return CDD_C_SUCCESS;
+      return rc;
     } else {
       *out = nv.data.floating.value;
       *out_has_val = 1;
-      return CDD_C_SUCCESS;
+      return rc;
     }
   }
 
@@ -119,6 +133,11 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
                                          enum UnionVariantJsonType *_out_val) {
   const char *type = NULL;
   JSON_Object *props = NULL;
+  cdd_c_error_t rc_t;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!schema_obj) {
@@ -134,36 +153,35 @@ cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
       return rc_e;
     }
   }
-  if (cdd_json_object_get_string(schema_obj, "type", &type) != CDD_C_SUCCESS)
-    type = NULL;
-  if (type) {
+  rc_t = cdd_json_object_get_string(schema_obj, "type", &type);
+  if (rc_t == CDD_C_SUCCESS) {
     if (strcmp(type, "object") == 0) {
       *_out_val = UNION_JSON_OBJECT;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
     if (strcmp(type, "string") == 0) {
       *_out_val = UNION_JSON_STRING;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
     if (strcmp(type, "integer") == 0) {
       *_out_val = UNION_JSON_INTEGER;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
     if (strcmp(type, "number") == 0) {
       *_out_val = UNION_JSON_NUMBER;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
     if (strcmp(type, "boolean") == 0) {
       *_out_val = UNION_JSON_BOOLEAN;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
     if (strcmp(type, "array") == 0) {
       *_out_val = UNION_JSON_ARRAY;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
     if (strcmp(type, "null") == 0) {
       *_out_val = UNION_JSON_NULL;
-      return CDD_C_SUCCESS;
+      return rc_t;
     }
   }
   {

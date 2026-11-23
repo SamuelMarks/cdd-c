@@ -25,6 +25,10 @@
  */
 static cdd_c_error_t get_luajit_c_type(cdd_ffi_type_t type,
                                        const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (type.pointer_depth > 0) {
     if (type.kind == CDD_FFI_KIND_INT8 || type.kind == CDD_FFI_KIND_UINT8) {
       *out_type = type.is_const ? "const char*" : "char*";
@@ -139,16 +143,21 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  typedef struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *fname =
             node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit | (int)get_luajit_c_type(
-                                               node->fields[j].type, &ftype));
+        rc_emit = get_luajit_c_type(node->fields[j].type, &ftype);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
           fprintf(f, "    struct %s %s;\n", ftype, fname);
         } else {
@@ -157,8 +166,11 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "  } %s;\n\n", node->name);
     } else if (node->kind == CDD_FFI_NODE_ENUM) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  enum %s {\n", node->name);
       for (j = 0; j < node->variants_count; j++) {
         cdd_ffi_enum_variant_t *var = &node->variants[j];
@@ -174,17 +186,24 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "  };\n\n");
     } else if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_lt = NULL;
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)get_luajit_c_type(
-                                    node->return_or_base_type, &ret_lt));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
+      rc_emit = get_luajit_c_type(node->return_or_base_type, &ret_lt);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       fprintf(f, "  %s %s(", ret_lt, node->name);
       for (j = 0; j < node->fields_count; j++) {
         const char *lt = NULL;
-        rc_emit =
-            (cdd_c_error_t)((int)rc_emit |
-                            (int)get_luajit_c_type(node->fields[j].type, &lt));
+        rc_emit = get_luajit_c_type(node->fields[j].type, &lt);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(f);
+          return rc_emit;
+        }
         fprintf(f, "%s %s", lt,
                 node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1)
@@ -205,8 +224,11 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      rc_emit = (cdd_c_error_t)((int)rc_emit | (int)cdd_ffi_emit_trivia(
-                                                   f, node->leading_trivia));
+      rc_emit = cdd_ffi_emit_trivia(f, node->leading_trivia);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(f);
+        return rc_emit;
+      }
       if (node->doc)
         fprintf(f, "-- %s\n", node->doc);
       fprintf(f, "function M.%s(", node->name);
@@ -239,7 +261,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   fprintf(f, "return M\n");
 
   fclose(f);
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }
 
 /*

@@ -15,6 +15,7 @@ extern volatile int g_fail_io_after;
 #include "../../../include/c_cdd/safe_crt.h"
 #include "../../../include/ffi/cdd_ffi_ir.h"
 #include "../../cdd_api.h"
+#include "cdd_ffi_emit_common.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +33,10 @@ extern volatile int g_fail_io_after;
  */
 static cdd_c_error_t map_objc_type(cdd_ffi_type_t *t, int is_return,
                                    const char **out_type) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   if (t->pointer_depth > 0) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       if (t->is_const) {
@@ -113,6 +118,10 @@ static cdd_c_error_t map_objc_type(cdd_ffi_type_t *t, int is_return,
  * @return `CDD_C_SUCCESS` on success.
  */
 static cdd_c_error_t capitalize_first(char *str) {
+#ifdef CDD_BUILD_TESTS
+  if (g_ffi_emit_fail_step > 0 && --g_ffi_emit_fail_step == 0)
+    return CDD_C_ERROR_IO;
+#endif
   str[0] = (char)toupper((unsigned char)str[0]);
   return CDD_C_SUCCESS;
 }
@@ -223,9 +232,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         const char *t_str = NULL;
         int is_obj;
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_objc_type(&node->fields[j].type, 1,
-                                                     &t_str));
+        rc_emit = map_objc_type(&node->fields[j].type, 1, &t_str);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(h_file);
+          fclose(m_file);
+          return rc_emit;
+        }
         /* simplistic pointer handling for class refs */
         is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                   strstr(t_str, "NSString") != NULL);
@@ -245,9 +257,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_type = NULL;
       int ret_is_obj;
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_objc_type(&node->return_or_base_type,
-                                                   1, &ret_type));
+      rc_emit = map_objc_type(&node->return_or_base_type, 1, &ret_type);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(h_file);
+        fclose(m_file);
+        return rc_emit;
+      }
       ret_is_obj = (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
                     strstr(ret_type, "NSString") != NULL);
 
@@ -261,9 +276,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
-          rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                    (int)map_objc_type(&node->fields[j].type, 0,
-                                                       &arg_type));
+          rc_emit = map_objc_type(&node->fields[j].type, 0, &arg_type);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(h_file);
+            fclose(m_file);
+            return rc_emit;
+          }
           arg_is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                         strstr(arg_type, "NSString") != NULL);
           CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
@@ -271,8 +289,12 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
 
           if (j > 0) {
-            rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                      (int)capitalize_first(arg_name_cap));
+            rc_emit = capitalize_first(arg_name_cap);
+            if (rc_emit != CDD_C_SUCCESS) {
+              fclose(h_file);
+              fclose(m_file);
+              return rc_emit;
+            }
             fprintf(h_file, " %s:(%s%s)%s", arg_name, arg_type,
                     arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           } else {
@@ -312,9 +334,11 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       const char *ret_type = NULL;
       int ret_is_obj;
-      rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                (int)map_objc_type(&node->return_or_base_type,
-                                                   1, &ret_type));
+      rc_emit = map_objc_type(&node->return_or_base_type, 1, &ret_type);
+      if (rc_emit != CDD_C_SUCCESS) {
+        fclose(m_file);
+        return rc_emit;
+      }
       ret_is_obj = (node->return_or_base_type.kind == CDD_FFI_KIND_STRUCT_REF ||
                     strstr(ret_type, "NSString") != NULL);
 
@@ -328,9 +352,11 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
-          rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                    (int)map_objc_type(&node->fields[j].type, 0,
-                                                       &arg_type));
+          rc_emit = map_objc_type(&node->fields[j].type, 0, &arg_type);
+          if (rc_emit != CDD_C_SUCCESS) {
+            fclose(m_file);
+            return rc_emit;
+          }
           arg_is_obj = (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                         strstr(arg_type, "NSString") != NULL);
           CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
@@ -338,8 +364,11 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
 
           if (j > 0) {
-            rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                      (int)capitalize_first(arg_name_cap));
+            rc_emit = capitalize_first(arg_name_cap);
+            if (rc_emit != CDD_C_SUCCESS) {
+              fclose(m_file);
+              return rc_emit;
+            }
             fprintf(m_file, " %s:(%s%s)%s", arg_name, arg_type,
                     arg_is_obj && !strstr(arg_type, "*") ? " *" : "", arg_name);
           } else {
@@ -355,9 +384,11 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         const char *arg_type = NULL;
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_objc_type(&node->fields[j].type, 0,
-                                                     &arg_type));
+        rc_emit = map_objc_type(&node->fields[j].type, 0, &arg_type);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(m_file);
+          return rc_emit;
+        }
         if (strstr(arg_type, "NSString") != NULL) {
           fprintf(m_file, "    const char * _c_%s = [%s UTF8String];\n",
                   arg_name, arg_name);
@@ -381,9 +412,11 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         const char *arg_type = NULL;
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
-        rc_emit = (cdd_c_error_t)((int)rc_emit |
-                                  (int)map_objc_type(&node->fields[j].type, 0,
-                                                     &arg_type));
+        rc_emit = map_objc_type(&node->fields[j].type, 0, &arg_type);
+        if (rc_emit != CDD_C_SUCCESS) {
+          fclose(m_file);
+          return rc_emit;
+        }
         if (j > 0)
           fprintf(m_file, ", ");
 
@@ -415,5 +448,5 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   fprintf(m_file, "@end\n");
   fclose(m_file);
 
-  return rc_emit;
+  return CDD_C_SUCCESS;
 }

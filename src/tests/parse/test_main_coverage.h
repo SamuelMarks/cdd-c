@@ -372,6 +372,29 @@ TEST test_main_coverage_cdd_main(void) {
   ASSERT_EQ(CDD_C_SUCCESS, cdd_main(2, argv_help));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_err));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_typo));
+#ifdef CDD_BUILD_TESTS
+  {
+    char *argv_aud[1];
+    argv_aud[0] = cdd_test_mut_str("my_empty_dir");
+    g_cdd_step_fail = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS, handle_audit(1, argv_aud));
+    g_cdd_step_fail = 2;
+    g_cdd_last_alloc_err = handle_audit(1, argv_aud);
+    g_cdd_step_fail = 0;
+
+    g_cdd_step_fail = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_main(1, argv_ver));
+    g_cdd_step_fail = 2;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(1, argv_ver));
+    g_cdd_step_fail = 0;
+
+    g_cdd_step_fail = 1;
+    ASSERT_NEQ(CDD_C_SUCCESS, cdd_main(2, argv_typo));
+    g_cdd_step_fail = 30;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(2, argv_typo));
+    g_cdd_step_fail = 0;
+  }
+#endif
   PASS();
 }
 

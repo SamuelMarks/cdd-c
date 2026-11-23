@@ -287,7 +287,7 @@ static cdd_c_error_t append_include_dir(struct cli_cst_options_t *opts,
  * @param[in,out] opts Options structure to clean up.
  * @return CDD_C_SUCCESS.
  */
-static cdd_c_error_t cleanup_cli_cst_options(struct cli_cst_options_t *opts) {
+static cdd_c_error_t cli_cst_options_free(struct cli_cst_options_t *opts) {
   if (opts->inc_dirs_buf) {
     C_CDD_FREE((void *)opts->inc_dirs_buf);
     opts->inc_dirs_buf = NULL;
@@ -337,8 +337,12 @@ resolve_output_filepath(const char *filepath,
     return rc;
   }
   rc = fs_path_join(opts->out_dir, base, out_resolved);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(base);
+    return rc;
+  }
   C_CDD_FREE(base);
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -456,34 +460,46 @@ process_file_ex(const char *filepath,
 
   if (transform_fn) {
     rc = transform_fn(tree, &opts->config);
+    if (rc != CDD_C_SUCCESS) {
+      fprintf(stderr, "Error transforming %s\n", filepath);
+      C_CDD_FREE(str);
+      return cdd_c_keep_err(rc, cdd_cst_tree_free(tree));
+    }
   } else {
     rc = cdd_transform_pipeline(tree, opts->pass_mask, &opts->config);
-  }
-  if (rc != CDD_C_SUCCESS) {
-    fprintf(stderr, "Error transforming %s\n", filepath);
-    rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree));
-    C_CDD_FREE(str);
-    return rc;
+    if (rc != CDD_C_SUCCESS) {
+      fprintf(stderr, "Error transforming %s\n", filepath);
+      C_CDD_FREE(str);
+      return cdd_c_keep_err(rc, cdd_cst_tree_free(tree));
+    }
   }
 
   rc = cdd_cst_emit(tree, &out);
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_tree_free(tree));
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error emitting %s\n", filepath);
     C_CDD_FREE(str);
-    return rc;
+    return cdd_c_keep_err(rc, cdd_cst_tree_free(tree));
   }
+  rc = cdd_cst_tree_free(tree);
 
   if (opts->to_stdout || (read_stdin && !opts->out_file && !opts->out_dir)) {
     fwrite(out, 1, strlen(out), stdout);
-    rc = CDD_C_SUCCESS;
   } else if (opts->out_file || opts->out_dir) {
     char *dest_path = NULL;
     rc = resolve_output_filepath(filepath, opts, &dest_path);
-    if (rc == CDD_C_SUCCESS) {
-      rc = write_out_of_tree_file(dest_path, out, opts->is_dry_run);
-      C_CDD_FREE(dest_path);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(str);
+      C_CDD_FREE(out);
+      return rc;
     }
+    rc = write_out_of_tree_file(dest_path, out, opts->is_dry_run);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(dest_path);
+      C_CDD_FREE(str);
+      C_CDD_FREE(out);
+      return rc;
+    }
+    C_CDD_FREE(dest_path);
   } else if (opts->is_audit) {
     if (strcmp(str, out) != 0) {
       fprintf(stdout, "%s needs formatting/fixes.\n", filepath);
@@ -674,10 +690,12 @@ static cdd_c_error_t parse_common_cst_flag(int argc, char **argv, int *idx,
       case 3:
         opts->config.indent_width = atoi(val);
         return CDD_C_SUCCESS;
-      case 4:
+      case 4: {
         return parse_pass_list(val, &opts->pass_mask);
-      case 5:
+      }
+      case 5: {
         return parse_target_profile(val, &opts->config);
+      }
       case 6: {
         int ver = atoi(val);
         if (ver <= 0) {
@@ -687,15 +705,18 @@ static cdd_c_error_t parse_common_cst_flag(int argc, char **argv, int *idx,
         opts->config.msvc_ver = ver;
         return CDD_C_SUCCESS;
       }
-      case 7:
+      case 7: {
         return parse_vla_mode(val, &opts->config);
-      case 8:
+      }
+      case 8: {
         return parse_safe_crt_mode(val, opts);
+      }
       case 9:
         opts->config.rename_main = val;
         return CDD_C_SUCCESS;
-      default:
+      default: {
         return append_include_dir(opts, val);
+      }
       }
     }
   }
@@ -738,11 +759,11 @@ static cdd_c_error_t run_cst_cli_args(
               "Usage: cdd-c transformer %s [--audit | --fix] [--dry-run] "
               "[-o <out> | --out-dir <dir> | --stdin | --stdout] <files...>\n",
               tool_help_name);
-      return cleanup_cli_cst_options(opts);
+      return cli_cst_options_free(opts);
     }
     rc = parse_common_cst_flag(argc, argv, &i, opts, &consumed);
     if (rc != CDD_C_SUCCESS) {
-      return (cdd_c_error_t)((int)rc | (int)cleanup_cli_cst_options(opts));
+      return cdd_c_keep_err(rc, cli_cst_options_free(opts));
     }
     if (!consumed) {
       if (argv[i][0] == '-' && argv[i][1] != '\0') {
@@ -750,8 +771,8 @@ static cdd_c_error_t run_cst_cli_args(
           continue;
         }
         fprintf(stderr, "Unknown option: %s\n", argv[i]);
-        return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
-                               (int)cleanup_cli_cst_options(opts));
+        return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
+                              cli_cst_options_free(opts));
       }
       num_files++;
     }
@@ -762,28 +783,31 @@ static cdd_c_error_t run_cst_cli_args(
 
   if (opts->out_file && num_files > 1) {
     fprintf(stderr, "Cannot use -o with multiple input files; use --out-dir\n");
-    return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
-                           (int)cleanup_cli_cst_options(opts));
+    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
+                          cli_cst_options_free(opts));
   }
 
   if (opts->from_stdin && num_files == 0) {
     rc = process_file_ex("-", transform_fn, opts);
-    return (cdd_c_error_t)((int)rc | (int)cleanup_cli_cst_options(opts));
+    if (rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(rc, cli_cst_options_free(opts));
+    }
+    return cli_cst_options_free(opts);
   }
 
   if (num_files == 0) {
     if (allow_zero_files_noop) {
-      return cleanup_cli_cst_options(opts);
+      return cli_cst_options_free(opts);
     }
     fprintf(stderr, "No input files specified.\n");
-    return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
-                           (int)cleanup_cli_cst_options(opts));
+    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
+                          cli_cst_options_free(opts));
   }
 
   if (!is_out_of_tree && !opts->is_audit && !opts->is_fix) {
     fprintf(stderr, "Must specify --audit or --fix.\n");
-    return (cdd_c_error_t)((int)CDD_C_ERROR_INVALID_ARGUMENT |
-                           (int)cleanup_cli_cst_options(opts));
+    return cdd_c_keep_err(CDD_C_ERROR_INVALID_ARGUMENT,
+                          cli_cst_options_free(opts));
   }
 
   for (i = start_idx; i < argc; i++) {
@@ -792,9 +816,12 @@ static cdd_c_error_t run_cst_cli_args(
     cdd_c_error_t skip_rc;
     memset(&skip_opts, 0, sizeof(skip_opts));
     skip_rc = parse_common_cst_flag(argc, argv, &i, &skip_opts, &consumed);
-    skip_rc = (cdd_c_error_t)((int)skip_rc |
-                              (int)cleanup_cli_cst_options(&skip_opts));
-    rc = (cdd_c_error_t)((int)rc | (int)skip_rc);
+    if (skip_rc != CDD_C_SUCCESS) {
+      return cdd_c_keep_err(skip_rc,
+                            cdd_c_keep_err(cli_cst_options_free(&skip_opts),
+                                           cli_cst_options_free(opts)));
+    }
+    skip_rc = cli_cst_options_free(&skip_opts);
     if (!consumed) {
       if (!fail_fast && argv[i][0] == '-' && argv[i][1] != '\0') {
         continue;
@@ -803,8 +830,7 @@ static cdd_c_error_t run_cst_cli_args(
         cdd_c_error_t p_rc = process_file_ex(argv[i], transform_fn, opts);
         if (p_rc != CDD_C_SUCCESS) {
           if (fail_fast) {
-            return (cdd_c_error_t)((int)p_rc |
-                                   (int)cleanup_cli_cst_options(opts));
+            return cdd_c_keep_err(p_rc, cli_cst_options_free(opts));
           }
           rc = CDD_C_ERROR_UNKNOWN;
         }
@@ -812,7 +838,7 @@ static cdd_c_error_t run_cst_cli_args(
     }
   }
 
-  return (cdd_c_error_t)((int)rc | (int)cleanup_cli_cst_options(opts));
+  return cdd_c_keep_err(rc, cli_cst_options_free(opts));
 }
 
 /*

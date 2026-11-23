@@ -26,9 +26,11 @@ cdd_c_error_t c_low_insert_after_lbrace(cdd_cst_tree_t *tree, cdd_token_t *tok,
     memcpy(buf + 1 + ilen, tok->start + 1, tail);
   buf[1 + ilen + tail] = '\0';
   rc = cdd_pool_string_safe(tree, buf, &pooled);
-  C_CDD_FREE(buf);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
     return rc;
+  }
+  C_CDD_FREE(buf);
   return replace_token_with_text(tree, tok, tok->kind, pooled, 1 + ilen + tail);
 }
 
@@ -41,6 +43,10 @@ cdd_c_error_t c_low_insert_after_lbrace(cdd_cst_tree_t *tree, cdd_token_t *tok,
  */
 static cdd_c_error_t c_low_tok_is_agg_kw(const cdd_token_t *tok,
                                          int *out_is_agg) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_agg = (tok->kind == CDD_TOKEN_KEYWORD_STRUCT) ||
                 (tok->length == 5 && memcmp(tok->start, "union", 5) == 0) ||
                 (tok->length == 4 && memcmp(tok->start, "enum", 4) == 0);
@@ -69,6 +75,11 @@ c_low_tok_is_type_starter(const struct c_lowering_ctx_t *ctx,
       "_Lcomplex", "cdd_int128_t", "cdd_uint128_t", "union",     "enum",
       "_Alignas"};
   size_t k;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_type = 0;
   if (tok->length == 0)
     return CDD_C_SUCCESS;
@@ -96,10 +107,11 @@ c_low_tok_is_type_starter(const struct c_lowering_ctx_t *ctx,
     cdd_cst_symbol_t *tsym = NULL;
     memcpy(nm, tok->start, tok->length);
     nm[tok->length] = '\0';
-    if (cdd_cst_scope_lookup_in_scope(ctx->sem_env->global_scope, nm,
-                                      CDD_CST_SYMBOL_TYPEDEF,
-                                      &tsym) == CDD_C_SUCCESS &&
-        tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
+    rc = c_low_opt_scope_lookup(ctx->sem_env->global_scope, nm,
+                                CDD_CST_SYMBOL_TYPEDEF, &tsym);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (tsym && tsym->kind == CDD_CST_SYMBOL_TYPEDEF) {
       *out_is_type = 1;
     }
   }
@@ -122,6 +134,11 @@ c_low_is_const_init_expr(const struct c_lowering_ctx_t *ctx,
                          const cdd_token_t *toks, size_t s, size_t e_excl,
                          int *out_is_const) {
   size_t k;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_const = 1;
   for (k = s; k < e_excl; k++) {
     const cdd_token_t *tk = &toks[k];
@@ -152,11 +169,12 @@ c_low_is_const_init_expr(const struct c_lowering_ctx_t *ctx,
         cdd_cst_symbol_t *es = NULL;
         memcpy(nm, tk->start, tk->length);
         nm[tk->length] = '\0';
-        if (cdd_cst_scope_lookup_in_scope(ctx->sem_env->global_scope, nm,
-                                          CDD_CST_SYMBOL_ENUM_CONSTANT,
-                                          &es) == CDD_C_SUCCESS &&
-            (es->kind == CDD_CST_SYMBOL_ENUM_CONSTANT ||
-             es->kind == CDD_CST_SYMBOL_TYPEDEF)) {
+        rc = c_low_opt_scope_lookup(ctx->sem_env->global_scope, nm,
+                                    CDD_CST_SYMBOL_ENUM_CONSTANT, &es);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (es && (es->kind == CDD_CST_SYMBOL_ENUM_CONSTANT ||
+                   es->kind == CDD_CST_SYMBOL_TYPEDEF)) {
           continue;
         }
       }
@@ -226,10 +244,12 @@ static cdd_c_error_t c_lower_compound_literals(struct c_lowering_ctx_t *ctx) {
           tree->base_tokens->tokens[rp + 1].kind == CDD_TOKEN_LBRACE) {
         char eval_ty[128];
         int is_tn = 0;
-        cdd_cst_scope_t *gsc = ctx->sem_env->global_scope;
-        rc = cdd_cst_eval_tokens_type(
-            ctx->sem_env, gsc, &tree->base_tokens->tokens[i + 1], rp - (i + 1),
-            CDD_CST_TYPE_MODE_EXACT, eval_ty, sizeof(eval_ty), &is_tn);
+        rc = cdd_cst_eval_tokens_type(ctx->sem_env, ctx->sem_env->global_scope,
+                                      &tree->base_tokens->tokens[i + 1],
+                                      rp - (i + 1), CDD_CST_TYPE_MODE_EXACT,
+                                      eval_ty, sizeof(eval_ty), &is_tn);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (is_tn) {
           size_t lb = rp + 1;
           size_t rb = lb + 1;
@@ -253,12 +273,14 @@ static cdd_c_error_t c_lower_compound_literals(struct c_lowering_ctx_t *ctx) {
             size_t br_idx = 0;
             int has_arr = 0;
 
-            rc = (cdd_c_error_t)((int)rc | (int)c_low_slice_text(
-                                               tree->base_tokens->tokens, i + 1,
-                                               rp, ty_raw, sizeof(ty_raw)));
-            rc = (cdd_c_error_t)((int)rc | (int)c_low_slice_text(
-                                               tree->base_tokens->tokens, lb,
-                                               rb + 1, init_s, sizeof(init_s)));
+            rc = c_low_slice_text(tree->base_tokens->tokens, i + 1, rp, ty_raw,
+                                  sizeof(ty_raw));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
+            rc = c_low_slice_text(tree->base_tokens->tokens, lb, rb + 1, init_s,
+                                  sizeof(init_s));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             CDD_SNPRINTF(cl_name, sizeof(cl_name), "__cdd_cl_%d", cid);
 
             /* Split array type `(int[2]){1, 2}` -> `int __cdd_cl_1[2]` */
@@ -304,6 +326,8 @@ static cdd_c_error_t c_lower_compound_literals(struct c_lowering_ctx_t *ctx) {
               int pd2 = 0;
               rc = c_low_is_const_init_expr(ctx, tree->base_tokens->tokens,
                                             lb + 1, rb, &is_const_cl);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               while (stmt_s > blk_lb + 1) {
                 enum cdd_token_kind_t sk =
                     tree->base_tokens->tokens[stmt_s - 1].kind;
@@ -379,6 +403,8 @@ static cdd_c_error_t c_lower_compound_literals(struct c_lowering_ctx_t *ctx) {
                   }
                   rc = c_low_slice_text(tree->base_tokens->tokens, ek, ee,
                                         item_b, sizeof(item_b));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   if (item_b[0] != '\0') {
                     apos += (size_t)CDD_SNPRINTF(
                         asgn_s + apos, sizeof(asgn_s) - apos, " %s[%d] = %s;",
@@ -415,6 +441,8 @@ static cdd_c_error_t c_lower_compound_literals(struct c_lowering_ctx_t *ctx) {
                   char inner_b[384];
                   rc = c_low_slice_text(tree->base_tokens->tokens, lb + 1, rb,
                                         inner_b, sizeof(inner_b));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   CDD_SNPRINTF(decl_s, sizeof(decl_s), " %s = (%s);", cl_name,
                                inner_b);
                 } else if (has_dot_cl) {
@@ -451,15 +479,15 @@ static cdd_c_error_t c_lower_compound_literals(struct c_lowering_ctx_t *ctx) {
                         eq_k++;
                       if (eq_k < ee) {
                         char path_s[128], val_s[256];
-                        rc = (cdd_c_error_t)((int)rc |
-                                             (int)c_low_slice_text(
-                                                 tree->base_tokens->tokens, ek,
-                                                 eq_k, path_s, sizeof(path_s)));
-                        rc = (cdd_c_error_t)((int)rc |
-                                             (int)c_low_slice_text(
-                                                 tree->base_tokens->tokens,
-                                                 eq_k + 1, ee, val_s,
-                                                 sizeof(val_s)));
+                        rc = c_low_slice_text(tree->base_tokens->tokens, ek,
+                                              eq_k, path_s, sizeof(path_s));
+                        if (rc != CDD_C_SUCCESS)
+                          return rc;
+                        rc = c_low_slice_text(tree->base_tokens->tokens,
+                                              eq_k + 1, ee, val_s,
+                                              sizeof(val_s));
+                        if (rc != CDD_C_SUCCESS)
+                          return rc;
                         dpos += (size_t)CDD_SNPRINTF(
                             decl_s + dpos, sizeof(decl_s) - dpos,
                             " __cdd_ci_%d%s = %s;", cid, path_s, val_s);
@@ -511,6 +539,11 @@ static cdd_c_error_t c_low_lookup_agg_fields(
   char resolved[128];
   const char *tag = NULL;
   cdd_cst_symbol_t *sym = NULL;
+  cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_fields = NULL;
   *out_is_union = 0;
 
@@ -525,10 +558,11 @@ static cdd_c_error_t c_low_lookup_agg_fields(
   if (strncmp(resolved, "struct ", 7) != 0 &&
       strncmp(resolved, "union ", 6) != 0) {
     cdd_cst_symbol_t *td = NULL;
-    if (cdd_cst_scope_lookup_in_scope(ctx->sem_env->global_scope, resolved,
-                                      CDD_CST_SYMBOL_TYPEDEF,
-                                      &td) == CDD_C_SUCCESS &&
-        td->kind == CDD_CST_SYMBOL_TYPEDEF) {
+    rc = c_low_opt_scope_lookup(ctx->sem_env->global_scope, resolved,
+                                CDD_CST_SYMBOL_TYPEDEF, &td);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (td && td->kind == CDD_CST_SYMBOL_TYPEDEF) {
       CDD_SNPRINTF(resolved, sizeof(resolved), "%s", td->type_str);
     }
   }
@@ -542,11 +576,13 @@ static cdd_c_error_t c_low_lookup_agg_fields(
   if (!tag)
     return CDD_C_SUCCESS;
 
-  if (cdd_cst_scope_lookup_in_scope(ctx->sem_env->global_scope, tag,
-                                    *out_is_union ? CDD_CST_SYMBOL_UNION_TAG
-                                                  : CDD_CST_SYMBOL_STRUCT_TAG,
-                                    &sym) == CDD_C_SUCCESS &&
-      sym->fields) {
+  rc = c_low_opt_scope_lookup(ctx->sem_env->global_scope, tag,
+                              *out_is_union ? CDD_CST_SYMBOL_UNION_TAG
+                                            : CDD_CST_SYMBOL_STRUCT_TAG,
+                              &sym);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (sym && sym->fields) {
     *out_fields = sym->fields;
   }
   return CDD_C_SUCCESS;
@@ -619,6 +655,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
 
       rc = c_low_is_const_init_expr(ctx, tree->base_tokens->tokens, lb + 1, rb,
                                     &all_const);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
 
       /* Also check if a local aggregate initializer inside a block has
          non-constant expressions even without designators! */
@@ -666,6 +704,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
         var_nm[tree->base_tokens->tokens[id_idx].length] = '\0';
         rc = c_low_slice_text(tree->base_tokens->tokens, ds, id_idx, ty_s,
                               sizeof(ty_s));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
 
         /* Case A: Array designated or non-constant local array initializer */
         if (has_arr_desig ||
@@ -718,6 +758,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                   if (cur_idx < 128) {
                     rc = c_low_slice_text(tree->base_tokens->tokens, ek + 4, ee,
                                           vals[cur_idx], sizeof(vals[0]));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     if (cur_idx > max_idx)
                       max_idx = cur_idx;
                     cur_idx++;
@@ -728,6 +770,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                   if (cur_idx < 128) {
                     rc = c_low_slice_text(tree->base_tokens->tokens, ek, ee,
                                           vals[cur_idx], sizeof(vals[0]));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     if (cur_idx > max_idx)
                       max_idx = cur_idx;
                     cur_idx++;
@@ -803,14 +847,14 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                   if (rbk + 1 < ee && tree->base_tokens->tokens[rbk + 1].kind ==
                                           CDD_TOKEN_ASSIGN) {
                     char idx_s[128], val_s[192];
-                    rc = (cdd_c_error_t)((int)rc |
-                                         (int)c_low_slice_text(
-                                             tree->base_tokens->tokens, ek + 1,
-                                             rbk, idx_s, sizeof(idx_s)));
-                    rc = (cdd_c_error_t)((int)rc |
-                                         (int)c_low_slice_text(
-                                             tree->base_tokens->tokens, rbk + 2,
-                                             ee, val_s, sizeof(val_s)));
+                    rc = c_low_slice_text(tree->base_tokens->tokens, ek + 1,
+                                          rbk, idx_s, sizeof(idx_s));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
+                    rc = c_low_slice_text(tree->base_tokens->tokens, rbk + 2,
+                                          ee, val_s, sizeof(val_s));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     ppos += (size_t)CDD_SNPRINTF(
                         post_s + ppos, sizeof(post_s) - ppos, " %s[%s] = %s;",
                         var_nm, idx_s, val_s);
@@ -819,6 +863,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                   char val_s[192];
                   rc = c_low_slice_text(tree->base_tokens->tokens, ek, ee,
                                         val_s, sizeof(val_s));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   if (val_s[0] != '\0') {
                     ppos += (size_t)CDD_SNPRINTF(
                         post_s + ppos, sizeof(post_s) - ppos, " %s[%d] = %s;",
@@ -848,6 +894,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
           const cdd_cst_field_info_t *fields = NULL;
           int is_uni = 0;
           rc = c_low_lookup_agg_fields(ctx, ty_s, &fields, &is_uni);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (brace_d > 0 && !is_static_decl &&
               (!all_const || is_uni || !fields)) {
             /* Emit `= { 0 };` + post-declaration `<var>.<field> = <val>;`! */
@@ -897,6 +945,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                     path_s[p_l] = '\0';
                     rc = c_low_slice_text(tree->base_tokens->tokens, eq_k + 1,
                                           ee, val_s, sizeof(val_s));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     ppos += (size_t)CDD_SNPRINTF(
                         post_s + ppos, sizeof(post_s) - ppos, " %s%s = %s;",
                         var_nm, path_s, val_s);
@@ -905,6 +955,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                   char val_s[256];
                   rc = c_low_slice_text(tree->base_tokens->tokens, ek, ee,
                                         val_s, sizeof(val_s));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   if (val_s[0] != '\0') {
                     ppos += (size_t)CDD_SNPRINTF(
                         post_s + ppos, sizeof(post_s) - ppos, " %s.%s = %s;",
@@ -971,6 +1023,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                         memcmp(fnames[fi], fn_t->start, fn_t->length) == 0) {
                       rc = c_low_slice_text(tree->base_tokens->tokens, ek + 3,
                                             ee, fvals[fi], sizeof(fvals[0]));
+                      if (rc != CDD_C_SUCCESS)
+                        return rc;
                       cur_pos_f = fi + 1;
                       break;
                     }
@@ -978,6 +1032,8 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
                 } else if (cur_pos_f < nf) {
                   rc = c_low_slice_text(tree->base_tokens->tokens, ek, ee,
                                         fvals[cur_pos_f], sizeof(fvals[0]));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   cur_pos_f++;
                 }
               }
@@ -1007,19 +1063,21 @@ static cdd_c_error_t c_lower_designated_inits(struct c_lowering_ctx_t *ctx) {
   return CDD_C_SUCCESS;
 }
 
-/**
- * @brief Checks whether a token denotes `struct`, `union`, or `enum`.
- *
- * @param[in] tok Token to inspect.
- * @param[out] out_is_agg Set to 1 if aggregate/enum keyword, 0 otherwise.
- * @return CDD_C_SUCCESS.
- */
-static cdd_c_error_t c_low_is_agg_kw(const cdd_token_t *tok, int *out_is_agg) {
-  *out_is_agg = (tok->kind == CDD_TOKEN_KEYWORD_STRUCT ||
-                 (tok->length == 5 && memcmp(tok->start, "union", 5) == 0) ||
-                 (tok->length == 4 && memcmp(tok->start, "enum", 4) == 0));
-  return CDD_C_SUCCESS;
-}
+#if defined(__DOS__) || defined(__WATCOMC__)
+/** @brief Maximum nested block depth tracked during DOS for-init hoisting. */
+#define CDD_FOR_BLK_DEPTH 16
+/** @brief Maximum hoisted variables per block on DOS targets. */
+#define CDD_FOR_BLK_VARS 8
+/** @brief Maximum hoisted variable name buffer size on DOS targets. */
+#define CDD_FOR_VAR_NAME_CAP 32
+#else
+/** @brief Maximum nested block depth tracked during for-init hoisting. */
+#define CDD_FOR_BLK_DEPTH 64
+/** @brief Maximum hoisted variables per block. */
+#define CDD_FOR_BLK_VARS 32
+/** @brief Maximum hoisted variable name buffer size. */
+#define CDD_FOR_VAR_NAME_CAP 64
+#endif
 
 /**
  * @brief Hoists C99 `for (T i = 0; ...)` loop declarations and mid-block mixed
@@ -1031,9 +1089,9 @@ static cdd_c_error_t c_low_is_agg_kw(const cdd_token_t *tok, int *out_is_agg) {
 static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
   cdd_cst_tree_t *tree = ctx->tree;
   size_t i;
-  size_t blk_stack[64];
-  char blk_vars[64][32][64];
-  size_t blk_var_cnt[64];
+  size_t blk_stack[CDD_FOR_BLK_DEPTH];
+  char blk_vars[CDD_FOR_BLK_DEPTH][CDD_FOR_BLK_VARS][CDD_FOR_VAR_NAME_CAP];
+  size_t blk_var_cnt[CDD_FOR_BLK_DEPTH];
   int depth = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
@@ -1045,7 +1103,7 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
     if (t->length == 0)
       continue;
     if (t->kind == CDD_TOKEN_LBRACE) {
-      if (depth < 64) {
+      if (depth < CDD_FOR_BLK_DEPTH) {
         blk_stack[depth] = i;
         blk_var_cnt[depth] = 0;
       }
@@ -1057,7 +1115,7 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
         depth--;
       continue;
     }
-    if (depth == 0 || depth > 64)
+    if (depth == 0 || depth > CDD_FOR_BLK_DEPTH)
       continue;
 
     if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 3 &&
@@ -1067,6 +1125,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
       int is_ty = 0;
       rc = c_low_tok_is_type_starter(ctx, &tree->base_tokens->tokens[init_s],
                                      &is_ty);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       if (is_ty) {
         size_t semi = init_s;
         size_t rp_for = init_s;
@@ -1105,6 +1165,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
           }
           rc = c_low_tok_is_type_starter(
               ctx, &tree->base_tokens->tokens[spec_e], &st_m);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (!st_m)
             break;
           /* Stop if next token is `=` or `;` or `,` (meaning current token is
@@ -1121,6 +1183,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
 
         rc = c_low_slice_text(tree->base_tokens->tokens, init_s, spec_e,
                               base_ty, sizeof(base_ty));
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         hoist_decls[0] = '\0';
         init_asgns[0] = '\0';
 
@@ -1226,9 +1290,9 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                 }
               } else {
                 CDD_SNPRINTF(eff_nm, sizeof(eff_nm), "%s", orig_nm);
-                if (blk_var_cnt[depth - 1] < 32) {
+                if (blk_var_cnt[depth - 1] < CDD_FOR_BLK_VARS) {
                   CDD_SNPRINTF(blk_vars[depth - 1][blk_var_cnt[depth - 1]++],
-                               64, "%s", orig_nm);
+                               CDD_FOR_VAR_NAME_CAP, "%s", orig_nm);
                 }
               }
 
@@ -1239,6 +1303,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                 char rhs_b[192];
                 rc = c_low_slice_text(tree->base_tokens->tokens, eq_k + 1, de,
                                       rhs_b, sizeof(rhs_b));
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
                 apos += (size_t)CDD_SNPRINTF(
                     init_asgns + apos, sizeof(init_asgns) - apos, "%s%s = %s",
                     first_a ? "" : ", ", eff_nm, rhs_b);
@@ -1290,14 +1356,14 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
             prev_k == CDD_TOKEN_KEYWORD_STRUCT) {
           /* Skip `struct S {`, `union U {`, `enum E {` */
           int is_agg = 0;
-          rc = (cdd_c_error_t)((int)rc | (int)c_low_is_agg_kw(
-                                             &tree->base_tokens->tokens[bi - 1],
-                                             &is_agg));
+          rc = c_low_tok_is_agg_kw(&tree->base_tokens->tokens[bi - 1], &is_agg);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (!is_agg && bi >= 2) {
-            rc = (cdd_c_error_t)((int)rc |
-                                 (int)c_low_is_agg_kw(
-                                     &tree->base_tokens->tokens[bi - 2],
-                                     &is_agg));
+            rc = c_low_tok_is_agg_kw(&tree->base_tokens->tokens[bi - 2],
+                                     &is_agg);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
           if (is_agg)
             continue;
@@ -1364,6 +1430,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                 int is_agg0 = 0;
                 int cbd = 1;
                 rc = c_low_tok_is_agg_kw(s0, &is_agg0);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
                 st_e++;
                 while (st_e < br_end && cbd > 0) {
                   if (tree->base_tokens->tokens[st_e].kind == CDD_TOKEN_LBRACE)
@@ -1399,6 +1467,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
               int is_type_def = 0;
               int ft_is_agg = 0;
               rc = c_low_tok_is_agg_kw(ft, &ft_is_agg);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
 
               if (ft->kind == CDD_TOKEN_IDENTIFIER &&
                   ((ft->length == 7 && memcmp(ft->start, "typedef", 7) == 0) ||
@@ -1420,6 +1490,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                 is_type_def = 1;
               } else {
                 rc = c_low_tok_is_type_starter(ctx, ft, &is_decl);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
               }
 
               /* Disambiguate `my_type_t * x;` (decl) vs `var * y;` (expr): if
@@ -1448,6 +1520,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                   char full_d[512];
                   rc = c_low_slice_text(tree->base_tokens->tokens, st_s,
                                         st_e + 1, full_d, sizeof(full_d));
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   if (is_type_def) {
                     hty_pos += (size_t)CDD_SNPRINTF(
                         hoisted_types + hty_pos,
@@ -1482,6 +1556,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                     }
                     rc = c_low_tok_is_type_starter(
                         ctx, &tree->base_tokens->tokens[sp_e], &stm);
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     if (!stm)
                       break;
                     if (sp_e + 1 < st_e &&
@@ -1519,6 +1595,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                     size_t ds2 = sp_e;
                     rc = c_low_slice_text(tree->base_tokens->tokens, st_s, sp_e,
                                           bty, sizeof(bty));
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     asgns[0] = '\0';
                     while (ds2 < st_e) {
                       size_t de2 = ds2;
@@ -1557,6 +1635,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                       rc = c_low_slice_text(tree->base_tokens->tokens, ds2,
                                             eq2 ? eq2 : de2, decl_part,
                                             sizeof(decl_part));
+                      if (rc != CDD_C_SUCCESS)
+                        return rc;
                       for (k2 = ds2; k2 < (eq2 ? eq2 : de2); k2++) {
                         if (tree->base_tokens->tokens[k2].kind ==
                             CDD_TOKEN_LBRACKET)
@@ -1590,6 +1670,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                           rc = c_low_slice_text(tree->base_tokens->tokens,
                                                 eq2 + 1, de2, rhs2,
                                                 sizeof(rhs2));
+                          if (rc != CDD_C_SUCCESS)
+                            return rc;
                           if (arr_d) {
                             apos += (size_t)CDD_SNPRINTF(
                                 asgns + apos, sizeof(asgns) - apos,
@@ -1613,6 +1695,8 @@ static cdd_c_error_t c_lower_mixed_decls_and_for(struct c_lowering_ctx_t *ctx) {
                           rc = c_low_slice_text(tree->base_tokens->tokens,
                                                 eq2 + 1, de2, rhs2,
                                                 sizeof(rhs2));
+                          if (rc != CDD_C_SUCCESS)
+                            return rc;
                           apos += (size_t)CDD_SNPRINTF(
                               asgns + apos, sizeof(asgns) - apos,
                               "%s%.*s = %s;", apos > 0 ? " " : "",
@@ -1697,9 +1781,11 @@ static cdd_c_error_t c_low_convert_line_comments_list(cdd_cst_tree_t *tree,
       cbuf[w++] = '/';
       cbuf[w] = '\0';
       rc = cdd_pool_string_safe(tree, cbuf, &pooled);
-      C_CDD_FREE(cbuf);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(cbuf);
         return rc;
+      }
+      C_CDD_FREE(cbuf);
       tr->kind = TRIVIA_BLOCK_COMMENT;
       tr->start = (const uint8_t *)pooled;
       tr->length = w;
@@ -1823,9 +1909,11 @@ static cdd_c_error_t c_low_rewrite_msvc_format_str(cdd_cst_tree_t *tree,
     return CDD_C_SUCCESS;
   }
   rc = cdd_pool_string_safe(tree, out, &pooled);
-  C_CDD_FREE(out);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(out);
     return rc;
+  }
+  C_CDD_FREE(out);
   return replace_token_with_text(tree, tok, CDD_TOKEN_STRING, pooled, w);
 }
 
@@ -1976,13 +2064,17 @@ static cdd_c_error_t c_lower_legacy_dialect(struct c_lowering_ctx_t *ctx) {
             char al_s[64], dspec[128];
             rc = c_low_slice_text(tree->base_tokens->tokens, i + 2, rp, al_s,
                                   sizeof(al_s));
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             CDD_SNPRINTF(dspec, sizeof(dspec), "__declspec(align(%s))", al_s);
             rc = c_low_replace_span(tree, i, rp, dspec);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           } else {
             rc = c_low_replace_span(tree, i, rp, "");
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
-          if (rc != CDD_C_SUCCESS)
-            return rc;
           i = rp;
         }
       } else if (t->length == 8 && memcmp(t->start, "_Alignof", 8) == 0 &&
@@ -2004,6 +2096,8 @@ static cdd_c_error_t c_lower_legacy_dialect(struct c_lowering_ctx_t *ctx) {
           char ty_a[128], arepl[256];
           rc = c_low_slice_text(tree->base_tokens->tokens, i + 2, rp, ty_a,
                                 sizeof(ty_a));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (ctx->is_msvc) {
             CDD_SNPRINTF(arepl, sizeof(arepl), "__alignof(%s)", ty_a);
           } else {
@@ -2043,6 +2137,8 @@ static cdd_c_error_t c_lower_legacy_dialect(struct c_lowering_ctx_t *ctx) {
           size_t c_end = comma0 ? comma0 : rp;
           rc = c_low_slice_text(tree->base_tokens->tokens, i + 2, c_end, cond_s,
                                 sizeof(cond_s));
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           CDD_SNPRINTF(sa_repl, sizeof(sa_repl),
                        "typedef char __cdd_sa_%d[(%s) ? 1 : -1]", ++ctx->sa_idx,
                        cond_s);
@@ -2130,7 +2226,6 @@ cdd_c_error_t cdd_transform_c_lowering(cdd_cst_tree_t *tree,
       goto cleanup;
   }
 
-cleanup:
-  rc = (cdd_c_error_t)((int)rc | (int)cdd_cst_scope_env_free(ctx.sem_env));
-  return rc;
+cleanup:;
+  return cdd_c_keep_err(rc, cdd_cst_scope_env_free(ctx.sem_env));
 }

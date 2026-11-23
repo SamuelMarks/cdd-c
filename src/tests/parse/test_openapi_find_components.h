@@ -473,14 +473,14 @@ TEST test_openapi_find_external_components(void) {
 
     /* C. Unescape failure */
     g_cdd_alloc_fail = 1;
-    ASSERT_EQ(CDD_C_SUCCESS,
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
               find_component_media_type(
                   &spec, "#/components/mediaTypes/app~1json", &out_mt));
     ASSERT(out_mt == NULL);
     g_cdd_alloc_fail = 0;
 
     g_cdd_alloc_fail = 1;
-    ASSERT_EQ(CDD_C_SUCCESS,
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
               find_component_path_item(&spec, "#/components/pathItems/~1myPath",
                                        &out_path));
     ASSERT(out_path == NULL);
@@ -524,22 +524,70 @@ TEST test_openapi_find_external_components(void) {
         find_component_example(&spec, "../other.json#/wrong/prefix", &out_ex));
     ASSERT(out_ex == NULL);
 
-    /* E. External unescape failure */
+    /* E. External unescape failure + step fault injection */
     {
       int k;
       for (k = 1; k <= 15; ++k) {
+        cdd_c_error_t f_rc;
         g_cdd_alloc_fail = k;
-        ASSERT_EQ(CDD_C_SUCCESS,
+        f_rc = find_component_media_type(
+            &spec, "../other.json#/components/mediaTypes/app~1json", &out_mt);
+        ASSERT(f_rc == CDD_C_SUCCESS || f_rc == CDD_C_ERROR_MEMORY);
+        g_cdd_alloc_fail = k;
+        f_rc = find_component_path_item(
+            &spec, "../other.json#/components/pathItems/~1myPath", &out_path);
+        ASSERT(f_rc == CDD_C_SUCCESS || f_rc == CDD_C_ERROR_MEMORY);
+      }
+      g_cdd_alloc_fail = 0;
+
+      for (k = 1; k <= 2; ++k) {
+        g_cdd_step_fail = k;
+        ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                  find_component_parameter(
+                      &spec, "../other.json#/components/parameters/MyParam",
+                      &out_param));
+        g_cdd_step_fail = k;
+        ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                  find_component_response(
+                      &spec, "../other.json#/components/responses/MyResp",
+                      &out_resp));
+        g_cdd_step_fail = k;
+        ASSERT_EQ(
+            CDD_C_ERROR_UNKNOWN,
+            find_component_header(
+                &spec, "../other.json#/components/headers/MyHeader", &out_hdr));
+        g_cdd_step_fail = k;
+        ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                  find_component_request_body(
+                      &spec, "../other.json#/components/requestBodies/MyBody",
+                      &out_rb));
+        g_cdd_step_fail = k;
+        ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
                   find_component_media_type(
                       &spec, "../other.json#/components/mediaTypes/app~1json",
                       &out_mt));
-        g_cdd_alloc_fail = k;
-        ASSERT_EQ(CDD_C_SUCCESS,
+        g_cdd_step_fail = k;
+        ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                  find_component_link(&spec,
+                                      "../other.json#/components/links/MyLink",
+                                      &out_lnk));
+        g_cdd_step_fail = k;
+        ASSERT_EQ(
+            CDD_C_ERROR_UNKNOWN,
+            find_component_callback(
+                &spec, "../other.json#/components/callbacks/MyCb", &out_cb));
+        g_cdd_step_fail = k;
+        ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
                   find_component_path_item(
                       &spec, "../other.json#/components/pathItems/~1myPath",
                       &out_path));
       }
-      g_cdd_alloc_fail = 0;
+      g_cdd_step_fail = 3;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                find_component_parameter(
+                    &spec, "../other.json#/components/parameters/MyParam",
+                    &out_param));
+      g_cdd_step_fail = 0;
     }
 
     /* F. Null names in component arrays */

@@ -142,6 +142,11 @@ cdd_c_error_t parse_template_type(const char *c_type,
  */
 cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
                                      cdd_ffi_primitive_kind_t *out_kind) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_ffi_extractor_fail;
+  if (g_cdd_ffi_extractor_fail == 6)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_kind)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

@@ -193,6 +193,36 @@ cdd_c_error_t cdd_cst_free_node_only(cdd_cst_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Internal recursive CST node deallocator.
+ *
+ * @param[in,out] node Root CST node to recursively free.
+ * @return CDD_C_SUCCESS.
+ */
+static cdd_c_error_t cdd_cst_node_tree_free(cdd_cst_node_t *node) {
+  size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+  if (!node)
+    return CDD_C_SUCCESS;
+  for (i = 0; i < node->num_children; i++) {
+    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      rc = cdd_cst_node_tree_free(node->children[i].val.node);
+    }
+  }
+  return cdd_c_keep_err(rc, cdd_cst_free_node_only(node));
+}
+
+/*
+ * @brief Recursively frees a CST node and all of its descendant child nodes
+ * (`*_free` alias).
+ *
+ * @param[in,out] node Root CST node to recursively free.
+ * @return CDD_C_SUCCESS.
+ */
+cdd_c_error_t cdd_cst_node_free(cdd_cst_node_t *node) {
+  return cdd_cst_node_tree_free(node);
+}
+
 /*
  * @brief Recursively frees a CST node and all of its descendant child nodes.
  *
@@ -200,15 +230,5 @@ cdd_c_error_t cdd_cst_free_node_only(cdd_cst_node_t *node) {
  * @return CDD_C_SUCCESS.
  */
 cdd_c_error_t cdd_cst_free_node(cdd_cst_node_t *node) {
-  size_t i;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-  if (!node)
-    return CDD_C_SUCCESS;
-  for (i = 0; i < node->num_children; i++) {
-    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      rc = (cdd_c_error_t)((int)rc |
-                           (int)cdd_cst_free_node(node->children[i].val.node));
-    }
-  }
-  return (cdd_c_error_t)((int)rc | (int)cdd_cst_free_node_only(node));
+  return cdd_cst_node_free(node);
 }

@@ -79,6 +79,7 @@ TEST test_arazzo_cli_gen_basic(void) {
     params[1].name = NULL;
     outs[0].key = cdd_test_mut_str("out1");
     outs[1].key = NULL;
+    min_wf.description = cdd_test_mut_str("desc");
     min_wf.depends_on = deps;
     min_wf.n_depends_on = 2;
     min_wf.parameters = params;
@@ -87,6 +88,18 @@ TEST test_arazzo_cli_gen_basic(void) {
     min_wf.n_outputs = 2;
     min_spec.workflows = &min_wf;
     min_spec.n_workflows = 1;
+    {
+      int f;
+      for (f = 1; f <= 60; ++f) {
+        g_cdd_fprintf_fail = f;
+        if (arazzo_cli_render_to_string(&min_spec, "min", NULL, &cli_src) ==
+            CDD_C_SUCCESS) {
+          C_CDD_FREE(cli_src);
+          cli_src = NULL;
+        }
+        g_cdd_fprintf_fail = 0;
+      }
+    }
     ASSERT_EQ(CDD_C_SUCCESS,
               arazzo_cli_render_to_string(&min_spec, "min", NULL, &cli_src));
     C_CDD_FREE(cli_src);
@@ -106,6 +119,24 @@ TEST test_arazzo_cli_gen_basic(void) {
         cli_src = NULL;
       }
       g_cdd_alloc_fail = 0;
+    }
+    for (f = 1; f <= 60; ++f) {
+      g_cdd_fprintf_fail = f;
+      if (arazzo_cli_render_to_string(&spec, "job", "api_", &cli_src) ==
+          CDD_C_SUCCESS) {
+        C_CDD_FREE(cli_src);
+        cli_src = NULL;
+      }
+      g_cdd_fprintf_fail = 0;
+    }
+    for (f = 1; f <= 10; ++f) {
+      g_cdd_step_fail = f;
+      if (arazzo_cli_render_to_string(&spec, "job", "api_", &cli_src) ==
+          CDD_C_SUCCESS) {
+        C_CDD_FREE(cli_src);
+        cli_src = NULL;
+      }
+      g_cdd_step_fail = 0;
     }
   }
 
@@ -135,11 +166,28 @@ TEST test_arazzo_cli_gen_basic(void) {
       g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
       g_cdd_strdup_fail = 0;
     }
-    for (f = 0; f <= 3; ++f) {
+    for (f = 0; f <= 5; ++f) {
       g_fail_io_after = f;
       g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
       g_fail_io_after = -1;
     }
+    for (f = 1; f <= 200; ++f) {
+      g_cdd_fprintf_fail = f;
+      g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_fprintf_fail = 0;
+    }
+    for (f = 1; f <= 120; ++f) {
+      g_cdd_step_fail = f;
+      g_cdd_last_alloc_err = arazzo_cli_generate(&spec, NULL, &cfg);
+      g_cdd_step_fail = 0;
+    }
+    g_cdd_last_alloc_err =
+        makedirs("test_build_dir/arazzo_job_cfail/src/job_workflow_cli.c");
+    cfg.filename_base = "test_build_dir/arazzo_job_cfail/job";
+    ASSERT_NEQ(CDD_C_SUCCESS, arazzo_cli_generate(&spec, NULL, &cfg));
+    remove("test_build_dir/arazzo_job_cfail/src/job_workflows.h");
+    remove("test_build_dir/arazzo_job_cfail/src/job_workflows.c");
+    cfg.filename_base = base_path;
   }
   ASSERT_EQ(CDD_C_SUCCESS, arazzo_cli_generate(&spec, NULL, &cfg));
   remove("test_build_dir/arazzo_job/src/job_workflows.h");

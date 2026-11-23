@@ -9,6 +9,34 @@
 #include "functions/emit/client_body_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Resolves the C string literal expression for a multipart part's
+ * Content-Type.
+ *
+ * @param[in] raw_ct Raw Content-Type header string (or NULL).
+ * @param[out] ct_buf Destination buffer for quoted C string literal.
+ * @param[in] ct_buf_sz Capacity of `ct_buf` in bytes.
+ * @param[out] out_ct_arg Receives `"NULL"` or `ct_buf`.
+ * @return `CDD_C_SUCCESS` on success, or an error code on failure.
+ */
+static cdd_c_error_t resolve_part_ct_arg(const char *raw_ct, char *ct_buf,
+                                         size_t ct_buf_sz,
+                                         const char **out_ct_arg) {
+  char ct_clean[256];
+  const char *primary = raw_ct;
+  cdd_c_error_t rc;
+  *out_ct_arg = "NULL";
+  if (primary && primary[0] != '\0') {
+    rc =
+        first_content_type_entry(primary, ct_clean, sizeof(ct_clean), &primary);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    CDD_SNPRINTF(ct_buf, ct_buf_sz, "\"%s\"", primary);
+    *out_ct_arg = ct_buf;
+  }
+  return CDD_C_SUCCESS;
+}
+
 /*
  * @brief Emits C source code for multipart part headers.
  *
@@ -41,16 +69,16 @@ client_body_write_multipart_part_headers(FILE *fp,
     if (!hdr->name)
       continue;
 
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)client_body_header_name_is_content_type(
-                                hdr->name, &is_ct));
+    rc_fn = client_body_header_name_is_content_type(hdr->name, &is_ct);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
     if (is_ct)
       continue;
 
-    rc_fn = (cdd_c_error_t)((int)rc_fn |
-                            (int)client_body_multipart_header_param_name(
-                                param_name, sizeof(param_name), enc->name,
-                                hdr->name));
+    rc_fn = client_body_multipart_header_param_name(
+        param_name, sizeof(param_name), enc->name, hdr->name);
+    if (rc_fn != CDD_C_SUCCESS)
+      return rc_fn;
 
     CDD_SNPRINTF(joined_name, sizeof(joined_name), "%s_joined", param_name);
     CDD_SNPRINTF(joined_len_name, sizeof(joined_len_name), "%s_joined_len",
@@ -339,27 +367,29 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   if (!fp || !op || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc_fn = (cdd_c_error_t)((int)rc_fn | (int)openapi_spec_find_schema_for_ref(
-                                           spec, &op->req_body, &sf));
+  rc_fn = openapi_spec_find_schema_for_ref(spec, &op->req_body, &sf);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping multipart */\n",
         op->req_body.ref_name));
-    return rc_fn;
+    return CDD_C_SUCCESS;
   }
 
   CHECK_IO(fprintf(fp, "  /* Multipart Body Construction */\n"));
-  rc_fn = (cdd_c_error_t)((int)rc_fn |
-                          (int)find_media_type(op->req_body_media_types,
-                                               op->n_req_body_media_types,
-                                               "multipart/form-data", &mt));
+  rc_fn = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                          "multipart/form-data", &mt);
+  if (rc_fn != CDD_C_SUCCESS)
+    return rc_fn;
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
     struct OpenAPI_Encoding *enc = NULL;
     if (mt != NULL) {
-      rc_fn =
-          (cdd_c_error_t)((int)rc_fn | (int)find_encoding(mt, f->name, &enc));
+      rc_fn = find_encoding(mt, f->name, &enc);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
     }
     if (strcmp(f->type, "array") == 0) {
       const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
@@ -368,22 +398,18 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
           (enc && enc->content_type) ? enc->content_type : NULL;
       const char *final_ct = content_type;
       char ct_buf[512];
-      char ct_clean[256];
       const char *ct_arg = "NULL";
       char len_field[80];
 
-      rc_fn = (cdd_c_error_t)((int)rc_fn | (int)client_body_is_object_ref_type(
-                                               items_type, &items_is_object));
+      rc_fn = client_body_is_object_ref_type(items_type, &items_is_object);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 
       if (!final_ct && items_is_object)
         final_ct = "application/json";
-      if (final_ct && final_ct[0] != '\0') {
-        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
-                                                 final_ct, ct_clean,
-                                                 sizeof(ct_clean), &final_ct));
-        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
-        ct_arg = ct_buf;
-      }
+      rc_fn = resolve_part_ct_arg(final_ct, ct_buf, sizeof(ct_buf), &ct_arg);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
 #else
@@ -409,9 +435,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        if (write_multipart_part_headers(fp, enc) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_multipart_part_headers(fp, enc);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "string") == 0) {
@@ -426,9 +452,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             "NULL, %s, val, strlen(val));\n",
             f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        if (write_multipart_part_headers(fp, enc) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_multipart_part_headers(fp, enc);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "integer") == 0) {
@@ -446,9 +472,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             "NULL, %s, num_buf, strlen(num_buf));\n",
             f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        if (write_multipart_part_headers(fp, enc) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_multipart_part_headers(fp, enc);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "number") == 0) {
@@ -473,8 +499,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             f->name, ct_arg));
 
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        if (write_multipart_part_headers(fp, enc) != 0)
-          return CDD_C_ERROR_IO;
+        rc_fn = write_multipart_part_headers(fp, enc);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         CHECK_IO(fprintf(fp, "    }\n"));
 
       } else if (strcmp(items_type, "boolean") == 0) {
@@ -497,8 +524,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             f->name, ct_arg));
 
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        if (write_multipart_part_headers(fp, enc) != 0)
-          return CDD_C_ERROR_IO;
+        rc_fn = write_multipart_part_headers(fp, enc);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
         CHECK_IO(fprintf(fp, "    }\n"));
 
       } else {
@@ -511,16 +539,11 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
       char ct_buf[512];
-      char ct_clean[256];
       const char *ct_arg = "NULL";
-      if (content_type && content_type[0] != '\0') {
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
-                                             content_type, ct_clean,
-                                             sizeof(ct_clean), &content_type));
-        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
-        ct_arg = ct_buf;
-      }
+      rc_fn =
+          resolve_part_ct_arg(content_type, ct_buf, sizeof(ct_buf), &ct_arg);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       CHECK_IO(fprintf(fp, "    if (req_body->%s) {\n", f->name));
       CHECK_IO(fprintf(
           fp,
@@ -528,25 +551,20 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
           "%s, req_body->%s, strlen(req_body->%s));\n",
           f->name, ct_arg, f->name, f->name));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-      if (write_multipart_part_headers(fp, enc) != 0)
-
-        return CDD_C_ERROR_IO;
+      rc_fn = write_multipart_part_headers(fp, enc);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "integer") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
       char ct_buf[512];
-      char ct_clean[256];
       const char *ct_arg = "NULL";
-      if (content_type && content_type[0] != '\0') {
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
-                                             content_type, ct_clean,
-                                             sizeof(ct_clean), &content_type));
-        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
-        ct_arg = ct_buf;
-      }
+      rc_fn =
+          resolve_part_ct_arg(content_type, ct_buf, sizeof(ct_buf), &ct_arg);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
       CHECK_IO(fprintf(fp,
                        "      spr"
@@ -558,25 +576,20 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
           "%s, num_buf, strlen(num_buf));\n",
           f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-      if (write_multipart_part_headers(fp, enc) != 0)
-
-        return CDD_C_ERROR_IO;
+      rc_fn = write_multipart_part_headers(fp, enc);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "number") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
       char ct_buf[512];
-      char ct_clean[256];
       const char *ct_arg = "NULL";
-      if (content_type && content_type[0] != '\0') {
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
-                                             content_type, ct_clean,
-                                             sizeof(ct_clean), &content_type));
-        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
-        ct_arg = ct_buf;
-      }
+      rc_fn =
+          resolve_part_ct_arg(content_type, ct_buf, sizeof(ct_buf), &ct_arg);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       CHECK_IO(fprintf(fp, "    {\n      char num_buf[64];\n"));
       CHECK_IO(fprintf(fp,
                        "      spr"
@@ -588,25 +601,20 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
           "%s, num_buf, strlen(num_buf));\n",
           f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-      if (write_multipart_part_headers(fp, enc) != 0)
-
-        return CDD_C_ERROR_IO;
+      rc_fn = write_multipart_part_headers(fp, enc);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "boolean") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
       char ct_buf[512];
-      char ct_clean[256];
       const char *ct_arg = "NULL";
-      if (content_type && content_type[0] != '\0') {
-        rc_fn =
-            (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
-                                             content_type, ct_clean,
-                                             sizeof(ct_clean), &content_type));
-        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
-        ct_arg = ct_buf;
-      }
+      rc_fn =
+          resolve_part_ct_arg(content_type, ct_buf, sizeof(ct_buf), &ct_arg);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       CHECK_IO(fprintf(fp,
                        "    {\n      const char *val = req_body->%s ? "
                        "\"true\" : \"false\";\n",
@@ -617,27 +625,20 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
           "%s, val, strlen(val));\n",
           f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-      if (write_multipart_part_headers(fp, enc) != 0)
-
-        return CDD_C_ERROR_IO;
+      rc_fn = write_multipart_part_headers(fp, enc);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
 
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "object") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
-      const char *final_ct = content_type;
+      const char *final_ct = content_type ? content_type : "application/json";
       char ct_buf[512];
-      char ct_clean[256];
       const char *ct_arg = "NULL";
-      if (!final_ct)
-        final_ct = "application/json";
-      if (final_ct[0] != '\0') {
-        rc_fn = (cdd_c_error_t)((int)rc_fn | (int)first_content_type_entry(
-                                                 final_ct, ct_clean,
-                                                 sizeof(ct_clean), &final_ct));
-        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
-        ct_arg = ct_buf;
-      }
+      rc_fn = resolve_part_ct_arg(final_ct, ct_buf, sizeof(ct_buf), &ct_arg);
+      if (rc_fn != CDD_C_SUCCESS)
+        return rc_fn;
       if (f->ref[0] != '\0') {
         CHECK_IO(fprintf(fp, "    if (req_body->%s) {\n", f->name));
         CHECK_IO(fprintf(fp, "      char *part_json = NULL;\n"));
@@ -652,9 +653,9 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
-        if (write_multipart_part_headers(fp, enc) != 0)
-
-          return CDD_C_ERROR_IO;
+        rc_fn = write_multipart_part_headers(fp, enc);
+        if (rc_fn != CDD_C_SUCCESS)
+          return rc_fn;
 
         CHECK_IO(fprintf(fp, "    }\n"));
       } else {
@@ -668,5 +669,5 @@ client_body_write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(
       fprintf(fp, "  rc = (cdd_c_error_t)http_request_flatten_parts(&req);\n"));
   CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n\n"));
-  return rc_fn;
+  return CDD_C_SUCCESS;
 }

@@ -348,18 +348,13 @@ TEST test_analysis_edge_cases(void) {
   {
     /* extern C_CDD_EXPORT int g_cdd_fail_alloc; (moved to global) */
     g_cdd_fail_alloc = 1;
-    ASSERT_EQ(0, find_allocs("void *p = malloc(10);", &sites));
-    if (sites.size > 0) {
-      ASSERT(sites.sites[0].var_name == NULL);
-    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, find_allocs("void *p = malloc(10);", &sites));
     g_cdd_last_alloc_err = allocation_site_list_free(&sites);
 
     g_cdd_fail_alloc = 2;
     ASSERT_EQ(
-        0, find_allocs("void *p = malloc(10); void *q = malloc(10);", &sites));
-    if (sites.size > 1) {
-      ASSERT(sites.sites[1].var_name == NULL);
-    }
+        CDD_C_ERROR_MEMORY,
+        find_allocs("void *p = malloc(10); void *q = malloc(10);", &sites));
     g_cdd_last_alloc_err = allocation_site_list_free(&sites);
     g_cdd_fail_alloc = 0;
   }
@@ -472,7 +467,8 @@ TEST test_analysis_failure_hooks(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, allocation_site_list_init(&sites));
   g_cdd_fail_alloc = 2;
-  ASSERT_EQ(0, find_allocs("p = malloc(10); q = malloc(10);", &sites));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            find_allocs("p = malloc(10); q = malloc(10);", &sites));
   g_cdd_last_alloc_err = allocation_site_list_free(&sites);
   g_cdd_fail_alloc = 0;
   ASSERT_EQ(CDD_C_SUCCESS, allocation_site_list_init(&sites));

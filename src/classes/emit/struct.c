@@ -143,8 +143,8 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
                   strcmp(r, "number") != 0 && strcmp(r, "enum") != 0)) {
         {
           const char *tn = NULL;
-          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           int io_rc;
+          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           if (rc_ref != CDD_C_SUCCESS) {
             return rc_ref;
           }
@@ -634,14 +634,18 @@ write_struct_default_func(FILE *fp, const char *struct_name,
         else if (strlen(def) > 2 && def[0] == '0' &&
                  (def[1] == 'b' || def[1] == 'B')) {
           struct NumericValue nv;
+          cdd_c_error_t rc_num = parse_numeric_literal(def, &nv);
           /* If using C89 target, we must emit decimal. */
           /* Attempt to parse binary literal */
-          if (parse_numeric_literal(def, &nv) == 0) {
+          if (rc_num == CDD_C_SUCCESS) {
             /* Emit as hex to avoid C89 %llu warning on GCC */
-            CHECK_IO(FPRINTF_HOOK(
-                fp, "  (*out)->%s = 0x%08lx%08lxULL;\n", n,
-                (unsigned long)((uint64_t)nv.data.integer.value >> 32),
-                (unsigned long)((uint64_t)nv.data.integer.value & 0xFFFFFFFF)));
+            if (FPRINTF_HOOK(
+                    fp, "  (*out)->%s = 0x%08lx%08lxULL;\n", n,
+                    (unsigned long)((uint64_t)nv.data.integer.value >> 32),
+                    (unsigned long)((uint64_t)nv.data.integer.value &
+                                    0xFFFFFFFF)) < 0) {
+              return cdd_c_keep_err(CDD_C_ERROR_IO, rc_num);
+            }
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s;\n", n, def));

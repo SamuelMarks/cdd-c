@@ -10,101 +10,98 @@
 #include "classes/parse/cdd_serde_internal.h"
 /* clang-format on */
 
+/**
+ * @brief Mapping entry pairing a case-rule spelling with `CddSerdeCaseRule`.
+ */
+struct serde_case_entry {
+  const char *name;           /**< Accepted keyword spelling */
+  enum CddSerdeCaseRule rule; /**< Target case rule enum */
+};
+
+/**
+ * @brief Mapping entry pairing a CLI action spelling with `CddCliAction`.
+ */
+struct cli_action_entry {
+  const char *name;         /**< Accepted keyword spelling */
+  enum CddCliAction action; /**< Target CLI action enum */
+};
+
+/**
+ * @brief Mapping entry pairing a CLI value hint spelling with
+ * `CddCliValueHint`.
+ */
+struct cli_hint_entry {
+  const char *name;          /**< Accepted keyword spelling */
+  enum CddCliValueHint hint; /**< Target CLI value hint enum */
+};
+
 /*
  * @brief Parses a case transformation rule string into `enum CddSerdeCaseRule`.
  */
 cdd_c_error_t cdd_serde_parse_case_rule(const char *str,
                                         enum CddSerdeCaseRule *out_rule) {
+  static const struct serde_case_entry k_rules[] = {
+      {"none", CDD_SERDE_CASE_NONE},
+      {"lowercase", CDD_SERDE_CASE_LOWERCASE},
+      {"uppercase", CDD_SERDE_CASE_UPPERCASE},
+      {"pascalcase", CDD_SERDE_CASE_PASCALCASE},
+      {"camelcase", CDD_SERDE_CASE_CAMELCASE},
+      {"snake_case", CDD_SERDE_CASE_SNAKECASE},
+      {"snakecase", CDD_SERDE_CASE_SNAKECASE},
+      {"screaming_snake_case", CDD_SERDE_CASE_SCREAMING_SNAKECASE},
+      {"screaming_snakecase", CDD_SERDE_CASE_SCREAMING_SNAKECASE},
+      {"kebab-case", CDD_SERDE_CASE_KEBABCASE},
+      {"kebabcase", CDD_SERDE_CASE_KEBABCASE},
+      {"kebab_case", CDD_SERDE_CASE_KEBABCASE},
+      {"screaming-kebab-case", CDD_SERDE_CASE_SCREAMING_KEBABCASE},
+      {"screaming_kebabcase", CDD_SERDE_CASE_SCREAMING_KEBABCASE},
+      {"screaming_kebab_case", CDD_SERDE_CASE_SCREAMING_KEBABCASE},
+      {"train-case", CDD_SERDE_CASE_TRAINCASE},
+      {"traincase", CDD_SERDE_CASE_TRAINCASE},
+      {"train_case", CDD_SERDE_CASE_TRAINCASE}};
+  size_t i;
+  size_t count = sizeof(k_rules) / sizeof(k_rules[0]);
   int eq = 0;
   cdd_c_error_t rc;
+
   if (!str || !out_rule)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = cdd_serde_str_ieq(str, "none", &eq);
-  if (eq || str[0] == '\0') {
+  if (str[0] == '\0') {
     *out_rule = CDD_SERDE_CASE_NONE;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
-  rc = cdd_serde_str_ieq(str, "lowercase", &eq);
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_LOWERCASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "uppercase", &eq);
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_UPPERCASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "pascalcase", &eq);
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_PASCALCASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "camelcase", &eq);
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_CAMELCASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "snake_case", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "snakecase", &eq);
-  }
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_SNAKECASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "screaming_snake_case", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "screaming_snakecase", &eq);
-  }
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_SCREAMING_SNAKECASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "kebab-case", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "kebabcase", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "kebab_case", &eq);
-  }
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_KEBABCASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "screaming-kebab-case", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "screaming_kebabcase", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "screaming_kebab_case", &eq);
-  }
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_SCREAMING_KEBABCASE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "train-case", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "traincase", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "train_case", &eq);
-  }
-  if (eq) {
-    *out_rule = CDD_SERDE_CASE_TRAINCASE;
-    return rc;
+  for (i = 0; i < count; ++i) {
+    rc = cdd_serde_str_ieq(str, k_rules[i].name, &eq);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (eq) {
+      *out_rule = k_rules[i].rule;
+      return CDD_C_SUCCESS;
+    }
   }
 
   return CDD_C_ERROR_INVALID_ARGUMENT;
+}
+
+/*
+ * @brief Attempts to parse a case transformation rule without failing on
+ * unrecognized keywords.
+ */
+cdd_c_error_t cdd_serde_try_parse_case_rule(const char *str,
+                                            enum CddSerdeCaseRule *out_rule,
+                                            int *out_matched) {
+  cdd_c_error_t rc;
+  *out_matched = 0;
+  rc = cdd_serde_parse_case_rule(str, out_rule);
+  if (rc == CDD_C_SUCCESS) {
+    *out_matched = 1;
+    return rc;
+  }
+  if (rc != CDD_C_ERROR_INVALID_ARGUMENT)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -113,6 +110,10 @@ cdd_c_error_t cdd_serde_parse_case_rule(const char *str,
  */
 cdd_c_error_t cdd_serde_case_rule_to_str(enum CddSerdeCaseRule rule,
                                          const char **out_str) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (rule) {
@@ -156,72 +157,62 @@ cdd_c_error_t cdd_serde_case_rule_to_str(enum CddSerdeCaseRule rule,
  */
 cdd_c_error_t cdd_cli_parse_action(const char *str,
                                    enum CddCliAction *out_action) {
+  static const struct cli_action_entry k_actions[] = {
+      {"auto", CDD_CLI_ACTION_AUTO},
+      {"set", CDD_CLI_ACTION_SET},
+      {"set_true", CDD_CLI_ACTION_SET_TRUE},
+      {"settrue", CDD_CLI_ACTION_SET_TRUE},
+      {"true", CDD_CLI_ACTION_SET_TRUE},
+      {"set_false", CDD_CLI_ACTION_SET_FALSE},
+      {"setfalse", CDD_CLI_ACTION_SET_FALSE},
+      {"false", CDD_CLI_ACTION_SET_FALSE},
+      {"count", CDD_CLI_ACTION_COUNT},
+      {"append", CDD_CLI_ACTION_APPEND},
+      {"help", CDD_CLI_ACTION_HELP},
+      {"version", CDD_CLI_ACTION_VERSION}};
+  size_t i;
+  size_t count = sizeof(k_actions) / sizeof(k_actions[0]);
   int eq = 0;
   cdd_c_error_t rc;
+
   if (!str || !out_action)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = cdd_serde_str_ieq(str, "auto", &eq);
-  if (eq || str[0] == '\0') {
+  if (str[0] == '\0') {
     *out_action = CDD_CLI_ACTION_AUTO;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
-  rc = cdd_serde_str_ieq(str, "set", &eq);
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_SET;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "set_true", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "settrue", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "true", &eq);
-  }
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_SET_TRUE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "set_false", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "setfalse", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "false", &eq);
-  }
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_SET_FALSE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "count", &eq);
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_COUNT;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "append", &eq);
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_APPEND;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "help", &eq);
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_HELP;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "version", &eq);
-  if (eq) {
-    *out_action = CDD_CLI_ACTION_VERSION;
-    return rc;
+  for (i = 0; i < count; ++i) {
+    rc = cdd_serde_str_ieq(str, k_actions[i].name, &eq);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (eq) {
+      *out_action = k_actions[i].action;
+      return CDD_C_SUCCESS;
+    }
   }
 
   return CDD_C_ERROR_INVALID_ARGUMENT;
+}
+
+/*
+ * @brief Attempts to parse a CLI action string without failing on unrecognized
+ * keywords.
+ */
+cdd_c_error_t cdd_cli_try_parse_action(const char *str,
+                                       enum CddCliAction *out_action,
+                                       int *out_matched) {
+  cdd_c_error_t rc;
+  *out_matched = 0;
+  rc = cdd_cli_parse_action(str, out_action);
+  if (rc == CDD_C_SUCCESS) {
+    *out_matched = 1;
+    return rc;
+  }
+  if (rc != CDD_C_ERROR_INVALID_ARGUMENT)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -230,6 +221,10 @@ cdd_c_error_t cdd_cli_parse_action(const char *str,
  */
 cdd_c_error_t cdd_cli_action_to_str(enum CddCliAction action,
                                     const char **out_str) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (action) {
@@ -267,96 +262,69 @@ cdd_c_error_t cdd_cli_action_to_str(enum CddCliAction action,
  */
 cdd_c_error_t cdd_cli_parse_value_hint(const char *str,
                                        enum CddCliValueHint *out_hint) {
+  static const struct cli_hint_entry k_hints[] = {
+      {"none", CDD_CLI_HINT_NONE},
+      {"file", CDD_CLI_HINT_FILE_PATH},
+      {"file_path", CDD_CLI_HINT_FILE_PATH},
+      {"filepath", CDD_CLI_HINT_FILE_PATH},
+      {"dir", CDD_CLI_HINT_DIR_PATH},
+      {"dir_path", CDD_CLI_HINT_DIR_PATH},
+      {"dirpath", CDD_CLI_HINT_DIR_PATH},
+      {"path", CDD_CLI_HINT_ANY_PATH},
+      {"any_path", CDD_CLI_HINT_ANY_PATH},
+      {"anypath", CDD_CLI_HINT_ANY_PATH},
+      {"cmd", CDD_CLI_HINT_EXECUTABLE},
+      {"executable", CDD_CLI_HINT_EXECUTABLE},
+      {"command", CDD_CLI_HINT_EXECUTABLE},
+      {"url", CDD_CLI_HINT_URL},
+      {"hostname", CDD_CLI_HINT_HOSTNAME},
+      {"host", CDD_CLI_HINT_HOSTNAME},
+      {"username", CDD_CLI_HINT_USERNAME},
+      {"user", CDD_CLI_HINT_USERNAME},
+      {"email", CDD_CLI_HINT_EMAIL}};
+  size_t i;
+  size_t count = sizeof(k_hints) / sizeof(k_hints[0]);
   int eq = 0;
   cdd_c_error_t rc;
+
   if (!str || !out_hint)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = cdd_serde_str_ieq(str, "none", &eq);
-  if (eq || str[0] == '\0') {
+  if (str[0] == '\0') {
     *out_hint = CDD_CLI_HINT_NONE;
-    return rc;
+    return CDD_C_SUCCESS;
   }
 
-  rc = cdd_serde_str_ieq(str, "file", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "file_path", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "filepath", &eq);
-  }
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_FILE_PATH;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "dir", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "dir_path", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "dirpath", &eq);
-  }
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_DIR_PATH;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "path", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "any_path", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "anypath", &eq);
-  }
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_ANY_PATH;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "cmd", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "executable", &eq);
-  }
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "command", &eq);
-  }
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_EXECUTABLE;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "url", &eq);
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_URL;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "hostname", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "host", &eq);
-  }
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_HOSTNAME;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "username", &eq);
-  if (!eq) {
-    rc = cdd_serde_str_ieq(str, "user", &eq);
-  }
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_USERNAME;
-    return rc;
-  }
-
-  rc = cdd_serde_str_ieq(str, "email", &eq);
-  if (eq) {
-    *out_hint = CDD_CLI_HINT_EMAIL;
-    return rc;
+  for (i = 0; i < count; ++i) {
+    rc = cdd_serde_str_ieq(str, k_hints[i].name, &eq);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (eq) {
+      *out_hint = k_hints[i].hint;
+      return CDD_C_SUCCESS;
+    }
   }
 
   return CDD_C_ERROR_INVALID_ARGUMENT;
+}
+
+/*
+ * @brief Attempts to parse a CLI value hint string without failing on
+ * unrecognized keywords.
+ */
+cdd_c_error_t cdd_cli_try_parse_value_hint(const char *str,
+                                           enum CddCliValueHint *out_hint,
+                                           int *out_matched) {
+  cdd_c_error_t rc;
+  *out_matched = 0;
+  rc = cdd_cli_parse_value_hint(str, out_hint);
+  if (rc == CDD_C_SUCCESS) {
+    *out_matched = 1;
+    return rc;
+  }
+  if (rc != CDD_C_ERROR_INVALID_ARGUMENT)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -365,6 +333,10 @@ cdd_c_error_t cdd_cli_parse_value_hint(const char *str,
  */
 cdd_c_error_t cdd_cli_value_hint_to_str(enum CddCliValueHint hint,
                                         const char **out_str) {
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (hint) {
@@ -416,6 +388,10 @@ serde_split_words(const char *input,
   size_t c_idx = 0;
   size_t i = 0;
   size_t len = strlen(input);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   for (i = 0; i < len; ++i) {
     unsigned char ch = (unsigned char)input[i];
@@ -464,6 +440,10 @@ cdd_c_error_t cdd_serde_transform_case(const char *input,
   size_t n_words = 0;
   size_t i, j, pos = 0;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!input || !out_buf || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -489,6 +469,8 @@ cdd_c_error_t cdd_serde_transform_case(const char *input,
   }
 
   rc = serde_split_words(input, words, &n_words);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (n_words == 0) {
     return cdd_serde_copy_str(out_buf, out_sz, input);
@@ -528,7 +510,7 @@ cdd_c_error_t cdd_serde_transform_case(const char *input,
   }
 
   out_buf[pos] = '\0';
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -540,6 +522,10 @@ cdd_c_error_t cdd_serde_replace_str(const char *input, const char *from_pat,
   size_t from_len, to_len, pos = 0;
   const char *cur;
   const char *match;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!input || !out_buf || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -614,6 +600,8 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   rc = cdd_serde_copy_str(buf1, sizeof(buf1), f->name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* 4. Apply container prefix / suffix if present */
   if (sf->serde_prefix[0] != '\0' || sf->serde_suffix[0] != '\0') {
@@ -627,12 +615,18 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
       buf2[pos++] = sf->serde_suffix[k];
     buf2[pos] = '\0';
     rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   /* 5. Container case rule vs Field-level case rule override */
   if (f->serde_case != CDD_SERDE_CASE_NONE) {
     rc = cdd_serde_transform_case(buf1, f->serde_case, buf2, sizeof(buf2));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   } else {
     container_case = sf->serde_rename_all;
     if (is_serialize && sf->serde_rename_all_ser != CDD_SERDE_CASE_NONE)
@@ -642,7 +636,11 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
 
     if (container_case != CDD_SERDE_CASE_NONE) {
       rc = cdd_serde_transform_case(buf1, container_case, buf2, sizeof(buf2));
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -650,18 +648,25 @@ static cdd_c_error_t serde_resolve_single_name(const struct StructFields *sf,
   if (sf->serde_replace_from[0] != '\0') {
     rc = cdd_serde_replace_str(buf1, sf->serde_replace_from,
                                sf->serde_replace_to, buf2, sizeof(buf2));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   /* 7. Field-level replace override */
   if (f->serde_replace_from[0] != '\0') {
     rc = cdd_serde_replace_str(buf1, f->serde_replace_from, f->serde_replace_to,
                                buf2, sizeof(buf2));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
-  rc = cdd_serde_copy_str(out_name, out_sz, buf1);
-  return rc;
+  return cdd_serde_copy_str(out_name, out_sz, buf1);
 }
 
 /*
@@ -674,6 +679,10 @@ cdd_c_error_t cdd_serde_resolve_field_names(const struct StructFields *sf,
                                             char *out_de_name, size_t de_sz) {
   const struct StructField *f;
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!sf || field_idx >= sf->size)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -703,6 +712,10 @@ cdd_c_error_t cdd_serde_resolve_enum_member_name(const struct EnumMembers *em,
   char buf1[128];
   char buf2[128];
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   if (!em || member_idx >= em->size || !out_name || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -716,21 +729,30 @@ cdd_c_error_t cdd_serde_resolve_enum_member_name(const struct EnumMembers *em,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   rc = cdd_serde_copy_str(buf1, sizeof(buf1), em->members[member_idx]);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   if (em->serde_rename_all != CDD_SERDE_CASE_NONE) {
     rc = cdd_serde_transform_case(buf1, em->serde_rename_all, buf2,
                                   sizeof(buf2));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   if (em->serde_replace_from[0] != '\0') {
     rc = cdd_serde_replace_str(buf1, em->serde_replace_from,
                                em->serde_replace_to, buf2, sizeof(buf2));
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     rc = cdd_serde_copy_str(buf1, sizeof(buf1), buf2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
-  rc = cdd_serde_copy_str(out_name, out_sz, buf1);
-  return rc;
+  return cdd_serde_copy_str(out_name, out_sz, buf1);
 }
 
 /*
@@ -739,6 +761,10 @@ cdd_c_error_t cdd_serde_resolve_enum_member_name(const struct EnumMembers *em,
  */
 cdd_c_error_t cdd_escape_json_c_str(const char *raw, char *out, size_t out_sz) {
   size_t i, pos = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!raw || !out || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; raw[i] != '\0' && pos + 2 < out_sz; ++i) {
@@ -786,6 +812,10 @@ cdd_c_error_t cdd_escape_json_c_str(const char *raw, char *out, size_t out_sz) {
 cdd_c_error_t cdd_escape_comment_str(const char *raw, char *out,
                                      size_t out_sz) {
   size_t i, pos = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!raw || !out || out_sz == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; raw[i] != '\0' && pos + 2 < out_sz; ++i) {

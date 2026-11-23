@@ -102,7 +102,7 @@ TEST test_cdd_generate_to_openapi(void) {
 
   config.output = cdd_test_mut_str("build/out.json");
   config.base_file = cdd_test_mut_str("nonexistent_base.json");
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_generate_to_openapi(&config));
+  ASSERT_EQ(CDD_C_ERROR_IO, cdd_generate_to_openapi(&config));
   config.base_file = NULL;
 
 #ifdef CDD_BUILD_TESTS

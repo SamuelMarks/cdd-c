@@ -156,6 +156,10 @@ static cdd_c_error_t c2s_is_reserved_keyword(const char *ident,
 cdd_c_error_t c2s_needs_identifier_sanitization(const char *in,
                                                 int *out_needs) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_step_fail > 0 && --g_cdd_step_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_needs)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!in || !in[0]) {
@@ -273,6 +277,8 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
     if (is_res) {
       out[pos++] = '_';
       out[pos] = '\0';
+      *_out_val = out;
+      return rc_res;
     }
     /* Truncate safely to fit within sizeof(field->name) - 4 (59 chars) */
     if (pos > 59) {
@@ -390,23 +396,29 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
     return rc_c2s;
 
   rc_c2s = cdd_json_object_has_value(root, name, &has_val);
-  if (!has_val) {
+  if (has_val) {
+    *out_name = name;
+    return rc_c2s;
+  }
+  {
     JSON_Value *copy = NULL;
+    cdd_c_error_t rc_set;
     rc_c2s = c2s_clone_json_value(schema_val, &copy);
     if (rc_c2s != CDD_C_SUCCESS) {
       C_CDD_FREE(name);
       return rc_c2s;
     }
-    if (cdd_json_object_set_value(root, name, copy) != CDD_C_SUCCESS) {
+    rc_set = cdd_json_object_set_value(root, name, copy);
+    if (rc_set != CDD_C_SUCCESS) {
       C_CDD_FREE(name);
-      return (cdd_c_error_t)((int)CDD_C_ERROR_MEMORY |
-                             (int)cdd_json_value_free(copy));
+      return cdd_c_keep_err(CDD_C_ERROR_MEMORY,
+                            cdd_c_keep_err(rc_set, cdd_json_value_free(copy)));
     }
   }
 
   *out_name = name;
 
-  return rc_c2s;
+  return CDD_C_SUCCESS;
 }
 
 /*
@@ -425,7 +437,7 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
                                               const char *ref,
                                               char **_out_val) {
   JSON_Object *mapping = NULL;
-  size_t i, count = 0;
+  size_t i;
   const char *ref_name = NULL;
   cdd_c_error_t rc_c2s = CDD_C_SUCCESS;
 
@@ -443,29 +455,22 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
       return rc_c2s;
   }
 
-  if (!disc_obj)
-    goto fallback;
-
-  if (cdd_json_object_get_object(disc_obj, "mapping", &mapping) !=
-      CDD_C_SUCCESS)
-    goto fallback;
-
-  rc_c2s = cdd_json_object_get_count(mapping, &count);
-  for (i = 0; i < count; ++i) {
-    const char *key = NULL;
-    const char *val = NULL;
-    rc_c2s = cdd_json_object_get_name(mapping, i, &key);
-    if (cdd_json_object_get_string(mapping, key, &val) != CDD_C_SUCCESS)
-      continue;
-    if ((ref && strcmp(val, ref) == 0) ||
-        (ref_name && strcmp(val, ref_name) == 0) ||
-        (schema_name && strcmp(val, schema_name) == 0)) {
-      return c_cdd_strdup(key, _out_val);
+  if (disc_obj) {
+    rc_c2s = cdd_json_object_get_object(disc_obj, "mapping", &mapping);
+    if (mapping) {
+      for (i = 0; i < mapping->count; ++i) {
+        const char *key = mapping->names[i];
+        const JSON_Value *v = mapping->values[i];
+        if (v->type != JSONString)
+          continue;
+        if ((ref && strcmp(v->string_val, ref) == 0) ||
+            (ref_name && strcmp(v->string_val, ref_name) == 0) ||
+            (schema_name && strcmp(v->string_val, schema_name) == 0)) {
+          return cdd_c_keep_err(c_cdd_strdup(key, _out_val), rc_c2s);
+        }
+      }
     }
   }
 
-fallback:
-  return (cdd_c_error_t)((int)rc_c2s |
-                         (int)c_cdd_strdup(schema_name ? schema_name : ref_name,
-                                           _out_val));
+  return c_cdd_strdup(schema_name ? schema_name : ref_name, _out_val);
 }
