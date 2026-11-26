@@ -901,7 +901,8 @@ TEST test_gnu_standardizer_semantic_include_and_typeof(void) {
                          "}\n";
   FILE *fp = fopen("phase2_sem_hdr.h", "wb");
   ASSERT(fp != NULL);
-  fwrite(hdr_content, 1, strlen(hdr_content), fp);
+  ASSERT_EQ(strlen(hdr_content),
+            fwrite(hdr_content, 1, strlen(hdr_content), fp));
   fclose(fp);
 
   inc_dirs[0] = ".";

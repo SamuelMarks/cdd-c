@@ -595,28 +595,28 @@ TEST test_serve_mcp_stdio_main(void) {
 #if defined(_MSC_VER)
     {
       FILE *f_re = NULL;
-      freopen_s(&f_re, mcp_tmp_path, "r", stdin);
+      ASSERT_EQ(0, freopen_s(&f_re, mcp_tmp_path, "r", stdin));
     }
 #else
-    freopen(mcp_tmp_path, "r", stdin);
+    ASSERT_NEQ(NULL, freopen(mcp_tmp_path, "r", stdin));
 #endif
     if (devnull)
-      dup2(fileno(devnull), fileno(stdout));
+      ASSERT_NEQ(-1, dup2(fileno(devnull), fileno(stdout)));
 
     rc = serve_mcp_stdio_main(argc, argv);
 
 #if defined(_MSC_VER)
     {
       FILE *f_re = NULL;
-      freopen_s(&f_re, "NUL", "r", stdin);
+      ASSERT_EQ(0, freopen_s(&f_re, "NUL", "r", stdin));
     }
 #elif defined(_WIN32)
-    freopen("NUL", "r", stdin);
+    ASSERT_NEQ(NULL, freopen("NUL", "r", stdin));
 #else
-    freopen("/dev/null", "r", stdin);
+    ASSERT_NEQ(NULL, freopen("/dev/null", "r", stdin));
 #endif
-    dup2(old_stdin, fileno(stdin));
-    dup2(old_stdout, fileno(stdout));
+    ASSERT_NEQ(-1, dup2(old_stdin, fileno(stdin)));
+    ASSERT_NEQ(-1, dup2(old_stdout, fileno(stdout)));
     close(old_stdin);
     close(old_stdout);
     remove(mcp_tmp_path);
@@ -647,10 +647,10 @@ TEST test_serve_mcp_stdio_main(void) {
 #if defined(_MSC_VER)
     {
       FILE *f_re = NULL;
-      freopen_s(&f_re, mcp_err_path, "r", stdin);
+      ASSERT_EQ(0, freopen_s(&f_re, mcp_err_path, "r", stdin));
     }
 #else
-    freopen(mcp_err_path, "r", stdin);
+    ASSERT_NEQ(NULL, freopen(mcp_err_path, "r", stdin));
 #endif
     g_cdd_step_fail = 1;
     rc = serve_mcp_stdio_main(argc, argv);
@@ -660,14 +660,14 @@ TEST test_serve_mcp_stdio_main(void) {
 #if defined(_MSC_VER)
     {
       FILE *f_re = NULL;
-      freopen_s(&f_re, "NUL", "r", stdin);
+      ASSERT_EQ(0, freopen_s(&f_re, "NUL", "r", stdin));
     }
 #elif defined(_WIN32)
-    freopen("NUL", "r", stdin);
+    ASSERT_NEQ(NULL, freopen("NUL", "r", stdin));
 #else
-    freopen("/dev/null", "r", stdin);
+    ASSERT_NEQ(NULL, freopen("/dev/null", "r", stdin));
 #endif
-    dup2(old_stdin, fileno(stdin));
+    ASSERT_NEQ(-1, dup2(old_stdin, fileno(stdin)));
     close(old_stdin);
     remove(mcp_err_path);
   }

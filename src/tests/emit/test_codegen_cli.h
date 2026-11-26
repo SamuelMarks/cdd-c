@@ -555,7 +555,7 @@ TEST test_cli_codegen_and_schema_roundtrip(void) {
   fseek(fp, 0, SEEK_SET);
   code = (char *)calloc(1, (size_t)sz + 1);
   ASSERT(code != NULL);
-  fread(code, 1, (size_t)sz, fp);
+  ASSERT_EQ((size_t)sz, fread(code, 1, (size_t)sz, fp));
   fclose(fp);
 
   ASSERT(strstr(code, "DemoCli_print_version(") != NULL);
@@ -686,7 +686,7 @@ TEST test_cli_sync_code_regeneration(void) {
   fseek(f, 0, SEEK_SET);
   c_buf = (char *)calloc(1, (size_t)sz + 1);
   ASSERT(c_buf != NULL);
-  fread(c_buf, 1, (size_t)sz, f);
+  ASSERT_EQ((size_t)sz, fread(c_buf, 1, (size_t)sz, f));
   fclose(f);
 
   ASSERT(strstr(c_buf, "SyncCli_from_cli(") != NULL);

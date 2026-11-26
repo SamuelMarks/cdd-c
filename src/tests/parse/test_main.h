@@ -1,7 +1,8 @@
 #if defined(_MSC_VER)
 static FILE *cdd_freopen_helper_main(const char *p, const char *m, FILE *s) {
   FILE *f = NULL;
-  freopen_s(&f, p, m, s);
+  if (freopen_s(&f, p, m, s) != 0)
+    f = NULL;
   return f;
 }
 #undef CDD_FREOPEN

@@ -91,7 +91,7 @@ TEST test_generated_copy_logic(void) {
   rewind(tmp);
 
   output_buf = malloc(output_len + 1); if (!output_buf) FAILm("OOM");
-  fread(output_buf, 1, output_len, tmp);
+  ASSERT_EQ(output_len, fread(output_buf, 1, output_len, tmp));
   output_buf[output_len] = 0;
 
   printf("OUTPUT_BUF:\n%s\n", output_buf);

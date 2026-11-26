@@ -315,10 +315,14 @@ elseif(_C_CDD_IS_GNU_FRONTEND)
         -Wextra
         -Wformat=2
         -Wcast-align
+        -Wcast-qual
         -Wpointer-arith
         -Wmissing-prototypes
         -Wstrict-prototypes
         -Wmissing-declarations
+        -Wold-style-definition
+        -Wdeclaration-after-statement
+        -Wunused-result
         -pedantic
         $<$<BOOL:${C_CDD_IS_TOP_LEVEL}>:-Werror>
     )

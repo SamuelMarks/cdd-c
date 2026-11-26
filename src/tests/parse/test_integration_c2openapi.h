@@ -40,11 +40,14 @@ TEST test_c2openapi_full_flow(void) {
   rc += 0;
   g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
   /* Use %c for PATH_SEP_C */
-  asprintf((char **)&src_dir, "%s%cc2o_test_%d", tmp_dir, PATH_SEP_C, rand());
+  ASSERT_NEQ(-1, asprintf((char **)&src_dir, "%s%cc2o_test_%d", tmp_dir,
+                          PATH_SEP_C, rand()));
   g_cdd_last_alloc_err = makedir(src_dir);
-  asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
-  asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
-  asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
+  ASSERT_NEQ(-1, asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(-1,
+             asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(
+      -1, asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C));
 
   /* 1. Write Data Models */
   g_cdd_last_alloc_err =
@@ -611,12 +614,15 @@ TEST test_c2openapi_with_base_spec(void) {
 
   rc += 0;
   g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
-  asprintf((char **)&src_dir, "%s%cc2o_base_%d", tmp_dir, PATH_SEP_C, rand());
+  ASSERT_NEQ(-1, asprintf((char **)&src_dir, "%s%cc2o_base_%d", tmp_dir,
+                          PATH_SEP_C, rand()));
   g_cdd_last_alloc_err = makedir(src_dir);
-  asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
-  asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
-  asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  asprintf(&base_json, "%s%cbase.json", src_dir, PATH_SEP_C);
+  ASSERT_NEQ(-1, asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(-1,
+             asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(
+      -1, asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(-1, asprintf(&base_json, "%s%cbase.json", src_dir, PATH_SEP_C));
 
   g_cdd_last_alloc_err =
       write_to_file(h_file, "struct User { int id; char *name; };\n");
@@ -824,11 +830,14 @@ TEST test_c2openapi_with_self_uri(void) {
 
   rc += 0;
   g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
-  asprintf((char **)&src_dir, "%s%cc2o_self_%d", tmp_dir, PATH_SEP_C, rand());
+  ASSERT_NEQ(-1, asprintf((char **)&src_dir, "%s%cc2o_self_%d", tmp_dir,
+                          PATH_SEP_C, rand()));
   g_cdd_last_alloc_err = makedir(src_dir);
-  asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
-  asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
-  asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
+  ASSERT_NEQ(-1, asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(-1,
+             asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(
+      -1, asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C));
 
   g_cdd_last_alloc_err =
       write_to_file(h_file, "struct User { int id; char *name; };\n");
@@ -900,10 +909,12 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
 
   rc += 0;
   g_cdd_last_alloc_err = tempdir((char **)&tmp_dir);
-  asprintf((char **)&src_dir, "%s%cc2o_global_%d", tmp_dir, PATH_SEP_C, rand());
+  ASSERT_NEQ(-1, asprintf((char **)&src_dir, "%s%cc2o_global_%d", tmp_dir,
+                          PATH_SEP_C, rand()));
   g_cdd_last_alloc_err = makedir(src_dir);
-  asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
-  asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
+  ASSERT_NEQ(-1, asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C));
+  ASSERT_NEQ(
+      -1, asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C));
 
   {
     const char _tmp[] = {

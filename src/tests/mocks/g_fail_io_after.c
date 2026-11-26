@@ -796,11 +796,6 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_crt_freopen(const char *path, const char *mode,
   f = freopen(path, mode, stream);
   if (!f) {
     err = errno;
-#if defined(__GLIBC__)
-    if (stream != stdin && stream != stdout && stream != stderr) {
-      fclose(stream);
-    }
-#endif
   }
 #endif
   if (out_err)

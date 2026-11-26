@@ -508,6 +508,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     struct _finddata_t file_info;
     intptr_t handle;
     char *search_path = NULL;
+    int saved_err = 0;
 
     /* Create search path: path + "\*" or "\*.*" */
     if (asprintf(&search_path, "%s\\*", path) == -1) {
@@ -515,20 +516,21 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     }
 
     handle = _findfirst(search_path, &file_info);
+    saved_err = errno;
     C_CDD_FREE(search_path);
 
 #ifdef CDD_BUILD_TESTS
     if (g_fail_io_after == 33) {
       handle = -1;
-      errno = EACCES;
+      saved_err = EACCES;
     }
 #endif
 
     if (handle == -1) {
       /* Empty dir or error? ENOENT means strict empty or not found. */
-      if (errno == ENOENT)
+      if (saved_err == ENOENT)
         return CDD_C_SUCCESS; /* Empty usually behaves like this */
-      return errno_to_cdd_error(errno);
+      return errno_to_cdd_error(saved_err);
     }
 
     do {
@@ -632,9 +634,10 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
         }
         C_CDD_FREE(full_path);
       } else {
+        int saved_err = errno;
         C_CDD_FREE(full_path);
         closedir(d);
-        return errno_to_cdd_error(errno);
+        return errno_to_cdd_error(saved_err);
       }
     }
     closedir(d);

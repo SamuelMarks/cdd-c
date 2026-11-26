@@ -820,7 +820,7 @@ TEST test_cli_cst_out_of_tree_and_dispatch(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cli_cst_transform_pipeline_main(2, a_stdin));
     g_cdd_alloc_fail = 0;
 
-    dup2(saved_fd, fileno(stdin));
+    ASSERT_NEQ(-1, dup2(saved_fd, fileno(stdin)));
     close(saved_fd);
   }
 #endif

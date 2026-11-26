@@ -65,7 +65,7 @@ TEST test_write_union_to_json(void) {
   content = (char *)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
-  fread(content, 1, (size_t)sz, tmp);
+  ASSERT_EQ((size_t)sz, fread(content, 1, (size_t)sz, tmp));
   content[sz] = 0;
 
   /* Check for switch on tag */
@@ -114,7 +114,7 @@ TEST test_write_union_from_json_object(void) {
   content = (char *)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
-  fread(content, 1, (size_t)sz, tmp);
+  ASSERT_EQ((size_t)sz, fread(content, 1, (size_t)sz, tmp));
   content[sz] = 0;
 
   /* Check malloc */
@@ -161,7 +161,7 @@ TEST test_write_union_from_json(void) {
   content = (char *)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
-  fread(content, 1, (size_t)sz, tmp);
+  ASSERT_EQ((size_t)sz, fread(content, 1, (size_t)sz, tmp));
   content[sz] = 0;
 
   ASSERT(strstr(content, "json_parse_string"));
@@ -206,7 +206,7 @@ TEST test_write_union_cleanup(void) {
   content = (char *)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
-  fread(content, 1, (size_t)sz, tmp);
+  ASSERT_EQ((size_t)sz, fread(content, 1, (size_t)sz, tmp));
   content[sz] = 0;
 
   /* Check switch */

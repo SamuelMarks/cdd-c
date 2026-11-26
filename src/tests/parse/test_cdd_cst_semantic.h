@@ -584,9 +584,9 @@ TEST test_cdd_cst_semantic_c_declarations_and_headers(void) {
   FILE *fa = fopen("sem_test_a.h", "wb");
   FILE *fb = fopen("sem_test_b.h", "wb");
   ASSERT(fa != NULL && fb != NULL);
-  fwrite(hdr_a, 1, strlen(hdr_a), fa);
+  ASSERT_EQ(strlen(hdr_a), fwrite(hdr_a, 1, strlen(hdr_a), fa));
   fclose(fa);
-  fwrite(hdr_b, 1, strlen(hdr_b), fb);
+  ASSERT_EQ(strlen(hdr_b), fwrite(hdr_b, 1, strlen(hdr_b), fb));
   fclose(fb);
   CDD_SNPRINTF(src, sizeof(src), "%s%s%s", src1, src2, src3);
 
@@ -837,7 +837,7 @@ TEST test_cdd_cst_semantic_remaining_edge_branches(void) {
       fd = fopen(dname, "wb");
 #endif
       ASSERT(fd != NULL);
-      fwrite(dbody, 1, strlen(dbody), fd);
+      ASSERT_EQ(strlen(dbody), fwrite(dbody, 1, strlen(dbody), fd));
       fclose(fd);
     }
 
@@ -858,7 +858,7 @@ TEST test_cdd_cst_semantic_remaining_edge_branches(void) {
         fh = fopen(hname, "wb");
 #endif
         ASSERT(fh != NULL);
-        fwrite("int vh_x;\n", 1, 10, fh);
+        ASSERT_EQ(10, fwrite("int vh_x;\n", 1, 10, fh));
         fclose(fh);
         mpos += (size_t)CDD_SNPRINTF(many_inc + mpos, sizeof(many_inc) - mpos,
                                      "#include \"%s\"\n", hname);

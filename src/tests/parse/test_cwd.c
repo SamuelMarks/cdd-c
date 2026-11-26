@@ -28,7 +28,8 @@
  */
 int test_cwd(void) {
   char buf[1024];
-  getcwd(buf, sizeof(buf));
+  if (!getcwd(buf, sizeof(buf)))
+    return 1;
   printf("CWD IS: %s\n", buf);
   return 0;
 }

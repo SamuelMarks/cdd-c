@@ -1,7 +1,8 @@
 #if defined(_MSC_VER)
 static FILE *cdd_freopen_helper_to_docs(const char *p, const char *m, FILE *s) {
   FILE *f = NULL;
-  freopen_s(&f, p, m, s);
+  if (freopen_s(&f, p, m, s) != 0)
+    f = NULL;
   return f;
 }
 #undef CDD_FREOPEN
@@ -142,13 +143,13 @@ TEST test_to_docs_json_basic(void) {
     FILE *f_tmp = NULL;
 #if defined(_MSC_VER)
     if (fopen_s(&f_tmp, TEMP_OUT_FILE, "w") == 0) {
-      dup2(fileno(f_tmp), fileno(stdout));
+      ASSERT_NEQ(-1, dup2(fileno(f_tmp), fileno(stdout)));
       fclose(f_tmp);
     }
 #else
     f_tmp = fopen(TEMP_OUT_FILE, "w");
     if (f_tmp) {
-      dup2(fileno(f_tmp), fileno(stdout));
+      ASSERT_NEQ(-1, dup2(fileno(f_tmp), fileno(stdout)));
       fclose(f_tmp);
     }
 #endif
@@ -158,7 +159,7 @@ TEST test_to_docs_json_basic(void) {
 
   /* Restore stdout */
   fflush(stdout);
-  dup2(stdout_fd, fileno(stdout));
+  ASSERT_NEQ(-1, dup2(stdout_fd, fileno(stdout)));
   close(stdout_fd);
   clearerr(stdout);
   fsetpos(stdout, &pos);
@@ -520,13 +521,13 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
     FILE *f_tmp = NULL;
 #if defined(_MSC_VER)
     if (fopen_s(&f_tmp, TEMP_OUT_FILE, "w") == 0) {
-      dup2(fileno(f_tmp), fileno(stdout));
+      ASSERT_NEQ(-1, dup2(fileno(f_tmp), fileno(stdout)));
       fclose(f_tmp);
     }
 #else
     f_tmp = fopen(TEMP_OUT_FILE, "w");
     if (f_tmp) {
-      dup2(fileno(f_tmp), fileno(stdout));
+      ASSERT_NEQ(-1, dup2(fileno(f_tmp), fileno(stdout)));
       fclose(f_tmp);
     }
 #endif
@@ -536,7 +537,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
 
   /* Restore stdout */
   fflush(stdout);
-  dup2(stdout_fd, fileno(stdout));
+  ASSERT_NEQ(-1, dup2(stdout_fd, fileno(stdout)));
   close(stdout_fd);
   clearerr(stdout);
   fsetpos(stdout, &pos);
