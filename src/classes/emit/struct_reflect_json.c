@@ -35,6 +35,19 @@ static cdd_c_error_t reflect_serialized_str_free(char *str) {
 }
 
 /**
+ * @brief Frees a heap buffer `obj` and returns `err`.
+ *
+ * @param[in,out] obj Heap pointer to free.
+ * @param[in] err Error code to return.
+ * @return `err`.
+ */
+static cdd_c_error_t free_json_obj_and_return_err(void *obj,
+                                                  cdd_c_error_t err) {
+  C_CDD_FREE(obj);
+  return err;
+}
+
+/**
  * @brief Cleans up and frees a heap-allocated reflected struct instance.
  *
  * @param[in,out] obj Heap struct pointer.
@@ -43,13 +56,7 @@ static cdd_c_error_t reflect_serialized_str_free(char *str) {
  */
 static cdd_c_error_t
 reflect_struct_cleanup_free(void *obj, const struct cdd_type_info *ti) {
-  cdd_c_error_t rc = cdd_reflect_struct_cleanup(obj, ti);
-  if (rc != CDD_C_SUCCESS) {
-    C_CDD_FREE(obj);
-    return rc;
-  }
-  C_CDD_FREE(obj);
-  return CDD_C_SUCCESS;
+  return free_json_obj_and_return_err(obj, cdd_reflect_struct_cleanup(obj, ti));
 }
 
 /**
@@ -922,10 +929,11 @@ static cdd_c_error_t deserialize_field_from_json(const JSON_Object *jobj,
         if (et == JSONNull && is_ptr) {
           void **ep_ptr = (void **)elem_ptr;
           if (*ep_ptr) {
-            rc = reflect_struct_cleanup_free(*ep_ptr, elem_ti);
-            *ep_ptr = NULL;
+            rc = cdd_reflect_struct_cleanup(*ep_ptr, elem_ti);
             if (rc != CDD_C_SUCCESS)
               return rc;
+            C_CDD_FREE(*ep_ptr);
+            *ep_ptr = NULL;
           }
           continue;
         }

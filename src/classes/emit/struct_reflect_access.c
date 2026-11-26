@@ -872,11 +872,8 @@ cdd_reflect_cleanup_shrunk_array_elements(void *buf,
         if (parr[k]) {
           if (elem_ti) {
             rc = cdd_reflect_struct_cleanup(parr[k], elem_ti);
-            if (rc != CDD_C_SUCCESS) {
-              C_CDD_FREE(parr[k]);
-              parr[k] = NULL;
+            if (rc != CDD_C_SUCCESS)
               return rc;
-            }
           }
           C_CDD_FREE(parr[k]);
           parr[k] = NULL;

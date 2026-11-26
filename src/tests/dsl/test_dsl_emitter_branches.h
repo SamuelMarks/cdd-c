@@ -2,23 +2,23 @@
  * @file test_dsl_emitter_branches.h
  * @brief Unit tests and mocks in test_dsl_emitter_branches.h.
  */
-#if defined(_MSC_VER) || defined(__MINGW32__)
+#ifndef TEST_DSL_EMITTER_BRANCHES_H
+#define TEST_DSL_EMITTER_BRANCHES_H
+
 /* clang-format off */
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include <direct.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
-#ifndef TEST_DSL_EMITTER_BRANCHES_H
-#define TEST_DSL_EMITTER_BRANCHES_H
+#include "../../include/dsl/cdd_ffi_emit_dsl.h"
+#include "../cdd_test_helpers/cdd_helpers.h"
+/* clang-format on */
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-#include "../../include/dsl/cdd_ffi_emit_dsl.h"
-#include "../cdd_test_helpers/cdd_helpers.h"
-/* clang-format on */
 
 /**
  * @brief Unit test test_dsl_emitter_invalid.

@@ -6,7 +6,8 @@
 #define SIMPLE_JSON_H
 
 /* clang-format off */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L &&                \
+    (!defined(_MSC_VER) || _MSC_VER >= 1800)
 #include <stdbool.h>
 #else
 #include "../c_cdd_stdbool.h"

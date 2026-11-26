@@ -141,8 +141,11 @@ cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
     size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     fclose(tmp);
     buf[bytes_read] = '\0';
-    *_out_val = buf;
     rc_trim = c_cdd_str_trim_trailing_whitespace(buf);
+    if (rc_trim != CDD_C_SUCCESS) {
+      C_CDD_FREE(buf);
+      return rc_trim;
+    }
 #ifdef CDD_BUILD_TESTS
     {
       extern C_CDD_EXPORT int g_cdd_sync_sig_no_brace;
@@ -154,9 +157,14 @@ cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
 #endif
     if (buf[strlen(buf) - 1] == '{') {
       buf[strlen(buf) - 1] = '\0';
-      return cdd_c_keep_err(rc_trim, c_cdd_str_trim_trailing_whitespace(buf));
+      rc_trim = c_cdd_str_trim_trailing_whitespace(buf);
+      if (rc_trim != CDD_C_SUCCESS) {
+        C_CDD_FREE(buf);
+        return rc_trim;
+      }
     }
-    return rc_trim;
+    *_out_val = buf;
+    return CDD_C_SUCCESS;
   }
 }
 

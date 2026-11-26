@@ -3629,6 +3629,7 @@ TEST test_reflection_edge_cases_and_oom(void) {
 
               {
                 int sc_val = 42;
+                C_CDD_FREE(p_def->opt_int);
                 p_def->opt_int = &sc_val;
                 for (step = 1; step <= 120; ++step) {
                   void *c_tmp = NULL;
@@ -3926,14 +3927,18 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 g_cdd_step_fail = 0;
 
                 for (step = 1; step <= 600; ++step) {
+                  int rem = 0;
                   g_cdd_step_fail = step;
                   if (cdd_reflect_from_json(full_json, &parent_ti, &out_o) ==
                       CDD_C_SUCCESS) {
-                    g_cdd_last_alloc_err =
-                        cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                    rem = g_cdd_step_fail;
+                    g_cdd_step_fail = 0;
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_struct_cleanup(out_o, &parent_ti));
                     C_CDD_FREE(out_o);
-                  }
-                  if (g_cdd_step_fail > 0) {
+                    if (rem > 0)
+                      break;
+                  } else if (g_cdd_step_fail > 0) {
                     g_cdd_step_fail = 0;
                     break;
                   }
@@ -3948,16 +3953,20 @@ TEST test_reflection_edge_cases_and_oom(void) {
                   parent_fields[1].aliases = als;
                   parent_fields[1].n_aliases = 1;
                   for (step = 1; step <= 160; ++step) {
+                    int rem = 0;
                     g_cdd_step_fail = step;
                     if (cdd_reflect_from_json(
                             "{\"de_i64\":1,\"al_i16\":2,\"eval\":20,"
                             "\"enum_arr\":[20],\"ptr_child\":null}",
                             &parent_ti, &out_o) == CDD_C_SUCCESS) {
-                      g_cdd_last_alloc_err =
-                          cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                      rem = g_cdd_step_fail;
+                      g_cdd_step_fail = 0;
+                      ASSERT_EQ(CDD_C_SUCCESS,
+                                cdd_reflect_struct_cleanup(out_o, &parent_ti));
                       C_CDD_FREE(out_o);
-                    }
-                    if (g_cdd_step_fail > 0) {
+                      if (rem > 0)
+                        break;
+                    } else if (g_cdd_step_fail > 0) {
                       g_cdd_step_fail = 0;
                       break;
                     }
@@ -3969,14 +3978,18 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 }
 
                 for (step = 1; step <= 40; ++step) {
+                  int rem = 0;
                   g_cdd_step_fail = step;
                   if (cdd_reflect_from_json("{\"str_branch\":\"u\"}", &union_ti,
                                             &out_o) == CDD_C_SUCCESS) {
-                    g_cdd_last_alloc_err =
-                        cdd_reflect_struct_cleanup(out_o, &union_ti);
+                    rem = g_cdd_step_fail;
+                    g_cdd_step_fail = 0;
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_struct_cleanup(out_o, &union_ti));
                     C_CDD_FREE(out_o);
-                  }
-                  if (g_cdd_step_fail > 0) {
+                    if (rem > 0)
+                      break;
+                  } else if (g_cdd_step_fail > 0) {
                     g_cdd_step_fail = 0;
                     break;
                   }
@@ -4045,15 +4058,19 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 g_cdd_step_fail = 0;
 
                 for (step = 1; step <= 200; ++step) {
+                  int rem = 0;
                   g_cdd_step_fail = step;
                   if (cdd_reflect_from_form_urlencoded(
                           "i64=1&num=2.5&str~name/1=hi", &parent_ti, &out_o) ==
                       CDD_C_SUCCESS) {
-                    g_cdd_last_alloc_err =
-                        cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                    rem = g_cdd_step_fail;
+                    g_cdd_step_fail = 0;
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_struct_cleanup(out_o, &parent_ti));
                     C_CDD_FREE(out_o);
-                  }
-                  if (g_cdd_step_fail > 0) {
+                    if (rem > 0)
+                      break;
+                  } else if (g_cdd_step_fail > 0) {
                     g_cdd_step_fail = 0;
                     break;
                   }
@@ -4061,14 +4078,18 @@ TEST test_reflection_edge_cases_and_oom(void) {
                 g_cdd_step_fail = 0;
 
                 for (step = 1; step <= 200; ++step) {
+                  int rem = 0;
                   g_cdd_step_fail = step;
                   if (cdd_reflect_from_cli(4, cli_av, &parent_ti, &out_o) ==
                       CDD_C_SUCCESS) {
-                    g_cdd_last_alloc_err =
-                        cdd_reflect_struct_cleanup(out_o, &parent_ti);
+                    rem = g_cdd_step_fail;
+                    g_cdd_step_fail = 0;
+                    ASSERT_EQ(CDD_C_SUCCESS,
+                              cdd_reflect_struct_cleanup(out_o, &parent_ti));
                     C_CDD_FREE(out_o);
-                  }
-                  if (g_cdd_step_fail > 0) {
+                    if (rem > 0)
+                      break;
+                  } else if (g_cdd_step_fail > 0) {
                     g_cdd_step_fail = 0;
                     break;
                   }

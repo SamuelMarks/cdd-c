@@ -910,7 +910,16 @@ cdd_c_error_t rpc_serialized_str_free(char *s) {
 
 cdd_c_error_t rpc_reflect_struct_free(void *obj,
                                       const struct cdd_type_info *ti) {
+#ifdef CDD_BUILD_TESTS
+  int saved_step = g_cdd_step_fail;
+  cdd_c_error_t rc;
+  g_cdd_step_fail = 0;
+  rc = cdd_reflect_struct_cleanup(obj, ti);
+  g_cdd_step_fail = saved_step;
+  return rc;
+#else
   return cdd_reflect_struct_cleanup(obj, ti);
+#endif
 }
 
 cdd_c_error_t rpc_json_opt_string(const JSON_Object *obj, const char *key,

@@ -198,11 +198,8 @@ cdd_c_error_t cdd_reflect_cleanup_single_field(void *obj,
       if (*pptr) {
         if (child_ti) {
           rc = cdd_reflect_struct_cleanup(*pptr, child_ti);
-          if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(*pptr);
-            *pptr = NULL;
+          if (rc != CDD_C_SUCCESS)
             return rc;
-          }
         }
         C_CDD_FREE(*pptr);
         *pptr = NULL;

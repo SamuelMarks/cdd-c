@@ -342,15 +342,6 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
 
   if (CHECK_IO_RC(fprintf(
-          fp, "if(APPLE AND TARGET parson)\n"
-              "    get_target_property(_parson_aliased parson ALIASED_TARGET)\n"
-              "    if(NOT _parson_aliased)\n"
-              "        target_compile_options(parson PRIVATE "
-              "-Wno-deprecated-declarations)\n"
-              "    endif()\n"
-              "endif()\n")))
-    return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(
           fp, "if(APPLE AND TARGET c-abstract-http)\n"
               "    get_target_property(_cah_opts c-abstract-http "
               "COMPILE_OPTIONS)\n"

@@ -261,6 +261,7 @@ cdd_c_error_t tempdir(char **out_path) {
 #if defined(_WIN32)
   {
     DWORD len;
+    cdd_c_error_t rc;
     len = GetTempPathA(0, NULL);
     if (len == 0)
       return CDD_C_ERROR_IO;
@@ -272,8 +273,12 @@ cdd_c_error_t tempdir(char **out_path) {
       *out_path = NULL;
       return CDD_C_ERROR_IO;
     }
-    if (c_cdd_str_trim_trailing_whitespace(*out_path) != CDD_C_SUCCESS)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+    rc = c_cdd_str_trim_trailing_whitespace(*out_path);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(*out_path);
+      *out_path = NULL;
+      return rc;
+    }
     /* Remove trailing backslash if it exists, as dirname does */
     len = (DWORD)strlen(*out_path);
     if (len > 0 &&

@@ -171,7 +171,7 @@ cdd_c_error_t cdd_reflect_lookup_type_opt(const char *name,
 #endif
   *out_ti = NULL;
   rc = cdd_reflect_type_by_name(name, out_ti);
-  if (rc == CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
     return rc;
   return CDD_C_SUCCESS;
 }

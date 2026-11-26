@@ -177,8 +177,13 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   if (p)
     *p = '\0';
 
+  rc = c_cdd_str_trim_trailing_whitespace(buf);
+  if (rc != CDD_C_SUCCESS) {
+    C_CDD_FREE(buf);
+    return rc;
+  }
   *_out_val = buf;
-  return c_cdd_str_trim_trailing_whitespace(buf);
+  return CDD_C_SUCCESS;
 }
 
 /*
